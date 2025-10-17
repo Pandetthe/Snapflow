@@ -1,0 +1,6 @@
+{
+    "$schema": "http://json.schemastore.org/ide.host",
+    "defaultItemExtension": "cs",
+    "itemHierarchyPaths": [ "Snapflow" ],
+    "icon": "ide/icon.png"
+}
