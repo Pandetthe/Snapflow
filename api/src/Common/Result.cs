@@ -32,7 +32,10 @@ public class Result
     public static Result<TValue> Failure<TValue>(Error error) =>
         new(default, false, error);
 
-    public static Result<TValue> ValidationFailure<TValue>(Error error) 
+    public static Result ValidationFailure(ValidationError error)
+    => new(false, error);
+
+    public static Result<TValue> ValidationFailure<TValue>(ValidationError error) 
         => new(default, false, error);
 }
 

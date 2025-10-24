@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Serilog.Context;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Common;
 
@@ -26,7 +27,10 @@ internal static class LoggingDecorator
             }
             else
             {
-                logger.LogError("Completed command {Command} with error", commandName);
+                using (LogContext.PushProperty("Error", result.Error, true))
+                {
+                    logger.LogError("Completed command {Query} with error", commandName);
+                }
             }
 
             return result;
@@ -53,8 +57,10 @@ internal static class LoggingDecorator
             }
             else
             {
-                logger.LogError("Completed command {Command} with error", commandName);
-                
+                using (LogContext.PushProperty("Error", result.Error, true))
+                {
+                    logger.LogError("Completed command {Query} with error", commandName);
+                }
             }
 
             return result;
@@ -81,10 +87,10 @@ internal static class LoggingDecorator
             }
             else
             {
-                //using (LogContext.PushProperty("Error", result.Error, true))
-                //{
-                //    logger.LogError("Completed query {Query} with error", queryName);
-                //}
+                using (LogContext.PushProperty("Error", result.Error, true))
+                {
+                    logger.LogError("Completed query {Query} with error", queryName);
+                }
             }
 
             return result;

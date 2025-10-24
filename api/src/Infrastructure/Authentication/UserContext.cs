@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Snapflow.Application.Abstractions.Authentication;
+using Snapflow.Application.Abstractions.Identity;
+using Snapflow.Domain.Users;
 
 namespace Snapflow.Infrastructure.Authentication;
 
@@ -15,4 +16,6 @@ internal sealed class UserContext : IUserContext
     public int UserId => _httpContextAccessor
         .HttpContext?.User.GetUserId()
         ?? throw new InvalidOperationException("User context is unavailable");
+
+    public IUser User => throw new NotImplementedException();
 }

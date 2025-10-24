@@ -17,14 +17,14 @@ public class List : Entity<int>
     public required string Title { get; set; }
     public required DateTimeOffset CreatedAt { get; set; }
     public required int CreatedById { get; set; }
-    public virtual User? CreatedBy { get; set; }
+    public virtual IUser? CreatedBy { get; set; }
 
     public DateTimeOffset? UpdatedAt { get; set; }
     public int? UpdatedById { get; set; }
-    public User? UpdatedBy { get; set; }
+    public IUser? UpdatedBy { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
     public int? DeletedById { get; set; }
-    public User? DeletedBy { get; set; }
+    public IUser? DeletedBy { get; set; }
     public bool IsDeleted { get; set; }
 
     public HashSet<Card> Cards { get; init; } = [];

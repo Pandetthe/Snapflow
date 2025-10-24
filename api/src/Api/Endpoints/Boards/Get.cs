@@ -20,7 +20,6 @@ internal sealed class Get : IEndpoint
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
-        .WithTags(Tags.Boards)
-        .RequireAuthorization();
+        .WithTags(Tags.Boards);
     }
 }

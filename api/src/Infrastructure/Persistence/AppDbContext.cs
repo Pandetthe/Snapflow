@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.BoardMembers;
@@ -12,15 +10,16 @@ using Snapflow.Domain.Swimlanes;
 using Snapflow.Domain.Tags;
 using Snapflow.Domain.Users;
 using Snapflow.Infrastructure.DomainEvents;
-using System.Security.Principal;
+using Snapflow.Infrastructure.Identity;
 
 namespace Snapflow.Infrastructure.Persistence;
 
 public sealed class AppDbContext(
         DbContextOptions<AppDbContext> options,
         IDomainEventsDispatcher domainEventsDispatcher) 
-    : IdentityDbContext<User, IdentityRole<int>, int>(options), IAppDbContext
+    : IdentityDbContext<AppUser, AppRole, int>(options), IAppDbContext
 {
+    IQueryable<IUser> IAppDbContext.Users => Set<AppUser>().AsQueryable().Cast<IUser>();
     public DbSet<Board> Boards { get; private set; }
     public DbSet<Swimlane> Swimlanes { get; private set; }
     public DbSet<List> Lists { get; private set; }

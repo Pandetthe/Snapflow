@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Snapflow.Application.Abstractions.Authentication;
+using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
@@ -11,12 +11,13 @@ namespace Snapflow.Application.Boards.Create;
 
 internal sealed class CreateBoardCommandHandler(
     IAppDbContext dbContext,
-    IUserContext userContext)
+    IUserContext userContext,
+    TimeProvider timeProvider)
     : ICommandHandler<CreateBoardCommand, int>
 {
     public async Task<Result<int>> Handle(CreateBoardCommand command, CancellationToken cancellationToken = default)
     {
-        User? user = await dbContext.Users.AsNoTracking()
+        IUser? user = await dbContext.Users.AsNoTracking()
             .SingleOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user is null)
             return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
@@ -25,7 +26,7 @@ internal sealed class CreateBoardCommandHandler(
             Title = command.Title,
             Description = command.Description,
             CreatedById = user.Id,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = timeProvider.GetUtcNow(),
             Members = [
                 new BoardMember
                 {

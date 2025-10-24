@@ -11,7 +11,7 @@ namespace Snapflow.Application.Abstractions.Persistence;
 
 public interface IAppDbContext
 {
-    DbSet<User> Users { get; }
+    IQueryable<IUser> Users { get; }
 
     DbSet<Board> Boards { get; }
 

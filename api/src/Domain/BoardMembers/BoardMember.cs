@@ -10,7 +10,7 @@ public class BoardMember : Entity<int>
     public virtual Board? Board { get; set; }
 
     public required int UserId { get; set; }
-    public virtual User? User { get; set; }
+    public virtual IUser? User { get; set; }
 
     public required BoardRole Role { get; set; }
 }

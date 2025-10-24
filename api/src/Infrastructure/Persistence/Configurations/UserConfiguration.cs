@@ -1,12 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Snapflow.Domain.Users;
+using Snapflow.Infrastructure.Identity;
 
 namespace Snapflow.Infrastructure.Persistence.Configurations;
 
-internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
+internal sealed class UserConfiguration : IEntityTypeConfiguration<AppUser>
 {
-    public void Configure(EntityTypeBuilder<User> builder)
+    public void Configure(EntityTypeBuilder<AppUser> builder)
     {
         builder.HasKey(u => u.Id);
 

@@ -23,15 +23,15 @@ public class Card : Entity<int>
 
     public required DateTimeOffset CreatedAt { get; set; }
     public required int CreatedById { get; set; }
-    public virtual User? CreatedBy { get; set; }
+    public virtual IUser? CreatedBy { get; set; }
 
     public DateTimeOffset? UpdatedAt { get; set; }
     public int? UpdatedById { get; set; }
-    public virtual User? UpdatedBy { get; set; }
+    public virtual IUser? UpdatedBy { get; set; }
 
     public DateTimeOffset? DeletedAt { get; set; }
     public int? DeletedById { get; set; }
-    public virtual User? DeletedBy { get; set; }
+    public virtual IUser? DeletedBy { get; set; }
     public bool IsDeleted { get; set; }
 
     public virtual HashSet<Tag>? Tags { get; set; }

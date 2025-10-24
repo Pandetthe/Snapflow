@@ -1,18 +1,17 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
-using Snapflow.Application.Abstractions.Authentication;
+using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Persistence;
-using Snapflow.Domain.Users;
 using Snapflow.Infrastructure.Authentication;
 using Snapflow.Infrastructure.Authorization;
 using Snapflow.Infrastructure.DomainEvents;
+using Snapflow.Infrastructure.Identity;
+using Snapflow.Infrastructure.Mailing;
 using Snapflow.Infrastructure.Persistence;
-using System.Text;
 
 namespace Snapflow.Infrastructure;
 
@@ -24,18 +23,18 @@ public static class DependencyInjection
             .AddDatabase(configuration)
             .AddHealthChecks(configuration)
             .AddIdentityInternal()
-            .AddServices();
+            .AddServices()
+            .AddAuthorizationInternal()
+            .AddHttpContextAccessor();
         services.AddHttpContextAccessor();
         services.AddScoped<IUserContext, UserContext>();
-        services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
-        services.AddSingleton<ITokenProvider, TokenProvider>();
         return services;
     }
 
     private static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
         string? connectionString = configuration.GetConnectionString("Database");
-        services.AddDbContext<AppDbContext>(
+        services.AddDbContext<IAppDbContext, AppDbContext>(
             options => options
                 .UseNpgsql(connectionString, npgsqlOptions =>
                 {
@@ -43,12 +42,6 @@ public static class DependencyInjection
                     npgsqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
                 })
                 .UseSnakeCaseNamingConvention());
-
-        services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
-        services.AddAuthentication()
-            .AddBearerToken(IdentityConstants.BearerScheme);
-
-        services.AddAuthorizationBuilder();
         return services;
     }
 
@@ -63,39 +56,25 @@ public static class DependencyInjection
 
     private static IServiceCollection AddIdentityInternal(this IServiceCollection services)
     {
-        services.AddIdentityCore<User>()
-            .AddRoles<IdentityRole<int>>()
+        services.AddIdentity<AppUser, AppRole>(options =>
+        {
+            options.User.RequireUniqueEmail = true;
+            options.SignIn.RequireConfirmedEmail = true;
+            options.Password.RequiredLength = Domain.Users.UserOptions.MinPasswordLength;
+            options.Password.RequireLowercase = Domain.Users.UserOptions.RequireLowercaseInPassword;
+            options.Password.RequireUppercase = Domain.Users.UserOptions.RequireUppercaseInPassword;
+            options.Password.RequireDigit = Domain.Users.UserOptions.RequireDigitInPassword;
+            options.Password.RequireNonAlphanumeric = Domain.Users.UserOptions.RequireNonAlphanumeric;
+        })
+            .AddSignInManager()
             .AddEntityFrameworkStores<AppDbContext>()
-            .AddDefaultTokenProviders()
-            .AddApiEndpoints();
-        return services;
-    }
-
-    private static IServiceCollection AddAuthenticationInternal(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(o =>
-            {
-                o.RequireHttpsMetadata = false;
-                o.TokenValidationParameters = new TokenValidationParameters
-                {
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!)),
-                    ValidIssuer = configuration["Jwt:Issuer"],
-                    ValidAudience = configuration["Jwt:Audience"],
-                    ClockSkew = TimeSpan.Zero,
-                    ValidateLifetime = true, 
-                    ValidateIssuerSigningKey = true,
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    RequireExpirationTime = true
-                };
-            });
-
-        services.AddHttpContextAccessor();
-        services.AddScoped<IUserContext, UserContext>();
-        services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
-        services.AddSingleton<ITokenProvider, TokenProvider>();
-
+            .AddDefaultTokenProviders();
+        services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
+        services.AddAuthorizationBuilder();
+        services.AddScoped<IUserManager, AppUserManager>();
+        services.AddScoped<ISignInManager, AppSignInManager>();
+        services.AddScoped<IRefreshTokenValidator, AppRefreshTokenValidator>();
+        services.AddScoped<IEmailSender<AppUser>, MailingProvider>();
         return services;
     }
 

@@ -33,26 +33,19 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
                         .HasColumnType("text")
                         .HasColumnName("concurrency_stamp");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)")
+                        .HasColumnType("text")
                         .HasColumnName("name");
 
                     b.Property<string>("NormalizedName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)")
+                        .HasColumnType("text")
                         .HasColumnName("normalized_name");
 
                     b.HasKey("Id")
                         .HasName("pk_roles");
-
-                    b.HasIndex("NormalizedName")
-                        .IsUnique()
-                        .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("roles", "public");
                 });
@@ -541,7 +534,41 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.ToTable("tags", "public");
                 });
 
-            modelBuilder.Entity("Snapflow.Domain.Users.User", b =>
+            modelBuilder.Entity("Snapflow.Infrastructure.Identity.AppRole", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text")
+                        .HasColumnName("concurrency_stamp");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("normalized_name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_asp_net_roles");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
+
+                    b.ToTable("AspNetRoles", "public");
+                });
+
+            modelBuilder.Entity("Snapflow.Infrastructure.Identity.AppUser", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -630,7 +657,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -640,7 +667,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
                 {
-                    b.HasOne("Snapflow.Domain.Users.User", null)
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -650,7 +677,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
                 {
-                    b.HasOne("Snapflow.Domain.Users.User", null)
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -660,14 +687,14 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_user_roles_roles_role_id");
+                        .HasConstraintName("fk_user_roles_asp_net_roles_role_id");
 
-                    b.HasOne("Snapflow.Domain.Users.User", null)
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -677,7 +704,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
                 {
-                    b.HasOne("Snapflow.Domain.Users.User", null)
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -694,12 +721,12 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_members_boards_board_id");
 
-                    b.HasOne("Snapflow.Domain.Users.User", "User")
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_members_users_user_id");
+                        .HasConstraintName("fk_members_asp_net_users_user_id");
 
                     b.Navigation("Board");
 
@@ -708,22 +735,24 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Snapflow.Domain.Boards.Board", b =>
                 {
-                    b.HasOne("Snapflow.Domain.Users.User", "CreatedBy")
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_boards_users_created_by_id");
+                        .HasConstraintName("fk_boards_asp_net_users_created_by_id");
 
-                    b.HasOne("Snapflow.Domain.Users.User", "DeletedBy")
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", "DeletedBy")
                         .WithMany()
                         .HasForeignKey("DeletedById")
-                        .HasConstraintName("fk_boards_users_deleted_by_id");
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_boards_asp_net_users_deleted_by_id");
 
-                    b.HasOne("Snapflow.Domain.Users.User", "UpdatedBy")
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById")
-                        .HasConstraintName("fk_boards_users_updated_by_id");
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_boards_asp_net_users_updated_by_id");
 
                     b.Navigation("CreatedBy");
 
@@ -741,17 +770,18 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_cards_boards_board_id");
 
-                    b.HasOne("Snapflow.Domain.Users.User", "CreatedBy")
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_cards_users_created_by_id");
+                        .HasConstraintName("fk_cards_asp_net_users_created_by_id");
 
-                    b.HasOne("Snapflow.Domain.Users.User", "DeletedBy")
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", "DeletedBy")
                         .WithMany()
                         .HasForeignKey("DeletedById")
-                        .HasConstraintName("fk_cards_users_deleted_by_id");
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_cards_asp_net_users_deleted_by_id");
 
                     b.HasOne("Snapflow.Domain.Lists.List", "List")
                         .WithMany("Cards")
@@ -767,10 +797,11 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_cards_swimlanes_swimlane_id");
 
-                    b.HasOne("Snapflow.Domain.Users.User", "UpdatedBy")
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById")
-                        .HasConstraintName("fk_cards_users_updated_by_id");
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_cards_asp_net_users_updated_by_id");
 
                     b.Navigation("Board");
 
@@ -794,17 +825,18 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_lists_boards_board_id");
 
-                    b.HasOne("Snapflow.Domain.Users.User", "CreatedBy")
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_lists_users_created_by_id");
+                        .HasConstraintName("fk_lists_asp_net_users_created_by_id");
 
-                    b.HasOne("Snapflow.Domain.Users.User", "DeletedBy")
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", "DeletedBy")
                         .WithMany()
                         .HasForeignKey("DeletedById")
-                        .HasConstraintName("fk_lists_users_deleted_by_id");
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_lists_asp_net_users_deleted_by_id");
 
                     b.HasOne("Snapflow.Domain.Swimlanes.Swimlane", "Swimlane")
                         .WithMany("Lists")
@@ -813,10 +845,11 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_lists_swimlanes_swimlane_id");
 
-                    b.HasOne("Snapflow.Domain.Users.User", "UpdatedBy")
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById")
-                        .HasConstraintName("fk_lists_users_updated_by_id");
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_lists_asp_net_users_updated_by_id");
 
                     b.Navigation("Board");
 
@@ -838,24 +871,24 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_swimlanes_boards_board_id");
 
-                    b.HasOne("Snapflow.Domain.Users.User", "CreatedBy")
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_swimlanes_users_created_by_id");
+                        .HasConstraintName("fk_swimlanes_asp_net_users_created_by_id");
 
-                    b.HasOne("Snapflow.Domain.Users.User", "DeletedBy")
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", "DeletedBy")
                         .WithMany()
                         .HasForeignKey("DeletedById")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_swimlanes_users_deleted_by_id");
+                        .HasConstraintName("fk_swimlanes_asp_net_users_deleted_by_id");
 
-                    b.HasOne("Snapflow.Domain.Users.User", "UpdatedBy")
+                    b.HasOne("Snapflow.Infrastructure.Identity.AppUser", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_swimlanes_users_updated_by_id");
+                        .HasConstraintName("fk_swimlanes_asp_net_users_updated_by_id");
 
                     b.Navigation("Board");
 

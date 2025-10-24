@@ -15,13 +15,13 @@ public class Swimlane : Entity<int>
 
     public required DateTimeOffset CreatedAt { get; set; }
     public required int CreatedById { get; set; }
-    public User? CreatedBy { get; set; }
+    public IUser? CreatedBy { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
     public int? UpdatedById { get; set; }
-    public User? UpdatedBy { get; set; }
+    public IUser? UpdatedBy { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
     public int? DeletedById { get; set; }
-    public User? DeletedBy { get; set; }
+    public IUser? DeletedBy { get; set; }
     public bool IsDeleted { get; set; }
 
     public HashSet<List>? Lists { get; set; }
