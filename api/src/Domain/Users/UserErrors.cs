@@ -20,19 +20,19 @@ public static class UserErrors
         "Users.NotFoundByEmail",
         "The user with the specified email was not found.");
 
-    public static readonly Error SignInFailed = Error.Failure(
+    public static readonly Error SignInFailed = Error.Unauthorized(
         "Users.SignIn.Failed",
         "The sign-in attempt failed.");
 
-    public static readonly Error SignInLockedOut = Error.Failure(
+    public static readonly Error SignInLockedOut = Error.Unauthorized(
         "Users.SignIn.LockedOut",
         "The user attempting to sign-in is locked out.");
 
-    public static readonly Error SignInNotAllowed = Error.Failure(
+    public static readonly Error SignInNotAllowed = Error.Unauthorized(
         "Users.SignIn.NotAllowed",
         "The user attempting to sign-in is not allowed to sign-in.");
 
-    public static readonly Error SignInTwoFactorRequired = Error.Failure(
+    public static readonly Error SignInTwoFactorRequired = Error.Unauthorized(
         "Users.SignIn.TwoFactorRequired",
         "The user attempting to sign-in requires two-factor authentication.");
 }

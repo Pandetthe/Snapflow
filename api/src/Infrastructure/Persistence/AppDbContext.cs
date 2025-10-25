@@ -10,7 +10,7 @@ using Snapflow.Domain.Swimlanes;
 using Snapflow.Domain.Tags;
 using Snapflow.Domain.Users;
 using Snapflow.Infrastructure.DomainEvents;
-using Snapflow.Infrastructure.Identity;
+using Snapflow.Infrastructure.Identity.Entities;
 
 namespace Snapflow.Infrastructure.Persistence;
 

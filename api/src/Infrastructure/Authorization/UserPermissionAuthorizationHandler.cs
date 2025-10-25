@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
-using Snapflow.Infrastructure.Authentication;
+using Snapflow.Application.Abstractions.Identity;
 
 namespace Snapflow.Infrastructure.Authorization;
 
-internal sealed class UserPermissionAuthorizationHandler(IServiceScopeFactory serviceScopeFactory)
-    : AuthorizationHandler<UserPermissionRequirement>
+internal sealed class UserPermissionAuthorizationHandler(
+    IServiceScopeFactory serviceScopeFactory,
+    IUserContext userContext) : AuthorizationHandler<UserPermissionRequirement>
 {
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
@@ -18,7 +19,7 @@ internal sealed class UserPermissionAuthorizationHandler(IServiceScopeFactory se
 
         PermissionProvider permissionProvider = scope.ServiceProvider.GetRequiredService<PermissionProvider>();
 
-        int userId = context.User.GetUserId();
+        int userId = userContext.UserId;
 
         HashSet<string> permissions = await permissionProvider.GetForUserIdAsync(userId);
 

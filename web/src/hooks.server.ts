@@ -10,56 +10,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (pathname.startsWith('/api')) {
 		return resolve(event);
 	}
-	let accessToken = event.cookies.get('access_token');
-	let refreshToken = event.cookies.get('refresh_token');
-	if (!accessToken && refreshToken) {
-        try {
-            const res = await fetch(`${env.PUBLIC_API_SERVER}/auth/refresh`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refreshToken: refreshToken } as RefreshRequest)
-            });
-            if (res.ok) {
-                const data = await res.json() as AuthResponse;
-                accessToken = data.accessToken;
-                refreshToken = data.refreshToken;
-                event.cookies.set('access_token', accessToken, {
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: 'strict',
-                    maxAge: data.accessTokenExpiresIn,
-                    path: '/',
-                });
-            
-                event.cookies.set('refresh_token', refreshToken, {
-                    httpOnly: true, 
-                    secure: true, 
-                    sameSite: 'strict', 
-                    maxAge: data.refreshTokenExpiresIn,
-                    path: '/',
-                });
-            }
-            if (res.status === 401) {
-                event.cookies.delete('access_token', {
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: 'strict',
-                    path: '/',
-                });
-                event.cookies.delete('refresh_token', {
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: 'strict',
-                    path: '/',
-                });
-                accessToken = undefined;
-                refreshToken = undefined;
-            }
-        } catch (error) {
-            console.error('Error refreshing token:', error);
-        }
-
-	}
+	let accessToken = event.cookies.get('Snapflow.Auth.Cookie');
 	event.locals.isAuthenticated = !!accessToken;
     if (event.locals.isAuthenticated && UNAUTH_ONLY_ROUTES.includes(pathname)) {
 		return Response.redirect(`${origin}/`, 303);

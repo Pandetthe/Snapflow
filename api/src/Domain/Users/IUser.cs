@@ -4,7 +4,7 @@ namespace Snapflow.Domain.Users;
 
 public interface IUser : IEntity<int>
 {
-    string? UserName { get; }
+    string UserName { get; }
 
-    string? Email { get; }
+    string Email { get; }
 }

@@ -1,8 +1,8 @@
-﻿using Snapflow.Domain.Users;
-
-namespace Snapflow.Application.Abstractions.Identity;
+﻿namespace Snapflow.Application.Abstractions.Identity;
 
 public interface IEmailSender
 {
-    Task SendPasswordResetCodeAsync(IUser user, string email, string code);
+    Task SendPasswordResetCodeAsync(string email, string code);
+
+    Task SendConfirmationLinkAsync(int userId, string email, string code);
 }

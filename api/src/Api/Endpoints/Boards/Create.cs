@@ -7,12 +7,7 @@ namespace Snapflow.Api.Endpoints.Boards;
 
 internal sealed class Create : IEndpoint
 {
-    public sealed class Request
-    {
-        public required string Title { get; init; }
-
-        public string Description { get; init; } = "";
-    }
+    public sealed record Request(string Title, string Description);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -22,16 +17,16 @@ internal sealed class Create : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var command = new CreateBoardCommand
-            { 
-                Title = request.Title, 
-                Description = request.Description 
+            {
+                Title = request.Title,
+                Description = request.Description
             };
 
             Result<int> result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
-        .WithTags(Tags.Boards)
-        .RequireAuthorization();
+        .RequireAuthorization()
+        .WithTags(Tags.Boards);
     }
 }

@@ -5,7 +5,8 @@ using Snapflow.Common;
 namespace Snapflow.Application.Auth.ForgotPassword;
 
 internal sealed class ForgotPasswordCommandHandler(
-    IUserManager userManager) : ICommandHandler<ForgotPasswordCommand>
+    IUserManager userManager,
+    IEmailSender emailSender) : ICommandHandler<ForgotPasswordCommand>
 {
     public async Task<Result> Handle(ForgotPasswordCommand command, CancellationToken cancellationToken = default)
     {
@@ -15,7 +16,7 @@ internal sealed class ForgotPasswordCommandHandler(
         {
             var code = await userManager.GeneratePasswordResetTokenAsync(user);
 
-            //await emailSender.SendPasswordResetCodeAsync(user, command.Email, code);
+            await emailSender.SendPasswordResetCodeAsync(command.Email, code);
         }
 
         // Don't reveal that the user does not exist or is not confirmed, so don't return a 200 if we would have

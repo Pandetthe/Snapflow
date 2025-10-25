@@ -15,15 +15,15 @@ internal sealed class GetBoardsQueryHandler(
     {
         var boards = await dbContext.Boards
             .Include(b => b.Members)
+            .Include(b => b.CreatedBy)
+            .Include(b => b.UpdatedBy)
             .Where(b => !b.IsDeleted && 
                 b.Members!.Any(x => x.UserId == userContext.UserId) && (query.Title == null || 
                 EF.Functions.ToTsVector("english", b.Title).Matches(EF.Functions.PhraseToTsQuery("english", query.Title))))
-            .Select(x => new BoardResponse
-            {
-                Id = x.Id,
-                Title = x.Title,
-                Description = x.Description
-            })
+            .Select(b => new BoardResponse(
+                b.Id, b.Title, b.Description, 
+                b.CreatedAt, new User(b.CreatedBy.Id, b.CreatedBy.UserName), 
+                b.UpdatedAt, b.UpdatedBy == null ? null : new User(b.UpdatedBy.Id, b.UpdatedBy.UserName)))
             .ToListAsync(cancellationToken);
         return Result.Success(boards);
     }

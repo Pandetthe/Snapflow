@@ -20,8 +20,18 @@ public static class Program
 
         builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
         builder.Services.AddOpenApi();
-
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            });
+        });
         WebApplication app = builder.Build();
+
+        app.UseCors("AllowAll");
 
         app.MapEndpoints();
 

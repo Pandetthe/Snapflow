@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.BearerToken;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -6,10 +7,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Persistence;
-using Snapflow.Infrastructure.Authentication;
 using Snapflow.Infrastructure.Authorization;
 using Snapflow.Infrastructure.DomainEvents;
 using Snapflow.Infrastructure.Identity;
+using Snapflow.Infrastructure.Identity.Entities;
 using Snapflow.Infrastructure.Mailing;
 using Snapflow.Infrastructure.Persistence;
 
@@ -27,7 +28,7 @@ public static class DependencyInjection
             .AddAuthorizationInternal()
             .AddHttpContextAccessor();
         services.AddHttpContextAccessor();
-        services.AddScoped<IUserContext, UserContext>();
+        services.AddScoped<IUserContext, AppUserContext>();
         return services;
     }
 
@@ -69,12 +70,18 @@ public static class DependencyInjection
             .AddSignInManager()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
+        services.ConfigureApplicationCookie(options =>
+        {
+            options.Cookie.Name = "Snapflow.Auth.Cookie";
+            options.Cookie.HttpOnly = true;
+        });
         services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
         services.AddAuthorizationBuilder();
         services.AddScoped<IUserManager, AppUserManager>();
         services.AddScoped<ISignInManager, AppSignInManager>();
         services.AddScoped<IRefreshTokenValidator, AppRefreshTokenValidator>();
-        services.AddScoped<IEmailSender<AppUser>, MailingProvider>();
+        services.AddScoped<IUserContext, AppUserContext>();
+        services.AddScoped<IEmailSender, MailingProvider>();
         return services;
     }
 

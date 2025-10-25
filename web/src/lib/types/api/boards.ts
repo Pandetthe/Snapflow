@@ -10,21 +10,30 @@ export type UpdateBoardRequest = Omit<Board, 'id' | 'createdAt' | 'updatedAt'>;
 export interface Board {
     id: string;
     title: string;
-    members: Member[];
+    description: string;
     createdAt: Date;
+    createdBy: BoardUser;
     updatedAt: Date;
+    updatedBy: BoardUser;
 }
 
 export interface DetailedBoard extends Board {
     swimlanes: DetailedSwimlane[];
 }
 
+export interface BoardUser {
+    id: string;
+    userName: string;
+}
+
 export interface BoardResponse {
     id: string;
     title: string;
-    members: MemberResponse[];
+    description: string;
     createdAt: string;
+    createdBy: BoardUser;
     updatedAt: string;
+    updatedBy: BoardUser;
 }
 
 export function parseBoard(raw: BoardResponse): Board {

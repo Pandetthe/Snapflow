@@ -6,5 +6,9 @@ public interface IUserContext
 {
     int UserId { get; }
 
-    IUser User { get; }
+    string UserName { get; }
+
+    Task<IUser> GetUserAsync();
+
+    bool IsAuthenticated { get; }
 }

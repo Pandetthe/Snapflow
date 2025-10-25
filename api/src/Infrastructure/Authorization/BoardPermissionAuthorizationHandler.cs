@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Snapflow.Infrastructure.Authentication;
+using Snapflow.Application.Abstractions.Identity;
 
 namespace Snapflow.Infrastructure.Authorization;
 
-internal sealed class BoardPermissionAuthorizationHandler(IServiceScopeFactory serviceScopeFactory)
-    : AuthorizationHandler<BoardPermissionRequirement>
+internal sealed class BoardPermissionAuthorizationHandler(
+    IServiceScopeFactory serviceScopeFactory,
+    IUserContext userContext) : AuthorizationHandler<BoardPermissionRequirement>
 {
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
@@ -24,7 +25,7 @@ internal sealed class BoardPermissionAuthorizationHandler(IServiceScopeFactory s
 
         PermissionProvider permissionProvider = scope.ServiceProvider.GetRequiredService<PermissionProvider>();
 
-        int userId = context.User.GetUserId();
+        int userId = userContext.UserId;
 
         HashSet<string> permissions = await permissionProvider.GetForUserIdAsync(userId, boardId);
 

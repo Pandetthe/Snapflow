@@ -24,4 +24,6 @@ public interface IUserManager
     Task<bool> IsEmailConfirmedAsync(IUser user);
 
     Task<string> GeneratePasswordResetTokenAsync(IUser user);
+
+    Task<Result> ResetPasswordAsync(IUser user, string code, string newPassword);
 }

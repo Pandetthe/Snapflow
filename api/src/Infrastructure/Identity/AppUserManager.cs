@@ -2,6 +2,7 @@
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Common;
 using Snapflow.Domain.Users;
+using Snapflow.Infrastructure.Identity.Entities;
 using System.Globalization;
 
 namespace Snapflow.Infrastructure.Identity;
@@ -34,7 +35,7 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
         var result = await userManager.CreateAsync(user, password);
         if (!result.Succeeded)
         {
-            Error[] errors = result.Errors.Select(e => new Error(e.Code, e.Description, ErrorType.Validation)).ToArray();
+            PropertyValidationError[] errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
             return Result.ValidationFailure<IUser>(new ValidationError(errors));
         }
         return Result.Success<IUser>(user);
@@ -51,7 +52,7 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
         var result = await userManager.ConfirmEmailAsync(EnsureIsAppUser(user), token);
         if (!result.Succeeded)
         {
-            Error[] errors = result.Errors.Select(e => new Error(e.Code, e.Description, ErrorType.Validation)).ToArray();
+            PropertyValidationError[] errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
             return Result.ValidationFailure<IUser>(new ValidationError(errors));
         }
         return Result.Success();
@@ -62,7 +63,7 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
         var result = await userManager.ChangeEmailAsync(EnsureIsAppUser(user), newEmail, token);
         if (!result.Succeeded)
         {
-            Error[] errors = result.Errors.Select(e => new Error(e.Code, e.Description, ErrorType.Validation)).ToArray();
+            PropertyValidationError[] errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
             return Result.ValidationFailure<IUser>(new ValidationError(errors));
         }
         return Result.Success();
@@ -73,4 +74,15 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
 
     public Task<string> GeneratePasswordResetTokenAsync(IUser user) =>
         userManager.GeneratePasswordResetTokenAsync(EnsureIsAppUser(user));
+
+    public async Task<Result> ResetPasswordAsync(IUser user, string code, string newPassword)
+    {
+        var result = await userManager.ResetPasswordAsync(EnsureIsAppUser(user), code, newPassword);
+        if (!result.Succeeded)
+        {
+            PropertyValidationError[] errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
+            return Result.ValidationFailure<IUser>(new ValidationError(errors));
+        }
+        return Result.Success();
+    }
 }

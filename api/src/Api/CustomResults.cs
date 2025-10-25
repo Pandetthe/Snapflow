@@ -7,9 +7,7 @@ public static class CustomResults
     public static IResult Problem(Result result)
     {
         if (result.IsSuccess)
-        {
-            throw new InvalidOperationException();
-        }
+            throw new InvalidOperationException("Cannot create a problem result for a successful operation.");
 
         return Results.Problem(
             title: GetTitle(result.Error),
@@ -64,9 +62,7 @@ public static class CustomResults
         static Dictionary<string, object?>? GetErrors(Result result)
         {
             if (result.Error is not ValidationError validationError)
-            {
                 return null;
-            }
 
             return new Dictionary<string, object?>
             {

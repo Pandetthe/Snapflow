@@ -37,11 +37,6 @@
 	<div class="card-body">
 		<div class="card-title flex justify-between items-center">
 			{board.title}
-			<div class="flex -space-x-2">
-				{#each board.members.filter(x => x.isActive && x.userId !== me.id) as member (member.userId)}
-        <ProfileIcon user={member} noTooltip={false}/>
-				{/each}
-			</div>
 			{#if editEnabled}
       <button class="btn btn-ghost z-10 w-10 p-0" onclick={showPopup}>
         <Menu />

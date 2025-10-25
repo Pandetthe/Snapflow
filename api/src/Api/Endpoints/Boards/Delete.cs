@@ -20,7 +20,7 @@ internal sealed class Delete : IEndpoint
 
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
-        .WithTags(Tags.Boards)
-        .RequireAuthorization("Board:Delete");
+        .RequireAuthorization("Board:Delete")
+        .WithTags(Tags.Boards); 
     }
 }

@@ -2,17 +2,16 @@
 
 public sealed record ValidationError : Error
 {
-    public ValidationError(Error[] errors)
+    public ValidationError(PropertyValidationError[] propertyValidationErrors)
         : base(
             "Validation.General",
-            "One or more validation errors occurred",
+            "One or more validation errors occurred.",
             ErrorType.Validation)
     {
-        Errors = errors;
+        Errors = propertyValidationErrors;
     }
 
-    public Error[] Errors { get; }
-
-    public static ValidationError FromResults(IEnumerable<Result> results) =>
-        new(results.Where(r => r.IsFailure).Select(r => r.Error).ToArray());
+    public PropertyValidationError[] Errors { get; }
 }
+
+public sealed record PropertyValidationError(string? PropertyName, string Code, string Description);

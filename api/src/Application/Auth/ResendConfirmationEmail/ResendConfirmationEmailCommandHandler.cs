@@ -1,12 +1,12 @@
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Common;
-using System.Text;
 
 namespace Snapflow.Application.Auth.ResendConfirmationEmail;
 
 internal sealed class ResendConfirmationEmailCommandHandler(
-    IUserManager userManager)
+    IUserManager userManager,
+    IEmailSender emailSender)
     : ICommandHandler<ResendConfirmationEmailCommand>
 {
     public async Task<Result> Handle(ResendConfirmationEmailCommand command, CancellationToken cancellationToken = default)
@@ -15,16 +15,7 @@ internal sealed class ResendConfirmationEmailCommandHandler(
             return Result.Success();
 
         var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
-        //code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        //var userId = await userManager.GetUserIdAsync(user);
-        //var routeValues = new RouteValueDictionary()
-        //{
-        //    ["userId"] = userId,
-        //    ["code"] = code,
-        //};
-        //var confirmEmailUrl = linkGenerator.GetUriByName(command.Context, "ConfirmEmail-auth/confirm-email", routeValues)
-        //        ?? throw new NotSupportedException($"Could not find endpoint named 'ConfirmEmail-auth/confirm-email'.");
-        //await emailSender.SendConfirmationLinkAsync(user, command.Email, confirmEmailUrl);
+        await emailSender.SendConfirmationLinkAsync(user.Id, command.Email, code);
         return Result.Success();
     }
 }

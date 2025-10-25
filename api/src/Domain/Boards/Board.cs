@@ -15,7 +15,7 @@ public class Board : Entity<int>
 
     public required DateTimeOffset CreatedAt { get; set; }
     public required int CreatedById { get; set; }
-    public virtual IUser? CreatedBy { get; set; }
+    public virtual IUser CreatedBy { get; set; } = null!;
 
     public DateTimeOffset? UpdatedAt { get; set; }
     public int? UpdatedById { get; set; }

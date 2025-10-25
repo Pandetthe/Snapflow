@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Domain.Users;
+using Snapflow.Infrastructure.Identity.Entities;
 using System.Security.Claims;
 
 namespace Snapflow.Infrastructure.Identity;

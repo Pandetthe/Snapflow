@@ -1,14 +1,25 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Snapflow.Domain.Users;
-using Snapflow.Infrastructure.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Snapflow.Application.Abstractions.Identity;
 using System.Net.Mail;
 
 namespace Snapflow.Infrastructure.Mailing;
 
-internal sealed class MailingProvider : IEmailSender<AppUser>
+internal sealed class MailingProvider(
+    LinkGenerator linkGenerator,
+    IHttpContextAccessor httpContextAccessor) : IEmailSender
 {
-    public async Task SendConfirmationLinkAsync(AppUser user, string email, string confirmationLink)
+    public async Task SendConfirmationLinkAsync(int userId, string email, string code)
     {
+        if (httpContextAccessor.HttpContext is not { } httpContext)
+            throw new InvalidOperationException("No http context available.");
+        var routeValues = new RouteValueDictionary()
+        {
+            ["userId"] = userId,
+            ["code"] = code,
+        };
+        var confirmEmailUrl = linkGenerator.GetUriByName(httpContext, "ConfirmEmail-auth/confirm-email", routeValues)
+                ?? throw new NotSupportedException($"Could not find endpoint named 'ConfirmEmail-auth/confirm-email'.");
         SmtpClient smtpClient = new SmtpClient("smtp.example.com")
         {
             Port = 1025,
@@ -19,13 +30,13 @@ internal sealed class MailingProvider : IEmailSender<AppUser>
         {
             From = new MailAddress("noreply@snapflow.com"),
             Subject = "Confirm your email",
-            Body = $"Please confirm your email by clicking on the following link: {confirmationLink}",
+            Body = $"Please confirm your email by clicking on the following link: {confirmEmailUrl}",
         };
         mailMessage.To.Add(email);
         await smtpClient.SendMailAsync(mailMessage);
     }
 
-    public async Task SendPasswordResetCodeAsync(AppUser user, string email, string resetCode)
+    public async Task SendPasswordResetCodeAsync(string email, string code)
     {
         SmtpClient smtpClient = new SmtpClient("smtp.example.com")
         {
@@ -36,15 +47,10 @@ internal sealed class MailingProvider : IEmailSender<AppUser>
         MailMessage mailMessage = new MailMessage
         {
             From = new MailAddress("noreply@snapflow.com"),
-            Subject = "Reset password",
-            Body = $"Please reset your password with the following code: {resetCode}",
+            Subject = "Reset password code",
+            Body = $"Here is password reset code: {code}",
         };
         mailMessage.To.Add(email);
         await smtpClient.SendMailAsync(mailMessage);
-    }
-
-    public Task SendPasswordResetLinkAsync(AppUser user, string email, string resetLink)
-    {
-        throw new NotImplementedException();
     }
 }
