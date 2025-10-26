@@ -6,10 +6,10 @@ namespace Snapflow.Domain.BoardMembers;
 
 public class BoardMember : Entity<int>
 {
-    public required int BoardId { get; set; }
+    public int BoardId { get; set; }
     public virtual Board? Board { get; set; }
 
-    public required int UserId { get; set; }
+    public int UserId { get; set; }
     public virtual IUser? User { get; set; }
 
     public required BoardRole Role { get; set; }

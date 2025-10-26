@@ -1,4 +1,5 @@
-﻿using Snapflow.Api.Exceptions;
+﻿using Microsoft.AspNetCore.SignalR;
+using Snapflow.Api.Exceptions;
 
 namespace Snapflow.Api;
 
@@ -9,6 +10,11 @@ public static class DependencyInjection
         services.AddEndpointsApiExplorer();
 
         services.AddExceptionHandler<GlobalExceptionHandler>();
+        services.AddSignalR(options =>
+        {
+            options.AddFilter<GlobalHubExceptionFilter>();
+        });
+
         services.AddProblemDetails();
 
         return services;

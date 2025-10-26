@@ -2,9 +2,4 @@
 
 namespace Snapflow.Application.Boards.Create;
 
-public sealed record CreateBoardCommand() : ICommand<int>
-{
-    public required string Title { get; init; }
-
-    public string Description { get; init; } = "";
-}
+public sealed record CreateBoardCommand(string Title, string Description) : ICommand<int>;

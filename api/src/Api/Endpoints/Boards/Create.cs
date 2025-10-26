@@ -16,11 +16,7 @@ internal sealed class Create : IEndpoint
             ICommandHandler<CreateBoardCommand, int> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new CreateBoardCommand
-            {
-                Title = request.Title,
-                Description = request.Description
-            };
+            var command = new CreateBoardCommand(request.Title, request.Description);
 
             Result<int> result = await handler.Handle(command, cancellationToken);
 

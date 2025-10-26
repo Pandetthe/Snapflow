@@ -11,7 +11,6 @@ using Snapflow.Infrastructure.Authorization;
 using Snapflow.Infrastructure.DomainEvents;
 using Snapflow.Infrastructure.Identity;
 using Snapflow.Infrastructure.Identity.Entities;
-using Snapflow.Infrastructure.Mailing;
 using Snapflow.Infrastructure.Persistence;
 
 namespace Snapflow.Infrastructure;
@@ -81,7 +80,7 @@ public static class DependencyInjection
         services.AddScoped<ISignInManager, AppSignInManager>();
         services.AddScoped<IRefreshTokenValidator, AppRefreshTokenValidator>();
         services.AddScoped<IUserContext, AppUserContext>();
-        services.AddScoped<IEmailSender, MailingProvider>();
+        services.AddScoped<IAuthEmailSender, AuthEmailSender>();
         return services;
     }
 

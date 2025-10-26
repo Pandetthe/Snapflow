@@ -6,7 +6,7 @@ namespace Snapflow.Application.Auth.ResendConfirmationEmail;
 
 internal sealed class ResendConfirmationEmailCommandHandler(
     IUserManager userManager,
-    IEmailSender emailSender)
+    IAuthEmailSender emailSender)
     : ICommandHandler<ResendConfirmationEmailCommand>
 {
     public async Task<Result> Handle(ResendConfirmationEmailCommand command, CancellationToken cancellationToken = default)

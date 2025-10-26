@@ -6,7 +6,7 @@ namespace Snapflow.Application.Auth.SignUp;
 
 internal sealed class SignUpCommandHandler(
     IUserManager userManager,
-    IEmailSender emailSender)
+    IAuthEmailSender emailSender)
     : ICommandHandler<SignUpCommand>
 {
     public async Task<Result> Handle(SignUpCommand command, CancellationToken cancellationToken = default)

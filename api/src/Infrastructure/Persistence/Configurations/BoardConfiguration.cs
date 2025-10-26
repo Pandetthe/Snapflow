@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Snapflow.Domain.Boards;
-using Snapflow.Domain.Cards;
 using Snapflow.Infrastructure.Identity.Entities;
 
 namespace Snapflow.Infrastructure.Persistence.Configurations;

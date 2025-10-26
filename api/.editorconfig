@@ -41,7 +41,7 @@ csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
 dotnet_diagnostic.CA1515.severity = none
 
 # Xml files
-[*.{xml,csproj}]
+[*.{xml,csproj,props}]
 indent_size = 2
 
 [*.{cs,vb}]

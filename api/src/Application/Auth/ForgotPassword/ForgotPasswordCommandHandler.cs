@@ -6,7 +6,7 @@ namespace Snapflow.Application.Auth.ForgotPassword;
 
 internal sealed class ForgotPasswordCommandHandler(
     IUserManager userManager,
-    IEmailSender emailSender) : ICommandHandler<ForgotPasswordCommand>
+    IAuthEmailSender emailSender) : ICommandHandler<ForgotPasswordCommand>
 {
     public async Task<Result> Handle(ForgotPasswordCommand command, CancellationToken cancellationToken = default)
     {

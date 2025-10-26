@@ -17,8 +17,19 @@
 
   <ItemGroup>
     <Folder Include="Cards\Get\" />
-    <Folder Include="Lists\" />
+    <Folder Include="Cards\Move\" />
+    <Folder Include="Cards\Create\" />
+    <Folder Include="Cards\Delete\" />
+    <Folder Include="Lists\Create\" />
+    <Folder Include="Lists\Delete\" />
+    <Folder Include="Lists\GetById\" />
+    <Folder Include="Lists\GetByBoardId\" />
+    <Folder Include="Lists\Move\" />
+    <Folder Include="Swimlanes\Create\" />
+    <Folder Include="Swimlanes\Delete\" />
+    <Folder Include="Swimlanes\GetByBoardId\" />
+    <Folder Include="Swimlanes\GetBySwimlaneId\" />
+    <Folder Include="Swimlanes\Move\" />
     <Folder Include="Tags\" />
-    <Folder Include="Swimlanes\" />
   </ItemGroup>
 </Project>

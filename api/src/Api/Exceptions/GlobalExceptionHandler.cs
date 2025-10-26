@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Snapflow.Api.Exceptions;
 
-internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
+internal sealed class GlobalExceptionHandler(
+    ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
