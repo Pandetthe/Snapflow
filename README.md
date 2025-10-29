@@ -1,3 +1,2 @@
-# boardly
-Small kanban app
-Jakub Jurczyk i Aleksander Grzybek
+# Snapflow aka boardly
+This is a proof of concept created as a project for subject named Databases II.
