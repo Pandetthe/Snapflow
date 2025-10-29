@@ -30,6 +30,6 @@ internal sealed class ResendConfirmationEmail : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem
             );
         })
-        .WithTags(Tags.Auth);
+        .WithTags(EndpointTags.Auth);
     }
 }

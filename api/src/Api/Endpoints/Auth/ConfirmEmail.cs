@@ -33,7 +33,7 @@ internal sealed class ConfirmEmail : IEndpoint
                 CustomResults.Problem
             );
         })
-        .WithTags(Tags.Auth)
+        .WithTags(EndpointTags.Auth)
         .Add(endpointBuilder =>
          {
              var routePattern = ((RouteEndpointBuilder)endpointBuilder).RoutePattern.RawText;

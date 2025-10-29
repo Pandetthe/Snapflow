@@ -25,6 +25,6 @@ internal sealed class Refresh : IEndpoint
                 return CustomResults.Problem(result);
             return Results.Empty; // Application returns data via asp.net authentication mechanisms
         })
-            .WithTags(Tags.Auth);
+            .WithTags(EndpointTags.Auth);
     }
 }

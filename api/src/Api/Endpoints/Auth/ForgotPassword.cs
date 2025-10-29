@@ -22,6 +22,6 @@ internal sealed class ForgotPassword : IEndpoint
 
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
-        .WithTags(Tags.Auth);
+        .WithTags(EndpointTags.Auth);
     }
 }

@@ -70,4 +70,9 @@ public static class CustomResults
             };
         }
     }
+
+    public static IResult OkWithId<T>(T id)
+    {
+        return Results.Ok(new { Id = id });
+    }
 }

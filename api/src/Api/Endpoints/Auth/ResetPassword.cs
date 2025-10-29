@@ -25,6 +25,6 @@ internal sealed class ResetPassword : IEndpoint
 
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
-        .WithTags(Tags.Auth);
+        .WithTags(EndpointTags.Auth);
     }
 }
