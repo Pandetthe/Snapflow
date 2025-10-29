@@ -19,7 +19,7 @@ public interface IAppDbContext
 
     DbSet<List> Lists { get; }
 
-    DbSet<BoardMember> Members { get; }
+    DbSet<BoardMember> BoardMembers { get; }
 
     DbSet<Tag> Tags { get; }
 

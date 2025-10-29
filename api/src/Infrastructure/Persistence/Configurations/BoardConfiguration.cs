@@ -9,22 +9,28 @@ internal sealed class BoardConfiguration : IEntityTypeConfiguration<Board>
 {
     public void Configure(EntityTypeBuilder<Board> builder)
     {
-        builder.HasKey(b => b.Id);
-        builder.HasOne(c => c.CreatedBy as AppUser)
+        builder.HasOne(b => b.CreatedBy as AppUser)
             .WithMany()
-            .HasForeignKey(c => c.CreatedById)
+            .HasForeignKey(b => b.CreatedById)
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
-        builder.HasOne(c => c.UpdatedBy as AppUser)
+        builder.HasOne(b => b.UpdatedBy as AppUser)
             .WithMany()
-            .HasForeignKey(c => c.UpdatedById)
+            .HasForeignKey(b => b.UpdatedById)
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne(c => c.DeletedBy as AppUser)
+        builder.HasOne(b => b.DeletedBy as AppUser)
             .WithMany()
-            .HasForeignKey(c => c.DeletedById)
+            .HasForeignKey(b => b.DeletedById)
             .OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(b => b.Title)
             .HasMethod("GIN")
             .IsTsVectorExpressionIndex("english");
+        builder.Property(b => b.Title)
+            .IsRequired()
+            .HasMaxLength(BoardOptions.MaxTitleLength);
+        builder.Property(b => b.Description)
+            .IsRequired()
+            .HasDefaultValue("")
+            .HasMaxLength(BoardOptions.MaxDescriptionLength);
     }
 }

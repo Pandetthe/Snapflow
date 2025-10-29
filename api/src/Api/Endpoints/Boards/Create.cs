@@ -20,9 +20,9 @@ internal sealed class Create : IEndpoint
 
             Result<int> result = await handler.Handle(command, cancellationToken);
 
-            return result.Match(Results.Ok, CustomResults.Problem);
+            return result.Match(CustomResults.OkWithId, CustomResults.Problem);
         })
         .RequireAuthorization()
-        .WithTags(Tags.Boards);
+        .WithTags(EndpointTags.Boards);
     }
 }

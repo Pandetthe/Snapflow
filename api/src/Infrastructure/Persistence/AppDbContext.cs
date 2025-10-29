@@ -23,7 +23,7 @@ public sealed class AppDbContext(
     public DbSet<Board> Boards { get; private set; }
     public DbSet<Swimlane> Swimlanes { get; private set; }
     public DbSet<List> Lists { get; private set; }
-    public DbSet<BoardMember> Members { get; private set; }
+    public DbSet<BoardMember> BoardMembers { get; private set; }
     public DbSet<Tag> Tags { get; private set; }
     public DbSet<Card> Cards { get; private set; }
 

@@ -9,23 +9,21 @@ internal sealed class SwimlaneConfiguration : IEntityTypeConfiguration<Swimlane>
 {
     public void Configure(EntityTypeBuilder<Swimlane> builder)
     {
-        builder.HasKey(s => s.Id);
-        builder.HasOne(c => c.CreatedBy as AppUser)
+        builder.HasOne(s => s.CreatedBy as AppUser)
             .WithMany()
-            .HasForeignKey(c => c.CreatedById)
+            .HasForeignKey(s => s.CreatedById)
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
-        builder.HasOne(c => c.UpdatedBy as AppUser)
+        builder.HasOne(s => s.UpdatedBy as AppUser)
             .WithMany()
-            .HasForeignKey(c => c.UpdatedById)
+            .HasForeignKey(s => s.UpdatedById)
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne(c => c.DeletedBy as AppUser)
+        builder.HasOne(s => s.DeletedBy as AppUser)
             .WithMany()
-            .HasForeignKey(c => c.DeletedById)
+            .HasForeignKey(s => s.DeletedById)
             .OnDelete(DeleteBehavior.Restrict);
         builder.Property(s => s.Title)
             .IsRequired()
-            .HasMaxLength(200);
-
+            .HasMaxLength(SwimlaneOptions.MaxTitleLength);
     }
 }

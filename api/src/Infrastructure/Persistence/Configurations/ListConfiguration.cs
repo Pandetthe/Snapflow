@@ -9,18 +9,21 @@ internal sealed class ListConfiguration : IEntityTypeConfiguration<List>
 {
     public void Configure(EntityTypeBuilder<List> builder)
     {
-        builder.HasOne(c => c.CreatedBy as AppUser)
+        builder.HasOne(l => l.CreatedBy as AppUser)
             .WithMany()
-            .HasForeignKey(c => c.CreatedById)
+            .HasForeignKey(l => l.CreatedById)
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
-        builder.HasOne(c => c.UpdatedBy as AppUser)
+        builder.HasOne(l => l.UpdatedBy as AppUser)
             .WithMany()
-            .HasForeignKey(c => c.UpdatedById)
+            .HasForeignKey(l => l.UpdatedById)
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne(c => c.DeletedBy as AppUser)
+        builder.HasOne(l => l.DeletedBy as AppUser)
             .WithMany()
-            .HasForeignKey(c => c.DeletedById)
+            .HasForeignKey(l => l.DeletedById)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(l => l.Title)
+            .IsRequired()
+            .HasMaxLength(ListOptions.MaxTitleLength);
     }
 }

@@ -42,3 +42,20 @@ public abstract class Entity<TKey> : IEntity<TKey> where TKey : IEquatable<TKey>
         _domainEvents.Add(domainEvent);
     }
 }
+
+public abstract class Entity : IEntity
+{
+    private readonly List<IDomainEvent> _domainEvents = [];
+
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => [.. _domainEvents];
+
+    public void ClearDomainEvents()
+    {
+        _domainEvents.Clear();
+    }
+
+    public void Raise(IDomainEvent domainEvent)
+    {
+        _domainEvents.Add(domainEvent);
+    }
+}

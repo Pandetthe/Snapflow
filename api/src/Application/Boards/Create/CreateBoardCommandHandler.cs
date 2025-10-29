@@ -30,7 +30,7 @@ internal sealed class CreateBoardCommandHandler(
             Members = [
                 new BoardMember
                 {
-                    Role = BoardRole.Owner,
+                    Role = BoardMemberRole.Owner,
                     UserId = user.Id,
                 }
             ]

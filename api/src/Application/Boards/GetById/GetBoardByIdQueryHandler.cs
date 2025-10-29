@@ -2,6 +2,7 @@
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Boards.GetById;
@@ -27,8 +28,8 @@ internal sealed class GetBoardByIdQueryHandler(IAppDbContext context) : IQueryHa
             })
             .SingleOrDefaultAsync(cancellationToken);
 
-        if (board is null)
-            return Result.Failure<BoardResponse>(UserErrors.NotFound(query.BoardId));
+        if (board == null)
+            return Result.Failure<BoardResponse>(BoardErrors.NotFound(query.BoardId));
 
         return board;
     }

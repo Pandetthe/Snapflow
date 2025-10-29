@@ -1,6 +1,6 @@
 ﻿namespace Snapflow.Domain.BoardMembers;
 
-public enum BoardRole
+public enum BoardMemberRole
 {
     Owner,
     Admin,

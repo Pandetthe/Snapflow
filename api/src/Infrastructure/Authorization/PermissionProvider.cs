@@ -16,21 +16,21 @@ internal sealed class PermissionProvider(IAppDbContext dbContext)
 
     public async Task<HashSet<string>> GetForUserIdAsync(int userId, int boardId)
     {
-        BoardMember? member = await dbContext.Members.SingleOrDefaultAsync(m => m.UserId == userId && m.BoardId == boardId);
+        BoardMember? member = await dbContext.BoardMembers.SingleOrDefaultAsync(m => m.UserId == userId && m.BoardId == boardId);
         HashSet<string> permissionsSet = [];
         if (member == null)
             return permissionsSet;
-        if (member.Role == BoardRole.Viewer)
+        if (member.Role == BoardMemberRole.Viewer)
         {
             permissionsSet.Add("View");
         }
-        else if (member.Role == BoardRole.Admin)
+        else if (member.Role == BoardMemberRole.Admin)
         {
             permissionsSet.Add("View");
             permissionsSet.Add("Edit");
             permissionsSet.Add("Manage");
         }
-        else if (member.Role == BoardRole.Owner)
+        else if (member.Role == BoardMemberRole.Owner)
         {
             permissionsSet.Add("View");
             permissionsSet.Add("Edit");

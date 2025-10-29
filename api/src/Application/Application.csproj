@@ -16,16 +16,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="BoardMembers\Remove\" />
     <Folder Include="Cards\Get\" />
     <Folder Include="Cards\Move\" />
-    <Folder Include="Cards\Create\" />
     <Folder Include="Cards\Delete\" />
-    <Folder Include="Lists\Create\" />
     <Folder Include="Lists\Delete\" />
     <Folder Include="Lists\GetById\" />
     <Folder Include="Lists\GetByBoardId\" />
     <Folder Include="Lists\Move\" />
-    <Folder Include="Swimlanes\Create\" />
     <Folder Include="Swimlanes\Delete\" />
     <Folder Include="Swimlanes\GetByBoardId\" />
     <Folder Include="Swimlanes\GetBySwimlaneId\" />

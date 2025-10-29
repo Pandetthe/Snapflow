@@ -9,9 +9,9 @@ internal sealed class BoardMemberConfiguration : IEntityTypeConfiguration<BoardM
 {
     public void Configure(EntityTypeBuilder<BoardMember> builder)
     {
-        builder.HasOne(c => c.User as AppUser)
+        builder.HasOne(b => b.User as AppUser)
             .WithMany()
-            .HasForeignKey(c => c.UserId)
+            .HasForeignKey(b => b.UserId)
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
     }

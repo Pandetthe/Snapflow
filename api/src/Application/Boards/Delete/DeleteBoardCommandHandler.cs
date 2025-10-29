@@ -9,7 +9,8 @@ namespace Snapflow.Application.Boards.Delete;
 
 internal sealed class DeleteBoardCommandHandler(
     IAppDbContext dbContext,
-    IUserContext userContext)
+    IUserContext userContext,
+    TimeProvider timeProvider)
     : ICommandHandler<DeleteBoardCommand>
 {
     public async Task<Result> Handle(DeleteBoardCommand command, CancellationToken cancellationToken = default)
@@ -18,7 +19,7 @@ internal sealed class DeleteBoardCommandHandler(
         if (board is null)
             return Result.Failure(BoardErrors.NotFound(command.BoardId));
         board.IsDeleted = true;
-        board.DeletedAt = DateTime.UtcNow;
+        board.DeletedAt = timeProvider.GetUtcNow();
         board.DeletedById = userContext.UserId;
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();
