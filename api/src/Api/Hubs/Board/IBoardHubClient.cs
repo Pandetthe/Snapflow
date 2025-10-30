@@ -8,11 +8,11 @@ internal interface IBoardHubClient
 
     Task BoardDeleted(CancellationToken cancellationToken = default);
 
-    Task SwimlaneCreated();
+    Task SwimlaneCreated(int id, string title, CancellationToken cancellationToken = default);
 
     Task SwimlaneUpdated();
 
-    Task SwimlaneDeleted();
+    Task SwimlaneDeleted(int id, CancellationToken cancellationToken = default);
 
     Task ListCreated();
 

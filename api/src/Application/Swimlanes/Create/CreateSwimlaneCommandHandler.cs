@@ -3,8 +3,6 @@ using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
-using Snapflow.Domain.Members;
-using Snapflow.Domain.Boards;
 using Snapflow.Domain.Swimlanes;
 using Snapflow.Domain.Users;
 
@@ -28,6 +26,7 @@ internal sealed class CreateSwimlaneCommandHandler(
             CreatedById = user.Id,
             CreatedAt = timeProvider.GetUtcNow(),
         };
+        swimlane.Raise(new SwimlaneCreatedDomainEvent(swimlane.BoardId, swimlane.Title));
         await dbContext.Swimlanes.AddAsync(swimlane, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return swimlane.Id;

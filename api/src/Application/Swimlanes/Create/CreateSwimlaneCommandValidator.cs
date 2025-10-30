@@ -7,6 +7,8 @@ internal sealed class CreateSwimlaneCommandValidator : AbstractValidator<CreateS
 {
     public CreateSwimlaneCommandValidator()
     {
+        RuleFor(c => c.BoardId)
+            .GreaterThan(0).WithMessage("Invalid board identifier.");
         RuleFor(b => b.Title)
             .NotEmpty().WithMessage("Title is required.")
             .MaximumLength(SwimlaneOptions.MaxTitleLength).WithMessage($"Title must not exceed {SwimlaneOptions.MaxTitleLength} characters.")
