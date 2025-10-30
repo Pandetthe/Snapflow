@@ -14,11 +14,11 @@ internal interface IBoardHubClient
 
     Task SwimlaneDeleted(int id, CancellationToken cancellationToken = default);
 
-    Task ListCreated();
+    Task ListCreated(int id, int swimlaneId, string title, CancellationToken cancellationToken = default);
 
     Task ListUpdated();
 
-    Task ListDeleted();
+    Task ListDeleted(int id, int swimlaneId, CancellationToken cancellationToken = default);
 
     Task TagCreated();
 
