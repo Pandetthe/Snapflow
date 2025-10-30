@@ -7,6 +7,10 @@ internal sealed class CreateListCommandValidator : AbstractValidator<CreateListC
 {
     public CreateListCommandValidator()
     {
+        RuleFor(c => c.BoardId)
+            .GreaterThan(0).WithMessage("Invalid board identifier.");
+        RuleFor(c => c.SwimlaneId)
+            .GreaterThan(0).WithMessage("Invalid swimlane identifier.");
         RuleFor(b => b.Title)
             .NotEmpty().WithMessage("Title is required.")
             .MaximumLength(ListOptions.MaxTitleLength).WithMessage($"Title must not exceed {ListOptions.MaxTitleLength} characters.")

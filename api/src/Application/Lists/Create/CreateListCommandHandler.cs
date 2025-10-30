@@ -21,11 +21,13 @@ internal sealed class CreateListCommandHandler(
             return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
         var list = new List
         {
+            BoardId = command.BoardId,
             SwimlaneId = command.SwimlaneId,
             Title = command.Title,
             CreatedById = user.Id,
             CreatedAt = timeProvider.GetUtcNow(),
         };
+        list.Raise(new ListCreatedDomainEvent(list.BoardId, list.SwimlaneId, list.Title));
         await dbContext.Lists.AddAsync(list, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return list.Id;

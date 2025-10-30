@@ -2,7 +2,7 @@
 
 namespace Snapflow.Domain.Lists;
 
-public sealed class ListCreatedDomainEvent : IDomainEvent<List>
+public sealed record ListCreatedDomainEvent(int BoardId, int SwimlaneId, string Title) : IDomainEvent<List>
 {
     public int Id { get; private set; }
 
