@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="BoardMembers\Remove\" />
     <Folder Include="Cards\Get\" />
     <Folder Include="Cards\Move\" />
     <Folder Include="Cards\Delete\" />

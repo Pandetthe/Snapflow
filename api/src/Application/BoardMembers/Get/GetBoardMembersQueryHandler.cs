@@ -1,12 +1,24 @@
+using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Messaging;
+using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 
 namespace Snapflow.Application.BoardMembers.Get;
 
-internal sealed class GetBoardMembersQueryHandler : IQueryHandler<GetBoardMembersQuery, GetBoardMembersResponse>
+internal sealed class GetBoardMembersQueryHandler(
+    IAppDbContext dbContext) : IQueryHandler<GetBoardMembersQuery, List<GetBoardMembersResponse>>
 {
-    public Task<Result<GetBoardMembersResponse>> Handle(GetBoardMembersQuery query, CancellationToken cancellationToken = default)
+    public async Task<Result<List<GetBoardMembersResponse>>> Handle(GetBoardMembersQuery query, 
+        CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var members = await dbContext.BoardMembers
+            .Where(b => b.BoardId == query.BoardId)
+            .Include(b => b.User)
+            .Select(b => new GetBoardMembersResponse(b.UserId, b.User.UserName))
+            .ToListAsync(cancellationToken);
+        if (members.Count == 0)
+            return Result.Failure<List<GetBoardMembersResponse>>(BoardErrors.NotFound(query.BoardId));
+        return Result.Success(members);
     }
 }
