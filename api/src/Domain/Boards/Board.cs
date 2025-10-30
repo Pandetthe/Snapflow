@@ -1,5 +1,5 @@
 ﻿using Snapflow.Common;
-using Snapflow.Domain.BoardMembers;
+using Snapflow.Domain.Members;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
 using Snapflow.Domain.Swimlanes;
@@ -26,7 +26,7 @@ public class Board : Entity<int>
     public virtual IUser? DeletedBy { get; set; }
     public bool IsDeleted { get; set; }
 
-    public virtual HashSet<BoardMember> Members { get; set; } = [];
+    public virtual HashSet<Member> Members { get; set; } = [];
     public virtual HashSet<Swimlane> Swimlanes { get; set; } = [];
     public virtual HashSet<List> Lists { get; set; } = [];
     public virtual HashSet<Card> Cards { get; set; } = [];

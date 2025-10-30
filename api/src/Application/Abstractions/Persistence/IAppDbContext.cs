@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Snapflow.Domain.BoardMembers;
+using Snapflow.Domain.Members;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
@@ -19,7 +19,7 @@ public interface IAppDbContext
 
     DbSet<List> Lists { get; }
 
-    DbSet<BoardMember> BoardMembers { get; }
+    DbSet<Member> Members { get; }
 
     DbSet<Tag> Tags { get; }
 

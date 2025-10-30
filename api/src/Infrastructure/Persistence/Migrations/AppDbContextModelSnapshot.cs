@@ -172,7 +172,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.ToTable("user_tokens", "public");
                 });
 
-            modelBuilder.Entity("Snapflow.Domain.BoardMembers.BoardMember", b =>
+            modelBuilder.Entity("Snapflow.Domain.Members.BoardMember", b =>
                 {
                     b.Property<int>("BoardId")
                         .HasColumnType("integer")
@@ -751,7 +751,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_user_tokens_users_user_id");
                 });
 
-            modelBuilder.Entity("Snapflow.Domain.BoardMembers.BoardMember", b =>
+            modelBuilder.Entity("Snapflow.Domain.Members.BoardMember", b =>
                 {
                     b.HasOne("Snapflow.Domain.Boards.Board", "Board")
                         .WithMany("Members")

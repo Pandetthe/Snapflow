@@ -3,7 +3,7 @@ using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
-using Snapflow.Domain.BoardMembers;
+using Snapflow.Domain.Members;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Users;
 
@@ -28,9 +28,9 @@ internal sealed class CreateBoardCommandHandler(
             CreatedById = user.Id,
             CreatedAt = timeProvider.GetUtcNow(),
             Members = [
-                new BoardMember
+                new Member
                 {
-                    Role = BoardMemberRole.Owner,
+                    Role = MemberRole.Owner,
                     UserId = user.Id,
                 }
             ]

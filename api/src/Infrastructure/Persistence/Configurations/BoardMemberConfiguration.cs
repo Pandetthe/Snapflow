@@ -1,13 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Snapflow.Domain.BoardMembers;
+using Snapflow.Domain.Members;
 using Snapflow.Infrastructure.Identity.Entities;
 
 namespace Snapflow.Infrastructure.Persistence.Configurations;
 
-internal sealed class BoardMemberConfiguration : IEntityTypeConfiguration<BoardMember>
+internal sealed class BoardMemberConfiguration : IEntityTypeConfiguration<Member>
 {
-    public void Configure(EntityTypeBuilder<BoardMember> builder)
+    public void Configure(EntityTypeBuilder<Member> builder)
     {
         builder.HasKey(b => new { b.BoardId, b.UserId });
         builder.HasOne(b => b.User as AppUser)

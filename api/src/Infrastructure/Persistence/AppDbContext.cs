@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
-using Snapflow.Domain.BoardMembers;
+using Snapflow.Domain.Members;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
@@ -23,7 +23,7 @@ public sealed class AppDbContext(
     public DbSet<Board> Boards { get; private set; }
     public DbSet<Swimlane> Swimlanes { get; private set; }
     public DbSet<List> Lists { get; private set; }
-    public DbSet<BoardMember> BoardMembers { get; private set; }
+    public DbSet<Member> Members { get; private set; }
     public DbSet<Tag> Tags { get; private set; }
     public DbSet<Card> Cards { get; private set; }
 

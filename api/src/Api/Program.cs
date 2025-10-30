@@ -2,7 +2,7 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
 using Snapflow.Api.Extensions;
-using Snapflow.Api.Hubs.BoardHub;
+using Snapflow.Api.Hubs.Board;
 using Snapflow.Application;
 using Snapflow.Infrastructure;
 using System.Reflection;
