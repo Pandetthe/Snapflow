@@ -9,6 +9,7 @@ internal sealed class BoardMemberConfiguration : IEntityTypeConfiguration<BoardM
 {
     public void Configure(EntityTypeBuilder<BoardMember> builder)
     {
+        builder.HasKey(b => new { b.BoardId, b.UserId });
         builder.HasOne(b => b.User as AppUser)
             .WithMany()
             .HasForeignKey(b => b.UserId)

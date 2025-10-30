@@ -174,35 +174,25 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Snapflow.Domain.BoardMembers.BoardMember", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<int>("BoardId")
                         .HasColumnType("integer")
                         .HasColumnName("board_id");
-
-                    b.Property<int>("Role")
-                        .HasColumnType("integer")
-                        .HasColumnName("role");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
                         .HasColumnName("user_id");
 
-                    b.HasKey("Id")
-                        .HasName("pk_members");
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
 
-                    b.HasIndex("BoardId")
-                        .HasDatabaseName("ix_members_board_id");
+                    b.HasKey("BoardId", "UserId")
+                        .HasName("pk_board_members");
 
                     b.HasIndex("UserId")
-                        .HasDatabaseName("ix_members_user_id");
+                        .HasDatabaseName("ix_board_members_user_id");
 
-                    b.ToTable("members", "public");
+                    b.ToTable("board_members", "public");
                 });
 
             modelBuilder.Entity("Snapflow.Domain.Boards.Board", b =>
@@ -768,14 +758,14 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .HasForeignKey("BoardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_members_boards_board_id");
+                        .HasConstraintName("fk_board_members_boards_board_id");
 
                     b.HasOne("Snapflow.Infrastructure.Identity.Entities.AppUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_members_users_user_id");
+                        .HasConstraintName("fk_board_members_users_user_id");
 
                     b.Navigation("Board");
 
