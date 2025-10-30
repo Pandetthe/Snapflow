@@ -19,7 +19,6 @@
     <Folder Include="Cards\Get\" />
     <Folder Include="Cards\Move\" />
     <Folder Include="Cards\Delete\" />
-    <Folder Include="Lists\Delete\" />
     <Folder Include="Lists\GetById\" />
     <Folder Include="Lists\GetByBoardId\" />
     <Folder Include="Lists\Move\" />
