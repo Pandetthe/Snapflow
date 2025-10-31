@@ -30,11 +30,11 @@ internal interface IBoardHubClient
 
     Task CardUnlocked();
 
-    Task CardCreated();
+    Task CardCreated(int id, int listId, int swimlaneId, string title, string description, CancellationToken cancellationToken = default);
 
     Task CardUpdated();
 
-    Task CardDeleted();
+    Task CardDeleted(int id, int listId, int swimlaneId, CancellationToken cancellationToken = default);
 
     Task CardMoved();
 

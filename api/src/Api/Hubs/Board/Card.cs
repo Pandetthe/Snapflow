@@ -1,29 +1,62 @@
-﻿namespace Snapflow.Api.Hubs.Board;
+﻿using Snapflow.Api.Extensions;
+using Snapflow.Application.Abstractions.Messaging;
+using Snapflow.Application.Cards.Create;
+using Snapflow.Application.Cards.Delete;
+using Snapflow.Common;
+
+namespace Snapflow.Api.Hubs.Board;
 
 // Hub methods for card operations
 internal sealed partial class BoardHub
 {
-    public Task CreateCard()
+    public sealed record CreateCardRequest(int SwimlaneId, int ListId, string Title, string Description = "");
+
+    public async Task<IResult> CreateCard(
+        CreateCardRequest request,
+        ICommandHandler<CreateCardCommand, int> handler)
     {
         logger.LogInformation("Card create requested by connection {ConnectionId}.", Context.ConnectionId);
-        return Task.CompletedTask;
+        var command = new CreateCardCommand(
+            Context.GetBoardId(),
+            request.SwimlaneId,
+            request.ListId,
+            request.Title,
+            request.Description);
+        Result<int> result = await handler.Handle(command, Context.ConnectionAborted);
+        return result.Match(CustomResults.OkWithId, CustomResults.Problem);
     }
 
-    public Task UpdateCard()
+    public sealed record UpdateCardRequest();
+
+    public Task UpdateCard(
+        UpdateCardRequest request)
     {
         logger.LogInformation("Card update requested by connection {ConnectionId}.", Context.ConnectionId);
         return Task.CompletedTask;
     }
 
-    public Task MoveCard()
+    public sealed record MoveCardRequest();
+
+    public Task MoveCard(
+        MoveCardRequest request)
     {
         logger.LogInformation("Card update requested by connection {ConnectionId}.", Context.ConnectionId);
         return Task.CompletedTask;
     }
 
-    public Task DeleteCard()
+    public sealed record DeleteCardRequest(int Id, int SwimlaneId, int ListId);
+
+    public async Task<IResult> DeleteCard(
+        DeleteCardRequest request,
+        ICommandHandler<DeleteCardCommand> handler)
     {
         logger.LogInformation("Card delete requested by connection {ConnectionId}.", Context.ConnectionId);
-        return Task.CompletedTask;
+        var command = new DeleteCardCommand(
+            request.Id,
+            Context.GetBoardId(),
+            request.SwimlaneId,
+            request.ListId);
+        Result result = await handler.Handle(command, Context.ConnectionAborted);
+        return result.Match(Results.NoContent, CustomResults.Problem);
     }
 }

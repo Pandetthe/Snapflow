@@ -1,5 +1,14 @@
-﻿namespace Snapflow.Api.Hubs.Board.ClientEventHandlers;
+﻿using Microsoft.AspNetCore.SignalR;
+using Snapflow.Common;
+using Snapflow.Domain.Cards;
 
-internal sealed class CardCreatedEventHandler
+namespace Snapflow.Api.Hubs.Board.ClientEventHandlers;
+
+internal sealed class CardCreatedEventHandler(
+    IHubContext<BoardHub, IBoardHubClient> hubContext) : IDomainEventHandler<CardCreatedDomainEvent>
 {
+    public Task Handle(CardCreatedDomainEvent domainEvent, CancellationToken cancellationToken)
+        => hubContext.Clients.Group(domainEvent.BoardId).CardCreated(
+            domainEvent.Id, domainEvent.ListId, domainEvent.SwimlaneId,
+            domainEvent.Title, domainEvent.Description, cancellationToken);
 }

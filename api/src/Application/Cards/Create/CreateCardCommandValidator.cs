@@ -7,6 +7,12 @@ internal sealed class CreateCardCommandValidator : AbstractValidator<CreateCardC
 {
     public CreateCardCommandValidator()
     {
+        RuleFor(c => c.BoardId)
+            .GreaterThan(0).WithMessage("Invalid board identifier.");
+        RuleFor(c => c.SwimlaneId)
+            .GreaterThan(0).WithMessage("Invalid swimlane identifier.");
+        RuleFor(c => c.ListId)
+            .GreaterThan(0).WithMessage("Invalid list identifier.");
         RuleFor(b => b.Title)
             .NotEmpty().WithMessage("Title is required.")
             .MaximumLength(CardOptions.MaxTitleLength).WithMessage($"Title must not exceed {CardOptions.MaxTitleLength} characters.")

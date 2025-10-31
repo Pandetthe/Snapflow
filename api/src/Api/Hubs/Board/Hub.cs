@@ -16,24 +16,38 @@ internal static class BoardHubExtensions
 
     public static IBoardHubClient Group(this IHubClients<IBoardHubClient> clients, int boardId, int userId) =>
         clients.Group($"{boardId}-{userId}");
+
+    public static HubCallerContext SetBoardId(this HubCallerContext context, int boardId)
+    {
+        context.Items["BoardId"] = boardId;
+        return context;
+    }
+
+    public static int GetBoardId(this HubCallerContext context) =>
+        context.Items.TryGetValue("BoardId", out var boardIdObj) && boardIdObj is int boardId
+            ? boardId
+            : throw new InvalidOperationException("BoardId not found in HubCallerContext items.");
 }
 
 [Authorize]
 internal sealed partial class BoardHub(
     ILogger<BoardHub> logger) : Hub<IBoardHubClient>
 {
-    public override Task OnConnectedAsync()
+    public async override Task OnConnectedAsync()
     {
+        await base.OnConnectedAsync();
         string connectionId = Context.ConnectionId;
         string? boardIdString = Context.GetHttpContext()?.Request.Query["boardId"];
         if (!int.TryParse(boardIdString, out int boardId))
         {
             logger.LogWarning("Connection {ConnectionId} aborted: invalid boardId query parameter '{BoardIdString}'", connectionId, boardIdString);
             Context.Abort();
-            return Task.CompletedTask;
+            return;
         }
-        // TODO add to groups
-        return base.OnConnectedAsync();
+        Context.SetBoardId(boardId);
+        await Groups.AddToGroupAsync(connectionId, $"{boardId}", Context.ConnectionAborted);
+        await Groups.AddToGroupAsync(connectionId, $"{boardId}-{Context.User?.Identity?.Name}", Context.ConnectionAborted);
+        logger.LogInformation("Connection {ConnectionId} connected to board {BoardId}.", connectionId, boardId);
     }
 
     public override Task OnDisconnectedAsync(Exception? exception)
