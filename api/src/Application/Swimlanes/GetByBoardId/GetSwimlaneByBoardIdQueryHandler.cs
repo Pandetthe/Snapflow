@@ -13,16 +13,17 @@ internal sealed class GetSwimlaneByBoardIdQueryHandler(
         CancellationToken cancellationToken = default)
     {
         var board = await dbContext.Boards
-            .Include(b => b.Swimlanes.Where(s => !s.IsDeleted))
             .AsNoTracking()
+            .Where(b => b.Id == query.Id)
             .Select(b => new
             {
                 b.Id,
                 Swimlanes = b.Swimlanes
-                .Select(s => new GetSwimlaneByBoardIdResponse(s.Id, s.BoardId, s.Title))
-                .ToList()
+                    .Where(s => !s.IsDeleted)
+                    .Select(s => new GetSwimlaneByBoardIdResponse(s.Id, s.BoardId, s.Title))
+                    .ToList()
             })
-            .SingleOrDefaultAsync(b => b.Id == query.Id, cancellationToken);
+            .SingleOrDefaultAsync(cancellationToken);
         if (board == null)
             return Result.Failure<List<GetSwimlaneByBoardIdResponse>>(BoardErrors.NotFound(query.Id));
         return Result.Success(board.Swimlanes);

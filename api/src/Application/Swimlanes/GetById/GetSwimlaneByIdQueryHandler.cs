@@ -14,9 +14,9 @@ internal sealed class GetSwimlaneByIdQueryHandler(
     {
         var swimlane = await dbContext.Swimlanes
             .AsNoTracking()
-            .Where(s => !s.IsDeleted)
+            .Where(s => !s.IsDeleted && s.Id == query.Id)
             .Select(s => new GetSwimlaneByIdResponse(s.Id, s.BoardId, s.Title))
-            .SingleOrDefaultAsync(s => s.Id == query.Id, cancellationToken);
+            .SingleOrDefaultAsync(cancellationToken);
         if (swimlane == null)
             return Result.Failure<GetSwimlaneByIdResponse>(SwimlaneErrors.NotFound(query.Id));
         return Result.Success(swimlane);

@@ -18,9 +18,10 @@
   <ItemGroup>
     <Folder Include="Cards\Get\" />
     <Folder Include="Cards\Move\" />
-    <Folder Include="Lists\GetById\" />
     <Folder Include="Lists\GetByBoardId\" />
+    <Folder Include="Lists\GetById\" />
     <Folder Include="Lists\Move\" />
+    <Folder Include="Lists\GetBySwimlaneId\" />
     <Folder Include="Tags\" />
   </ItemGroup>
 </Project>

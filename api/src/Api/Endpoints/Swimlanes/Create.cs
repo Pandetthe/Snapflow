@@ -7,12 +7,12 @@ namespace Snapflow.Api.Endpoints.Swimlanes;
 
 internal sealed class Create : IEndpoint
 {
-    public sealed record Request(string Title);
+    public sealed record CreateSwimlaneRequest(string Title);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("boards/{boardId}/swimlanes", async (
-            Request request,
+        app.MapPost("boards/{boardId:int}/swimlanes", async (
+            CreateSwimlaneRequest request,
             int boardId,
             ICommandHandler<CreateSwimlaneCommand, int> handler,
             CancellationToken cancellationToken) =>

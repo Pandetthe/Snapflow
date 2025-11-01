@@ -40,7 +40,7 @@ internal sealed partial class BoardHub
         ICommandHandler<DeleteSwimlaneCommand> handler)
     {
         logger.LogInformation("Swimlane delete requested by connection {ConnectionId}.", Context.ConnectionId);
-        var command = new DeleteSwimlaneCommand(request.Id, Context.GetBoardId());
+        var command = new DeleteSwimlaneCommand(request.Id);
         Result result = await handler.Handle(command, Context.ConnectionAborted);
         return result.Match(Results.NoContent, CustomResults.Problem);
     }
