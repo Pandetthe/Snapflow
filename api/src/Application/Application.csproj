@@ -21,9 +21,6 @@
     <Folder Include="Lists\GetById\" />
     <Folder Include="Lists\GetByBoardId\" />
     <Folder Include="Lists\Move\" />
-    <Folder Include="Swimlanes\GetByBoardId\" />
-    <Folder Include="Swimlanes\GetBySwimlaneId\" />
-    <Folder Include="Swimlanes\Move\" />
     <Folder Include="Tags\" />
   </ItemGroup>
 </Project>

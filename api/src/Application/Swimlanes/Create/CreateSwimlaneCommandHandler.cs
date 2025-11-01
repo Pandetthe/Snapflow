@@ -17,7 +17,7 @@ internal sealed class CreateSwimlaneCommandHandler(
     {
         IUser? user = await dbContext.Users.AsNoTracking()
             .SingleOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user is null)
+        if (user == null)
             return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
         var swimlane = new Swimlane
         {
