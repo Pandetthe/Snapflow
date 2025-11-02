@@ -7,12 +7,12 @@ namespace Snapflow.Api.Endpoints.Boards;
 
 internal sealed class Create : IEndpoint
 {
-    public sealed record Request(string Title, string Description);
+    public sealed record CreateBoardRequest(string Title, string Description);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("boards", async (
-            Request request,
+            CreateBoardRequest request,
             ICommandHandler<CreateBoardCommand, int> handler,
             CancellationToken cancellationToken) =>
         {

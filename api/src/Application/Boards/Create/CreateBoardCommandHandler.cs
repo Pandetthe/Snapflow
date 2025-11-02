@@ -12,31 +12,33 @@ namespace Snapflow.Application.Boards.Create;
 internal sealed class CreateBoardCommandHandler(
     IAppDbContext dbContext,
     IUserContext userContext,
-    TimeProvider timeProvider)
-    : ICommandHandler<CreateBoardCommand, int>
+    TimeProvider timeProvider) : ICommandHandler<CreateBoardCommand, int>
 {
     public async Task<Result<int>> Handle(CreateBoardCommand command, CancellationToken cancellationToken = default)
     {
-        IUser? user = await dbContext.Users.AsNoTracking()
-            .SingleOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user is null)
+        var userExists = await dbContext.Users.AsNoTracking()
+            .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
+        if (!userExists)
             return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
+
         var board = new Board
         {
             Title = command.Title,
             Description = command.Description,
-            CreatedById = user.Id,
+            CreatedById = userContext.UserId,
             CreatedAt = timeProvider.GetUtcNow(),
             Members = [
                 new Member
                 {
                     Role = MemberRole.Owner,
-                    UserId = user.Id,
+                    UserId = userContext.UserId,
                 }
             ]
         };
+
         await dbContext.Boards.AddAsync(board, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
-        return board.Id;
+
+        return Result.Success(board.Id);
     }
 }

@@ -4,6 +4,7 @@ using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Cards;
+using Snapflow.Domain.Lists;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Cards.Create;
@@ -15,20 +16,36 @@ internal sealed class CreateCardCommandHandler(
 {
     public async Task<Result<int>> Handle(CreateCardCommand command, CancellationToken cancellationToken = default)
     {
-        IUser? user = await dbContext.Users.AsNoTracking()
-            .SingleOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user is null)
+        var userExists = await dbContext.Users.AsNoTracking()
+            .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
+        if (!userExists)
             return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
+
+        var list = await dbContext.Lists
+            .AsNoTracking()
+            .Where(x => x.Id == command.ListId && !x.IsDeleted)
+            .Select(x => new { x.BoardId, x.SwimlaneId })
+            .SingleOrDefaultAsync(cancellationToken);
+        if (list == null)
+            return Result.Failure<int>(ListErrors.NotFound(command.ListId));
+
         var card = new Card
         {
             ListId = command.ListId,
+            SwimlaneId = list.SwimlaneId,
+            BoardId = list.BoardId,
             Title = command.Title,
             Description = command.Description,
-            CreatedById = user.Id,
+            CreatedById = userContext.UserId,
             CreatedAt = timeProvider.GetUtcNow(),
         };
+
+        card.Raise(new CardCreatedDomainEvent(card.BoardId, card.SwimlaneId, card.ListId,
+            card.Title, card.Description));
+
         await dbContext.Cards.AddAsync(card, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
+
         return card.Id;
     }
 }

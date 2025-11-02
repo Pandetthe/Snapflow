@@ -9,7 +9,7 @@ internal sealed class Me : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("Me", async (
+        app.MapGet("me", async (
             IQueryHandler<MeQuery, MeResponse> handler,
             CancellationToken cancellationToken) =>
         {
@@ -19,6 +19,7 @@ internal sealed class Me : IEndpoint
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
-        .RequireAuthorization();
+        .RequireAuthorization()
+        .WithTags(EndpointTags.Users);
     }
 }

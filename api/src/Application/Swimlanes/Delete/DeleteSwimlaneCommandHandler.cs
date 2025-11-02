@@ -21,13 +21,39 @@ internal sealed class DeleteSwimlaneCommandHandler(
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
         var swimlane = await dbContext.Swimlanes
-            .SingleOrDefaultAsync(s => s.Id == command.Id, cancellationToken);
-        if (swimlane == null || swimlane.IsDeleted)
+            .Include(s => s.Lists.Where(l => !l.IsDeleted))
+            .Include(s => s.Cards.Where(c => !c.IsDeleted))
+            .AsSplitQuery()
+            .SingleOrDefaultAsync(s => s.Id == command.Id && !s.IsDeleted, cancellationToken);
+        if (swimlane == null)
             return Result.Failure(SwimlaneErrors.NotFound(command.Id));
 
+        DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
+        int userId = userContext.UserId;
+
         swimlane.IsDeleted = true;
-        swimlane.DeletedById = userContext.UserId;
-        swimlane.DeletedAt = timeProvider.GetUtcNow();
+        swimlane.DeletedById = userId;
+        swimlane.DeletedAt = dateTimeOffset;
+        swimlane.DeletedByCascade = false;
+
+        // TODO: Optimize to not load entire lists and cards into memory
+        //       Domain events for now cannot be raised without loading and
+        //       and modifying tracked entity.
+
+        foreach (var list in swimlane.Lists)
+        {
+            list.IsDeleted = true;
+            list.DeletedById = userId;
+            list.DeletedAt = dateTimeOffset;
+            list.DeletedByCascade = true;
+        }
+        foreach (var card in swimlane.Cards)
+        {
+            card.IsDeleted = true;
+            card.DeletedById = userId;
+            card.DeletedAt = dateTimeOffset;
+            card.DeletedByCascade = true;
+        }
 
         swimlane.Raise(new SwimlaneDeletedDomainEvent(swimlane.Id, swimlane.BoardId));
 

@@ -15,19 +15,24 @@ internal sealed class UpdateSwimlaneCommandHandler(
 {
     public async Task<Result> Handle(UpdateSwimlaneCommand command, CancellationToken cancellationToken = default)
     {
-        IUser? user = await dbContext.Users.AsNoTracking()
-            .SingleOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
+        var userExists = await dbContext.Users.AsNoTracking()
+            .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
+        if (!userExists)
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
+
         var swimlane = await dbContext.Swimlanes
-            .SingleOrDefaultAsync(s => s.Id == command.Id, cancellationToken);
+            .SingleOrDefaultAsync(s => s.Id == command.Id && !s.IsDeleted, cancellationToken);
         if (swimlane == null)
             return Result.Failure(SwimlaneErrors.NotFound(command.Id));
+
         swimlane.Title = command.Title;
-        swimlane.UpdatedById = user.Id;
+        swimlane.UpdatedById = userContext.UserId;
         swimlane.UpdatedAt = timeProvider.GetUtcNow();
+
         swimlane.Raise(new SwimlaneUpdatedDomainEvent(swimlane.Id, swimlane.BoardId, swimlane.Title));
+
         await dbContext.SaveChangesAsync(cancellationToken);
+
         return Result.Success();
     }
 }

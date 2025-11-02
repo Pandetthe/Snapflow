@@ -11,12 +11,12 @@ internal sealed class GetByBoardId : IEndpoint
     {
         app.MapGet("boards/{boardId:int}/swimlanes", async (
             int boardId,
-            IQueryHandler<GetSwimlaneByBoardIdQuery, List<GetSwimlaneByBoardIdResponse>> handler,
+            IQueryHandler<GetSwimlanesByBoardIdQuery, SwimlanesResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var query = new GetSwimlaneByBoardIdQuery(boardId);
+            var query = new GetSwimlanesByBoardIdQuery(boardId);
 
-            Result<List<GetSwimlaneByBoardIdResponse>> result = await handler.Handle(query, cancellationToken);
+            Result<SwimlanesResponse> result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })

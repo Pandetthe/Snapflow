@@ -13,6 +13,6 @@ internal sealed class ResendConfirmationEmailCommandValidator : AbstractValidato
             .EmailAddress()
             .WithMessage("Email must be a valid email address.")
             .MaximumLength(UserOptions.MaxEmailLength)
-            .WithMessage("Email must not exceed 254 characters.");
+            .WithMessage($"Email must not exceed {UserOptions.MaxEmailLength} characters.");
     }
 }

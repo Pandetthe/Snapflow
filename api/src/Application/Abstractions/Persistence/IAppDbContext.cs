@@ -6,11 +6,13 @@ using Snapflow.Domain.Lists;
 using Snapflow.Domain.Swimlanes;
 using Snapflow.Domain.Tags;
 using Snapflow.Domain.Users;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Snapflow.Application.Abstractions.Persistence;
 
 public interface IAppDbContext
 {
+    DatabaseFacade Database { get; }
     IQueryable<IUser> Users { get; }
 
     DbSet<Board> Boards { get; }

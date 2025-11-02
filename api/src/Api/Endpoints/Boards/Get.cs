@@ -12,11 +12,11 @@ internal sealed class Get : IEndpoint
     {
         app.MapGet("boards", async (
             [FromQuery] string? title,
-            IQueryHandler<GetBoardsQuery, List<BoardResponse>> handler,
+            IQueryHandler<GetBoardsQuery, BoardsResponse> handler,
             CancellationToken cancellationToken) =>
         {
             var query = new GetBoardsQuery(title);
-            Result<List<BoardResponse>> result = await handler.Handle(query, cancellationToken);
+            Result<BoardsResponse> result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })

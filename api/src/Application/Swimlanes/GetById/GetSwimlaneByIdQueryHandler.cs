@@ -7,18 +7,25 @@ using Snapflow.Domain.Swimlanes;
 namespace Snapflow.Application.Swimlanes.GetById;
 
 internal sealed class GetSwimlaneByIdQueryHandler(
-    IAppDbContext dbContext) : IQueryHandler<GetSwimlaneByIdQuery, GetSwimlaneByIdResponse>
+    IAppDbContext dbContext) : IQueryHandler<GetSwimlaneByIdQuery, SwimlaneResponse>
 {
-    public async Task<Result<GetSwimlaneByIdResponse>> Handle(GetSwimlaneByIdQuery query,
+    public async Task<Result<SwimlaneResponse>> Handle(GetSwimlaneByIdQuery query,
         CancellationToken cancellationToken = default)
     {
         var swimlane = await dbContext.Swimlanes
             .AsNoTracking()
             .Where(s => !s.IsDeleted && s.Id == query.Id)
-            .Select(s => new GetSwimlaneByIdResponse(s.Id, s.BoardId, s.Title))
+            .Select(s => new SwimlaneResponse(
+                s.Id,
+                s.BoardId,
+                s.Title,
+                s.CreatedAt,
+                new UserResponse(s.CreatedBy.Id, s.CreatedBy.UserName),
+                s.UpdatedAt,
+                s.UpdatedBy == null ? null : new UserResponse(s.UpdatedBy.Id, s.UpdatedBy.UserName)))
             .SingleOrDefaultAsync(cancellationToken);
         if (swimlane == null)
-            return Result.Failure<GetSwimlaneByIdResponse>(SwimlaneErrors.NotFound(query.Id));
-        return Result.Success(swimlane);
+            return Result.Failure<SwimlaneResponse>(SwimlaneErrors.NotFound(query.Id));
+        return swimlane;
     }
 }

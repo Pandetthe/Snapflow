@@ -18,12 +18,11 @@ internal sealed class CreateSwimlaneCommandHandler(
     {
         var userExists = await dbContext.Users.AsNoTracking()
             .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
-
         if (!userExists)
             return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
 
         var boardExists = await dbContext.Boards.AsNoTracking()
-            .AnyAsync(b => b.Id == command.BoardId, cancellationToken);
+            .AnyAsync(b => b.Id == command.BoardId && !b.IsDeleted, cancellationToken);
         if (!boardExists)
             return Result.Failure<int>(BoardErrors.NotFound(command.BoardId));
 

@@ -7,8 +7,6 @@ internal sealed class ConfirmEmailCommandValidator : AbstractValidator<ConfirmEm
 {
     public ConfirmEmailCommandValidator()
     {
-        RuleFor(c => c.UserId)
-            .GreaterThan(0).WithMessage("Invalid user identifier.");
         RuleFor(c => c.Code)
             .NotEmpty().WithMessage("Confirmation code must be provided.");
         RuleFor(c => c.ChangedEmail)

@@ -9,7 +9,9 @@ internal sealed class CreateSwimlaneCommandValidator : AbstractValidator<CreateS
     {
         RuleFor(b => b.Title)
             .NotEmpty().WithMessage("Title is required.")
-            .MaximumLength(SwimlaneOptions.MaxTitleLength).WithMessage($"Title must not exceed {SwimlaneOptions.MaxTitleLength} characters.")
-            .MinimumLength(SwimlaneOptions.MinTitleLength).WithMessage($"Title must be at least {SwimlaneOptions.MinTitleLength} characters long.");
+            .MaximumLength(SwimlaneOptions.MaxTitleLength)
+            .WithMessage($"Title must not exceed {SwimlaneOptions.MaxTitleLength} characters.")
+            .MinimumLength(SwimlaneOptions.MinTitleLength)
+            .WithMessage($"Title must be at least {SwimlaneOptions.MinTitleLength} characters long.");
     }
 }

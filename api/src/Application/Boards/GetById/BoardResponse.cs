@@ -1,15 +1,46 @@
-﻿namespace Snapflow.Application.Boards.GetById;
+﻿using System.Collections.ObjectModel;
 
-public sealed record BoardResponse
+namespace Snapflow.Application.Boards.GetById;
+
+public sealed record BoardResponse(
+    int Id,
+    string Title,
+    string Description,
+    SwimlanesResponse Swimlanes,
+    DateTimeOffset CreatedAt,
+    UserResponse CreatedBy,
+    DateTimeOffset? UpdatedAt,
+    UserResponse? UpdatedBy);
+
+public sealed record UserResponse(int Id, string UserName);
+
+public sealed class SwimlanesResponse : ReadOnlyCollection<SwimlaneResponse>
 {
-    public int Id { get; init; }
-    public required string Title { get; init; }
-    public string Description { get; init; } = "";
-    public required DateTimeOffset CreatedAt { get; init; }
-    public required int CreatedBy { get; init; }
-    public DateTimeOffset? UpdatedAt { get; init; }
-    public int? UpdatedBy { get; init; }
-    public DateTimeOffset? DeletedAt { get; init; }
-    public int? DeletedBy { get; init; }
-    public bool IsDeleted { get; init; }
+    public SwimlanesResponse(IEnumerable<SwimlaneResponse> enumerable) : base(enumerable.ToList())
+    {
+    }
 }
+
+public sealed record SwimlaneResponse(
+    int Id,
+    string Title,
+    ListsResponse Lists,
+    DateTimeOffset CreatedAt,
+    UserResponse CreatedBy,
+    DateTimeOffset? UpdatedAt,
+    UserResponse? UpdatedBy);
+
+public sealed class ListsResponse : ReadOnlyCollection<ListResponse>
+{
+    public ListsResponse(IEnumerable<ListResponse> enumerable) : base(enumerable.ToList())
+    {
+    }
+}
+
+public sealed record ListResponse(
+    int Id,
+    string Title,
+    DateTimeOffset CreatedAt,
+    UserResponse CreatedBy,
+    DateTimeOffset? UpdatedAt,
+    UserResponse? UpdatedBy);

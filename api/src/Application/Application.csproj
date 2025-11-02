@@ -1,5 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <Compile Remove="Cards\Get\**" />
+    <EmbeddedResource Remove="Cards\Get\**" />
+    <None Remove="Cards\Get\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="Scrutor" />
@@ -16,12 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Cards\Get\" />
     <Folder Include="Cards\Move\" />
-    <Folder Include="Lists\GetByBoardId\" />
-    <Folder Include="Lists\GetById\" />
+    <Folder Include="Cards\Move\" />
     <Folder Include="Lists\Move\" />
-    <Folder Include="Lists\GetBySwimlaneId\" />
     <Folder Include="Tags\" />
   </ItemGroup>
 </Project>

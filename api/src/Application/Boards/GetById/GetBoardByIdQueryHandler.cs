@@ -3,33 +3,47 @@ using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
-using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Boards.GetById;
 
-internal sealed class GetBoardByIdQueryHandler(IAppDbContext context) : IQueryHandler<GetBoardByIdQuery, BoardResponse>
+internal sealed class GetBoardByIdQueryHandler(
+    IAppDbContext context) : IQueryHandler<GetBoardByIdQuery, BoardResponse>
 {
     public async Task<Result<BoardResponse>> Handle(GetBoardByIdQuery query, CancellationToken cancellationToken = default)
     {
         BoardResponse? board = await context.Boards
-            .Where(b => b.Id == query.BoardId)
-            .Select(u => new BoardResponse
-            {
-                Id = u.Id,
-                Title = u.Title,
-                Description = u.Description,
-                CreatedAt = u.CreatedAt,
-                CreatedBy = u.CreatedById,
-                UpdatedAt = u.UpdatedAt,
-                UpdatedBy = u.UpdatedById,
-                IsDeleted = u.IsDeleted,
-                DeletedAt = u.DeletedAt,
-                DeletedBy = u.DeletedById,
-            })
+            .AsNoTracking()
+            .Where(b => b.Id == query.Id && !b.IsDeleted)
+            .Select(b => new BoardResponse(
+                b.Id,
+                b.Title,
+                b.Description,
+                new SwimlanesResponse(b.Swimlanes
+                    .Where(s => !s.IsDeleted)
+                    .Select(s => new SwimlaneResponse(
+                        s.Id,
+                        s.Title,
+                        new ListsResponse(s.Lists
+                            .Where(l => !l.IsDeleted)
+                            .Select(l => new ListResponse(
+                                l.Id,
+                                l.Title,
+                                l.CreatedAt,
+                                new UserResponse(l.CreatedBy.Id, l.CreatedBy.UserName),
+                                l.UpdatedAt,
+                                l.UpdatedBy == null ? null : new UserResponse(l.UpdatedBy.Id, l.UpdatedBy.UserName)))),
+                        s.CreatedAt,
+                        new UserResponse(s.CreatedBy.Id, s.CreatedBy.UserName),
+                        s.UpdatedAt,
+                        s.UpdatedBy == null ? null : new UserResponse(s.UpdatedBy.Id, s.UpdatedBy.UserName)))),
+                b.CreatedAt,
+                new UserResponse(b.CreatedBy.Id, b.CreatedBy.UserName),
+                b.UpdatedAt,
+                b.UpdatedBy == null ? null : new UserResponse(b.UpdatedBy.Id, b.UpdatedBy.UserName)))
             .SingleOrDefaultAsync(cancellationToken);
 
         if (board == null)
-            return Result.Failure<BoardResponse>(BoardErrors.NotFound(query.BoardId));
+            return Result.Failure<BoardResponse>(BoardErrors.NotFound(query.Id));
 
         return board;
     }

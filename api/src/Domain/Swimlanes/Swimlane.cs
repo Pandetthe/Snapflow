@@ -25,7 +25,8 @@ public class Swimlane : Entity<int>
     public int? DeletedById { get; set; }
     public IUser? DeletedBy { get; set; }
     public bool IsDeleted { get; set; }
+    public bool DeletedByCascade { get; set; }
 
-    public virtual HashSet<List> Lists { get; set; } = [];
-    public virtual HashSet<Card> Cards { get; set; } = [];
+    public virtual ICollection<List> Lists { get; set; } = [];
+    public virtual ICollection<Card> Cards { get; set; } = [];
 }

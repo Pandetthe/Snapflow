@@ -13,14 +13,14 @@ internal sealed class ResetPasswordCommandValidator : AbstractValidator<ResetPas
             .EmailAddress()
             .WithMessage("Email must be a valid email address.")
             .MaximumLength(UserOptions.MaxEmailLength)
-            .WithMessage("Email must not exceed 254 characters.");
+            .WithMessage($"Email must not exceed {UserOptions.MaxEmailLength} characters.");
 
         RuleFor(x => x.NewPassword)
             .NotEmpty().WithMessage("New password is required.")
             .MinimumLength(UserOptions.MinPasswordLength)
-            .WithMessage("New password must be at least 8 characters long.")
+            .WithMessage($"New password must be at least {UserOptions.MinPasswordLength} characters long.")
             .MaximumLength(UserOptions.MaxPasswordLength)
-            .WithMessage("New password must not exceed 64 characters.")
+            .WithMessage($"New password must not exceed {UserOptions.MaxPasswordLength} characters.")
             .Matches(@"[a-z]").WithMessage("New password must contain at least one lowercase letter.")
             .When(x => UserOptions.RequireLowercaseInPassword)
             .Matches(@"[A-Z]").WithMessage("New password must contain at least one uppercase letter.")

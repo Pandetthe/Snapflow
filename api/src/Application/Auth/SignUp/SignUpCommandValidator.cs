@@ -10,22 +10,22 @@ internal sealed class SignUpCommandValidator : AbstractValidator<SignUpCommand>
         RuleFor(x => x.UserName)
             .NotEmpty().WithMessage("Username is required.")
             .MinimumLength(UserOptions.MinUserNameLength)
-            .WithMessage("Username must be at least 3 characters long.")
+            .WithMessage($"Username must be at least {UserOptions.MinUserNameLength} characters long.")
             .MaximumLength(UserOptions.MaxUserNameLength)
-            .WithMessage("Username must not exceed 20 characters.");
+            .WithMessage($"Username must not exceed {UserOptions.MaxUserNameLength} characters.");
         RuleFor(x => x.Email)
             .NotEmpty()
             .WithMessage("Email is required.")
             .EmailAddress()
             .WithMessage("Email must be a valid email address.")
             .MaximumLength(UserOptions.MaxEmailLength)
-            .WithMessage("Email must not exceed 254 characters.");
+            .WithMessage($"Email must not exceed {UserOptions.MaxEmailLength} characters.");
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Password is required.")
             .MinimumLength(UserOptions.MinPasswordLength)
-            .WithMessage("Password must be at least 8 characters long.")
+            .WithMessage($"Password must be at least {UserOptions.MinPasswordLength} characters long.")
             .MaximumLength(UserOptions.MaxPasswordLength)
-            .WithMessage("Password must not exceed 64 characters.")
+            .WithMessage($"Password must not exceed {UserOptions.MaxPasswordLength} characters.")
             .Matches(@"[a-z]").WithMessage("Password must contain at least one lowercase letter.")
             .When(x => UserOptions.RequireLowercaseInPassword)
             .Matches(@"[A-Z]").WithMessage("Password must contain at least one uppercase letter.")

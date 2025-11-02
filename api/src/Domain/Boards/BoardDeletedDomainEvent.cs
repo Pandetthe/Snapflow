@@ -2,7 +2,4 @@
 
 namespace Snapflow.Domain.Boards;
 
-public sealed class BoardDeletedDomainEvent : IDomainEvent
-{
-    public int Id { get; private set; }
-}
+public sealed record BoardDeletedDomainEvent(int Id) : IDomainEvent;

@@ -3,8 +3,8 @@ using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
-using Snapflow.Domain.Boards;
 using Snapflow.Domain.Lists;
+using Snapflow.Domain.Swimlanes;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Lists.Create;
@@ -21,14 +21,17 @@ internal sealed class CreateListCommandHandler(
         if (!userExists)
             return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
 
-        var boardExists = await dbContext.Boards.AsNoTracking()
-            .AnyAsync(b => b.Id == command.BoardId, cancellationToken);
-        if (!boardExists)
-            return Result.Failure<int>(BoardErrors.NotFound(command.BoardId));
+        var swimlaneBoardId = await dbContext.Swimlanes
+            .AsNoTracking()
+            .Where(x => x.Id == command.SwimlaneId && !x.IsDeleted)
+            .Select(x => new { x.BoardId })
+            .SingleOrDefaultAsync(cancellationToken);
+        if (swimlaneBoardId == null)
+            return Result.Failure<int>(SwimlaneErrors.NotFound(command.SwimlaneId));
 
         var list = new List
         {
-            BoardId = command.BoardId,
+            BoardId = swimlaneBoardId.BoardId,
             SwimlaneId = command.SwimlaneId,
             Title = command.Title,
             CreatedById = userContext.UserId,

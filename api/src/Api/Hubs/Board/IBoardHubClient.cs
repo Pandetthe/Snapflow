@@ -18,7 +18,7 @@ internal interface IBoardHubClient
 
     Task ListUpdated();
 
-    Task ListDeleted(int id, int swimlaneId, CancellationToken cancellationToken = default);
+    Task ListDeleted(int id, CancellationToken cancellationToken = default);
 
     Task TagCreated();
 
@@ -34,7 +34,7 @@ internal interface IBoardHubClient
 
     Task CardUpdated();
 
-    Task CardDeleted(int id, int listId, int swimlaneId, CancellationToken cancellationToken = default);
+    Task CardDeleted(int id, CancellationToken cancellationToken = default);
 
     Task CardMoved();
 

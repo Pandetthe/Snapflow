@@ -26,9 +26,9 @@ public class Board : Entity<int>
     public virtual IUser? DeletedBy { get; set; }
     public bool IsDeleted { get; set; }
 
-    public virtual HashSet<Member> Members { get; set; } = [];
-    public virtual HashSet<Swimlane> Swimlanes { get; set; } = [];
-    public virtual HashSet<List> Lists { get; set; } = [];
-    public virtual HashSet<Card> Cards { get; set; } = [];
-    public virtual HashSet<Tag> Tags { get; set; } = [];
+    public virtual ICollection<Member> Members { get; set; } = [];
+    public virtual ICollection<Swimlane> Swimlanes { get; set; } = [];
+    public virtual ICollection<List> Lists { get; set; } = [];
+    public virtual ICollection<Card> Cards { get; set; } = [];
+    public virtual ICollection<Tag> Tags { get; set; } = [];
 }

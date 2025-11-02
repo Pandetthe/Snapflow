@@ -16,7 +16,7 @@ internal sealed partial class BoardHub
         ICommandHandler<CreateListCommand, int> handler)
     {
         logger.LogInformation("List create requested by connection {ConnectionId}.", Context.ConnectionId);
-        var command = new CreateListCommand(Context.GetBoardId(), request.SwimlaneId, request.Title);
+        var command = new CreateListCommand( request.SwimlaneId, request.Title);
         Result<int> result = await handler.Handle(command, Context.ConnectionAborted);
         return result.Match(CustomResults.OkWithId, CustomResults.Problem);
     }
@@ -33,14 +33,14 @@ internal sealed partial class BoardHub
         return Task.CompletedTask;
     }
 
-    public sealed record DeleteListRequest(int SwimlaneId, int ListId);
+    public sealed record DeleteListRequest(int Id);
 
     public async Task<IResult> DeleteList(
         DeleteListRequest request,
         ICommandHandler<DeleteListCommand> handler)
     {
         logger.LogInformation("List delete requested by connection {ConnectionId}.", Context.ConnectionId);
-        var command = new DeleteListCommand(request.ListId, Context.GetBoardId(), request.SwimlaneId);
+        var command = new DeleteListCommand(request.Id);
         Result result = await handler.Handle(command, Context.ConnectionAborted);
         return result.Match(Results.NoContent, CustomResults.Problem);
     }

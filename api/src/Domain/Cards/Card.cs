@@ -31,6 +31,7 @@ public class Card : Entity<int>
     public int? DeletedById { get; set; }
     public virtual IUser? DeletedBy { get; set; }
     public bool IsDeleted { get; set; }
+    public bool DeletedByCascade { get; set; }
 
-    public virtual HashSet<Tag> Tags { get; set; } = [];
+    public virtual ICollection<Tag> Tags { get; set; } = [];
 }

@@ -2,4 +2,4 @@
 
 namespace Snapflow.Domain.Lists;
 
-public sealed record ListDeletedDomainEvent(int Id, int BoardId, int SwimlaneId) : IDomainEvent;
+public sealed record ListDeletedDomainEvent(int Id, int BoardId) : IDomainEvent;

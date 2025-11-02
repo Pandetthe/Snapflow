@@ -16,8 +16,10 @@ internal sealed class AddMemberCommandHandler(
             BoardId = command.BoardId,
             Role = command.Role
         };
+
         await dbContext.Members.AddAsync(member, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
+
         return Result.Success();
     }
 }

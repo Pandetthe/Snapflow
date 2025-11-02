@@ -3,9 +3,9 @@ using Snapflow.Common;
 
 namespace Snapflow.Application.Swimlanes.Move;
 
-internal sealed class MoveSwimlaneCommandCommandHandler : ICommandHandler<MoveSwimlaneCommandCommand>
+internal sealed class MoveSwimlaneCommandCommandHandler : ICommandHandler<MoveSwimlaneCommand>
 {
-    public Task<Result> Handle(MoveSwimlaneCommandCommand command, CancellationToken cancellationToken = default)
+    public Task<Result> Handle(MoveSwimlaneCommand command, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

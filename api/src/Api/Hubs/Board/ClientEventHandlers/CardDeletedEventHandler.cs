@@ -9,6 +9,5 @@ internal sealed class CardDeletedEventHandler(
 {
     public Task Handle(CardDeletedDomainEvent domainEvent, CancellationToken cancellationToken)
         => hubContext.Clients.Group(domainEvent.BoardId).CardDeleted(
-            domainEvent.Id, domainEvent.ListId, domainEvent.SwimlaneId, 
-            cancellationToken);
+            domainEvent.Id, cancellationToken);
 }
