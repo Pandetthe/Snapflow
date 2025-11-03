@@ -1,4 +1,5 @@
 using Snapflow.Api.Extensions;
+using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Lists.Create;
 using Snapflow.Common;
@@ -11,7 +12,7 @@ internal sealed class Create : IEndpoint
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("boards/{boardId}/lists", async (
+        app.MapPost("boards/{boardId:int}/swimlanes/{swimlaneId:int}/lists", async (
             CreateListRequest request,
             int boardId,
             int swimlaneId,

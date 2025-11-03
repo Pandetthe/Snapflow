@@ -1,4 +1,5 @@
 ﻿using Snapflow.Api.Extensions;
+using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Boards.Create;
 using Snapflow.Common;
@@ -23,6 +24,9 @@ internal sealed class Create : IEndpoint
             return result.Match(CustomResults.OkWithId, CustomResults.Problem);
         })
         .RequireAuthorization()
-        .WithTags(EndpointTags.Boards);
+        .WithTags(EndpointTags.Boards)
+        .ProducesIdResponse()
+        .ProducesCustomValidationProblem()
+        .ProducesInternalServerError();
     }
 }

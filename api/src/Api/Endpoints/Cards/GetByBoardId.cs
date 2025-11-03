@@ -1,27 +1,27 @@
 ﻿using Snapflow.Api.Extensions;
 using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
-using Snapflow.Application.Lists.GetByBoardId;
+using Snapflow.Application.Cards.GetByBoardId;
 using Snapflow.Common;
 
-namespace Snapflow.Api.Endpoints.Lists;
+namespace Snapflow.Api.Endpoints.Cards;
 
 internal sealed class GetByBoardId : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("boards/{boardId:int}/lists", async (
+        app.MapGet("boards/{boardId:int}/cards", async (
             int boardId,
-            IQueryHandler<GetListsByBoardIdQuery, ListsResponse> handler,
+            IQueryHandler<GetCardsByBoardIdQuery, CardsResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var query = new GetListsByBoardIdQuery(boardId);
+            var query = new GetCardsByBoardIdQuery(boardId);
 
-            Result<ListsResponse> result = await handler.Handle(query, cancellationToken);
+            Result<CardsResponse> result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .RequireAuthorization()
-        .WithTags(EndpointTags.Lists);
+        .WithTags(EndpointTags.Cards);
     }
 }

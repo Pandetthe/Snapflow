@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Snapflow.Api.Extensions;
+using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Boards.Get;
 using Snapflow.Common;
@@ -21,6 +22,8 @@ internal sealed class Get : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .RequireAuthorization()
-        .WithTags(EndpointTags.Boards);
+        .WithTags(EndpointTags.Boards)
+        .Produces< BoardsResponse>(StatusCodes.Status200OK)
+        .ProducesInternalServerError();
     }
 }

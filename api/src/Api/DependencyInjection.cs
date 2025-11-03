@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using Snapflow.Api.Exceptions;
+using Snapflow.Api.Infrastructure.Exceptions;
 
 namespace Snapflow.Api;
 

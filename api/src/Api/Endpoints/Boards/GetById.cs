@@ -1,4 +1,5 @@
 ﻿using Snapflow.Api.Extensions;
+using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Boards.GetById;
 using Snapflow.Common;
@@ -19,6 +20,9 @@ internal sealed class GetById : IEndpoint
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
-        .WithTags(EndpointTags.Boards);
+        .WithTags(EndpointTags.Boards)
+        .Produces<BoardResponse>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesInternalServerError();
     }
 }

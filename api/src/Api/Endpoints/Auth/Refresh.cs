@@ -1,4 +1,5 @@
-﻿using Snapflow.Application.Abstractions.Messaging;
+﻿using Snapflow.Api.Infrastructure;
+using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Auth.Refresh;
 using Snapflow.Common;
 

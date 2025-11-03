@@ -1,4 +1,5 @@
 ﻿using Snapflow.Api.Extensions;
+using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Lists.Update;
 using Snapflow.Common;
@@ -7,12 +8,12 @@ namespace Snapflow.Api.Endpoints.Lists;
 
 internal sealed class Update : IEndpoint
 {
-    public sealed record UpdateSwimlaneRequest(string Title);
+    public sealed record UpdateListRequest(string Title);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPatch("boards/{boardId:int}/lists/{listId:int}", async (
-            UpdateSwimlaneRequest request,
+            UpdateListRequest request,
             int boardId, int listId,
             ICommandHandler<UpdateListCommand> handler,
             CancellationToken cancellationToken) =>

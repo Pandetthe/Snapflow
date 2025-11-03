@@ -1,17 +1,17 @@
 ﻿using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Swimlanes.Move;
 
-namespace Snapflow.Api.Endpoints.Lists;
+namespace Snapflow.Api.Endpoints.Cards;
 
 internal sealed class Move : IEndpoint
 {
-    public sealed record MoveListRequest();
+    public sealed record MoveCardRequest();
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("boards/{boardId:int}/lists/{listId:int}/move", (
-            MoveListRequest request,
-            int boardId, int listId,
+        app.MapPost("boards/{boardId:int}/cards/{cardId:int}/move", (
+            MoveCardRequest request,
+            int boardId, int cardId,
             ICommandHandler<MoveSwimlaneCommand> handler,
             CancellationToken cancellationToken) =>
         {
@@ -24,6 +24,6 @@ internal sealed class Move : IEndpoint
             //return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .RequireAuthorization()
-        .WithTags(EndpointTags.Lists);
+        .WithTags(EndpointTags.Cards);
     }
 }

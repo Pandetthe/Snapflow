@@ -1,4 +1,5 @@
 ﻿using Snapflow.Api.Extensions;
+using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Lists.GetById;
 using Snapflow.Common;
@@ -9,7 +10,7 @@ internal sealed class GetById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("boards/{boardId:int}/Lists/{listId:int}", async (
+        app.MapGet("boards/{boardId:int}/kists/{listId:int}", async (
             int boardId, int listId,
             IQueryHandler<GetListByIdQuery, ListResponse> handler,
             CancellationToken cancellationToken) =>

@@ -1,4 +1,5 @@
 ﻿using Snapflow.Api.Extensions;
+using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Cards.Delete;
 using Snapflow.Application.Cards.Update;
@@ -49,9 +50,7 @@ internal sealed partial class BoardHub
         ICommandHandler<DeleteCardCommand> handler)
     {
         logger.LogInformation("Card delete requested by connection {ConnectionId}.", Context.ConnectionId);
-        var command = new DeleteCardCommand(
-            request.Id,
-            Context.GetBoardId());
+        var command = new DeleteCardCommand(request.Id);
         Result result = await handler.Handle(command, Context.ConnectionAborted);
         return result.Match(Results.NoContent, CustomResults.Problem);
     }

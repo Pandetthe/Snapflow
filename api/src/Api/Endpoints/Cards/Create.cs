@@ -1,30 +1,31 @@
 using Snapflow.Api.Extensions;
 using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
-using Snapflow.Application.Swimlanes.Create;
+using Snapflow.Application.Cards.Create;
 using Snapflow.Common;
 
-namespace Snapflow.Api.Endpoints.Swimlanes;
+namespace Snapflow.Api.Endpoints.Cards;
 
 internal sealed class Create : IEndpoint
 {
-    public sealed record CreateSwimlaneRequest(string Title);
+    public sealed record CreateCardRequest(string Title, string Description);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("boards/{boardId:int}/swimlanes", async (
-            CreateSwimlaneRequest request,
+        app.MapPost("boards/{boardId:int}/lists/{listId:int}/cards", async (
+            CreateCardRequest request,
             int boardId,
-            ICommandHandler<CreateSwimlaneCommand, int> handler,
+            int listId,
+            ICommandHandler<CreateCardCommand, int> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new CreateSwimlaneCommand(boardId, request.Title);
+            var command = new CreateCardCommand(listId, request.Title, request.Description);
 
             Result<int> result = await handler.Handle(command, cancellationToken);
 
             return result.Match(CustomResults.OkWithId, CustomResults.Problem);
         })
         .RequireAuthorization()
-        .WithTags(EndpointTags.Swimlanes);
+        .WithTags(EndpointTags.Cards);
     }
 }

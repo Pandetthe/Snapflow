@@ -6,10 +6,10 @@ using Snapflow.Domain.Cards;
 
 namespace Snapflow.Application.Cards.GetById;
 
-internal sealed class GetCardsByIdQueryHandler(
-    IAppDbContext dbContext) : IQueryHandler<GetCardsByIdQuery, CardResponse>
+internal sealed class GetCardByIdQueryHandler(
+    IAppDbContext dbContext) : IQueryHandler<GetCardByIdQuery, CardResponse>
 {
-    public async Task<Result<CardResponse>> Handle(GetCardsByIdQuery query,
+    public async Task<Result<CardResponse>> Handle(GetCardByIdQuery query,
         CancellationToken cancellationToken = default)
     {
         var card = await dbContext.Cards
