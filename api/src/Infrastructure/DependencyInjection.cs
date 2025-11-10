@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Authentication.BearerToken;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Snapflow.Application.Abstractions.Behaviours;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Infrastructure.Authorization;
+using Snapflow.Infrastructure.Behaviours;
 using Snapflow.Infrastructure.DomainEvents;
 using Snapflow.Infrastructure.Identity;
 using Snapflow.Infrastructure.Identity.Entities;
@@ -28,6 +28,7 @@ public static class DependencyInjection
             .AddHttpContextAccessor();
         services.AddHttpContextAccessor();
         services.AddScoped<IUserContext, AppUserContext>();
+        services.AddScoped<IRankService, LexoRankService>();
         return services;
     }
 

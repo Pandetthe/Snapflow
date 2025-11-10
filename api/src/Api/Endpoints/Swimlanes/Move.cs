@@ -1,4 +1,5 @@
 ﻿using Snapflow.Api.Extensions;
+using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Swimlanes.Move;
 using Snapflow.Common;
@@ -7,23 +8,21 @@ namespace Snapflow.Api.Endpoints.Swimlanes;
 
 internal sealed class Move : IEndpoint
 {
-    public sealed record MoveSwimlaneRequest();
+    public sealed record MoveSwimlaneRequest(int? BeforeId);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("boards/{boardId:int}/swimlanes/{swimlaneId:int}/move", (
+        app.MapPost("boards/{boardId:int}/swimlanes/{swimlaneId:int}/move", async (
             MoveSwimlaneRequest request,
             int boardId, int swimlaneId,
             ICommandHandler<MoveSwimlaneCommand> handler,
             CancellationToken cancellationToken) =>
         {
-            throw new NotImplementedException();
-            // TODO
-            //var command = new MoveSwimlaneCommand();
+            var command = new MoveSwimlaneCommand(swimlaneId, request.BeforeId);
 
-            //Result result = await handler.Handle(command, cancellationToken);
+            Result result = await handler.Handle(command, cancellationToken);
 
-            //return result.Match(Results.NoContent, CustomResults.Problem);
+            return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .RequireAuthorization()
         .WithTags(EndpointTags.Swimlanes);

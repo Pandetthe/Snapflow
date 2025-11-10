@@ -9,4 +9,4 @@ public sealed class SwimlanesResponse : ReadOnlyCollection<SwimlaneResponse>
     }
 }
 
-public sealed record SwimlaneResponse(int Id, int BoardId, string Title);
+public sealed record SwimlaneResponse(int Id, string Title, string Rank);

@@ -1,7 +1,9 @@
 ﻿using Snapflow.Api.Extensions;
 using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
+using Snapflow.Application.Cards.Create;
 using Snapflow.Application.Cards.Delete;
+using Snapflow.Application.Cards.Move;
 using Snapflow.Application.Cards.Update;
 using Snapflow.Common;
 
@@ -10,40 +12,50 @@ namespace Snapflow.Api.Hubs.Board;
 // Hub methods for card operations
 internal sealed partial class BoardHub
 {
-    public sealed record CreateCardRequest(int SwimlaneId, int ListId, string Title, string Description);
+    public sealed record CreateCardRequest(int ListId, string Title, string Description, int? BeforeId);
 
     public async Task<IResult> CreateCard(
         CreateCardRequest request,
-        ICommandHandler<UpdateCardCommand> handler)
+        ICommandHandler<CreateCardCommand, int> handler)
     {
         logger.LogInformation("Card create requested by connection {ConnectionId}.", Context.ConnectionId);
+        var command = new CreateCardCommand(
+            request.ListId,
+            request.Title,
+            request.Description,
+            request.BeforeId);
+        Result<int> result = await handler.Handle(command, Context.ConnectionAborted);
+        return result.Match(CustomResults.OkWithId, CustomResults.Problem);
+    }
+
+    public sealed record UpdateCardRequest(int Id, string Title, string Description);
+
+    public async Task<IResult> UpdateCard(
+        UpdateCardRequest request,
+        ICommandHandler<UpdateCardCommand> handler)
+    {
+        logger.LogInformation("Card update requested by connection {ConnectionId}.", Context.ConnectionId);
         var command = new UpdateCardCommand(
-            Context.GetBoardId(),
+            request.Id,
             request.Title,
             request.Description);
         Result result = await handler.Handle(command, Context.ConnectionAborted);
         return result.Match(Results.NoContent, CustomResults.Problem);
     }
 
-    public sealed record UpdateCardRequest();
+    public sealed record MoveCardRequest(int Id, int? BeforeId);
 
-    public Task UpdateCard(
-        UpdateCardRequest request)
+    public async Task<IResult> MoveCard(
+        MoveCardRequest request,
+        ICommandHandler<MoveCardCommand> handler)
     {
         logger.LogInformation("Card update requested by connection {ConnectionId}.", Context.ConnectionId);
-        return Task.CompletedTask;
+        var command = new MoveCardCommand(request.Id, request.BeforeId);
+        Result result = await handler.Handle(command, Context.ConnectionAborted);
+        return result.Match(Results.NoContent, CustomResults.Problem);
     }
 
-    public sealed record MoveCardRequest();
-
-    public Task MoveCard(
-        MoveCardRequest request)
-    {
-        logger.LogInformation("Card update requested by connection {ConnectionId}.", Context.ConnectionId);
-        return Task.CompletedTask;
-    }
-
-    public sealed record DeleteCardRequest(int Id, int SwimlaneId, int ListId);
+    public sealed record DeleteCardRequest(int Id);
 
     public async Task<IResult> DeleteCard(
         DeleteCardRequest request,

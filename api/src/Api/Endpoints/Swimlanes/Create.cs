@@ -8,7 +8,7 @@ namespace Snapflow.Api.Endpoints.Swimlanes;
 
 internal sealed class Create : IEndpoint
 {
-    public sealed record CreateSwimlaneRequest(string Title);
+    public sealed record CreateSwimlaneRequest(string Title, int? BeforeId);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -18,7 +18,7 @@ internal sealed class Create : IEndpoint
             ICommandHandler<CreateSwimlaneCommand, int> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new CreateSwimlaneCommand(boardId, request.Title);
+            var command = new CreateSwimlaneCommand(boardId, request.Title, request.BeforeId);
 
             Result<int> result = await handler.Handle(command, cancellationToken);
 

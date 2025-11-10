@@ -2,4 +2,4 @@ using Snapflow.Application.Abstractions.Messaging;
 
 namespace Snapflow.Application.Cards.Create;
 
-public sealed record CreateCardCommand(int ListId, string Title, string Description) : ICommand<int>;
+public sealed record CreateCardCommand(int ListId, string Title, string Description, int? BeforeId) : ICommand<int>;

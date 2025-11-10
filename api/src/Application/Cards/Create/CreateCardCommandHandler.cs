@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Snapflow.Application.Abstractions.Behaviours;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
+using Snapflow.Application.Ranking;
 using Snapflow.Common;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
@@ -12,7 +14,8 @@ namespace Snapflow.Application.Cards.Create;
 internal sealed class CreateCardCommandHandler(
     IAppDbContext dbContext,
     IUserContext userContext,
-    TimeProvider timeProvider) : ICommandHandler<CreateCardCommand, int>
+    TimeProvider timeProvider,
+    IEntityRankService<Card> rankService) : ICommandHandler<CreateCardCommand, int>
 {
     public async Task<Result<int>> Handle(CreateCardCommand command, CancellationToken cancellationToken = default)
     {
@@ -28,6 +31,10 @@ internal sealed class CreateCardCommandHandler(
             .SingleOrDefaultAsync(cancellationToken);
         if (list == null)
             return Result.Failure<int>(ListErrors.NotFound(command.ListId));
+        Result<string> rankResult = await rankService.GenerateRankAsync(
+            command.ListId, null, command.BeforeId, cancellationToken);
+        if (!rankResult.IsSuccess)
+            return Result.Failure<int>(rankResult.Error);
 
         var card = new Card
         {
@@ -36,6 +43,7 @@ internal sealed class CreateCardCommandHandler(
             BoardId = list.BoardId,
             Title = command.Title,
             Description = command.Description,
+            Rank = rankResult.Value,
             CreatedById = userContext.UserId,
             CreatedAt = timeProvider.GetUtcNow(),
         };

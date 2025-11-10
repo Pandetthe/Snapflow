@@ -8,7 +8,7 @@ namespace Snapflow.Api.Endpoints.Lists;
 
 internal sealed class Create : IEndpoint
 {
-    public sealed record CreateListRequest(string Title);
+    public sealed record CreateListRequest(string Title, int? BeforeId);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -19,7 +19,7 @@ internal sealed class Create : IEndpoint
             ICommandHandler<CreateListCommand, int> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new CreateListCommand(swimlaneId, request.Title);
+            var command = new CreateListCommand(swimlaneId, request.Title, request.BeforeId);
 
             Result<int> result = await handler.Handle(command, cancellationToken);
 

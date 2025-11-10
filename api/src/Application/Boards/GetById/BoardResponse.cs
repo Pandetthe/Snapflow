@@ -24,6 +24,7 @@ public sealed class SwimlanesResponse : ReadOnlyCollection<SwimlaneResponse>
 public sealed record SwimlaneResponse(
     int Id,
     string Title,
+    string Rank,
     ListsResponse Lists,
     DateTimeOffset CreatedAt,
     UserResponse CreatedBy,

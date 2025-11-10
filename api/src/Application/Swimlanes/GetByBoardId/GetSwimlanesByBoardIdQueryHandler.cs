@@ -20,11 +20,12 @@ internal sealed class GetSwimlanesByBoardIdQueryHandler(
                 b.Id,
                 Swimlanes = new SwimlanesResponse(
                     b.Swimlanes
-                    .Where(s => !s.IsDeleted)
-                    .Select(s => new SwimlaneResponse(
-                        s.Id, 
-                        s.BoardId,
-                        s.Title)))
+                        .Where(s => !s.IsDeleted)
+                        .OrderBy(s => s.Rank)
+                        .Select(s => new SwimlaneResponse(
+                            s.Id, 
+                            s.Title,
+                            s.Rank)))
             })
             .SingleOrDefaultAsync(cancellationToken);
         if (board == null)

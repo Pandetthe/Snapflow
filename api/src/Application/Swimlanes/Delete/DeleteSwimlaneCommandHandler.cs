@@ -23,7 +23,6 @@ internal sealed class DeleteSwimlaneCommandHandler(
         var swimlane = await dbContext.Swimlanes
             .Include(s => s.Lists.Where(l => !l.IsDeleted))
             .Include(s => s.Cards.Where(c => !c.IsDeleted))
-            .AsSplitQuery()
             .SingleOrDefaultAsync(s => s.Id == command.Id && !s.IsDeleted, cancellationToken);
         if (swimlane == null)
             return Result.Failure(SwimlaneErrors.NotFound(command.Id));

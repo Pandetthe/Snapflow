@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
+using Snapflow.Application.Ranking;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Swimlanes;
@@ -12,7 +13,8 @@ namespace Snapflow.Application.Swimlanes.Create;
 internal sealed class CreateSwimlaneCommandHandler(
     IAppDbContext dbContext,
     IUserContext userContext,
-    TimeProvider timeProvider) : ICommandHandler<CreateSwimlaneCommand, int>
+    TimeProvider timeProvider,
+    IEntityRankService<Swimlane> rankService) : ICommandHandler<CreateSwimlaneCommand, int>
 {
     public async Task<Result<int>> Handle(CreateSwimlaneCommand command, CancellationToken cancellationToken = default)
     {
@@ -25,11 +27,16 @@ internal sealed class CreateSwimlaneCommandHandler(
             .AnyAsync(b => b.Id == command.BoardId && !b.IsDeleted, cancellationToken);
         if (!boardExists)
             return Result.Failure<int>(BoardErrors.NotFound(command.BoardId));
+        Result<string> rankResult = await rankService.GenerateRankAsync(
+            command.BoardId, null, command.BeforeId, cancellationToken);
+        if (!rankResult.IsSuccess)
+            return Result.Failure<int>(rankResult.Error);
 
         var swimlane = new Swimlane
         {
             BoardId = command.BoardId,
             Title = command.Title,
+            Rank = rankResult.Value,
             CreatedById = userContext.UserId,
             CreatedAt = timeProvider.GetUtcNow(),
         };

@@ -24,7 +24,6 @@ internal sealed class DeleteBoardCommandHandler(
             .Include(b => b.Swimlanes.Where(s => !s.IsDeleted))
             .Include(b => b.Lists.Where(l => !l.IsDeleted))
             .Include(b => b.Cards.Where(c => !c.IsDeleted))
-            .AsSplitQuery()
             .SingleOrDefaultAsync(x => x.Id == command.BoardId && !x.IsDeleted, cancellationToken);
         if (board == null)
             return Result.Failure(BoardErrors.NotFound(command.BoardId));

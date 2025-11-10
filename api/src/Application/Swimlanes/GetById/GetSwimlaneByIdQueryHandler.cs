@@ -19,6 +19,7 @@ internal sealed class GetSwimlaneByIdQueryHandler(
                 s.Id,
                 s.BoardId,
                 s.Title,
+                s.Rank,
                 s.CreatedAt,
                 new UserResponse(s.CreatedBy.Id, s.CreatedBy.UserName),
                 s.UpdatedAt,

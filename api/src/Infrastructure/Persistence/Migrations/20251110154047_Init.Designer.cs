@@ -12,7 +12,7 @@ using Snapflow.Infrastructure.Persistence;
 namespace Snapflow.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251030080253_Init")]
+    [Migration("20251110154047_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -175,29 +175,6 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.ToTable("user_tokens", "public");
                 });
 
-            modelBuilder.Entity("Snapflow.Domain.Members.BoardMember", b =>
-                {
-                    b.Property<int>("BoardId")
-                        .HasColumnType("integer")
-                        .HasColumnName("board_id");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer")
-                        .HasColumnName("user_id");
-
-                    b.Property<int>("Role")
-                        .HasColumnType("integer")
-                        .HasColumnName("role");
-
-                    b.HasKey("BoardId", "UserId")
-                        .HasName("pk_board_members");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_board_members_user_id");
-
-                    b.ToTable("board_members", "public");
-                });
-
             modelBuilder.Entity("Snapflow.Domain.Boards.Board", b =>
                 {
                     b.Property<int>("Id")
@@ -295,6 +272,10 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
 
+                    b.Property<bool>("DeletedByCascade")
+                        .HasColumnType("boolean")
+                        .HasColumnName("deleted_by_cascade");
+
                     b.Property<int?>("DeletedById")
                         .HasColumnType("integer")
                         .HasColumnName("deleted_by_id");
@@ -311,6 +292,11 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.Property<int>("ListId")
                         .HasColumnType("integer")
                         .HasColumnName("list_id");
+
+                    b.Property<string>("Rank")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("rank");
 
                     b.Property<int>("SwimlaneId")
                         .HasColumnType("integer")
@@ -341,14 +327,15 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.HasIndex("DeletedById")
                         .HasDatabaseName("ix_cards_deleted_by_id");
 
-                    b.HasIndex("ListId")
-                        .HasDatabaseName("ix_cards_list_id");
-
                     b.HasIndex("SwimlaneId")
                         .HasDatabaseName("ix_cards_swimlane_id");
 
                     b.HasIndex("UpdatedById")
                         .HasDatabaseName("ix_cards_updated_by_id");
+
+                    b.HasIndex("ListId", "Rank")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cards_list_id_rank");
 
                     b.ToTable("cards", "public");
                 });
@@ -378,6 +365,10 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
 
+                    b.Property<bool>("DeletedByCascade")
+                        .HasColumnType("boolean")
+                        .HasColumnName("deleted_by_cascade");
+
                     b.Property<int?>("DeletedById")
                         .HasColumnType("integer")
                         .HasColumnName("deleted_by_id");
@@ -385,6 +376,11 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
+
+                    b.Property<string>("Rank")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("rank");
 
                     b.Property<int>("SwimlaneId")
                         .HasColumnType("integer")
@@ -416,13 +412,37 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.HasIndex("DeletedById")
                         .HasDatabaseName("ix_lists_deleted_by_id");
 
-                    b.HasIndex("SwimlaneId")
-                        .HasDatabaseName("ix_lists_swimlane_id");
-
                     b.HasIndex("UpdatedById")
                         .HasDatabaseName("ix_lists_updated_by_id");
 
+                    b.HasIndex("SwimlaneId", "Rank")
+                        .IsUnique()
+                        .HasDatabaseName("ix_lists_swimlane_id_rank");
+
                     b.ToTable("lists", "public");
+                });
+
+            modelBuilder.Entity("Snapflow.Domain.Members.Member", b =>
+                {
+                    b.Property<int>("BoardId")
+                        .HasColumnType("integer")
+                        .HasColumnName("board_id");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
+                    b.HasKey("BoardId", "UserId")
+                        .HasName("pk_board_members");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_board_members_user_id");
+
+                    b.ToTable("board_members", "public");
                 });
 
             modelBuilder.Entity("Snapflow.Domain.Swimlanes.Swimlane", b =>
@@ -450,6 +470,10 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
 
+                    b.Property<bool>("DeletedByCascade")
+                        .HasColumnType("boolean")
+                        .HasColumnName("deleted_by_cascade");
+
                     b.Property<int?>("DeletedById")
                         .HasColumnType("integer")
                         .HasColumnName("deleted_by_id");
@@ -457,6 +481,12 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
+
+                    b.Property<string>("Rank")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("rank");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -475,9 +505,6 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_swimlanes");
 
-                    b.HasIndex("BoardId")
-                        .HasDatabaseName("ix_swimlanes_board_id");
-
                     b.HasIndex("CreatedById")
                         .HasDatabaseName("ix_swimlanes_created_by_id");
 
@@ -486,6 +513,10 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UpdatedById")
                         .HasDatabaseName("ix_swimlanes_updated_by_id");
+
+                    b.HasIndex("BoardId", "Rank")
+                        .IsUnique()
+                        .HasDatabaseName("ix_swimlanes_board_id_rank");
 
                     b.ToTable("swimlanes", "public");
                 });
@@ -754,27 +785,6 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_user_tokens_users_user_id");
                 });
 
-            modelBuilder.Entity("Snapflow.Domain.Members.BoardMember", b =>
-                {
-                    b.HasOne("Snapflow.Domain.Boards.Board", "Board")
-                        .WithMany("Members")
-                        .HasForeignKey("BoardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_board_members_boards_board_id");
-
-                    b.HasOne("Snapflow.Infrastructure.Identity.Entities.AppUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_board_members_users_user_id");
-
-                    b.Navigation("Board");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Snapflow.Domain.Boards.Board", b =>
                 {
                     b.HasOne("Snapflow.Infrastructure.Identity.Entities.AppUser", "CreatedBy")
@@ -902,6 +912,27 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.Navigation("Swimlane");
 
                     b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("Snapflow.Domain.Members.Member", b =>
+                {
+                    b.HasOne("Snapflow.Domain.Boards.Board", "Board")
+                        .WithMany("Members")
+                        .HasForeignKey("BoardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_board_members_boards_board_id");
+
+                    b.HasOne("Snapflow.Infrastructure.Identity.Entities.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_board_members_users_user_id");
+
+                    b.Navigation("Board");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Snapflow.Domain.Swimlanes.Swimlane", b =>

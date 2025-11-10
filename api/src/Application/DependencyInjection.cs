@@ -2,7 +2,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Snapflow.Application.Abstractions.Behaviours;
 using Snapflow.Application.Abstractions.Messaging;
+using Snapflow.Application.Ranking;
 using Snapflow.Common;
+using Snapflow.Domain.Cards;
+using Snapflow.Domain.Lists;
+using Snapflow.Domain.Swimlanes;
 
 namespace Snapflow.Application;
 
@@ -33,7 +37,15 @@ public static class DependencyInjection
             .WithScopedLifetime());
 
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly, includeInternalTypes: true);
+        services.AddCustomServices();
+        return services;
+    }
 
+    internal static IServiceCollection AddCustomServices(this IServiceCollection services)
+    {
+        services.AddScoped<IEntityRankService<Swimlane>, SwimlaneRankService>();
+        services.AddScoped<IEntityRankService<List>, ListRankService>();
+        services.AddScoped<IEntityRankService<Card>, CardRankService>();
         return services;
     }
 }

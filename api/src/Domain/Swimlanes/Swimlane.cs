@@ -13,6 +13,8 @@ public class Swimlane : Entity<int>
 
     public required string Title { get; set; }
 
+    public required string Rank { get; set; }
+
     public required DateTimeOffset CreatedAt { get; set; }
     public required int CreatedById { get; set; }
     public IUser CreatedBy { get; set; } = null!;

@@ -25,5 +25,7 @@ internal sealed class ListConfiguration : IEntityTypeConfiguration<List>
         builder.Property(l => l.Title)
             .IsRequired()
             .HasMaxLength(ListOptions.MaxTitleLength);
+        builder.HasIndex(l => new { l.SwimlaneId, l.Rank })
+            .IsUnique();
     }
 }

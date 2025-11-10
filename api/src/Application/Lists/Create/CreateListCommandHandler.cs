@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Snapflow.Application.Abstractions.Behaviours;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
+using Snapflow.Application.Ranking;
 using Snapflow.Common;
 using Snapflow.Domain.Lists;
 using Snapflow.Domain.Swimlanes;
@@ -12,7 +14,8 @@ namespace Snapflow.Application.Lists.Create;
 internal sealed class CreateListCommandHandler(
     IAppDbContext dbContext,
     IUserContext userContext,
-    TimeProvider timeProvider) : ICommandHandler<CreateListCommand, int>
+    TimeProvider timeProvider,
+    IEntityRankService<List> rankService) : ICommandHandler<CreateListCommand, int>
 {
     public async Task<Result<int>> Handle(CreateListCommand command, CancellationToken cancellationToken = default)
     {
@@ -28,12 +31,17 @@ internal sealed class CreateListCommandHandler(
             .SingleOrDefaultAsync(cancellationToken);
         if (swimlaneBoardId == null)
             return Result.Failure<int>(SwimlaneErrors.NotFound(command.SwimlaneId));
+        Result<string> rankResult = await rankService.GenerateRankAsync(
+            command.SwimlaneId, null, command.BeforeId, cancellationToken);
+        if (!rankResult.IsSuccess)
+            return Result.Failure<int>(rankResult.Error);
 
         var list = new List
         {
             BoardId = swimlaneBoardId.BoardId,
             SwimlaneId = command.SwimlaneId,
             Title = command.Title,
+            Rank = rankResult.Value,
             CreatedById = userContext.UserId,
             CreatedAt = timeProvider.GetUtcNow(),
         };

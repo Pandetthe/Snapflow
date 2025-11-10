@@ -20,9 +20,11 @@ internal sealed class GetBoardByIdQueryHandler(
                 b.Description,
                 new SwimlanesResponse(b.Swimlanes
                     .Where(s => !s.IsDeleted)
+                    .OrderBy(s => s.Rank)
                     .Select(s => new SwimlaneResponse(
                         s.Id,
                         s.Title,
+                        s.Rank,
                         new ListsResponse(s.Lists
                             .Where(l => !l.IsDeleted)
                             .Select(l => new ListResponse(

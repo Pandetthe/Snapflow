@@ -5,6 +5,7 @@
     <None Remove="Cards\Get\**" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="EntityFrameworkCore.Exceptions.Common" />
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="Scrutor" />
@@ -21,9 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Cards\Move\" />
-    <Folder Include="Cards\Move\" />
-    <Folder Include="Lists\Move\" />
-    <Folder Include="Tags\" />
+    <Folder Include="Tags\Create\" />
+    <Folder Include="Tags\Delete\" />
+    <Folder Include="Tags\GetByBoardId\" />
+    <Folder Include="Tags\GetById\" />
+    <Folder Include="Tags\Update\" />
   </ItemGroup>
 </Project>

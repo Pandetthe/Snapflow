@@ -1,27 +1,28 @@
-﻿using Snapflow.Application.Abstractions.Messaging;
-using Snapflow.Application.Swimlanes.Move;
+﻿using Snapflow.Api.Extensions;
+using Snapflow.Api.Infrastructure;
+using Snapflow.Application.Abstractions.Messaging;
+using Snapflow.Application.Lists.Move;
+using Snapflow.Common;
 
 namespace Snapflow.Api.Endpoints.Lists;
 
 internal sealed class Move : IEndpoint
 {
-    public sealed record MoveListRequest();
+    public sealed record MoveListRequest(int? BeforeId);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("boards/{boardId:int}/lists/{listId:int}/move", (
+        app.MapPost("boards/{boardId:int}/lists/{listId:int}/move", async (
             MoveListRequest request,
             int boardId, int listId,
-            ICommandHandler<MoveSwimlaneCommand> handler,
+            ICommandHandler<MoveListCommand> handler,
             CancellationToken cancellationToken) =>
         {
-            throw new NotImplementedException();
-            // TODO
-            //var command = new MoveSwimlaneCommand();
+            var command = new MoveListCommand(listId, request.BeforeId);
 
-            //Result result = await handler.Handle(command, cancellationToken);
+            Result result = await handler.Handle(command, cancellationToken);
 
-            //return result.Match(Results.NoContent, CustomResults.Problem);
+            return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .RequireAuthorization()
         .WithTags(EndpointTags.Lists);
