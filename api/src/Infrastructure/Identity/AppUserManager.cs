@@ -4,6 +4,7 @@ using Snapflow.Common;
 using Snapflow.Domain.Users;
 using Snapflow.Infrastructure.Identity.Entities;
 using System.Globalization;
+using System.Linq;
 
 namespace Snapflow.Infrastructure.Identity;
 
@@ -25,6 +26,18 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
     public async Task<IUser?> FindByNameAsync(string userName) =>
         await userManager.FindByNameAsync(userName);
 
+    private static string? GetPropertyName(string code)
+    {
+        return code switch
+        {
+            "DuplicateUserName" => nameof(IUser.UserName),
+            "InvalidUserName" => nameof(IUser.UserName),
+            "DuplicateEmail" => nameof(IUser.Email),
+            "InvalidEmail" => nameof(IUser.Email),
+            _ => null,
+        };
+    }
+
     public async Task<Result<IUser>> CreateAsync(string email, string userName, string password)
     {
         var user = new AppUser
@@ -35,7 +48,7 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
         var result = await userManager.CreateAsync(user, password);
         if (!result.Succeeded)
         {
-            PropertyValidationError[] errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
+            PropertyValidationError[] errors = result.Errors.Select(e => new PropertyValidationError(GetPropertyName(e.Code), e.Code, e.Description)).ToArray();
             return Result.ValidationFailure<IUser>(new ValidationError(errors));
         }
         return Result.Success<IUser>(user);

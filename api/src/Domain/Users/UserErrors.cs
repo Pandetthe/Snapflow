@@ -30,7 +30,7 @@ public static class UserErrors
 
     public static readonly Error SignInNotAllowed = Error.Unauthorized(
         "Users.SignIn.NotAllowed",
-        "The user attempting to sign-in is not allowed to sign-in.");
+        "The user is not allowed to sign-in due to not confirmed account.");
 
     public static readonly Error SignInTwoFactorRequired = Error.Unauthorized(
         "Users.SignIn.TwoFactorRequired",
