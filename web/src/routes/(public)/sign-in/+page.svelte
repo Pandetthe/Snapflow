@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { Button, Toggle, Dialog } from 'bits-ui';
 	import { authConfig } from '$lib/config/auth';
-	import { authService, type PropertyValidationError, type ProblemDetails } from '$lib/services/auth';
+	import { authService } from '$lib/services/auth';
+	import type { PropertyValidationError, ProblemDetails } from '$lib/types/api';
 	import ErrorModal from '$lib/components/ErrorModal.svelte';
 
 	let email = $state('');
@@ -187,7 +188,9 @@
 					</label>
 					<input
 						id="email"
+						name="email"
 						type="email"
+						autocomplete="email"
 						bind:value={email}
 						placeholder="Enter your email"
 						class="w-full px-3 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
@@ -207,7 +210,9 @@
 					<div class="relative">
 						<input
 							id="password"
+							name="password"
 							type={showPassword ? 'text' : 'password'}
+							autocomplete="current-password"
 							bind:value={password}
 							placeholder="Enter your password"
 							class="w-full px-3 py-2.5 pr-10 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"

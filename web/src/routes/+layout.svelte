@@ -36,6 +36,17 @@
 <div class="min-h-screen bg-gray-100 dark:bg-gray-900 relative">
 	<!-- Top-right corner controls -->
 	<div class="fixed top-4 right-4 z-50 flex items-center space-x-3 ">
+		<!-- Home Button -->
+		<Button.Root 
+			href="/"
+			class="w-9 h-9 inline-flex items-center justify-center bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+			title="Home"
+		>
+			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+			</svg>
+		</Button.Root>
+
 		<!-- GitHub Link -->
 		<Button.Root 
 			href="https://github.com/Pandetthe/Snapflow"

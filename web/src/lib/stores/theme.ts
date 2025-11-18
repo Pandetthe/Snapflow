@@ -33,12 +33,16 @@ function createThemeStore() {
 			}
 		},
 		init: () => {
+			let initial: Theme = 'light';
 			if (typeof window !== 'undefined') {
 				const isDark = document.documentElement.classList.contains('dark');
-				const theme: Theme = isDark ? 'dark' : 'light';
-				set(theme);
-				localStorage.setItem('theme', theme);
+				initial = isDark ? 'dark' : 'light';
+				set(initial);
+				localStorage.setItem('theme', initial);
+			} else {
+				set(initial);
 			}
+			return initial;
 		}
 	};
 }

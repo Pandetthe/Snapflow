@@ -6,7 +6,7 @@
 	let currentTheme: 'light' | 'dark' = 'light';
 
 	onMount(() => {
-		theme.init();
+		currentTheme = theme.init();
 	});
 
 	theme.subscribe((value) => {

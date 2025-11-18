@@ -3,6 +3,17 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@layer base {
+	html, body {
+		@apply bg-gray-100;
+		overscroll-behavior: none;
+	}
+
+	html.dark, html.dark body {
+		@apply bg-gray-900;
+	}
+}
+
 @keyframes dots-bounce {
   25% {
     transform: translateY(-10%);
@@ -16,4 +27,23 @@
 
 .animate-dots-bounce {
 	animation: dots-bounce 1.5s infinite;
+}
+
+@keyframes refresh-update {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-refresh-update {
+	animation: refresh-update 0.5s ease-in-out;
 }
