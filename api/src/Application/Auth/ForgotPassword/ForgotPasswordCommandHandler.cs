@@ -16,7 +16,7 @@ internal sealed class ForgotPasswordCommandHandler(
         {
             var code = await userManager.GeneratePasswordResetTokenAsync(user);
 
-            await emailSender.SendPasswordResetCodeAsync(command.Email, code);
+            await emailSender.SendPasswordResetLinkAsync(user, code);
         }
 
         // Don't reveal that the user does not exist or is not confirmed, so don't return a 200 if we would have

@@ -8,7 +8,7 @@ public sealed class UserOptions
     public const bool RequireLowercaseInPassword = true;
     public const bool RequireUppercaseInPassword = true;
     public const bool RequireDigitInPassword = true;
-    public const bool RequireNonAlphanumeric = true;
+    public const bool RequireNonAlphanumericInPassword = true;
     public const int MaxUserNameLength = 20;
     public const int MinUserNameLength = 3;
 }

@@ -15,7 +15,7 @@ internal sealed class SignUpCommandHandler(
         if (!result.IsSuccess)
             return result;
         var code = await userManager.GenerateEmailConfirmationTokenAsync(result.Value);
-        await emailSender.SendConfirmationLinkAsync(result.Value.Id, command.Email, code);
+        await emailSender.SendConfirmationLinkAsync(result.Value, code);
         return Result.Success();
     }
 }

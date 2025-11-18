@@ -11,7 +11,10 @@ using Snapflow.Infrastructure.Behaviours;
 using Snapflow.Infrastructure.DomainEvents;
 using Snapflow.Infrastructure.Identity;
 using Snapflow.Infrastructure.Identity.Entities;
+using Snapflow.Infrastructure.Mailing;
+using Snapflow.Infrastructure.Mailing.Templates;
 using Snapflow.Infrastructure.Persistence;
+using Snapflow.Infrastructure.Services;
 
 namespace Snapflow.Infrastructure;
 
@@ -29,6 +32,17 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<IUserContext, AppUserContext>();
         services.AddScoped<IRankService, LexoRankService>();
+        services.AddSingleton(sp =>
+        {
+            var registry = new EmailTemplateRegistry();
+            registry.Register<EmailConfirmation>(EmailConfirmationModel.TemplateName);
+            registry.Register<PasswordReset>(PasswordResetModel.TemplateName);
+            return registry;
+        });
+        services.AddScoped<EmailTemplateRenderer>();
+        services.Configure<SmtpOptions>(configuration.GetSection("Smtp"));
+        services.Configure<ServicesOptions>(configuration.GetSection("Services"));
+        services.AddScoped<ServiceLinkBuilder>();
         return services;
     }
 
@@ -65,7 +79,7 @@ public static class DependencyInjection
             options.Password.RequireLowercase = Domain.Users.UserOptions.RequireLowercaseInPassword;
             options.Password.RequireUppercase = Domain.Users.UserOptions.RequireUppercaseInPassword;
             options.Password.RequireDigit = Domain.Users.UserOptions.RequireDigitInPassword;
-            options.Password.RequireNonAlphanumeric = Domain.Users.UserOptions.RequireNonAlphanumeric;
+            options.Password.RequireNonAlphanumeric = Domain.Users.UserOptions.RequireNonAlphanumericInPassword;
         })
             .AddSignInManager()
             .AddEntityFrameworkStores<AppDbContext>()

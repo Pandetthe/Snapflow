@@ -28,6 +28,6 @@ internal sealed class ResetPasswordCommandValidator : AbstractValidator<ResetPas
             .Matches(@"\d").WithMessage("New password must contain at least one number.")
             .When(x => UserOptions.RequireDigitInPassword)
             .Matches(@"[^\da-zA-Z]").WithMessage("New password must contain at least one symbol.")
-            .When(x => UserOptions.RequireNonAlphanumeric);
+            .When(x => UserOptions.RequireNonAlphanumericInPassword);
     }
 }

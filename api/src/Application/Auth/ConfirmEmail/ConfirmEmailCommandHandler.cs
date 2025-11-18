@@ -10,8 +10,8 @@ internal sealed class ConfirmEmailCommandHandler(
 {
     public async Task<Result> Handle(ConfirmEmailCommand command, CancellationToken cancellationToken = default)
     {
-        if (await userManager.FindByIdAsync(command.UserId) is not { } user)
-            return Result.Failure(UserErrors.NotFound(command.UserId));
+        if (await userManager.FindByEmailAsync(command.Email) is not { } user)
+            return Result.Failure(UserErrors.NotFoundByEmail);
 
         if (string.IsNullOrEmpty(command.ChangedEmail))
             return await userManager.ConfirmEmailAsync(user, command.Code);

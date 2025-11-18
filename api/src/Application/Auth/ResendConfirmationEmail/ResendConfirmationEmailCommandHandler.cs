@@ -13,9 +13,10 @@ internal sealed class ResendConfirmationEmailCommandHandler(
     {
         if (await userManager.FindByEmailAsync(command.Email) is not { } user)
             return Result.Success();
-
+        if (await userManager.IsEmailConfirmedAsync(user))
+            return Result.Success();
         var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
-        await emailSender.SendConfirmationLinkAsync(user.Id, command.Email, code);
+        await emailSender.SendConfirmationLinkAsync(user, code);
         return Result.Success();
     }
 }

@@ -4,6 +4,7 @@ using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Auth.ConfirmEmail;
 using Snapflow.Common;
+using Snapflow.Infrastructure.Services;
 
 namespace Snapflow.Api.Endpoints.Auth;
 
@@ -13,24 +14,19 @@ internal sealed class ConfirmEmail : IEndpoint
     {
         string endpointName = string.Empty;
         app.MapGet("auth/confirm-email", async (
-            [FromQuery] int userId, [FromQuery] string code, [FromQuery] string? changedEmail,
-            [FromQuery] string? redirectUrl,
+            [FromQuery] string email, [FromQuery] string code, [FromQuery] string? changedEmail,
+            ServiceLinkBuilder serviceLinkBuilder,
             ICommandHandler<ConfirmEmailCommand> handler,
             CancellationToken cancellationToken) =>
         {
             var command = new ConfirmEmailCommand(
-                userId,
+                email,
                 code,
                 changedEmail);
 
             Result result = await handler.Handle(command, cancellationToken);
             return result.Match(
-                () =>
-                {
-                    if (string.IsNullOrWhiteSpace(redirectUrl))
-                        return Results.NoContent();
-                    return Results.Redirect(redirectUrl);
-                },
+                () => Results.Redirect(serviceLinkBuilder.BuildEmailConfirmationRedirect().ToString()),
                 CustomResults.Problem
             );
         })

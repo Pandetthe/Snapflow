@@ -33,6 +33,6 @@ internal sealed class SignUpCommandValidator : AbstractValidator<SignUpCommand>
             .Matches(@"\d").WithMessage("Password must contain at least one number.")
             .When(x => UserOptions.RequireDigitInPassword)
             .Matches(@"[^\da-zA-Z]").WithMessage("Password must contain at least one symbol.")
-            .When(x => UserOptions.RequireNonAlphanumeric);
+            .When(x => UserOptions.RequireNonAlphanumericInPassword);
     }
 }
