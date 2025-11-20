@@ -1,4 +1,4 @@
-import type { Response } from '$lib/types/api';
+import type { ProblemDetails, Response } from '$lib/types/api';
 
 export interface SigninRequest {
 	email: string;
@@ -15,69 +15,107 @@ export interface ForgotPasswordRequest {
 	email: string;
 }
 
+export interface ResendEmailConfirmationRequest {
+	email: string;
+}
+
+export interface ResetPasswordRequest {
+	email: string;
+	resetCode: string;
+	newPassword: string;
+}
+
 class AuthService {
 	private baseUrl = '/api/auth';
 
-	async signin(credentials: SigninRequest): Promise<Response> {
-		const response = await fetch(`${this.baseUrl}/sign-in?useCookies=true`, {
+	async #handleBadResponse<T>(response: globalThis.Response): Promise<Response<T>> {
+		try {
+			const error = await response.json() as ProblemDetails & { ok: false };
+			error.ok = false;
+			if ((error.status || 500) >= 500)
+				console.log('Server error:', error);
+			return error;
+		} catch (err) {
+			console.log(err);
+			return { ok: false };
+		}
+	}
+
+	async signIn(data: SigninRequest, fetchFn: typeof fetch = fetch): Promise<Response> {
+		const response = await fetchFn(`${this.baseUrl}/sign-in?useCookies=true`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify(credentials),
+			body: JSON.stringify(data),
 			credentials: 'include',
 		});
 
 		if (!response.ok) {
-			try {
-				const error = await response.json();
-				error.ok = false;
-				return error;
-			} catch (err) {
-				console.log(err);
-				return { ok: false };
-			}
+			return await this.#handleBadResponse(response);
 		}
 		return { ok: true };
 	}
 
-	async signup(userData: SignupRequest): Promise<Response> {
-		const response = await fetch(`${this.baseUrl}/sign-up`, {
+	async signUp(data: SignupRequest, fetchFn: typeof fetch = fetch): Promise<Response> {
+		const response = await fetchFn(`${this.baseUrl}/sign-up`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify(userData),
+			body: JSON.stringify(data),
 		});
 
 		if (!response.ok) {
-			try {
-				const error = await response.json();
-				error.ok = false;
-				return error;
-			} catch (err) {
-				console.log(err);
-				return { ok: false };
-			}
+			return await this.#handleBadResponse(response);
 		}
 		return { ok: true };
 	}
 
-	async forgotPassword(email: string): Promise<boolean> {
-		const response = await fetch(`${this.baseUrl}/forgot-password`, {
+	async forgotPassword(data: ForgotPasswordRequest, fetchFn: typeof fetch = fetch): Promise<Response> {
+		const response = await fetchFn(`${this.baseUrl}/forgot-password`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify({ email }),
+			body: JSON.stringify(data),
 		});
 
 		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.message || 'Failed to send reset email');
+			return await this.#handleBadResponse(response);
 		}
 
-		return response.json();
+		return { ok: true };
+	}
+
+	async resetPassword(data: ResetPasswordRequest, fetchFn: typeof fetch = fetch): Promise<Response> {
+		const response = await fetchFn(`${this.baseUrl}/reset-password`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			return await this.#handleBadResponse(response);
+		}
+		return { ok: true };
+	}
+
+	async resendEmailConfirmation(data: ResendEmailConfirmationRequest, fetchFn: typeof fetch = fetch): Promise<Response> {
+		const response = await fetchFn(`${this.baseUrl}/resend-confirmation-email`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			return await this.#handleBadResponse(response);
+		}
+		return { ok: true };
 	}
 }
 
