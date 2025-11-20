@@ -93,6 +93,10 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
         var result = await userManager.ResetPasswordAsync(EnsureIsAppUser(user), code, newPassword);
         if (!result.Succeeded)
         {
+            if (result.Errors.Any(e => e.Code == "InvalidToken"))
+            {
+                return Result.Failure(UserErrors.PasswordResetInvalidCode);
+            }
             PropertyValidationError[] errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
             return Result.ValidationFailure<IUser>(new ValidationError(errors));
         }

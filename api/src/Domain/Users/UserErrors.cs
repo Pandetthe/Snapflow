@@ -35,4 +35,8 @@ public static class UserErrors
     public static readonly Error SignInTwoFactorRequired = Error.Unauthorized(
         "Users.SignIn.TwoFactorRequired",
         "The user attempting to sign-in requires two-factor authentication.");
+
+    public static readonly Error PasswordResetInvalidCode = Error.Problem(
+        "Users.ResetPassword.InvalidCode",
+        "Provided password reset code is invalid.");
 }
