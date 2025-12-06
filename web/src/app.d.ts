@@ -3,16 +3,12 @@
 import type { User } from '$lib/services/users';
 
 declare global {
-	namespace App {
-		// interface Error {}
-		interface Locals {
-			session: string | null;
-			user: User | null;
-		}
-		// interface PageData {}
-		// interface PageState {}
-		// interface Platform {}
-	}
+  namespace App {
+    interface Locals {
+      session: string | null;
+      user: User | null;
+    }
+  }
 }
 
-export {};
+export { };

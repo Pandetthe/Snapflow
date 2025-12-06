@@ -3,7 +3,7 @@
 	import { theme } from '$lib/stores/theme';
 	import { onMount } from 'svelte';
 
-	let currentTheme: 'light' | 'dark' = 'light';
+	let currentTheme = $state<'light' | 'dark'>('light');
 
 	onMount(() => {
 		currentTheme = theme.init();

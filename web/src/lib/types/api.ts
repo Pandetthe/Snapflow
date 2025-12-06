@@ -1,3 +1,5 @@
+import type { RequestEvent, ServerLoadEvent } from "@sveltejs/kit";
+
 export interface PropertyValidationError {
 	propertyName: string | null;
 	code: string;
@@ -27,3 +29,7 @@ export type SuccessResponse<T> = [T] extends [void]
 	: { ok: true } & T;
 
 export type Response<T = void> = SuccessResponse<T> | ErrorResponse;
+
+export interface ApiClient {
+	fetch(path: string | undefined, init: RequestInit, event?: RequestEvent | ServerLoadEvent): Promise<globalThis.Response>;
+}

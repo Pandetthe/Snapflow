@@ -1,24 +1,20 @@
+<script lang="ts">
+	import { page } from '$app/state';
+	import { Button } from 'bits-ui';
+</script>
+
 <svelte:head>
-	{#if $page.status === 404}
+	{#if page.status === 404}
 		<title>Snapflow | Page not found</title>
 	{:else}
 		<title>Snapflow | Error</title>
 	{/if}
 </svelte:head>
 
-<script lang="ts">
-	import { page } from '$app/stores';
-	import { Button } from 'bits-ui';
-
-	let error = $page.status;
-</script>
-
 <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center px-4">
 	<div class="max-w-lg w-full text-center">
-		<!-- Error Graphics -->
 		<div>
-			{#if error === 404}
-				<!-- 404 Specific Graphics -->
+			{#if page.status === 404}
 					<div class="relative w-full max-w-2xl mx-auto">
 						<div class="relative">
 							<div class="flex items-center justify-center gap-4">
@@ -27,7 +23,6 @@
 						</div>
 					</div>
 			{:else}
-				<!-- General Error Graphics -->
 				<div class="flex justify-center mb-8">
 					<div class="relative">
 						<div class="w-32 h-32 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
@@ -45,9 +40,8 @@
 			{/if}
 		</div>
 
-		<!-- Error Message -->
 		<div class="mb-10">
-			{#if error === 404}
+			{#if page.status === 404}
 				<h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
 					Page Not Found
 				</h1>
@@ -67,7 +61,6 @@
 			{/if}
 		</div>
 
-		<!-- Action Buttons -->
 		<div class="flex flex-col sm:flex-row gap-4 justify-center">
 			<Button.Root href="/" class="px-6 py-3 inline-flex items-center justify-center border border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md hover:bg-blue-100 dark:hover:bg-blue-900/50">
 				<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -76,7 +69,7 @@
 				Go Home
 			</Button.Root>
 			
-			{#if error !== 404}
+			{#if page.status !== 404}
 				<Button.Root 
 					href="https://github.com/Pandetthe/Snapflow/issues" 
 					target="_blank"

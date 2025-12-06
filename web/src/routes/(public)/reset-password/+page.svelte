@@ -2,17 +2,15 @@
 	import { Button, Toggle, Dialog } from 'bits-ui';
 	import { authConfig } from '$lib/config/auth';
 	import { AuthService } from '$lib/services/auth';
-	import type { PropertyValidationError, ProblemDetails } from '$lib/types/api';
-  import { errorStore } from '$lib/stores/error';
-	import { apiClient } from '$lib/services/api.client';
+	import type { ProblemDetails, PropertyValidationError } from '$lib/types/api';
+	import { errorStore } from '$lib/stores/error';
+	import { apiClient } from '$lib/services/api.client.ts';
 
-	let email = $state('');
-	let userName = $state('');
+	let { data } = $props();
+
 	let password = $state('');
 	let repeatPassword = $state('');
 	let isLoading = $state(false);
-	let emailError = $state('');
-	let userNameError = $state('');
 	let passwordError = $state('');
 	let showPassword = $state(false);
 	let showRepeatPassword = $state(false);
@@ -34,7 +32,7 @@
 			}, 1000);
 		} else if (showSuccessModal && redirectCountdown === 0) {
 			redirectDelayTimer = setTimeout(() => {
-				window.location.href = '/signin';
+				window.location.href = '/sign-in';
 			}, 1000);
 		}
 
@@ -55,7 +53,6 @@
 		}
 	});
 
-
 	let passwordRequirements = $state({
 		length: false,
 		lowercase: false,
@@ -67,9 +64,29 @@
 	let passwordStrength = $state(0);
 	let passwordStrengthText = $state('');
 
-	function handleValidationErrors(errors: PropertyValidationError[]) {
-		emailError = '';
-		userNameError = '';
+  const resetPasswordInfoByCode: Record<string, { title: string; message: string }> = {
+		'Users.ResetPassword.InvalidCode': {
+			title: 'Reset password failed',
+			message: 'The reset password attempt failed. Please try again later.'
+		}
+	};
+
+  let showResetPasswordInfoModal = $state(false);
+  let resetPasswordInfoTitle = $state('');
+  let resetPasswordInfoMessage = $state('');
+
+	function tryHandleNonValidationResetPasswordError(problem: ProblemDetails): boolean {
+		if (problem.title && resetPasswordInfoByCode[problem.title]) {
+			const info = resetPasswordInfoByCode[problem.title];
+			resetPasswordInfoTitle = info.title;
+			resetPasswordInfoMessage = info.message;
+			showResetPasswordInfoModal = true;
+			return true;
+		}
+		return false;
+	}
+
+  function handleValidationErrors(errors: PropertyValidationError[]) {
 		passwordError = '';
 
 		const fieldErrors: { [key: string]: string[] } = {};
@@ -86,13 +103,6 @@
 				generalErrors.push(err);
 			}
 		});
-
-		if (fieldErrors.email) {
-			emailError = fieldErrors.email.join('. ');
-		}
-		if (fieldErrors.username) {
-			userNameError = fieldErrors.username.join('. ');
-		}
 		if (fieldErrors.password) {
 			passwordError = fieldErrors.password.join('. ');
 		}
@@ -118,81 +128,9 @@
 		}
 	}
 
-	function validateEmailField(value: string) {
-		emailError = '';
-		if (!value) {
-			emailError = 'Email is required';
-			return;
-		}
-		if (value.length > authConfig.email.maxLength) {
-			emailError = `Email must be less than ${authConfig.email.maxLength} characters`;
-			return;
-		}
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (!emailRegex.test(value)) {
-			emailError = 'Please enter a valid email address';
-		}
-	}
-
-	function validateUserNameField(value: string) {
-		userNameError = '';
-		if (!value) {
-			userNameError = 'User name is required';
-			return;
-		}
-		if (
-			value.length < authConfig.userName.minLength ||
-			value.length > authConfig.userName.maxLength
-		) {
-			userNameError = `User name must be between ${authConfig.userName.minLength} and ${authConfig.userName.maxLength} characters`;
-			return;
-		}
-		const usernameRegex = /^[a-zA-Z0-9_]+$/;
-		if (!usernameRegex.test(value)) {
-			userNameError = 'User name can only contain letters, numbers, and underscores';
-		}
-	}
-
-	async function handleSignup(e: Event) {
+	async function handleResetPassword(e: Event) {
 		e.preventDefault();
-		emailError = '';
-		userNameError = '';
 		passwordError = '';
-
-		if (!email) {
-			emailError = 'Email is required';
-			return;
-		}
-
-		if (email.length > authConfig.email.maxLength) {
-			emailError = `Email must be less than ${authConfig.email.maxLength} characters`;
-			return;
-		}
-
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (!emailRegex.test(email)) {
-			emailError = 'Please enter a valid email address';
-			return;
-		}
-
-		if (!userName) {
-			userNameError = 'User name is required';
-			return;
-		}
-
-		if (
-			userName.length < authConfig.userName.minLength ||
-			userName.length > authConfig.userName.maxLength
-		) {
-			userNameError = `User name must be between ${authConfig.userName.minLength} and ${authConfig.userName.maxLength} characters`;
-			return;
-		}
-
-		const usernameRegex = /^[a-zA-Z0-9_]+$/;
-		if (!usernameRegex.test(userName)) {
-			userNameError = 'User name can only contain letters, numbers, and underscores';
-			return;
-		}
 
 		if (!password) {
 			passwordError = 'Password is required';
@@ -231,9 +169,15 @@
 			return;
 		}
 
+		if (password !== repeatPassword) {
+			passwordError = 'Passwords do not match';
+			return;
+		}
+
 		isLoading = true;
     try {
-      const response = await authService.signUp({ email, userName, password });
+		  const response = await authService.resetPassword({ email: data.email, resetCode: data.code, newPassword: password });
+      console.log(JSON.stringify(response));
       if (response.ok) {
         showSuccessModal = true;
       } else {
@@ -241,7 +185,9 @@
           handleValidationErrors(response.errors);
         } else if ('title' in response) {
           const problem = response as ProblemDetails;
-          errorStore.addError(problem.title, problem.detail);
+          if (!tryHandleNonValidationResetPasswordError(problem)) {
+            errorStore.addError(problem.title, problem.detail);
+          }
         } else {
           errorStore.addError(null, 'Problem with connection to the server');
         }
@@ -264,66 +210,24 @@
 </script>
 
 <svelte:head>
-	<title>Snapflow | Sign up</title>
+	<title>Snapflow | Reset Password</title>
 </svelte:head>
 
 <div class="flex min-h-screen items-center justify-center px-4 py-12">
 	<div class="w-full max-w-md">
 		<div class="rounded-2xl bg-white p-8 shadow-xl dark:bg-gray-800">
 			<div class="mb-8 text-center">
-				<h1 class="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Create your account!</h1>
-				<p class="text-gray-600 dark:text-gray-400">Join Snapflow to start collaborating</p>
+				<h1 class="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Reset Password</h1>
+				<p class="text-gray-600 dark:text-gray-400">Enter your new password below</p>
 			</div>
 
-			<form onsubmit={handleSignup} novalidate class="space-y-4">
-				<div class="space-y-1">
-					<label for="email" class="block text-xs font-medium text-gray-700 dark:text-gray-300">
-						Email address
-					</label>
-					<input
-						id="email"
-						name="email"
-						type="email"
-						autocomplete="email"
-						bind:value={email}
-						placeholder="Enter your email"
-						class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-500 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-						maxlength={authConfig.email.maxLength}
-						oninput={(e) => validateEmailField(e.currentTarget.value)}
-					/>
-					<div
-						class={`overflow-hidden transition-all duration-300 ${emailError ? 'mt-2 max-h-96' : 'max-h-0'}`}
-					>
-						<p class="mt-1 text-xs text-red-600 dark:text-red-400">{emailError}</p>
-					</div>
-				</div>
-
-				<div class="space-y-1">
-					<label for="username" class="block text-xs font-medium text-gray-700 dark:text-gray-300">
-						User name
-					</label>
-					<input
-						id="username"
-						name="username"
-						type="text"
-						autocomplete="username"
-						bind:value={userName}
-						placeholder="Choose a username"
-						class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-500 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-						minlength={authConfig.userName.minLength}
-						maxlength={authConfig.userName.maxLength}
-						oninput={(e) => validateUserNameField(e.currentTarget.value)}
-					/>
-					<div
-						class={`overflow-hidden transition-all duration-300 ${userNameError ? 'mt-2 max-h-96' : 'max-h-0'}`}
-					>
-						<p class="mt-1 text-xs text-red-600 dark:text-red-400">{userNameError}</p>
-					</div>
-				</div>
+			<form onsubmit={handleResetPassword} novalidate class="space-y-4">
+				<input type="hidden" name="email" value={data.email} />
+				<input type="hidden" name="resetCode" value={data.code} />
 
 				<div class="space-y-1">
 					<label for="password" class="block text-xs font-medium text-gray-700 dark:text-gray-300">
-						Password
+						New Password
 					</label>
 					<div class="relative">
 						<input
@@ -332,7 +236,7 @@
 							type={showPassword ? 'text' : 'password'}
 							autocomplete="new-password"
 							bind:value={password}
-							placeholder="Create a password"
+							placeholder="Create a new password"
 							class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 pr-10 text-sm text-gray-900 placeholder-gray-500 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
 							minlength={authConfig.password.minLength}
 							maxlength={authConfig.password.maxLength}
@@ -556,7 +460,7 @@
 							type={showRepeatPassword ? 'text' : 'password'}
 							autocomplete="new-password"
 							bind:value={repeatPassword}
-							placeholder="Confirm your password"
+							placeholder="Confirm your new password"
 							class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 pr-10 text-sm text-gray-900 placeholder-gray-500 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
 						/>
 						<div class="absolute inset-y-0 right-0 flex items-center pr-2">
@@ -606,12 +510,7 @@
 
 				<Button.Root
 					type="submit"
-					disabled={isLoading ||
-						!email ||
-						!userName ||
-						!password ||
-						!repeatPassword ||
-						password !== repeatPassword}
+					disabled={isLoading || !password || !repeatPassword || password !== repeatPassword}
 					class="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-blue-700 hover:shadow-lg disabled:cursor-not-allowed disabled:bg-blue-400"
 				>
 					{#if isLoading}
@@ -635,21 +534,21 @@
 								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 							></path>
 						</svg>
-						<span>Creating account</span>
+						<span>Resetting password</span>
 						<span class="inline-flex">
 							<span class="animate-dots-bounce" style="animation-delay: 0ms">.</span>
 							<span class="animate-dots-bounce" style="animation-delay: 150ms">.</span>
 							<span class="animate-dots-bounce" style="animation-delay: 300ms">.</span>
 						</span>
 					{:else}
-						<span>Create account</span>
+						<span>Reset password</span>
 					{/if}
 				</Button.Root>
 			</form>
 
 			<div class="mt-8 text-center">
 				<p class="text-gray-600 dark:text-gray-400">
-					Already have an account?
+					Remember your password?
 					<a
 						href="/sign-in"
 						class="font-semibold text-blue-600 transition-colors duration-200 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
@@ -701,13 +600,13 @@
 				<Dialog.Title
 					class="animate-fade-in mb-2 text-lg font-semibold text-gray-900 dark:text-white"
 				>
-					Registration successful!
+					Password reset successful!
 				</Dialog.Title>
 				<Dialog.Description
 					class="animate-fade-in mb-4 text-sm text-gray-600 dark:text-gray-400"
 					style="animation-delay: 100ms"
 				>
-					Please check your email to confirm your account before signing in.
+					Your password has been successfully updated. You can now sign in with your new password.
 				</Dialog.Description>
 
 				<div
@@ -730,10 +629,55 @@
 
 				<div class="animate-fade-in flex gap-3" style="animation-delay: 300ms">
 					<Button.Root
-						href="/signin"
+						href="/sign-in"
 						class="ring-offset-background focus-visible:ring-ring inline-flex h-10 w-full items-center justify-center rounded-md bg-green-600 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-green-700 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
 					>
 						Sign in now
+					</Button.Root>
+				</div>
+			</div>
+		</Dialog.Content>
+	</Dialog.Portal>
+</Dialog.Root>
+
+<Dialog.Root bind:open={showResetPasswordInfoModal}>
+	<Dialog.Portal>
+		<Dialog.Overlay
+			class="fixed inset-0 z-50 bg-black/60 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
+		/>
+		<Dialog.Content
+			class="fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-6 shadow-lg duration-300 ease-out data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 dark:bg-gray-800"
+		>
+			<div class="space-y-4 text-center">
+				<div
+					class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30"
+				>
+					<svg
+						class="h-6 w-6 text-blue-600 dark:text-blue-400"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"
+						/>
+					</svg>
+				</div>
+				<Dialog.Title class="text-lg font-semibold text-gray-900 dark:text-white">
+					{resetPasswordInfoTitle}
+				</Dialog.Title>
+				<Dialog.Description class="text-sm text-gray-600 dark:text-gray-300">
+					{resetPasswordInfoMessage}
+				</Dialog.Description>
+				<div class="mt-4 flex justify-center">
+					<Button.Root
+						onclick={() => (showResetPasswordInfoModal = false)}
+						class="inline-flex h-9 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+					>
+						OK
 					</Button.Root>
 				</div>
 			</div>

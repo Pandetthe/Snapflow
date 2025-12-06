@@ -1,4 +1,4 @@
-import type { ProblemDetails, Response } from '$lib/types/api';
+import type { ApiClient, ProblemDetails, Response } from '$lib/types/api';
 
 export interface SigninRequest {
 	email: string;
@@ -25,8 +25,10 @@ export interface ResetPasswordRequest {
 	newPassword: string;
 }
 
-class AuthService {
-	private baseUrl = '/api/auth';
+export class AuthService {
+	constructor(private apiClient: ApiClient) {
+		this.apiClient = apiClient;
+	}
 
 	async #handleBadResponse<T>(response: globalThis.Response): Promise<Response<T>> {
 		try {
@@ -41,24 +43,8 @@ class AuthService {
 		}
 	}
 
-	async signIn(data: SigninRequest, fetchFn: typeof fetch = fetch): Promise<Response> {
-		const response = await fetchFn(`${this.baseUrl}/sign-in?useCookies=true`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(data),
-			credentials: 'include',
-		});
-
-		if (!response.ok) {
-			return await this.#handleBadResponse(response);
-		}
-		return { ok: true };
-	}
-
-	async signUp(data: SignupRequest, fetchFn: typeof fetch = fetch): Promise<Response> {
-		const response = await fetchFn(`${this.baseUrl}/sign-up`, {
+	async signIn(data: SigninRequest): Promise<Response> {
+		const response = await this.apiClient.fetch(`/auth/sign-in?useCookies=true`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -72,8 +58,34 @@ class AuthService {
 		return { ok: true };
 	}
 
-	async forgotPassword(data: ForgotPasswordRequest, fetchFn: typeof fetch = fetch): Promise<Response> {
-		const response = await fetchFn(`${this.baseUrl}/forgot-password`, {
+	async signOut(): Promise<Response> {
+		const response = await this.apiClient.fetch(`/auth/sign-out`, {
+			method: 'POST',
+		});
+
+		if (!response.ok) {
+			return await this.#handleBadResponse(response);
+		}
+		return { ok: true };
+	}
+
+	async signUp(data: SignupRequest): Promise<Response> {
+		const response = await this.apiClient.fetch(`/auth/sign-up`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			return await this.#handleBadResponse(response);
+		}
+		return { ok: true };
+	}
+
+	async forgotPassword(data: ForgotPasswordRequest): Promise<Response> {
+		const response = await this.apiClient.fetch(`/auth/forgot-password`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -88,8 +100,8 @@ class AuthService {
 		return { ok: true };
 	}
 
-	async resetPassword(data: ResetPasswordRequest, fetchFn: typeof fetch = fetch): Promise<Response> {
-		const response = await fetchFn(`${this.baseUrl}/reset-password`, {
+	async resetPassword(data: ResetPasswordRequest): Promise<Response> {
+		const response = await this.apiClient.fetch(`/auth/reset-password`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -103,8 +115,8 @@ class AuthService {
 		return { ok: true };
 	}
 
-	async resendEmailConfirmation(data: ResendEmailConfirmationRequest, fetchFn: typeof fetch = fetch): Promise<Response> {
-		const response = await fetchFn(`${this.baseUrl}/resend-confirmation-email`, {
+	async resendEmailConfirmation(data: ResendEmailConfirmationRequest): Promise<Response> {
+		const response = await this.apiClient.fetch(`/auth/resend-confirmation-email`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -118,5 +130,3 @@ class AuthService {
 		return { ok: true };
 	}
 }
-
-export const authService = new AuthService();

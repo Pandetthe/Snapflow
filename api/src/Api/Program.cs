@@ -23,16 +23,17 @@ public static class Program
         builder.Services.AddOpenApi();
         builder.Services.AddCors(options =>
         {
-            options.AddPolicy("AllowAll", builder =>
+            options.AddPolicy("AllowWeb", policy =>
             {
-                builder.AllowAnyOrigin()
+                policy.WithOrigins("http://localhost:5173", "http://192.168.0.4:5173")
                        .AllowAnyMethod()
-                       .AllowAnyHeader();
+                       .AllowAnyHeader()
+                       .AllowCredentials();
             });
         });
         WebApplication app = builder.Build();
 
-        app.UseCors("AllowAll");
+        app.UseCors("AllowWeb");
 
         app.MapEndpoints();
         app.MapHub<BoardHub>("/boards/hub");

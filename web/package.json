@@ -1,5 +1,5 @@
 {
-	"name": "web",
+	"name": "snapflow-web",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
@@ -21,10 +21,12 @@
 		"@eslint/js": "^9.38.0",
 		"@playwright/test": "^1.56.1",
 		"@sveltejs/adapter-auto": "^7.0.0",
+		"@sveltejs/adapter-node": "^5.4.0",
 		"@sveltejs/kit": "^2.47.1",
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"@tailwindcss/vite": "^4.1.14",
 		"@types/node": "^22",
+		"@types/set-cookie-parser": "^2.4.10",
 		"@vitest/browser-playwright": "^4.0.5",
 		"eslint": "^9.38.0",
 		"eslint-config-prettier": "^10.1.8",
@@ -46,6 +48,7 @@
 		"vitest-browser-svelte": "^2.0.1"
 	},
 	"dependencies": {
-		"bits-ui": "^2.14.3"
+		"bits-ui": "^2.14.3",
+		"set-cookie-parser": "^2.7.2"
 	}
 }

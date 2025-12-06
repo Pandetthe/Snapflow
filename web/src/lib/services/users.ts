@@ -1,35 +1,25 @@
-import type { Response } from '$lib/types/api';
+import type { ApiClient, Response as ApiResponseType } from '$lib/types/api';
+import type { RequestEvent, ServerLoadEvent } from '@sveltejs/kit';
 
 export interface User {
-	id: number;
-	userName: string;
-	email: string;
+  id: number;
+  userName: string;
+  email: string;
 }
 
-class UsersService {
-	private baseUrl = '/api';
+export class UsersService {
+  constructor(private apiClient: ApiClient) {
+    this.apiClient = apiClient;
+  }
 
-	async getMe(fetchFn: typeof fetch = fetch): Promise<Response<{ user: User }>> {
-		const response = await fetchFn(`${this.baseUrl}/me`, {
-			method: 'GET',
-			credentials: 'include'
-		});
+  async getMe(event?: RequestEvent | ServerLoadEvent): Promise<(ApiResponseType<{ user: User }>)> {
+    const response = await this.apiClient.fetch('/me', { method: 'GET' }, event);
 
-		if (!response.ok) {
-			try {
-				const error = await response.json();
-				(error as any).ok = false;
-				return error;
-			} catch (err) {
-				console.error(err);
-				return { ok: false };
-			}
-		}
+    if (!response.ok) {
+      return { ok: false };
+    }
 
-		const user = (await response.json()) as User;
-		return { ok: true, user };
-	}
+    const user = await response.json() as User;
+    return { ok: true, user };
+  }
 }
-
-export const usersService = new UsersService();
-

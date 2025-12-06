@@ -1,10 +1,12 @@
 import type { PageServerLoad } from './$types';
 import type { Board } from '$lib/services/boards';
-import { boardsService } from '$lib/services/boards';
+import { BoardsService } from '$lib/services/boards';
+import { apiClient } from '$lib/services/api.server.ts';
 
-export const load: PageServerLoad = async ({ fetch }) => {
+export const load: PageServerLoad = async (event) => {
+	event.depends('/api/boards');
 	const initialRefreshTime = new Date().toISOString();
-	const result = await boardsService.getBoards(fetch);
+	const result = await new BoardsService(apiClient).getBoards(event);
 	if (!result.ok) {
 		if ('title' in result && result.title) {
 			return {
