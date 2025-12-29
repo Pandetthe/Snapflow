@@ -3,6 +3,7 @@ using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Cards.GetById;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 
 namespace Snapflow.Api.Endpoints.Cards;
 
@@ -12,16 +13,18 @@ internal sealed class GetById : IEndpoint
     {
         app.MapGet("boards/{boardId:int}/cards/{cardId:int}", async (
             int boardId, int cardId,
-            IQueryHandler<GetCardByIdQuery, CardResponse> handler,
+            IQueryHandler<GetCardByIdQuery, GetCardByIdResponse> handler,
             CancellationToken cancellationToken) =>
         {
             var query = new GetCardByIdQuery(cardId);
 
-            Result<CardResponse> result = await handler.Handle(query, cancellationToken);
+            Result<GetCardByIdResponse> result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
-        .RequireAuthorization()
-        .WithTags(EndpointTags.Cards);
+        .RequireAuthorization(BoardPermissions.Boards.View)
+        .WithTags(EndpointTags.Cards)
+        .Produces<GetCardByIdResponse>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

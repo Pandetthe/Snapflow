@@ -3,12 +3,13 @@ using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Swimlanes.Update;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 
 namespace Snapflow.Api.Endpoints.Swimlanes;
 
 internal sealed class Update : IEndpoint
 {
-    public sealed record UpdateSwimlaneRequest(string Title);
+    public sealed record UpdateSwimlaneRequest(string Title, int? Height);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -18,13 +19,15 @@ internal sealed class Update : IEndpoint
             ICommandHandler<UpdateSwimlaneCommand> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new UpdateSwimlaneCommand(swimlaneId, request.Title);
+            var command = new UpdateSwimlaneCommand(swimlaneId, request.Title, request.Height);
 
             Result result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
-        .RequireAuthorization()
-        .WithTags(EndpointTags.Swimlanes);
+        .RequireAuthorization(BoardPermissions.Swimlanes.Update)
+        .WithTags(EndpointTags.Swimlanes)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

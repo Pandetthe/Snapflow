@@ -6,16 +6,16 @@
 	import { AuthService } from '$lib/services/auth';
 	import { apiClient } from '$lib/services/api.client';
 	import ErrorModal from '$lib/components/ErrorModal.svelte';
-  import { errorStore } from '$lib/stores/error';
+	import { errorStore } from '$lib/stores/error';
 	import type { AppError } from '$lib/types/app.js';
 	import { onDestroy, onMount } from 'svelte';
-  
+
 	let { children, data } = $props();
 	let isLoggingOut = $state(false);
 	let authService = new AuthService(apiClient);
 
-  let showErrorModal = $state(false);
-  let modalErrors = $state([] as AppError[]);
+	let showErrorModal = $state(false);
+	let modalErrors = $state([] as AppError[]);
 
 	let unsubscribe: () => void;
 	onMount(() => {
@@ -38,7 +38,17 @@
 			if (response.ok) {
 				window.location.href = '/';
 			} else {
-				console.error('Logout failed');
+				errorStore.addError(null, 'Problem with connection to the server');
+			}
+		} catch (err) {
+			if (err instanceof Error) {
+				if (err.message === 'Failed to fetch') {
+					errorStore.addError('Web.ConnectionProblem', 'Problem with connection to the server');
+				} else {
+					errorStore.addError(err.name, err.message);
+				}
+			} else {
+				errorStore.addError(null, 'Unknown error occurred during sign in');
 			}
 		} finally {
 			isLoggingOut = false;
@@ -118,9 +128,9 @@
 		{/if}
 	</div>
 
-	<main class="container mx-auto px-4">
+	<main class="container mx-auto">
 		{@render children()}
 
-    <ErrorModal bind:isOpen={showErrorModal} bind:errors={modalErrors} />
+		<ErrorModal bind:isOpen={showErrorModal} bind:errors={modalErrors} />
 	</main>
 </div>

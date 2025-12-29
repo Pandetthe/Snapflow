@@ -397,6 +397,10 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("updated_by_id");
 
+                    b.Property<int?>("Width")
+                        .HasColumnType("integer")
+                        .HasColumnName("width");
+
                     b.HasKey("Id")
                         .HasName("pk_lists");
 
@@ -474,6 +478,10 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.Property<int?>("DeletedById")
                         .HasColumnType("integer")
                         .HasColumnName("deleted_by_id");
+
+                    b.Property<int?>("Height")
+                        .HasColumnType("integer")
+                        .HasColumnName("height");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")

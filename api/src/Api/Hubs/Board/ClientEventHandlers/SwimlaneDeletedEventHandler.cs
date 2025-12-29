@@ -4,7 +4,7 @@ using Snapflow.Domain.Swimlanes;
 
 namespace Snapflow.Api.Hubs.Board.ClientEventHandlers;
 
-internal sealed class SwimlaneDeletedEventHandler(
+public sealed class SwimlaneDeletedEventHandler(
     IHubContext<BoardHub, IBoardHubClient> hubContext) : IDomainEventHandler<SwimlaneDeletedDomainEvent>
 {
     public Task Handle(SwimlaneDeletedDomainEvent domainEvent, CancellationToken cancellationToken)

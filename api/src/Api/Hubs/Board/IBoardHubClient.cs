@@ -2,7 +2,7 @@
 
 namespace Snapflow.Api.Hubs.Board;
 
-internal interface IBoardHubClient
+public interface IBoardHubClient
 {
     Task BoardUpdated();
 

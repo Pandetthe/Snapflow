@@ -3,6 +3,7 @@ using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Cards.Update;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 
 namespace Snapflow.Api.Endpoints.Cards;
 
@@ -24,7 +25,9 @@ internal sealed class Update : IEndpoint
 
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
-        .RequireAuthorization()
-        .WithTags(EndpointTags.Cards);
+        .RequireAuthorization(BoardPermissions.Cards.Update)
+        .WithTags(EndpointTags.Cards)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

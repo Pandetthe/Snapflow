@@ -3,6 +3,7 @@ using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Boards.GetById;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 
 namespace Snapflow.Api.Endpoints.Boards;
 
@@ -12,17 +13,17 @@ internal sealed class GetById : IEndpoint
     {
         app.MapGet("boards/{boardId:int}", async (
             int boardId,
-            IQueryHandler<GetBoardByIdQuery, BoardResponse> handler,
+            IQueryHandler<GetBoardByIdQuery, GetBoardByIdResponse> handler,
             CancellationToken cancellationToken) =>
         {
             var query = new GetBoardByIdQuery(boardId);
-            Result<BoardResponse> result = await handler.Handle(query, cancellationToken);
+            Result<GetBoardByIdResponse> result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
+        .RequireAuthorization(BoardPermissions.Boards.View)
         .WithTags(EndpointTags.Boards)
-        .Produces<BoardResponse>(StatusCodes.Status200OK)
-        .ProducesProblem(StatusCodes.Status404NotFound)
-        .ProducesInternalServerError();
+        .Produces<GetBoardByIdResponse>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

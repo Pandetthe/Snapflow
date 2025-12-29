@@ -3,6 +3,7 @@ using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Swimlanes.GetById;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 
 namespace Snapflow.Api.Endpoints.Swimlanes;
 
@@ -12,16 +13,18 @@ internal sealed class GetById : IEndpoint
     {
         app.MapGet("boards/{boardId:int}/swimlanes/{swimlaneId:int}", async (
             int boardId, int swimlaneId,
-            IQueryHandler<GetSwimlaneByIdQuery, SwimlaneResponse> handler,
+            IQueryHandler<GetSwimlaneByIdQuery, GetSwimlaneByIdResponse> handler,
             CancellationToken cancellationToken) =>
         {
             var query = new GetSwimlaneByIdQuery(swimlaneId);
 
-            Result<SwimlaneResponse> result = await handler.Handle(query, cancellationToken);
+            Result<GetSwimlaneByIdResponse> result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
-        .RequireAuthorization()
-        .WithTags(EndpointTags.Swimlanes);
+        .RequireAuthorization(BoardPermissions.Boards.View)
+        .WithTags(EndpointTags.Swimlanes)
+        .Produces<GetSwimlaneByIdResponse>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

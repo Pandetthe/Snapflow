@@ -3,6 +3,7 @@ using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Boards.Update;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 
 namespace Snapflow.Api.Endpoints.Boards;
 
@@ -24,10 +25,9 @@ internal sealed class Update : IEndpoint
 
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
-        .RequireAuthorization()
+        .RequireAuthorization(BoardPermissions.Boards.Update)
         .WithTags(EndpointTags.Boards)
         .Produces(StatusCodes.Status204NoContent)
-        .ProducesProblem(StatusCodes.Status404NotFound)
-        .ProducesInternalServerError();
+        .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

@@ -13,17 +13,16 @@ internal sealed class Get : IEndpoint
     {
         app.MapGet("boards", async (
             [FromQuery] string? title,
-            IQueryHandler<GetBoardsQuery, BoardsResponse> handler,
+            IQueryHandler<GetBoardsQuery, IReadOnlyList<GetBoardsResponse.BoardDto>> handler,
             CancellationToken cancellationToken) =>
         {
             var query = new GetBoardsQuery(title);
-            Result<BoardsResponse> result = await handler.Handle(query, cancellationToken);
+            Result<IReadOnlyList<GetBoardsResponse.BoardDto>> result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .RequireAuthorization()
         .WithTags(EndpointTags.Boards)
-        .Produces< BoardsResponse>(StatusCodes.Status200OK)
-        .ProducesInternalServerError();
+        .Produces<IReadOnlyList<GetBoardsResponse.BoardDto>>(StatusCodes.Status200OK);
     }
 }

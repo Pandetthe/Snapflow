@@ -4,7 +4,7 @@ using Snapflow.Domain.Members;
 
 namespace Snapflow.Api.Hubs.Board.ClientEventHandlers;
 
-internal sealed class MemberRoleChangedEventHandler(
+public sealed class MemberRoleChangedEventHandler(
     IHubContext<BoardHub, IBoardHubClient> hubContext) : IDomainEventHandler<MemberRoleChangedDomainEvent>
 {
     public Task Handle(MemberRoleChangedDomainEvent domainEvent, CancellationToken cancellationToken) =>

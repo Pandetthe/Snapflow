@@ -3,6 +3,7 @@ using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Swimlanes.Move;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 
 namespace Snapflow.Api.Endpoints.Swimlanes;
 
@@ -24,7 +25,9 @@ internal sealed class Move : IEndpoint
 
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
-        .RequireAuthorization()
-        .WithTags(EndpointTags.Swimlanes);
+        .RequireAuthorization(BoardPermissions.Swimlanes.Move)
+        .WithTags(EndpointTags.Swimlanes)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

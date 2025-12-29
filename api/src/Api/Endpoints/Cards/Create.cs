@@ -3,6 +3,7 @@ using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Cards.Create;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 
 namespace Snapflow.Api.Endpoints.Cards;
 
@@ -25,7 +26,9 @@ internal sealed class Create : IEndpoint
 
             return result.Match(CustomResults.OkWithId, CustomResults.Problem);
         })
-        .RequireAuthorization()
-        .WithTags(EndpointTags.Cards);
+        .RequireAuthorization(BoardPermissions.Cards.Create)
+        .WithTags(EndpointTags.Cards)
+        .ProducesIdResponse()
+        .ProducesCustomValidationProblem();
     }
 }

@@ -21,6 +21,7 @@ internal sealed class Me : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .RequireAuthorization()
-        .WithTags(EndpointTags.Users);
+        .WithTags(EndpointTags.Users)
+        .Produces<MeResponse>(StatusCodes.Status200OK);
     }
 }

@@ -4,7 +4,7 @@ using Snapflow.Domain.Cards;
 
 namespace Snapflow.Api.Hubs.Board.ClientEventHandlers;
 
-internal sealed class CardCreatedEventHandler(
+public sealed class CardCreatedEventHandler(
     IHubContext<BoardHub, IBoardHubClient> hubContext) : IDomainEventHandler<CardCreatedDomainEvent>
 {
     public Task Handle(CardCreatedDomainEvent domainEvent, CancellationToken cancellationToken)

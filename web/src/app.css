@@ -6,11 +6,24 @@
 @layer base {
 	html, body {
 		@apply bg-gray-100;
-		overscroll-behavior: none;
+
 	}
 
 	html.dark, html.dark body {
 		@apply bg-gray-900;
+	}
+
+	.show-on-hover {
+		@apply opacity-100 transition-opacity duration-200;
+	}
+
+	@media (hover: hover) {
+		.show-on-hover {
+			@apply opacity-0;
+		}
+		.group:hover .show-on-hover {
+			@apply opacity-100;
+		}
 	}
 }
 

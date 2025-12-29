@@ -26,7 +26,6 @@ internal sealed class Create : IEndpoint
         .RequireAuthorization()
         .WithTags(EndpointTags.Boards)
         .ProducesIdResponse()
-        .ProducesCustomValidationProblem()
-        .ProducesInternalServerError();
+        .ProducesCustomValidationProblem();
     }
 }

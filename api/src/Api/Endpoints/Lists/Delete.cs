@@ -3,6 +3,7 @@ using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Lists.Delete;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 
 namespace Snapflow.Api.Endpoints.Lists;
 
@@ -21,7 +22,9 @@ internal sealed class Delete : IEndpoint
 
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
-        .RequireAuthorization()
-        .WithTags(EndpointTags.Lists);
+        .RequireAuthorization(BoardPermissions.Lists.Delete)
+        .WithTags(EndpointTags.Lists)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

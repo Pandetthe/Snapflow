@@ -3,12 +3,13 @@ using Snapflow.Api.Infrastructure;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Cards.Move;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 
 namespace Snapflow.Api.Endpoints.Cards;
 
 internal sealed class Move : IEndpoint
 {
-    public sealed record MoveCardRequest(int? BeforeId);
+    public sealed record MoveCardRequest(int ListId, int? BeforeId);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -18,13 +19,15 @@ internal sealed class Move : IEndpoint
             ICommandHandler<MoveCardCommand> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new MoveCardCommand(cardId, request.BeforeId);
+            var command = new MoveCardCommand(cardId, request.ListId, request.BeforeId);
 
             Result result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
-        .RequireAuthorization()
-        .WithTags(EndpointTags.Cards);
+        .RequireAuthorization(BoardPermissions.Cards.Move)
+        .WithTags(EndpointTags.Cards)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

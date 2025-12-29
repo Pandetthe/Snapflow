@@ -1,6 +1,6 @@
 ﻿namespace Snapflow.Api.Endpoints;
 
-internal sealed class EndpointTags
+internal static class EndpointTags
 {
     public const string Auth = "Auth";
 

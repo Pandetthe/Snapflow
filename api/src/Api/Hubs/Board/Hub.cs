@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Snapflow.Domain.Boards;
 
 namespace Snapflow.Api.Hubs.Board;
 
@@ -29,29 +30,36 @@ internal static class BoardHubExtensions
             : throw new InvalidOperationException("BoardId not found in HubCallerContext items.");
 }
 
-[Authorize]
-internal sealed partial class BoardHub(
+[Authorize(BoardPermissions.Boards.View)]
+public sealed partial class BoardHub(
     ILogger<BoardHub> logger) : Hub<IBoardHubClient>
 {
     public async override Task OnConnectedAsync()
     {
-        await base.OnConnectedAsync();
-        string connectionId = Context.ConnectionId;
-        string? boardIdString = Context.GetHttpContext()?.Request.Query["boardId"];
-        if (!int.TryParse(boardIdString, out int boardId))
+        var httpContext = Context.GetHttpContext();
+        if (httpContext is null)
         {
-            logger.LogWarning("Connection {ConnectionId} aborted: invalid boardId query parameter '{BoardIdString}'", connectionId, boardIdString);
+            logger.LogError("Connection {ConnectionId} aborted: HttpContext is null.", Context.ConnectionId);
+            Context.Abort();
+            return;
+        }
+        if (!httpContext.Request.RouteValues.TryGetValue("boardId", out var boardIdObj) ||
+            !int.TryParse(boardIdObj?.ToString(), out int boardId))
+        {
+            logger.LogWarning("Connection {ConnectionId} aborted: invalid or missing boardId in route.", Context.ConnectionId);
             Context.Abort();
             return;
         }
         Context.SetBoardId(boardId);
-        await Groups.AddToGroupAsync(connectionId, $"{boardId}", Context.ConnectionAborted);
-        await Groups.AddToGroupAsync(connectionId, $"{boardId}-{Context.User?.Identity?.Name}", Context.ConnectionAborted);
-        logger.LogInformation("Connection {ConnectionId} connected to board {BoardId}.", connectionId, boardId);
-    }
+        var userIdString = Context.UserIdentifier;
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"{boardId}", Context.ConnectionAborted);
 
-    public override Task OnDisconnectedAsync(Exception? exception)
-    {
-        return base.OnDisconnectedAsync(exception);
+        if (!string.IsNullOrEmpty(userIdString))
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"{boardId}-{userIdString}", Context.ConnectionAborted);
+        }
+
+        await base.OnConnectedAsync();
+        logger.LogInformation("Connection {ConnectionId} connected to board {BoardId}.", Context.ConnectionId, boardId);
     }
 }

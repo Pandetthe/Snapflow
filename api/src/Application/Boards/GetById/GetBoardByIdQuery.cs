@@ -2,4 +2,4 @@
 
 namespace Snapflow.Application.Boards.GetById;
 
-public sealed record GetBoardByIdQuery(int Id) : IQuery<BoardResponse>;
+public sealed record GetBoardByIdQuery(int Id) : IQuery<GetBoardByIdResponse>;

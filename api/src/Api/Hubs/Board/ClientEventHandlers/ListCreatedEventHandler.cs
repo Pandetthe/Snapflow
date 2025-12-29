@@ -4,7 +4,7 @@ using Snapflow.Domain.Lists;
 
 namespace Snapflow.Api.Hubs.Board.ClientEventHandlers;
 
-internal sealed class ListCreatedEventHandler(
+public sealed class ListCreatedEventHandler(
     IHubContext<BoardHub, IBoardHubClient> hubContext) : IDomainEventHandler<ListCreatedDomainEvent>
 {
     public Task Handle(ListCreatedDomainEvent domainEvent, CancellationToken cancellationToken)

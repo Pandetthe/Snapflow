@@ -26,10 +26,4 @@ public static class ProducesExtensions
     {
         return builder.Produces<Infrastructure.ValidationProblemDetails>(statusCode, "application/problem+json");
     }
-
-    public static RouteHandlerBuilder ProducesInternalServerError(
-        this RouteHandlerBuilder builder)
-    {
-        return builder.ProducesProblem(StatusCodes.Status500InternalServerError);
-    }
 }

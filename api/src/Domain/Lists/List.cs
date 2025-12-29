@@ -15,7 +15,9 @@ public class List : Entity<int>
     public virtual Swimlane Swimlane { get; set; } = null!;
 
     public required string Title { get; set; }
+
     public required string Rank { get; set; }
+    public int? Width { get; set; }
 
     public required DateTimeOffset CreatedAt { get; set; }
     public required int CreatedById { get; set; }
