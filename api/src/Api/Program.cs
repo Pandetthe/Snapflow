@@ -79,7 +79,7 @@ public static class Program
         {
             options.AddPolicy("AllowWeb", policy =>
             {
-                string webAppUrl = builder.Configuration.GetValue<string>("WebAppUrl") ?? "http://localhost:5173";
+                string webAppUrl = builder.Configuration.GetValue<string>("Services:WebAppUrl") ?? "http://localhost:5173";
                 policy.WithOrigins(webAppUrl)
                        .AllowAnyMethod()
                        .AllowAnyHeader()

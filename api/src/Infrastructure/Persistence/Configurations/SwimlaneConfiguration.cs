@@ -29,7 +29,5 @@ internal sealed class SwimlaneConfiguration : IEntityTypeConfiguration<Swimlane>
         builder.Property(s => s.Rank)
             .IsRequired()
             .HasMaxLength(LexoRankService.Length);
-        builder.HasIndex(s => new { s.BoardId, s.Rank })
-            .IsUnique();
     }
 }

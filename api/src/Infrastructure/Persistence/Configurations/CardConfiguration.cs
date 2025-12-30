@@ -22,7 +22,5 @@ internal sealed class CardConfiguration : IEntityTypeConfiguration<Card>
             .WithMany()
             .HasForeignKey(c => c.DeletedById)
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasIndex(c => new { c.ListId, c.Rank })
-            .IsUnique();
     }
 }

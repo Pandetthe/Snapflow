@@ -1,7 +1,8 @@
 <script lang="ts">
-	import type { Card } from '$lib/services/boards';
+	import type { GetBoardByIdResponse } from '$lib/types/boards.api';
+	import { dragHandle } from 'svelte-dnd-action';
 
-	let { card }: { card: Card } = $props();
+	let { card }: { card: GetBoardByIdResponse.CardDto } = $props();
 </script>
 
 <div
@@ -12,6 +13,7 @@
 		<div class="flex min-w-0 flex-1 items-start gap-2">
 			<div class="show-on-hover flex items-center gap-1">
 				<div
+					use:dragHandle
 					class="card-drag-handle cursor-move p-1 text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
 				>
 					<svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">

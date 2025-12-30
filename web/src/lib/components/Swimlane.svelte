@@ -1,74 +1,39 @@
 <script lang="ts">
-	import Sortable from 'sortablejs';
-	import { getContext, onMount } from 'svelte';
-	import type { HubConnection } from '@microsoft/signalr';
-	import type { Swimlane } from '$lib/services/boards';
+	import { flip } from 'svelte/animate';
+	import { slide } from 'svelte/transition';
+	import { dragHandle, dragHandleZone, SHADOW_ITEM_MARKER_PROPERTY_NAME } from 'svelte-dnd-action';
+	import type { DndEvent } from 'svelte-dnd-action';
 	import List from './List.svelte';
-	import { ScrollArea } from 'bits-ui';
+	import { getContext } from 'svelte';
+	import { BoardsHub } from '$lib/services/boards.hub';
+	import type { GetBoardByIdResponse } from '$lib/types/boards.api';
 	import { errorStore } from '$lib/stores/error';
+	import { ScrollArea } from 'bits-ui';
 
-	let {
-		swimlane,
-		boardId
-	}: {
-		swimlane: Swimlane;
-		boardId: number;
-	} = $props();
+	let { swimlane }: { swimlane: GetBoardByIdResponse.SwimlaneDto } = $props();
 
-	const getConnection = getContext<() => HubConnection | null>('connection');
-	const connection = $derived(getConnection());
+	const getHub = getContext<() => BoardsHub | null>('hub');
+	const hub = $derived(getHub());
 
-	let listsContainer: HTMLElement | null = null;
+	function handleListConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
+		swimlane.lists = e.detail.items;
+	}
 
-	onMount(() => {
-		if (!listsContainer) return;
+	async function handleListFinalize(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
+		swimlane.lists = e.detail.items;
+		const { info } = e.detail;
+		if (info.trigger === 'droppedIntoZone') {
+			const id = Number(info.id);
+			const index = swimlane.lists.findIndex((l) => l.id === id);
+			const nextItem = swimlane.lists[index + 1];
+			const beforeId = nextItem ? nextItem.id : null;
 
-		Sortable.create(listsContainer, {
-			group: {
-				name: 'lists',
-				pull: true,
-				put: (to, from) => {
-					const group = from.options.group;
-					if (!group) return false;
-					return (typeof group === 'string' ? group : group.name) === 'lists';
-				}
-			},
-			animation: 150,
-			dataIdAttr: 'data-id',
-			draggable: '[data-id]:not(.add-list-button)',
-			handle: '.list-drag-handle',
-			onMove: (evt) => {
-				return !evt.related.classList.contains('add-list-button');
-			},
-			onSort: (evt) => {
-				const container = evt.to;
-				const button = Array.from(container.children).find((child) =>
-					child.classList.contains('add-list-button')
-				);
-				if (button && container.lastElementChild !== button) {
-					container.appendChild(button);
-				}
-			},
-			onEnd: async (evt) => {
-				const itemEl = evt.item;
-				const nextEl = itemEl.nextElementSibling;
-				const id = parseInt(itemEl.getAttribute('data-id') || '0');
-				const targetSwimlaneId = parseInt(evt.to.getAttribute('data-id') || '0');
-				const beforeId =
-					nextEl && !nextEl.classList.contains('add-list-button')
-						? parseInt(nextEl.getAttribute('data-id') || '0')
-						: null;
-
-				if (id !== 0 && targetSwimlaneId !== 0) {
-					try {
-						await connection?.invoke('MoveList', { id, swimlaneId: targetSwimlaneId, beforeId });
-					} catch (err) {
-						errorStore.addError('Web.MoveListFailed', 'Failed to move list');
-					}
-				}
+			let res = await hub?.moveList({ id, swimlaneId: swimlane.id, beforeId });
+			if (!res?.ok) {
+				errorStore.addError('Web.MoveListFailed', 'Failed to move list');
 			}
-		});
-	});
+		}
+	}
 </script>
 
 <div
@@ -79,7 +44,8 @@
 	<div class="group mb-4 flex items-start gap-2">
 		<div class="flex flex-1 items-start gap-2">
 			<div
-				class="swimlane-drag-handle show-on-hover cursor-move touch-none pt-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+				use:dragHandle
+				class="show-on-hover cursor-move touch-none pt-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
 			>
 				<svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
 					<path
@@ -117,29 +83,47 @@
 		</div>
 	</div>
 
-	<ScrollArea.Root class="min-h-0 flex-1" type="auto">
+	<ScrollArea.Root class="flex-1" type="auto">
 		<ScrollArea.Viewport class="w-full rounded-[inherit]">
 			<div class="flex gap-3 pb-4">
-				<div bind:this={listsContainer} data-id={swimlane.id} class="flex items-start gap-3">
-					{#each swimlane.lists.sort((a, b) => a.rank.localeCompare(b.rank)) as list (list.id)}
-						<List {list} {boardId} />
+				<section
+					use:dragHandleZone={{
+						items: swimlane.lists,
+						flipDurationMs: 150,
+						type: 'lists',
+						dropTargetStyle: {},
+						useCursorForDetection: true
+					}}
+					onconsider={handleListConsider}
+					onfinalize={handleListFinalize}
+					class="flex h-full items-start gap-3"
+				>
+					{#each swimlane.lists as list (list.id)}
+						<div
+							animate:flip={{ duration: 150 }}
+							in:slide={{ duration: 150 }}
+							out:slide={{ duration: 150 }}
+						>
+							<List {list} />
+						</div>
 					{/each}
-
-					<button
-						onclick={() => {}}
-						class="add-list-button order-last flex h-fit w-72 shrink items-center justify-center gap-2 self-start rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-					>
-						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 4v16m8-8H4"
-							/>
-						</svg>
-						<span class="font-medium">Add List</span>
-					</button>
-				</div>
+					<div class="mt-0">
+						<button
+							onclick={() => {}}
+							class="add-list-button order-last flex h-fit w-72 shrink items-center justify-center gap-2 self-start rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+						>
+							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 4v16m8-8H4"
+								/>
+							</svg>
+							<span class="font-medium">Add List</span>
+						</button>
+					</div>
+				</section>
 			</div>
 		</ScrollArea.Viewport>
 		<ScrollArea.Scrollbar
@@ -153,3 +137,38 @@
 		<ScrollArea.Corner />
 	</ScrollArea.Root>
 </div>
+
+<style>
+	:global(.list-ghost) {
+		opacity: 0.5;
+		background: var(--color-gray-200) !important;
+		border: 2px dashed var(--color-gray-400) !important;
+	}
+
+	:global(.dark .list-ghost) {
+		background: var(--color-gray-700) !important;
+		border-color: var(--color-gray-500) !important;
+	}
+
+	:global(.list-chosen) {
+		cursor: grabbing !important;
+	}
+
+	:global(.list-drag) {
+		box-shadow:
+			0 15px 20px -5px rgba(0, 0, 0, 0.15),
+			0 5px 5px -5px rgba(0, 0, 0, 0.1) !important;
+		opacity: 0.95 !important;
+		transform: rotate(0.5deg);
+		background: var(--color-white) !important;
+		border: 1px solid var(--color-gray-200) !important;
+	}
+
+	:global(.dark .list-drag) {
+		background: var(--color-gray-800) !important;
+		border-color: var(--color-gray-700) !important;
+		box-shadow:
+			0 15px 20px -5px rgba(0, 0, 0, 0.3),
+			0 5px 5px -5px rgba(0, 0, 0, 0.2) !important;
+	}
+</style>

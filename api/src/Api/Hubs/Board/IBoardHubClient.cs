@@ -4,39 +4,69 @@ namespace Snapflow.Api.Hubs.Board;
 
 public interface IBoardHubClient
 {
-    Task BoardUpdated();
+    public sealed record BoardUpdatedPayload(string Title, string Description);
+
+    Task BoardUpdated(BoardUpdatedPayload payload, CancellationToken cancellationToken = default);
 
     Task BoardDeleted(CancellationToken cancellationToken = default);
 
-    Task SwimlaneCreated(int id, string title, CancellationToken cancellationToken = default);
+    public sealed record SwimlaneCreatedPayload(int Id, string Title, int? Height, string Rank);
 
-    Task SwimlaneUpdated();
+    Task SwimlaneCreated(SwimlaneCreatedPayload payload, CancellationToken cancellationToken = default);
 
-    Task SwimlaneDeleted(int id, CancellationToken cancellationToken = default);
+    public sealed record SwimlaneUpdatedPayload(int Id, string Title, int? Height);
 
-    Task ListCreated(int id, int swimlaneId, string title, CancellationToken cancellationToken = default);
+    Task SwimlaneUpdated(SwimlaneUpdatedPayload payload, CancellationToken cancellationToken = default);
 
-    Task ListUpdated();
+    public sealed record SwimlaneMovedPayload(int Id, string Rank);
 
-    Task ListDeleted(int id, CancellationToken cancellationToken = default);
+    Task SwimlaneMoved(SwimlaneMovedPayload payload, CancellationToken cancellationToken = default);
+
+    public sealed record SwimlaneDeletedPayload(int Id);
+
+    Task SwimlaneDeleted(SwimlaneDeletedPayload payload, CancellationToken cancellationToken = default);
+
+    public sealed record ListCreatedPayload(int Id, int SwimlaneId, string Title, int? Width, string Rank);
+
+    Task ListCreated(ListCreatedPayload payload, CancellationToken cancellationToken = default);
+
+    public sealed record ListUpdatedPayload(int Id, string Title, int? Width);
+
+    Task ListUpdated(ListUpdatedPayload payload, CancellationToken cancellationToken = default);
+
+    public sealed record ListMovedPayload(int Id, int SwimlaneId, string Rank);
+
+    Task ListMoved(ListMovedPayload payload, CancellationToken cancellationToken = default);
+
+    public sealed record ListDeletedPayload(int Id);
+
+    Task ListDeleted(ListDeletedPayload payload, CancellationToken cancellationToken = default);
+
+    Task CardLocked();
+
+    Task CardUnlocked();
+
+    public sealed record CardCreatedPayload(int Id, int ListId, string Title, string Description, string Rank);
+
+    Task CardCreated(CardCreatedPayload payload, CancellationToken cancellationToken = default);
+
+    public sealed record CardUpdatedPayload(int Id, string Title, string Description);
+
+    Task CardUpdated(CardUpdatedPayload payload, CancellationToken cancellationToken = default);
+
+    public sealed record CardDeletedPayload(int Id);
+
+    Task CardDeleted(CardDeletedPayload payload, CancellationToken cancellationToken = default);
+
+    public sealed record CardMovedPayload(int Id, int ListId, string Rank);
+
+    Task CardMoved(CardMovedPayload payload, CancellationToken cancellationToken = default);
 
     Task TagCreated();
 
     Task TagUpdated();
 
     Task TagDeleted();
-
-    Task CardLocked();
-
-    Task CardUnlocked();
-
-    Task CardCreated(int id, int listId, int swimlaneId, string title, string description, CancellationToken cancellationToken = default);
-
-    Task CardUpdated();
-
-    Task CardDeleted(int id, CancellationToken cancellationToken = default);
-
-    Task CardMoved();
 
     Task MemberRemoved(int userId, CancellationToken cancellationToken = default);
 

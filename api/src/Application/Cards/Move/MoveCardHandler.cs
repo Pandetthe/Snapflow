@@ -42,6 +42,7 @@ internal sealed class MoveCardHandler(
         card.Rank = rankResult.Value;
         card.UpdatedById = userContext.UserId;
         card.UpdatedAt = timeProvider.GetUtcNow();
+        card.Raise(new CardMovedDomainEvent(card.Id, card.BoardId, card.ListId, card.Rank));
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { Board } from '$lib/services/boards';
+	import type { GetBoardsResponse } from '$lib/types/boards.api';
 	import { Button, ScrollArea } from 'bits-ui';
 
-	let { board }: { board: Board } = $props();
+	let { board }: { board: GetBoardsResponse.BoardDto } = $props();
 
 	function formatDate(value: string) {
 		return new Date(value).toLocaleDateString();
@@ -36,7 +36,7 @@
 				onclick={(e) => e.preventDefault()}
 				onpointerdown={(e) => e.preventDefault()}
 				onmousedown={(e) => e.preventDefault()}
-        class="touch-pan-y select-none"
+				class="touch-pan-y select-none"
 			>
 				<ScrollArea.Scrollbar orientation="vertical" class="w-2">
 					<ScrollArea.Thumb class="rounded-full bg-gray-300 dark:bg-gray-600" />

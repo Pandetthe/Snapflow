@@ -1,81 +1,242 @@
 <script lang="ts">
-	import { Button } from 'bits-ui';
-	import Sortable from 'sortablejs';
+	import { flip } from 'svelte/animate';
+	import { slide } from 'svelte/transition';
+	import {
+		dndzone,
+		dragHandleZone,
+		type DndEvent,
+		SHADOW_ITEM_MARKER_PROPERTY_NAME
+	} from 'svelte-dnd-action';
 	import Swimlane from '$lib/components/Swimlane.svelte';
 	import { onDestroy, onMount, setContext } from 'svelte';
-	import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
-	import { PUBLIC_API_BASE_URL } from '$env/static/public';
+	import { BoardsHub } from '$lib/services/boards.hub';
 	import { errorStore } from '$lib/stores/error';
-	import Error from '../../../+error.svelte';
+	import type { GetBoardByIdResponse } from '$lib/types/boards.api';
+	import { Button } from 'bits-ui';
 
 	let { data } = $props();
+	let board = $state((() => data.board)());
+	let hub = $state<BoardsHub | null>(null);
 
-	let board = $derived(data.board);
-	let swimlaneContainer: HTMLElement | null = null;
+	function sortAll() {
+		board.swimlanes.sort(
+			(a: GetBoardByIdResponse.SwimlaneDto, b: GetBoardByIdResponse.SwimlaneDto) =>
+				a.rank.localeCompare(b.rank)
+		);
+		for (const s of board.swimlanes) {
+			s.lists.sort((a: GetBoardByIdResponse.ListDto, b: GetBoardByIdResponse.ListDto) =>
+				a.rank.localeCompare(b.rank)
+			);
+			for (const l of s.lists) {
+				l.cards.sort((a: GetBoardByIdResponse.CardDto, b: GetBoardByIdResponse.CardDto) =>
+					a.rank.localeCompare(b.rank)
+				);
+			}
+		}
+	}
+
+	function sortSwimlanes() {
+		board.swimlanes.sort(
+			(a: GetBoardByIdResponse.SwimlaneDto, b: GetBoardByIdResponse.SwimlaneDto) =>
+				a.rank.localeCompare(b.rank)
+		);
+	}
+
+	function sortLists(swimlane: GetBoardByIdResponse.SwimlaneDto) {
+		swimlane.lists.sort((a: GetBoardByIdResponse.ListDto, b: GetBoardByIdResponse.ListDto) =>
+			a.rank.localeCompare(b.rank)
+		);
+	}
+
+	function sortCards(list: GetBoardByIdResponse.ListDto) {
+		list.cards.sort((a: GetBoardByIdResponse.CardDto, b: GetBoardByIdResponse.CardDto) =>
+			a.rank.localeCompare(b.rank)
+		);
+	}
 
 	$effect(() => {
-		board = data.board;
+		if (data.board.id !== board.id) {
+			board = data.board;
+			sortAll();
+		}
 	});
 
-	let connection = $state<HubConnection | null>(null);
-
-	setContext('connection', () => connection);
-
+	setContext('hub', () => hub);
+	setContext('board', () => board);
 	onMount(async () => {
-		connection = new HubConnectionBuilder()
-			.withUrl(`${PUBLIC_API_BASE_URL.replace(/\/+$/, '')}/boards/${data.board.id}/hub`, {
-				withCredentials: true
-			})
-			.withAutomaticReconnect()
-			.build();
+		hub = new BoardsHub(data.board.id);
 
 		try {
-			await connection.start();
-			connection.on('BoardUpdated', () => {
-				console.log('Board updated');
+			await hub.start();
+
+			hub.on('BoardUpdated', (payload) => {
+				board.title = payload.title;
+				board.description = payload.description;
 			});
 
-			connection.on('SwimlaneCreated', (id: number, title: string) => {
-				//board.swimlanes.push({ id, title });
+			hub.on('SwimlaneCreated', (payload) => {
+				const newSwimlane = {
+					...payload,
+					lists: []
+				};
+				board.swimlanes.push(newSwimlane);
+				sortSwimlanes();
 			});
 
-			connection.on('SwimlaneUpdated', () => {});
-
-			connection.on('SwimlaneMoved', () => {});
-
-			connection.on('SwimlaneDeleted', (id: number) => {
-				board.swimlanes = board.swimlanes.filter((swimlane) => swimlane.id !== id);
+			hub.on('SwimlaneUpdated', (payload) => {
+				const index = board.swimlanes.findIndex((s) => s.id === payload.id);
+				if (index !== -1) {
+					board.swimlanes[index].title = payload.title;
+					board.swimlanes[index].height = payload.height;
+				}
 			});
 
-			connection.on('ListCreated', () => {});
+			hub.on('SwimlaneMoved', (payload) => {
+				const index = board.swimlanes.findIndex((s) => s.id === payload.id);
+				if (index !== -1 && payload.rank !== board.swimlanes[index].rank) {
+					board.swimlanes[index].rank = payload.rank;
+					sortSwimlanes();
+				}
+			});
 
-			connection.on('ListUpdated', () => {});
+			hub.on('SwimlaneDeleted', (payload) => {
+				const index = board.swimlanes.findIndex((s) => s.id === payload.id);
+				if (index !== -1) {
+					board.swimlanes.splice(index, 1);
+				}
+			});
 
-			connection.on('ListMoved', () => {});
+			hub.on('ListCreated', (payload) => {
+				const swimlane = board.swimlanes.find((s) => s.id === payload.swimlaneId);
+				if (swimlane) {
+					const newList = { ...payload, cards: [] };
+					swimlane.lists.push(newList);
+					sortLists(swimlane);
+				}
+			});
 
-			connection.on('ListDeleted', () => {});
+			hub.on('ListUpdated', (payload) => {
+				for (const s of board.swimlanes) {
+					const list = s.lists.find((l) => l.id === payload.id);
+					if (list) {
+						list.title = payload.title;
+						break;
+					}
+				}
+			});
 
-			connection.on('CardCreated', () => {});
+			hub.on('ListMoved', (payload) => {
+				let movedList: GetBoardByIdResponse.ListDto | null = null;
+				for (const s of board.swimlanes) {
+					const index = s.lists.findIndex((l) => l.id === payload.id);
+					if (index !== -1) {
+						[movedList] = s.lists.splice(index, 1);
+						s.lists = s.lists; // reactivity
+						break;
+					}
+				}
+				const targetSwimlane = board.swimlanes.find((s) => s.id === payload.swimlaneId);
+				if (movedList && targetSwimlane) {
+					movedList.rank = payload.rank;
+					targetSwimlane.lists.push(movedList);
+					sortLists(targetSwimlane);
+				}
+			});
 
-			connection.on('CardUpdated', () => {});
+			hub.on('ListDeleted', (payload) => {
+				for (const s of board.swimlanes) {
+					const index = s.lists.findIndex((l) => l.id === payload.id);
+					if (index !== -1) {
+						s.lists.splice(index, 1);
+						s.lists = s.lists;
+						break;
+					}
+				}
+			});
 
-			connection.on('CardMoved', () => {});
+			hub.on('CardCreated', (payload) => {
+				for (const s of board.swimlanes) {
+					const list = s.lists.find((l) => l.id === payload.listId);
+					if (list) {
+						list.cards.push({
+							...payload,
+							createdAt: new Date().toISOString(),
+							createdBy: {
+								id: 1,
+								userName: 'John Doe'
+							},
+							updatedAt: null,
+							updatedBy: null
+						});
+						sortCards(list);
+						break;
+					}
+				}
+			});
 
-			connection.on('CardLocked', () => {});
+			hub.on('CardMoved', (payload) => {
+				let movedCard: GetBoardByIdResponse.CardDto | null = null;
+				for (const s of board.swimlanes) {
+					for (const l of s.lists) {
+						const index = l.cards.findIndex((c) => c.id === payload.id);
+						if (index !== -1) {
+							[movedCard] = l.cards.splice(index, 1);
+							l.cards = l.cards;
+							break;
+						}
+					}
+					if (movedCard) break;
+				}
+				if (movedCard) {
+					for (const s of board.swimlanes) {
+						const targetList = s.lists.find((l) => l.id === payload.listId);
+						if (targetList) {
+							movedCard.rank = payload.rank;
+							targetList.cards.push(movedCard);
+							sortCards(targetList);
+							break;
+						}
+					}
+				}
+			});
 
-			connection.on('CardUnlocked', () => {});
+			hub.on('CardUpdated', (payload) => {
+				for (const s of board.swimlanes) {
+					for (const l of s.lists) {
+						const card = l.cards.find((c) => c.id === payload.id);
+						if (card) {
+							card.title = payload.title;
+							card.description = payload.description;
+							return;
+						}
+					}
+				}
+			});
 
-			connection.on('CardDeleted', () => {});
+			hub.on('CardDeleted', (payload) => {
+				for (const s of board.swimlanes) {
+					for (const l of s.lists) {
+						const index = l.cards.findIndex((c) => c.id === payload.id);
+						if (index !== -1) {
+							l.cards.splice(index, 1);
+							l.cards = l.cards;
+							return;
+						}
+					}
+				}
+			});
 
-			connection.on('BoardDeleted', () => {
+			hub.on('BoardDeleted', () => {
 				window.location.href = '/boards/';
 			});
-			connection.onclose((err) => {
+
+			hub.onClose((err) => {
 				if (err) {
 					errorStore.addError(err.name, err.message);
 				}
 			});
-			connection.onreconnecting((err) => {
+
+			hub.onReconnecting((err) => {
 				if (err) {
 					errorStore.addError(err.name, err.message);
 				}
@@ -84,54 +245,42 @@
 			if (err instanceof Error) {
 				errorStore.addError(err.name, err.message);
 			} else {
-				errorStore.addError('Web.WebSocketConnectionProblem', 'Failed to connect to SignalR hub');
+				errorStore.addError('Web.WebSocketConnectionProblem', 'Failed to connect to board hub');
 			}
 		}
-		if (!swimlaneContainer) return;
-		Sortable.create(swimlaneContainer, {
-			handle: '.swimlane-drag-handle',
-			animation: 150,
-			group: {
-				name: 'swimlanes',
-				pull: false,
-				put: false
-			},
-			dataIdAttr: 'data-id',
-			draggable: '[data-id]:not(.add-swimlane-button)',
-			onMove: (evt) => {
-				return !evt.related.classList.contains('add-swimlane-button');
-			},
-			onSort: (evt) => {
-				const container = evt.to;
-				const button = Array.from(container.children).find((child) =>
-					child.classList.contains('add-swimlane-button')
-				);
-				if (button && container.lastElementChild !== button) {
-					container.appendChild(button);
-				}
-			},
-			onEnd: async (evt) => {
-				const itemEl = evt.item;
-				const nextEl = itemEl.nextElementSibling;
-				const id = parseInt(itemEl.getAttribute('data-id') || '0');
-				const beforeId =
-					nextEl && !nextEl.classList.contains('add-swimlane-button')
-						? parseInt(nextEl.getAttribute('data-id') || '0')
-						: null;
-
-				if (id !== 0) {
-					try {
-						let result = await connection?.invoke('MoveSwimlane', { id, beforeId });
-						console.log(result);
-					} catch (err) {
-						errorStore.addError('Web.MoveSwimlaneFailed', 'Failed to move swimlane');
-					}
-				}
-			}
-		});
 	});
 
-	onDestroy(async () => await connection?.stop());
+	function handleSwimlaneConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.SwimlaneDto>>) {
+		board.swimlanes = e.detail.items;
+	}
+
+	async function handleSwimlaneFinalize(
+		e: CustomEvent<DndEvent<GetBoardByIdResponse.SwimlaneDto>>
+	) {
+		board.swimlanes = e.detail.items;
+		const { info } = e.detail;
+		if (info.trigger === 'droppedIntoZone') {
+			const id = Number(info.id);
+			const index = board.swimlanes.findIndex((s) => s.id === id);
+			const nextItem = board.swimlanes[index + 1];
+			const beforeId = nextItem ? nextItem.id : null;
+
+			let res = await hub?.moveSwimlane({ id, beforeId });
+			if (res?.ok) {
+				const moved = board.swimlanes.find((s) => s.id === id);
+				if (moved) moved.rank = res.value.rank;
+				sortSwimlanes();
+			} else {
+				errorStore.addError('Web.MoveSwimlaneFailed', 'Failed to move swimlane');
+				sortSwimlanes();
+			}
+		}
+	}
+
+	onDestroy(async () => {
+		await hub?.stop();
+		hub = null;
+	});
 </script>
 
 <svelte:head>
@@ -164,13 +313,29 @@
 		</div>
 	</div>
 
-	<div class="min-h-0 flex-1 py-6">
-		<div bind:this={swimlaneContainer} class="flex flex-1 flex-col gap-4">
-			{#each board.swimlanes.sort((a, b) => a.rank.localeCompare(b.rank)) as swimlane (swimlane.id)}
-				<Swimlane {swimlane} boardId={board.id} />
+	<div class="flex min-h-0 flex-1 flex-col gap-4 py-6">
+		<section
+			use:dragHandleZone={{
+				items: board.swimlanes,
+				flipDurationMs: 150,
+				type: 'swimlanes',
+				dropTargetStyle: {},
+				useCursorForDetection: true
+			}}
+			onconsider={handleSwimlaneConsider}
+			onfinalize={handleSwimlaneFinalize}
+			class="flex flex-col gap-4"
+		>
+			{#each board.swimlanes as swimlane (swimlane.id)}
+				<div
+					animate:flip={{ duration: 150 }}
+					in:slide={{ duration: 150 }}
+					out:slide={{ duration: 150 }}
+				>
+					<Swimlane {swimlane} />
+				</div>
 			{/each}
-
-			<div class="add-swimlane-button order-last mx-6 flex-1">
+			<div class="mx-6">
 				<button
 					onclick={() => {}}
 					class="flex h-full w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50/50 p-4 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
@@ -186,6 +351,41 @@
 					<span class="font-medium">Add Swimlane</span>
 				</button>
 			</div>
-		</div>
+		</section>
 	</div>
 </div>
+
+<style>
+	:global(.swimlane-ghost) {
+		opacity: 0.5;
+		background: var(--color-gray-300) !important;
+		border: 2px dashed var(--color-gray-500) !important;
+	}
+
+	:global(.dark .swimlane-ghost) {
+		background: var(--color-gray-700) !important;
+		border-color: var(--color-gray-400) !important;
+	}
+
+	:global(.swimlane-chosen) {
+		cursor: grabbing !important;
+	}
+
+	:global(.swimlane-drag) {
+		box-shadow:
+			0 20px 25px -5px rgba(0, 0, 0, 0.2),
+			0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
+		opacity: 0.95 !important;
+		transform: rotate(0.5deg);
+		background: var(--color-white) !important;
+		border: 1px solid var(--color-gray-200) !important;
+	}
+
+	:global(.dark .swimlane-drag) {
+		background: var(--color-gray-800) !important;
+		border-color: var(--color-gray-700) !important;
+		box-shadow:
+			0 20px 25px -5px rgba(0, 0, 0, 0.4),
+			0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
+	}
+</style>

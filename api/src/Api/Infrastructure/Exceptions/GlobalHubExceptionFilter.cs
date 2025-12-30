@@ -26,7 +26,7 @@ internal sealed class GlobalHubExceptionFilter(
                 Title = "Server failure"
             };
 
-            throw new HubException(JsonSerializer.Serialize(problemDetails));
+            return Results.Problem(problemDetails);
         }
     }
 }

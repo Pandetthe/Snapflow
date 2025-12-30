@@ -8,6 +8,5 @@ public sealed class ListDeletedEventHandler(
     IHubContext<BoardHub, IBoardHubClient> hubContext) : IDomainEventHandler<ListDeletedDomainEvent>
 {
     public Task Handle(ListDeletedDomainEvent domainEvent, CancellationToken cancellationToken)
-        => hubContext.Clients.Group(domainEvent.BoardId).ListDeleted(
-            domainEvent.Id, cancellationToken);
+        => hubContext.Clients.Group(domainEvent.BoardId).ListDeleted(new(domainEvent.Id), cancellationToken);
 }

@@ -1,29 +1,21 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { BoardsService } from '$lib/services/boards';
+import { BoardsService } from '$lib/services/boards.api';
 import { apiClient } from '$lib/services/api.server';
 
 export const load: PageServerLoad = async (event) => {
-	const boardId = parseInt(event.params.id);
+  const boardId = parseInt(event.params.id);
+  const result = await new BoardsService(apiClient).getBoard(boardId, event);
 
-	if (isNaN(boardId)) {
-		throw error(400, 'Invalid board ID');
-	}
+  if (!result.ok) {
+    if (result.problem?.status === 404) {
+      throw error(404, result.problem?.title ?? 'Board not found');
+    }
+    throw error(result.problem?.status ?? 500, result.problem?.title ?? 'Failed to load board');
+  }
 
-	const result = await new BoardsService(apiClient).getBoard(boardId, event);
-
-	if (!result.ok) {
-		if ('status' in result && result.status === 404) {
-			throw error(404, 'Board not found');
-		}
-		if ('title' in result && result.title) {
-			throw error(500, result.title as string);
-		}
-		throw error(500, 'Failed to load board');
-	}
-
-	return {
-		board: result.board
-	};
+  return {
+    board: result.value
+  };
 };
 

@@ -45,12 +45,12 @@ public sealed partial class BoardHub
     [Authorize(BoardPermissions.Swimlanes.Move)]
     public async Task<IResult> MoveSwimlane(
         MoveSwimlaneRequest request,
-        ICommandHandler<MoveSwimlaneCommand> handler)
+        ICommandHandler<MoveSwimlaneCommand, string> handler)
     {
         logger.LogInformation("Swimlane move requested by connection {ConnectionId}.", Context.ConnectionId);
         var command = new MoveSwimlaneCommand(request.Id, request.BeforeId);
-        Result result = await handler.Handle(command);
-        return result.Match(Results.NoContent, CustomResults.Problem);
+        Result<string> result = await handler.Handle(command);
+        return result.Match(CustomResults.OkWithRank, CustomResults.Problem);
     }
 
     public sealed record DeleteSwimlaneRequest(int Id);

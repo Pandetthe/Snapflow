@@ -1,35 +1,37 @@
 import type { RequestEvent, ServerLoadEvent } from "@sveltejs/kit";
 
 export interface PropertyValidationError {
-	propertyName: string | null;
-	code: string;
-	description: string;
+  propertyName: string | null;
+  code: string;
+  description: string;
 }
 
 export interface ProblemDetails {
-	type: string | null;
-	title: string | null;
-	status: number | null;
-	detail: string | null;
-	instance: string | null;
-	traceId: string;
+  type: string | null;
+  title: string | null;
+  status: number | null;
+  detail: string | null;
+  instance: string | null;
+  traceId: string;
 }
 
 export interface ValidationProblemDetails extends ProblemDetails {
-	errors: PropertyValidationError[];
+  errors: PropertyValidationError[];
 }
 
 export type ErrorResponse =
-	| ({ ok: false } & ProblemDetails)
-	| ({ ok: false } & ValidationProblemDetails)
-	| ({ ok: false });
+  | ({ ok: false } & ProblemDetails)
+  | ({ ok: false } & ValidationProblemDetails)
+  | ({ ok: false });
 
 export type SuccessResponse<T> = [T] extends [void]
-	? { ok: true }
-	: { ok: true } & T;
+  ? { ok: true }
+  : { ok: true } & T;
 
 export type Response<T = void> = SuccessResponse<T> | ErrorResponse;
 
 export interface ApiClient {
-	fetch(path: string | undefined, init: RequestInit, event?: RequestEvent | ServerLoadEvent): Promise<globalThis.Response>;
+  fetch(path: string | undefined, init: RequestInit, event?: ApiEvent): Promise<globalThis.Response>;
 }
+
+export type ApiEvent = RequestEvent | ServerLoadEvent;

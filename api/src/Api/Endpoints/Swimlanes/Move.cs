@@ -16,7 +16,7 @@ internal sealed class Move : IEndpoint
         app.MapPost("boards/{boardId:int}/swimlanes/{swimlaneId:int}/move", async (
             MoveSwimlaneRequest request,
             int boardId, int swimlaneId,
-            ICommandHandler<MoveSwimlaneCommand> handler,
+            ICommandHandler<MoveSwimlaneCommand, string> handler,
             CancellationToken cancellationToken) =>
         {
             var command = new MoveSwimlaneCommand(swimlaneId, request.BeforeId);

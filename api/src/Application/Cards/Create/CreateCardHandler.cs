@@ -48,8 +48,8 @@ internal sealed class CreateCardHandler(
             CreatedAt = timeProvider.GetUtcNow(),
         };
 
-        card.Raise(new CardCreatedDomainEvent(card.BoardId, card.SwimlaneId, card.ListId,
-            card.Title, card.Description));
+        card.Raise(new CardCreatedDomainEvent(card.BoardId, card.ListId,
+            card.Title, card.Description, card.Rank));
 
         await dbContext.Cards.AddAsync(card, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

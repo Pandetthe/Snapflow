@@ -7,11 +7,7 @@ public sealed record GetBoardByIdResponse(
         int Id,
         string Title,
         string Description,
-        IReadOnlyList<SwimlaneDto> Swimlanes,
-        DateTimeOffset CreatedAt,
-        UserDto CreatedBy,
-        DateTimeOffset? UpdatedAt,
-        UserDto? UpdatedBy)
+        IReadOnlyList<SwimlaneDto> Swimlanes)
 {
     public sealed record UserDto(int Id, string UserName)
     {
@@ -26,22 +22,14 @@ public sealed record GetBoardByIdResponse(
         string Title,
         string Rank,
         int? Height,
-        IReadOnlyList<ListDto> Lists,
-        DateTimeOffset CreatedAt,
-        UserDto CreatedBy,
-        DateTimeOffset? UpdatedAt,
-        UserDto? UpdatedBy);
+        IReadOnlyList<ListDto> Lists);
 
     public sealed record ListDto(
         int Id,
         string Title,
         string Rank,
         int? Width,
-        IReadOnlyList<CardDto> Cards,
-        DateTimeOffset CreatedAt,
-        UserDto CreatedBy,
-        DateTimeOffset? UpdatedAt,
-        UserDto? UpdatedBy);
+        IReadOnlyList<CardDto> Cards);
 
     public sealed record CardDto(
         int Id,

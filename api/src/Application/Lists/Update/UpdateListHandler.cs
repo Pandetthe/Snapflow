@@ -30,7 +30,7 @@ internal sealed class UpdateListHandler(
         list.UpdatedById = userContext.UserId;
         list.UpdatedAt = timeProvider.GetUtcNow();
 
-        list.Raise(new ListUpdatedDomainEvent(list.Id, list.BoardId, list.SwimlaneId, list.Title));
+        list.Raise(new ListUpdatedDomainEvent(list.Id, list.BoardId, list.Title, list.Width));
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

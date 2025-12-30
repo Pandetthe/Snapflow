@@ -8,5 +8,5 @@ public sealed class SwimlaneDeletedEventHandler(
     IHubContext<BoardHub, IBoardHubClient> hubContext) : IDomainEventHandler<SwimlaneDeletedDomainEvent>
 {
     public Task Handle(SwimlaneDeletedDomainEvent domainEvent, CancellationToken cancellationToken)
-        => hubContext.Clients.Group(domainEvent.BoardId).SwimlaneDeleted(domainEvent.Id, cancellationToken);
+        => hubContext.Clients.Group(domainEvent.BoardId).SwimlaneDeleted(new(domainEvent.Id), cancellationToken);
 }

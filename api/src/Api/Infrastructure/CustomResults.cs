@@ -21,4 +21,9 @@ public static class CustomResults
     {
         return Results.Ok(new IdResponse<T>(id));
     }
+
+    public static IResult OkWithRank(string rank)
+    {
+        return Results.Ok(new RankResponse(rank));
+    }
 }

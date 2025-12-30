@@ -47,7 +47,7 @@ internal sealed class CreateListHandler(
             CreatedAt = timeProvider.GetUtcNow(),
         };
 
-        list.Raise(new ListCreatedDomainEvent(list.BoardId, list.SwimlaneId, list.Title));
+        list.Raise(new ListCreatedDomainEvent(list.BoardId, list.SwimlaneId, list.Title, list.Width, list.Rank));
 
         await dbContext.Lists.AddAsync(list, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

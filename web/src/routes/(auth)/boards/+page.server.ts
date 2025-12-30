@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { BoardsService } from '$lib/services/boards';
+import { BoardsService } from '$lib/services/boards.api';
 import { apiClient } from '$lib/services/api.server.ts';
 import { error } from '@sveltejs/kit';
 
@@ -8,13 +8,10 @@ export const load: PageServerLoad = async (event) => {
   const refreshTime = new Date().toISOString();
   const result = await new BoardsService(apiClient).getBoards(event);
   if (!result.ok) {
-    if ('title' in result && result.title) {
-      throw error(500, result.title as string);
-    }
-    throw error(500, 'Failed to load board');
+    throw error(result.problem?.status ?? 500, result.problem?.title ?? 'Failed to load boards');
   }
   return {
-    boards: result.boards,
+    boards: result.value,
     refreshTime
   };
 };

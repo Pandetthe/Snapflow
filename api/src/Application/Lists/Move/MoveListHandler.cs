@@ -42,6 +42,7 @@ internal sealed class MoveListHandler(
         list.Rank = rankResult.Value;
         list.UpdatedById = userContext.UserId;
         list.UpdatedAt = timeProvider.GetUtcNow();
+        list.Raise(new ListMovedDomainEvent(list.Id, list.BoardId, list.SwimlaneId, list.Rank));
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

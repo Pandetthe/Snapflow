@@ -2,4 +2,4 @@
 
 namespace Snapflow.Domain.Cards;
 
-public sealed record CardMovedDomainEvent(int CardId, int BoardId, int SwimlaneId, int ListId, string Rank) : IDomainEvent;
+public sealed record CardMovedDomainEvent(int Id, int BoardId, int ListId, string Rank) : IDomainEvent;

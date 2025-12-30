@@ -42,7 +42,7 @@ internal sealed class CreateSwimlaneHandler(
             CreatedAt = timeProvider.GetUtcNow(),
         };
 
-        swimlane.Raise(new SwimlaneCreatedDomainEvent(swimlane.BoardId, swimlane.Title));
+        swimlane.Raise(new SwimlaneCreatedDomainEvent(swimlane.BoardId, swimlane.Title, swimlane.Height, swimlane.Rank));
 
         await dbContext.Swimlanes.AddAsync(swimlane, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

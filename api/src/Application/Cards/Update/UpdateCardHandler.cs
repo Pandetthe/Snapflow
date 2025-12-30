@@ -30,7 +30,7 @@ internal sealed class CreateCardCommandHandler(
         card.DeletedById = userContext.UserId;
         card.DeletedByCascade = false;
 
-        card.Raise(new CardDeletedDomainEvent(card.Id, card.BoardId));
+        card.Raise(new CardUpdatedDomainEvent(card.Id, card.BoardId, card.Title, card.Description));
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

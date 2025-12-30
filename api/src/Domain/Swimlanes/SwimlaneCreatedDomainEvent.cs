@@ -2,7 +2,7 @@
 
 namespace Snapflow.Domain.Swimlanes;
 
-public sealed record class SwimlaneCreatedDomainEvent(int BoardId, string Title) : IDomainEvent<Swimlane>
+public sealed record class SwimlaneCreatedDomainEvent(int BoardId, string Title, int? Height, string Rank) : IDomainEvent<Swimlane>
 {
     public int Id { get; private set; }
 
