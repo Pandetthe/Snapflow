@@ -102,12 +102,7 @@
 					class="flex h-full gap-3"
 				>
 					{#each swimlane.lists as list (list.id)}
-						<div
-							class="h-full min-h-0"
-							animate:flip={{ duration: 150 }}
-							in:slide={{ duration: 150 }}
-							out:slide={{ duration: 150 }}
-						>
+						<div class="h-full min-h-0" animate:flip={{ duration: 150 }}>
 							<List {list} />
 						</div>
 					{/each}

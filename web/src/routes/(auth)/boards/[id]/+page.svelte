@@ -327,11 +327,7 @@
 			class="flex flex-col gap-4"
 		>
 			{#each board.swimlanes as swimlane (swimlane.id)}
-				<div
-					animate:flip={{ duration: 150 }}
-					in:slide={{ duration: 150 }}
-					out:slide={{ duration: 150 }}
-				>
+				<div animate:flip={{ duration: 150 }}>
 					<Swimlane {swimlane} />
 				</div>
 			{/each}

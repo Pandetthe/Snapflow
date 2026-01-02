@@ -97,11 +97,7 @@
 					class="flex flex-1 flex-col gap-2"
 				>
 					{#each list.cards as card (card.id)}
-						<div
-							animate:flip={{ duration: 150 }}
-							in:slide={{ duration: 150 }}
-							out:slide={{ duration: 150 }}
-						>
+						<div animate:flip={{ duration: 150 }}>
 							<Card {card} />
 						</div>
 					{/each}
