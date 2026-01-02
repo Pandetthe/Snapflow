@@ -28,10 +28,8 @@ public sealed class ServiceLinkBuilder(
         }
         else
         {
-            uriBuilder = new UriBuilder(options.Value.WebUrl)
-            {
-                Path = $"/reset-password",
-            };
+            uriBuilder = new UriBuilder(options.Value.WebUrl);
+            uriBuilder.Path = $"{uriBuilder.Path.TrimEnd('/')}/reset-password";
         }
         var encodedEmail = Uri.EscapeDataString(email);
         var encodedResetCode = Uri.EscapeDataString(resetCode);
@@ -60,10 +58,8 @@ public sealed class ServiceLinkBuilder(
         }
         else
         {
-            uriBuilder = new UriBuilder(options.Value.ApiUrl)
-            {
-                Path = $"/auth/confirm-email",
-            };
+            uriBuilder = new UriBuilder(options.Value.ApiUrl);
+            uriBuilder.Path = $"{uriBuilder.Path.TrimEnd('/')}/auth/confirm-email";
         }
         var encodedEmail = Uri.EscapeDataString(email);
         var encodedCode = Uri.EscapeDataString(code);
@@ -92,10 +88,8 @@ public sealed class ServiceLinkBuilder(
         }
         else
         {
-            uriBuilder = new UriBuilder(options.Value.WebUrl)
-            {
-                Path = "/email-confirmed"
-            };
+            uriBuilder = new UriBuilder(options.Value.WebUrl);
+            uriBuilder.Path = $"{uriBuilder.Path.TrimEnd('/')}/email-confirmed";
         }
         return uriBuilder.Uri;
     }
