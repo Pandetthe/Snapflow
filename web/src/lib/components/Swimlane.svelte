@@ -39,7 +39,10 @@
 <div
 	data-id={swimlane.id}
 	role="group"
-	class="flex min-h-96 flex-col rounded-lg bg-gray-100 p-4 transition-[background-color,border-color,box-shadow,opacity] duration-200 dark:bg-gray-800"
+	style:height={swimlane.height ? `${swimlane.height}px` : undefined}
+	class="flex flex-col rounded-lg bg-gray-100 p-4 transition-[background-color,border-color,box-shadow,opacity] duration-200 dark:bg-gray-800 {swimlane.height
+		? ''
+		: 'flex-1'}"
 >
 	<div class="group mb-4 flex items-start gap-2">
 		<div class="flex flex-1 items-start gap-2">
@@ -83,9 +86,9 @@
 		</div>
 	</div>
 
-	<ScrollArea.Root class="flex-1" type="auto">
-		<ScrollArea.Viewport class="w-full rounded-[inherit]">
-			<div class="flex gap-3 pb-4">
+	<ScrollArea.Root class="swimlane-scroll-area relative mb-2 flex-1 overflow-hidden" type="auto">
+		<ScrollArea.Viewport class="h-full w-full rounded-[inherit]">
+			<div class="flex h-full gap-3 pb-4">
 				<section
 					use:dragHandleZone={{
 						items: swimlane.lists,
@@ -96,10 +99,11 @@
 					}}
 					onconsider={handleListConsider}
 					onfinalize={handleListFinalize}
-					class="flex h-full items-start gap-3"
+					class="flex h-full gap-3"
 				>
 					{#each swimlane.lists as list (list.id)}
 						<div
+							class="h-full min-h-0"
 							animate:flip={{ duration: 150 }}
 							in:slide={{ duration: 150 }}
 							out:slide={{ duration: 150 }}
@@ -139,6 +143,10 @@
 </div>
 
 <style>
+	:global(.swimlane-scroll-area [data-scroll-area-viewport] > [data-scroll-area-content]) {
+		height: 100%;
+	}
+
 	:global(.list-ghost) {
 		opacity: 0.5;
 		background: var(--color-gray-200) !important;

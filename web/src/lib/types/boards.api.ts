@@ -39,6 +39,7 @@ export namespace GetBoardByIdResponse {
   export interface ListDto {
     id: number;
     title: string;
+    width: number | null;
     rank: string;
     cards: CardDto[];
   }

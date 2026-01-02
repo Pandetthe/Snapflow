@@ -37,7 +37,9 @@
 </script>
 
 <div
-	class="flex w-72 shrink-0 flex-col overflow-hidden rounded-lg bg-white shadow-sm transition-[background-color,border-color,box-shadow,opacity] duration-200 dark:bg-gray-700"
+	role="group"
+	style:width={list.width ? `${list.width}px` : 'auto'}
+	class="flex h-full max-h-full min-w-[200px] shrink-0 flex-col overflow-hidden rounded-lg bg-white shadow-sm transition-[background-color,border-color,box-shadow,opacity] duration-200 dark:bg-gray-700"
 >
 	<!-- List Header -->
 	<div class="group mb-3 flex items-start justify-between gap-2 px-3 pt-3">
@@ -79,9 +81,9 @@
 		</button>
 	</div>
 
-	<ScrollArea.Root class="min-h-0 flex-1" type="auto">
-		<ScrollArea.Viewport class="h-full w-full">
-			<div class="flex min-h-full flex-col px-3 pb-3">
+	<ScrollArea.Root class="list-scroll-area relative flex-1 overflow-hidden" type="auto">
+		<ScrollArea.Viewport class="h-full w-full rounded-[inherit]">
+			<div class="flex flex-col px-3 pb-3">
 				<section
 					use:dragHandleZone={{
 						items: list.cards,
@@ -124,7 +126,7 @@
 		</ScrollArea.Viewport>
 		<ScrollArea.Scrollbar
 			orientation="vertical"
-			class="flex w-2 touch-none bg-transparent p-px transition-colors duration-200 select-none hover:bg-black/5 dark:hover:bg-white/5"
+			class="z-20 flex w-2 touch-none bg-transparent p-px transition-colors duration-200 select-none hover:bg-black/5 dark:hover:bg-white/5"
 		>
 			<ScrollArea.Thumb
 				class="relative flex-1 rounded-full bg-gray-300 transition-colors duration-200 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500"
@@ -135,6 +137,9 @@
 </div>
 
 <style>
+	:global(.list-scroll-area [data-scroll-area-viewport] > [data-scroll-area-content]) {
+		height: 100%;
+	}
 	:global(.card-ghost) {
 		opacity: 0.5;
 		background: var(--color-blue-50) !important;
