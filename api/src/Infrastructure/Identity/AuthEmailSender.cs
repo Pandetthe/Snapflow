@@ -13,8 +13,6 @@ namespace Snapflow.Infrastructure.Identity;
 
 internal sealed class AuthEmailSender : IAuthEmailSender
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly LinkGenerator _linkGenerator;
     private readonly SmtpOptions _smtpOptions;
     private readonly EmailTemplateRenderer _templateRenderer;
     private readonly ServiceLinkBuilder _serviceLinkBuilder;
@@ -26,8 +24,6 @@ internal sealed class AuthEmailSender : IAuthEmailSender
         EmailTemplateRenderer templateRenderer,
         ServiceLinkBuilder serviceLinkBuilder)
     {
-        _httpContextAccessor = httpContextAccessor;
-        _linkGenerator = linkGenerator;
         _smtpOptions = smtpOptions.Value;
         _templateRenderer = templateRenderer;
         _serviceLinkBuilder = serviceLinkBuilder;
@@ -59,22 +55,10 @@ internal sealed class AuthEmailSender : IAuthEmailSender
 
     public async Task SendConfirmationLinkAsync(IUser user, string code)
     {
-        if (_httpContextAccessor.HttpContext is not { } httpContext)
-            throw new InvalidOperationException("No http context available.");
-
-        var routeValues = new RouteValueDictionary
-        {
-            ["email"] = user.Email,
-            ["code"] = code,
-        };
-
-        var confirmEmailUrl = _linkGenerator.GetUriByName(httpContext, "ConfirmEmail-auth/confirm-email", routeValues)
-            ?? throw new NotSupportedException($"Could not find endpoint named 'ConfirmEmail-auth/confirm-email'.");
-
         var model = new EmailConfirmationModel
         {
             UserName = user.UserName,
-            ConfirmationLink = confirmEmailUrl
+            ConfirmationLink = _serviceLinkBuilder.BuildEmailConfirmationLink(user.Email, code).ToString()
         };
         var result = await _templateRenderer.RenderAsync(EmailConfirmationModel.TemplateName, model);
         await SendMailAsync(user.Email, "Confirm your email", result.Plain, result.Html).ConfigureAwait(false);

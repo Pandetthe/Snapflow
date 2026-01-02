@@ -2,5 +2,7 @@
 
 public sealed class ServicesOptions
 {
-    public string WebAppUrl { get; init; } = "";
+    public string ApiUrl { get; init; } = "";
+
+    public string WebUrl { get; init; } = "";
 }

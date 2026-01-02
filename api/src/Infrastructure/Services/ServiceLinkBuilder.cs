@@ -10,7 +10,7 @@ public sealed class ServiceLinkBuilder(
     public Uri BuildPasswordResetLink(string email, string resetCode)
     {
         UriBuilder uriBuilder;
-        if (string.IsNullOrEmpty(options.Value.WebAppUrl))
+        if (string.IsNullOrEmpty(options.Value.WebUrl))
         {
             var httpContext = httpContextAccessor.HttpContext
                 ?? throw new InvalidOperationException("No active HTTP context.");
@@ -28,7 +28,7 @@ public sealed class ServiceLinkBuilder(
         }
         else
         {
-            uriBuilder = new UriBuilder(options.Value.WebAppUrl)
+            uriBuilder = new UriBuilder(options.Value.WebUrl)
             {
                 Path = $"/reset-password",
             };
@@ -39,10 +39,42 @@ public sealed class ServiceLinkBuilder(
         return uriBuilder.Uri;
     }
 
+    public Uri BuildEmailConfirmationLink(string email, string code)
+    {
+        UriBuilder uriBuilder;
+        if (string.IsNullOrEmpty(options.Value.ApiUrl))
+        {
+            var httpContext = httpContextAccessor.HttpContext
+                ?? throw new InvalidOperationException("No active HTTP context.");
+            string scheme = httpContext.Request.Scheme;
+            var requestHost = httpContext.Request.Host;
+            string host = requestHost.Host;
+            int? port = requestHost.Port;
+            uriBuilder = new UriBuilder
+            {
+                Scheme = scheme,
+                Host = host,
+                Port = port ?? -1,
+                Path = $"/auth/confirm-email",
+            };
+        }
+        else
+        {
+            uriBuilder = new UriBuilder(options.Value.ApiUrl)
+            {
+                Path = $"/auth/confirm-email",
+            };
+        }
+        var encodedEmail = Uri.EscapeDataString(email);
+        var encodedCode = Uri.EscapeDataString(code);
+        uriBuilder.Query = $"email={encodedEmail}&code={encodedCode}";
+        return uriBuilder.Uri;
+    }
+
     public Uri BuildEmailConfirmationRedirect()
     {
         UriBuilder uriBuilder;
-        if (string.IsNullOrEmpty(options.Value.WebAppUrl))
+        if (string.IsNullOrEmpty(options.Value.WebUrl))
         {
             var httpContext = httpContextAccessor.HttpContext
                 ?? throw new InvalidOperationException("No active HTTP context.");
@@ -60,7 +92,7 @@ public sealed class ServiceLinkBuilder(
         }
         else
         {
-            uriBuilder = new UriBuilder(options.Value.WebAppUrl)
+            uriBuilder = new UriBuilder(options.Value.WebUrl)
             {
                 Path = "/email-confirmed"
             };

@@ -12,7 +12,7 @@ internal sealed class EmailConfirmed : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         var options = app.ServiceProvider.GetRequiredService<IOptions<ServicesOptions>>();
-        if (!string.IsNullOrEmpty(options.Value.WebAppUrl))
+        if (!string.IsNullOrEmpty(options.Value.WebUrl))
             return;
 
         app.MapGet("auth/email-confirmed", async (
