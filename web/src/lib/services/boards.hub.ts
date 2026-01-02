@@ -1,5 +1,5 @@
 import { HubConnectionBuilder, type HubConnection } from '@microsoft/signalr';
-import { PUBLIC_API_BASE_URL } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 import type { Response, ProblemDetails, ValidationProblemDetails, IdResponse, RankResponse } from '$lib/types/app';
 import type {
   BoardsHubEvents,
@@ -21,7 +21,7 @@ export class BoardsHub {
   private connection: HubConnection;
 
   constructor(boardId: number) {
-    const url = `${PUBLIC_API_BASE_URL.replace(/\/+$/, '')}/boards/${boardId}/hub`;
+    const url = `${(env.PUBLIC_API_BASE_URL ?? '').replace(/\/+$/, '')}/boards/${boardId}/hub`;
     this.connection = new HubConnectionBuilder()
       .withUrl(url, { withCredentials: true })
       .withAutomaticReconnect()
