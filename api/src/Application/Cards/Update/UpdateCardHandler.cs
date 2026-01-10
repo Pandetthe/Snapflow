@@ -25,10 +25,10 @@ internal sealed class CreateCardCommandHandler(
         if (card == null)
             return Result.Failure<int>(CardErrors.NotFound(command.Id));
 
-        card.IsDeleted = true;
-            card.DeletedAt = timeProvider.GetUtcNow();
-        card.DeletedById = userContext.UserId;
-        card.DeletedByCascade = false;
+        card.Title = command.Title;
+        card.Description = command.Description;
+        card.UpdatedAt = timeProvider.GetUtcNow();
+        card.UpdatedById = userContext.UserId;
 
         card.Raise(new CardUpdatedDomainEvent(card.Id, card.BoardId, card.Title, card.Description));
 
