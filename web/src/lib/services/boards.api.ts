@@ -1,6 +1,6 @@
 import type { ApiClient, ApiEvent } from '$lib/types/api';
 import type { Response, ProblemDetails, ValidationProblemDetails } from '$lib/types/app';
-import type { GetBoardByIdResponse, GetBoardsResponse } from '$lib/types/boards.api';
+import type { GetBoardByIdResponse, GetBoardsResponse, IdResponse } from '$lib/types/boards.api';
 
 export class BoardsService {
   constructor(private apiClient: ApiClient) {
@@ -13,7 +13,12 @@ export class BoardsService {
       const ok = response.ok;
 
       if (ok) {
-        const value = (await response.json()) as T;
+        if (response.status === 204) {
+          return { ok: true, value: undefined as any };
+        }
+
+        const text = await response.text();
+        const value = text ? (JSON.parse(text) as T) : (undefined as any);
         return { ok: true, value };
       }
 
@@ -58,5 +63,40 @@ export class BoardsService {
 
   getBoard(id: number, event?: ApiEvent): Promise<Response<GetBoardByIdResponse.BoardDto>> {
     return this.handleResponse(this.apiClient.fetch(`/boards/${id}`, { method: 'GET' }, event));
+  }
+
+  createBoard(request: { title: string; description: string }): Promise<Response<IdResponse>> {
+    return this.handleResponse(
+      this.apiClient.fetch('boards', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request)
+      })
+    );
+  }
+
+  updateBoard(request: { id: number; title: string; description: string }): Promise<Response> {
+    return this.handleResponse(
+      this.apiClient.fetch(`boards/${request.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: request.title,
+          description: request.description
+        })
+      })
+    );
+  }
+
+  deleteBoard(id: number): Promise<Response> {
+    return this.handleResponse(
+      this.apiClient.fetch(`boards/${id}`, {
+        method: 'DELETE'
+      })
+    );
   }
 }

@@ -1,8 +1,14 @@
 <script lang="ts">
 	import type { GetBoardsResponse } from '$lib/types/boards.api';
 	import { Button, ScrollArea } from 'bits-ui';
+	import { getContext } from 'svelte';
 
 	let { board }: { board: GetBoardsResponse.BoardDto } = $props();
+
+	interface BoardsUI {
+		openBoardModal: (board?: GetBoardsResponse.BoardDto) => void;
+	}
+	const ui = getContext<BoardsUI>('boards-ui');
 
 	function formatDate(value: string) {
 		return new Date(value).toLocaleDateString();
@@ -19,9 +25,29 @@
 		>
 			{board.title}
 		</h2>
-		<span class="shrink-0 text-xs text-gray-500 dark:text-gray-400">
-			#{board.id}
-		</span>
+		<div class="flex items-center gap-2">
+			<button
+				onclick={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					ui.openBoardModal(board);
+				}}
+				class="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+				title="Edit board"
+			>
+				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+					/>
+				</svg>
+			</button>
+			<span class="shrink-0 text-xs text-gray-500 dark:text-gray-400">
+				#{board.id}
+			</span>
+		</div>
 	</div>
 	<div class="min-h-0 flex-1">
 		<ScrollArea.Root type="auto" class="h-full max-h-20 sm:max-h-24">

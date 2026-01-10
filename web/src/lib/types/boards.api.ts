@@ -55,3 +55,12 @@ export namespace GetBoardByIdResponse {
     updatedBy: UserDto | null;
   }
 }
+
+export interface CreateBoardRequest {
+  title: string;
+  description: string;
+}
+
+export interface IdResponse {
+  id: number;
+}
