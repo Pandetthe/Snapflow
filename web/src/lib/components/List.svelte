@@ -10,10 +10,16 @@
 	import { errorStore } from '$lib/stores/error';
 	import type { GetBoardByIdResponse } from '$lib/types/boards.api';
 
-	let { list }: { list: GetBoardByIdResponse.ListDto } = $props();
+	let { list, swimlaneId }: { list: GetBoardByIdResponse.ListDto; swimlaneId: number } = $props();
 
 	const getHub = getContext<() => BoardsHub | null>('hub');
 	const hub = $derived(getHub());
+
+	interface BoardUI {
+		openListModal: (swimlaneId: number, list?: GetBoardByIdResponse.ListDto) => void;
+		openCardModal: (listId: number, card?: GetBoardByIdResponse.CardDto) => void;
+	}
+	const ui = getContext<BoardUI>('ui');
 
 	function handleCardConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.CardDto>>) {
 		list.cards = e.detail.items;
@@ -65,7 +71,7 @@
 		</div>
 
 		<button
-			onclick={() => {}}
+			onclick={() => ui.openListModal(swimlaneId, list)}
 			aria-label="Edit list"
 			class="show-on-hover rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-gray-300"
 			title="Edit list"
@@ -98,12 +104,12 @@
 				>
 					{#each list.cards as card (card.id)}
 						<div animate:flip={{ duration: 150 }}>
-							<Card {card} />
+							<Card {card} listId={list.id} />
 						</div>
 					{/each}
 					<div class="mt-1">
 						<button
-							onclick={() => {}}
+							onclick={() => ui.openCardModal(list.id)}
 							class="add-card-button order-last flex w-full items-center justify-center gap-2 rounded-lg bg-transparent px-4 py-6 text-sm text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600"
 						>
 							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

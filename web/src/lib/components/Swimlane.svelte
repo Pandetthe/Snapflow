@@ -15,6 +15,12 @@
 	const getHub = getContext<() => BoardsHub | null>('hub');
 	const hub = $derived(getHub());
 
+	interface BoardUI {
+		openSwimlaneModal: (swimlane?: GetBoardByIdResponse.SwimlaneDto) => void;
+		openListModal: (swimlaneId: number, list?: GetBoardByIdResponse.ListDto) => void;
+	}
+	const ui = getContext<BoardUI>('ui');
+
 	function handleListConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
 		swimlane.lists = e.detail.items;
 	}
@@ -65,7 +71,7 @@
 						{swimlane.title}
 					</h2>
 					<button
-						onclick={() => {}}
+						onclick={() => ui.openSwimlaneModal(swimlane)}
 						class="show-on-hover rounded-md p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
 						title="Edit swimlane"
 					>
@@ -103,12 +109,12 @@
 				>
 					{#each swimlane.lists as list (list.id)}
 						<div class="h-full min-h-0" animate:flip={{ duration: 150 }}>
-							<List {list} />
+							<List {list} swimlaneId={swimlane.id} />
 						</div>
 					{/each}
 					<div class="mt-0">
 						<button
-							onclick={() => {}}
+							onclick={() => ui.openListModal(swimlane.id)}
 							class="add-list-button order-last flex h-fit w-72 shrink items-center justify-center gap-2 self-start rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
 						>
 							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

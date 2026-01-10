@@ -50,8 +50,19 @@ public sealed class AppDbContext(
             .Select(entry => entry.Entity)
             .SelectMany(entity =>
             {
-                foreach (var domainEvent in entity.DomainEvents.OfType<IDomainEvent<IEntity>>())
-                    domainEvent.SetEntity(entity);
+                foreach (var domainEvent in entity.DomainEvents)
+                {
+                    var domainEventType = domainEvent.GetType();
+                    var interfaces = domainEventType.GetInterfaces();
+                    var idomainEventGeneric = interfaces
+                        .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IDomainEvent<>));
+
+                    if (idomainEventGeneric != null)
+                    {
+                        var setEntityMethod = domainEventType.GetMethod("SetEntity", new[] { idomainEventGeneric.GetGenericArguments()[0] });
+                        setEntityMethod?.Invoke(domainEvent, new object[] { entity });
+                    }
+                }
 
                 var events = entity.DomainEvents;
                 entity.ClearDomainEvents();

@@ -1,13 +1,10 @@
 <script lang="ts">
 	import { flip } from 'svelte/animate';
-	import { slide } from 'svelte/transition';
-	import {
-		dndzone,
-		dragHandleZone,
-		type DndEvent,
-		SHADOW_ITEM_MARKER_PROPERTY_NAME
-	} from 'svelte-dnd-action';
+	import { dragHandleZone, type DndEvent } from 'svelte-dnd-action';
 	import Swimlane from '$lib/components/Swimlane.svelte';
+	import SwimlaneModal from '$lib/components/SwimlaneModal.svelte';
+	import ListModal from '$lib/components/ListModal.svelte';
+	import CardModal from '$lib/components/CardModal.svelte';
 	import { onDestroy, onMount, setContext } from 'svelte';
 	import { BoardsHub } from '$lib/services/boards.hub';
 	import { errorStore } from '$lib/stores/error';
@@ -17,6 +14,107 @@
 	let { data } = $props();
 	let board = $state((() => data.board)());
 	let hub = $state<BoardsHub | null>(null);
+
+	// Modal States
+	let swimlaneModalOpen = $state(false);
+	let editingSwimlane: GetBoardByIdResponse.SwimlaneDto | undefined = $state(undefined);
+
+	let listModalOpen = $state(false);
+	let targetSwimlaneId: number | null = $state(null);
+	let editingList: GetBoardByIdResponse.ListDto | undefined = $state(undefined);
+
+	let cardModalOpen = $state(false);
+	let targetListId: number | null = $state(null);
+	let editingCard: GetBoardByIdResponse.CardDto | undefined = $state(undefined);
+
+	// Context for child components
+	setContext('ui', {
+		openSwimlaneModal: (swimlane?: GetBoardByIdResponse.SwimlaneDto) => {
+			editingSwimlane = swimlane;
+			swimlaneModalOpen = true;
+		},
+		openListModal: (swimlaneId: number, list?: GetBoardByIdResponse.ListDto) => {
+			targetSwimlaneId = swimlaneId;
+			editingList = list;
+			listModalOpen = true;
+		},
+		openCardModal: (listId: number, card?: GetBoardByIdResponse.CardDto) => {
+			targetListId = listId;
+			editingCard = card;
+			cardModalOpen = true;
+		}
+	});
+
+	async function handleSwimlaneConfirm(title: string, height: number | null) {
+		if (editingSwimlane) {
+			const res = await hub?.updateSwimlane({
+				id: editingSwimlane.id,
+				title,
+				height: height
+			});
+			if (!res?.ok) errorStore.addError('Web.UpdateSwimlaneFailed', 'Failed to update swimlane');
+		} else {
+			const res = await hub?.createSwimlane({
+				title,
+				height: height,
+				beforeId: null
+			});
+			if (!res?.ok) errorStore.addError('Web.CreateSwimlaneFailed', 'Failed to create swimlane');
+		}
+	}
+
+	async function handleSwimlaneDelete(id: number) {
+		const res = await hub?.deleteSwimlane({ id });
+		if (!res?.ok) errorStore.addError('Web.DeleteSwimlaneFailed', 'Failed to delete swimlane');
+	}
+
+	async function handleListConfirm(title: string, width: number | null) {
+		if (editingList) {
+			const res = await hub?.updateList({
+				id: editingList.id,
+				title,
+				width: width
+			});
+			if (!res?.ok) errorStore.addError('Web.UpdateListFailed', 'Failed to update list');
+		} else if (targetSwimlaneId) {
+			const res = await hub?.createList({
+				swimlaneId: targetSwimlaneId,
+				title,
+				width: width,
+				beforeId: null
+			});
+			if (!res?.ok) errorStore.addError('Web.CreateListFailed', 'Failed to create list');
+		}
+	}
+
+	async function handleListDelete(id: number) {
+		const res = await hub?.deleteList({ id });
+		if (!res?.ok) errorStore.addError('Web.DeleteListFailed', 'Failed to delete list');
+	}
+
+	async function handleCardConfirm(title: string, description: string) {
+		if (editingCard) {
+			const res = await hub?.updateCard({
+				id: editingCard.id,
+				title,
+				description
+			});
+			if (!res?.ok) errorStore.addError('Web.UpdateCardFailed', 'Failed to update card');
+		} else if (targetListId) {
+			const res = await hub?.createCard({
+				listId: targetListId,
+				title,
+				description,
+				beforeId: null
+			});
+			if (!res?.ok) errorStore.addError('Web.CreateCardFailed', 'Failed to create card');
+		}
+	}
+
+	async function handleCardDelete(id: number) {
+		const res = await hub?.deleteCard({ id });
+		if (!res?.ok) errorStore.addError('Web.DeleteCardFailed', 'Failed to delete card');
+	}
 
 	function sortAll() {
 		board.swimlanes.sort(
@@ -131,7 +229,7 @@
 					const index = s.lists.findIndex((l) => l.id === payload.id);
 					if (index !== -1) {
 						[movedList] = s.lists.splice(index, 1);
-						s.lists = s.lists; // reactivity
+						s.lists = s.lists;
 						break;
 					}
 				}
@@ -160,6 +258,7 @@
 					if (list) {
 						list.cards.push({
 							...payload,
+							// temp
 							createdAt: new Date().toISOString(),
 							createdBy: {
 								id: 1,
@@ -333,7 +432,10 @@
 			{/each}
 			<div class="mx-6">
 				<button
-					onclick={() => {}}
+					onclick={() => {
+						editingSwimlane = undefined;
+						swimlaneModalOpen = true;
+					}}
 					class="flex h-full w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50/50 p-4 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
 				>
 					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -350,6 +452,27 @@
 		</section>
 	</div>
 </div>
+
+<SwimlaneModal
+	bind:open={swimlaneModalOpen}
+	swimlane={editingSwimlane}
+	onConfirm={handleSwimlaneConfirm}
+	onDelete={handleSwimlaneDelete}
+/>
+
+<ListModal
+	bind:open={listModalOpen}
+	list={editingList}
+	onConfirm={handleListConfirm}
+	onDelete={handleListDelete}
+/>
+
+<CardModal
+	bind:open={cardModalOpen}
+	card={editingCard}
+	onConfirm={handleCardConfirm}
+	onDelete={handleCardDelete}
+/>
 
 <style>
 	:global(.swimlane-ghost) {

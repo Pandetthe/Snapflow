@@ -1,8 +1,15 @@
 <script lang="ts">
 	import type { GetBoardByIdResponse } from '$lib/types/boards.api';
 	import { dragHandle } from 'svelte-dnd-action';
+	import { getContext } from 'svelte';
 
-	let { card }: { card: GetBoardByIdResponse.CardDto } = $props();
+	let { card, listId }: { card: GetBoardByIdResponse.CardDto; listId: number } = $props();
+
+	interface BoardUI {
+		openListModal: (swimlaneId: number, list?: GetBoardByIdResponse.ListDto) => void;
+		openCardModal: (listId: number, card?: GetBoardByIdResponse.CardDto) => void;
+	}
+	const ui = getContext<BoardUI>('ui');
 </script>
 
 <div
@@ -32,7 +39,7 @@
 
 		<div class="show-on-hover">
 			<button
-				onclick={() => {}}
+				onclick={() => ui.openCardModal(listId, card)}
 				class="rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
 				title="Edit card"
 			>

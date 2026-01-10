@@ -3,7 +3,7 @@
 	import { authConfig } from '$lib/config/auth';
 	import { AuthService } from '$lib/services/auth';
 	import type { PropertyValidationError, ProblemDetails } from '$lib/types/api';
-  import { errorStore } from '$lib/stores/error';
+	import { errorStore } from '$lib/stores/error';
 	import { apiClient } from '$lib/services/api.client';
 
 	let email = $state('');
@@ -34,7 +34,7 @@
 			}, 1000);
 		} else if (showSuccessModal && redirectCountdown === 0) {
 			redirectDelayTimer = setTimeout(() => {
-				window.location.href = '/signin';
+				window.location.href = '/sign-in';
 			}, 1000);
 		}
 
@@ -54,7 +54,6 @@
 			sliderWidth = 100;
 		}
 	});
-
 
 	let passwordRequirements = $state({
 		length: false,
@@ -96,7 +95,7 @@
 		if (fieldErrors.password) {
 			passwordError = fieldErrors.password.join('. ');
 		}
-    errorStore.addErrors(generalErrors);
+		errorStore.addErrors(generalErrors);
 	}
 
 	function validatePasswordRequirements(pwd: string) {
@@ -232,34 +231,33 @@
 		}
 
 		isLoading = true;
-    try {
-      const response = await authService.signUp({ email, userName, password });
-      if (response.ok) {
-        showSuccessModal = true;
-      } else {
-        if ('errors' in response && response.errors && Array.isArray(response.errors)) {
-          handleValidationErrors(response.errors);
-        } else if ('title' in response) {
-          const problem = response as ProblemDetails;
-          errorStore.addError(problem.title, problem.detail);
-        } else {
-          errorStore.addError(null, 'Problem with connection to the server');
-        }
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        if (err.message === 'Failed to fetch') {
-          errorStore.addError("Web.ConnectionProblem", 'Problem with connection to the server');
-        }
-        else {
-          errorStore.addError(err.name, err.message);
-        }
-      } else {
-        errorStore.addError(null, 'Unknown error occurred during sign up');
-      }
-    } finally {
-      isLoading = false;
-    }
+		try {
+			const response = await authService.signUp({ email, userName, password });
+			if (response.ok) {
+				showSuccessModal = true;
+			} else {
+				if ('errors' in response && response.errors && Array.isArray(response.errors)) {
+					handleValidationErrors(response.errors);
+				} else if ('title' in response) {
+					const problem = response as ProblemDetails;
+					errorStore.addError(problem.title, problem.detail);
+				} else {
+					errorStore.addError(null, 'Problem with connection to the server');
+				}
+			}
+		} catch (err) {
+			if (err instanceof Error) {
+				if (err.message === 'Failed to fetch') {
+					errorStore.addError('Web.ConnectionProblem', 'Problem with connection to the server');
+				} else {
+					errorStore.addError(err.name, err.message);
+				}
+			} else {
+				errorStore.addError(null, 'Unknown error occurred during sign up');
+			}
+		} finally {
+			isLoading = false;
+		}
 	}
 </script>
 
