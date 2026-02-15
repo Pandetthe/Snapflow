@@ -6,31 +6,32 @@ on:
     paths:
       - "api/**"
       - "web/**"
-      - ".github/workflows/security.yml"
+      - ".github/workflows/**"
   pull_request:
     branches: [ "main" ]
     paths:
       - "api/**"
       - "web/**"
   schedule:
-    - cron: '30 12 * * 1'
-
-permissions:
-  contents: read
+    - cron: '33 4 * * 4' 
 
 jobs:
   analyze:
-    name: CodeQL Analysis (${{ matrix.language }})
+    name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     permissions:
       security-events: write
       actions: read
       contents: read
+      packages: read
 
     strategy:
       fail-fast: false
       matrix:
         include:
+          - language: actions
+            build-mode: none
+            src-path: "."
           - language: csharp
             build-mode: manual
             src-path: "api"
@@ -49,7 +50,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
@@ -57,10 +58,11 @@ jobs:
             paths:
               - ${{ matrix.src-path }}
 
-      - name: Build C# for Analysis
+      - name: Build C#
         if: matrix.language == 'csharp'
         run: dotnet build ./api/Snapflow.slnx
 
+      # Finalna analiza
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
