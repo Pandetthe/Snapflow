@@ -10,7 +10,6 @@ public sealed class AppUser : IdentityUser<int>, IUser
 {
     private readonly List<Func<object, IDomainEvent>> _domainEvents = [];
 
-    [NotMapped]
     public IReadOnlyCollection<Func<object, IDomainEvent>> DomainEvents => _domainEvents.AsReadOnly();
 
     public void Raise(Func<AppUser, IDomainEvent> blueprint) =>

@@ -12,11 +12,13 @@ using Snapflow.Domain.Users;
 using Snapflow.Infrastructure.Auth.Entities;
 using Snapflow.Infrastructure.Common;
 using Snapflow.Infrastructure.Identity.Entities;
+using System.Reflection.Emit;
 
 namespace Snapflow.Infrastructure.Persistence;
 
 public sealed class AppDbContext(
-        DbContextOptions<AppDbContext> options)
+        DbContextOptions<AppDbContext> options,
+        IDomainEventsDispatcher domainEventsDispatcher)
     : IdentityDbContext<AppUser, AppRole, int>(options), IAppDbContext
 {
     IQueryable<IUser> IAppDbContext.Users => Set<AppUser>().AsQueryable().Cast<IUser>();
@@ -32,34 +34,40 @@ public sealed class AppDbContext(
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         builder.HasDefaultSchema(Schemas.Default);
+
+        var entityTypes = builder.Model.GetEntityTypes()
+            .Where(t => typeof(IEntity).IsAssignableFrom(t.ClrType));
+
+        foreach (var entityType in entityTypes)
+        {
+            builder.Entity(entityType.ClrType).Ignore(nameof(IEntity.DomainEvents));
+        }
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         int result = await base.SaveChangesAsync(cancellationToken);
 
-        //await PublishDomainEventsAsync(cancellationToken);
+        await PublishDomainEventsAsync(cancellationToken);
 
         return result;
     }
 
-    //private async Task PublishDomainEventsAsync(CancellationToken cancellationToken = default)
-    //{
-    //    if (domainEventsDispatcher == null)
-    //        return;
-    //    var domainEvents = ChangeTracker
-    //        .Entries<IEntity>()
-    //        .Select(entry => entry.Entity)
-    //        .SelectMany(entity =>
-    //        {
-    //            List<IDomainEvent> events = [];
-    //            foreach (var domainEvent in entity.DomainEvents)
-    //                events.Add(domainEvent.Invoke(entity));
+    private async Task PublishDomainEventsAsync(CancellationToken cancellationToken = default)
+    {
+        var domainEvents = ChangeTracker
+            .Entries<IEntity>()
+            .Select(entry => entry.Entity)
+            .SelectMany(entity =>
+            {
+                List<IDomainEvent> events = [];
+                foreach (var domainEvent in entity.DomainEvents)
+                    events.Add(domainEvent.Invoke(entity));
 
-    //            entity.ClearDomainEvents();
-    //            return events;
-    //        })
-    //        .ToList();
-    //    await domainEventsDispatcher.DispatchAsync(domainEvents, cancellationToken);
-    //}
+                entity.ClearDomainEvents();
+                return events;
+            })
+            .ToList();
+        await domainEventsDispatcher.DispatchAsync(domainEvents, cancellationToken);
+    }
 }

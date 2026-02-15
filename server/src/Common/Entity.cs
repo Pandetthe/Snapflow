@@ -7,7 +7,6 @@ public abstract class Entity<TEntity> : IEntity
 {
     private readonly List<Func<object, IDomainEvent>> _domainEvents = [];
 
-    [NotMapped]
     public IReadOnlyCollection<Func<object, IDomainEvent>> DomainEvents => _domainEvents.AsReadOnly();
 
     public void Raise(Func<TEntity, IDomainEvent> blueprint) =>
@@ -22,7 +21,6 @@ public abstract class Entity<TKey, TEntity> : IEntity<TKey>
 {
     private readonly List<Func<object, IDomainEvent>> _domainEvents = [];
 
-    [NotMapped]
     public IReadOnlyCollection<Func<object, IDomainEvent>> DomainEvents => _domainEvents.AsReadOnly();
 
     public TKey Id { get; protected set; } = default!;
