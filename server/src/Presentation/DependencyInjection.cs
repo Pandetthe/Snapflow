@@ -98,11 +98,15 @@ public static class DependencyInjection
         {
             options.AddPolicy("AllowWeb", policy =>
             {
-                string webAppUrl = configuration.GetValue<string>("Services:WebAppUrl") ?? "http://localhost:5173";
-                policy.WithOrigins(webAppUrl)
-                       .AllowAnyMethod()
-                       .AllowAnyHeader()
-                       .AllowCredentials();
+                var webUrl = configuration.GetValue<string>("Services:WebUrl");
+                if (!string.IsNullOrEmpty(webUrl))
+                {
+                    policy.WithOrigins(webUrl)
+                          .SetIsOriginAllowedToAllowWildcardSubdomains()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials();
+                }
             });
         });
         return services;
