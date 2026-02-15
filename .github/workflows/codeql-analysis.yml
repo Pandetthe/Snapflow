@@ -1,0 +1,106 @@
+name: "Security Scan & CI"
+
+on:
+  push:
+    branches: [ "main" ]
+    paths: [ "api/**", "web/**", ".github/workflows/**" ]
+  pull_request:
+    branches: [ "main" ]
+    paths: [ "api/**", "web/**", ".github/workflows/**" ]
+  schedule:
+    - cron: '30 12 * * 1'
+
+jobs:
+  analyze:
+    name: CI & Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: javascript-typescript
+            build-mode: none
+            src-path: "web"
+            work-dir: "./web"
+          - language: csharp
+            build-mode: manual
+            src-path: "api"
+            work-dir: "./api"
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      if: matrix.language == 'csharp'
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore dependencies (C#)
+      if: matrix.language == 'csharp'
+      working-directory: ${{ matrix.work-dir }}
+      run: dotnet restore Snapflow.slnx
+
+    - name: Build (C#)
+      if: matrix.language == 'csharp'
+      working-directory: ${{ matrix.work-dir }}
+      run: dotnet build --no-restore Snapflow.slnx
+
+    - name: Test (C#)
+      if: matrix.language == 'csharp'
+      working-directory: ${{ matrix.work-dir }}
+      run: dotnet test --no-build --verbosity normal Snapflow.slnx
+
+    - name: Setup Node.js
+      if: matrix.language == 'javascript-typescript'
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: 'npm'
+        cache-dependency-path: 'web/package-lock.json'
+
+    - name: Install dependencies (JS)
+      if: matrix.language == 'javascript-typescript'
+      working-directory: ${{ matrix.work-dir }}
+      run: npm ci
+
+    - name: Svelte Check & Type Check
+      if: matrix.language == 'javascript-typescript'
+      working-directory: ${{ matrix.work-dir }}
+      run: npm run check 
+
+    - name: Build (JS)
+      if: matrix.language == 'javascript-typescript'
+      working-directory: ${{ matrix.work-dir }}
+      run: npm run build
+      
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: ${{ matrix.build-mode }}
+        config: |
+          paths:
+            - ${{ matrix.src-path }}
+          paths-ignore:
+            - '**/node_modules'
+            - '**/bin'
+            - '**/obj'
+            - '**/*.test.ts'
+            - '**/tests/**'
+
+    - name: Build for CodeQL (C# only)
+      if: matrix.language == 'csharp'
+      working-directory: ${{ matrix.work-dir }}
+      run: dotnet build --no-restore Snapflow.slnx
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{ matrix.language }}"
