@@ -2,9 +2,13 @@ name: "Server CI"
 on:
   push:
     branches: [ "main" ]
-    paths: [ "api/**" ]
+    paths:
+      - "api/**"
+      - ".github/workflows/server-ci.yml"
   pull_request:
     branches: [ "main" ]
+    paths:
+      - "api/**"
 
 jobs:
   build:
