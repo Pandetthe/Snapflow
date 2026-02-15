@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Snapflow.Domain.Swimlanes;
-using Snapflow.Infrastructure.Behaviours;
-using Snapflow.Infrastructure.Identity.Entities;
+using Snapflow.Infrastructure.Auth.Entities;
+using Snapflow.Infrastructure.Common;
 
 namespace Snapflow.Infrastructure.Persistence.Configurations;
 

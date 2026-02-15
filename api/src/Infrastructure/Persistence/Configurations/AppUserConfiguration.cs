@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Snapflow.Infrastructure.Identity.Entities;
+using Snapflow.Infrastructure.Auth.Entities;
 
 namespace Snapflow.Infrastructure.Persistence.Configurations;
 

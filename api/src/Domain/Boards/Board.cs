@@ -1,14 +1,14 @@
 ﻿using Snapflow.Common;
-using Snapflow.Domain.Members;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
+using Snapflow.Domain.Members;
 using Snapflow.Domain.Swimlanes;
 using Snapflow.Domain.Tags;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.Domain.Boards;
 
-public class Board : Entity<int>
+public class Board : Entity<int, Board>
 {
     public required string Title { get; set; }
     public string Description { get; set; } = "";

@@ -1,5 +1,4 @@
 using FluentValidation;
-using Snapflow.Application.Cards.Update;
 using Snapflow.Domain.Cards;
 
 namespace Snapflow.Application.Cards.Update;

@@ -5,7 +5,7 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Domain.Tags;
 
-public class Tag : Entity<int>
+public class Tag : Entity<int, Tag>
 {
     public int BoardId { get; set; }
     public virtual Board Board { get; set; } = null!;

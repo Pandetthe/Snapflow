@@ -2,21 +2,21 @@
 using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
-using Snapflow.Domain.Members;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
+using Snapflow.Domain.Members;
 using Snapflow.Domain.Swimlanes;
 using Snapflow.Domain.Tags;
 using Snapflow.Domain.Users;
-using Snapflow.Infrastructure.DomainEvents;
+using Snapflow.Infrastructure.Auth.Entities;
+using Snapflow.Infrastructure.Common;
 using Snapflow.Infrastructure.Identity.Entities;
 
 namespace Snapflow.Infrastructure.Persistence;
 
 public sealed class AppDbContext(
-        DbContextOptions<AppDbContext> options,
-        IDomainEventsDispatcher domainEventsDispatcher) 
+        DbContextOptions<AppDbContext> options)
     : IdentityDbContext<AppUser, AppRole, int>(options), IAppDbContext
 {
     IQueryable<IUser> IAppDbContext.Users => Set<AppUser>().AsQueryable().Cast<IUser>();
@@ -38,37 +38,28 @@ public sealed class AppDbContext(
     {
         int result = await base.SaveChangesAsync(cancellationToken);
 
-        await PublishDomainEventsAsync();
+        //await PublishDomainEventsAsync(cancellationToken);
 
         return result;
     }
 
-    private async Task PublishDomainEventsAsync()
-    {
-        var domainEvents = ChangeTracker
-            .Entries<IEntity>()
-            .Select(entry => entry.Entity)
-            .SelectMany(entity =>
-            {
-                foreach (var domainEvent in entity.DomainEvents)
-                {
-                    var domainEventType = domainEvent.GetType();
-                    var interfaces = domainEventType.GetInterfaces();
-                    var idomainEventGeneric = interfaces
-                        .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IDomainEvent<>));
+    //private async Task PublishDomainEventsAsync(CancellationToken cancellationToken = default)
+    //{
+    //    if (domainEventsDispatcher == null)
+    //        return;
+    //    var domainEvents = ChangeTracker
+    //        .Entries<IEntity>()
+    //        .Select(entry => entry.Entity)
+    //        .SelectMany(entity =>
+    //        {
+    //            List<IDomainEvent> events = [];
+    //            foreach (var domainEvent in entity.DomainEvents)
+    //                events.Add(domainEvent.Invoke(entity));
 
-                    if (idomainEventGeneric != null)
-                    {
-                        var setEntityMethod = domainEventType.GetMethod("SetEntity", new[] { idomainEventGeneric.GetGenericArguments()[0] });
-                        setEntityMethod?.Invoke(domainEvent, new object[] { entity });
-                    }
-                }
-
-                var events = entity.DomainEvents;
-                entity.ClearDomainEvents();
-                return events;
-            })
-            .ToList();
-        await domainEventsDispatcher.DispatchAsync(domainEvents);
-    }
+    //            entity.ClearDomainEvents();
+    //            return events;
+    //        })
+    //        .ToList();
+    //    await domainEventsDispatcher.DispatchAsync(domainEvents, cancellationToken);
+    //}
 }

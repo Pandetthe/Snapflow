@@ -2,4 +2,6 @@
 
 namespace Snapflow.Domain.Boards;
 
-public sealed record BoardDeletedDomainEvent(int Id) : IDomainEvent;
+public sealed record BoardDeletedDomainEvent(
+    int Id,
+    string? ConnectionId) : IDomainEvent;

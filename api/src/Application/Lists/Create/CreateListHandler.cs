@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Snapflow.Application.Abstractions.Behaviours;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
@@ -47,7 +46,9 @@ internal sealed class CreateListHandler(
             CreatedAt = timeProvider.GetUtcNow(),
         };
 
-        list.Raise(new ListCreatedDomainEvent(list.BoardId, list.SwimlaneId, list.Title, list.Width, list.Rank));
+        list.Raise((entity) =>
+            new ListCreatedDomainEvent(entity.Id, entity.BoardId, entity.SwimlaneId, entity.Title,
+                entity.Width, entity.Rank, userContext.ConnectionId));
 
         await dbContext.Lists.AddAsync(list, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

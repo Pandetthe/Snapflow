@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Snapflow.Domain.Members;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
+using Snapflow.Domain.Members;
 using Snapflow.Domain.Swimlanes;
 using Snapflow.Domain.Tags;
 using Snapflow.Domain.Users;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Snapflow.Application.Abstractions.Persistence;
 

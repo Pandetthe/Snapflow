@@ -54,7 +54,8 @@ internal sealed class DeleteSwimlaneHandler(
             card.DeletedByCascade = true;
         }
 
-        swimlane.Raise(new SwimlaneDeletedDomainEvent(swimlane.Id, swimlane.BoardId));
+        swimlane.Raise((entity) =>
+            new SwimlaneDeletedDomainEvent(entity.Id, entity.BoardId, userContext.ConnectionId));
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

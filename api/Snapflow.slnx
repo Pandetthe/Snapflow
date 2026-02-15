@@ -1,0 +1,23 @@
+<Solution>
+  <Folder Name="/Aspire/">
+    <Project Path="../aspire/AppHost/AppHost.csproj" Id="b4ac89e6-da62-415c-92c8-64c0be446fd3" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/Source/">
+    <Project Path="src/Application/Application.csproj" />
+    <Project Path="src/Common/Common.csproj" />
+    <Project Path="src/Domain/Domain.csproj" />
+    <Project Path="src/Infrastructure/Infrastructure.csproj" />
+    <Project Path="src/Presentation/Presentation.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/ArchitectureTests/ArchitectureTests.csproj" />
+  </Folder>
+</Solution>

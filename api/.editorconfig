@@ -40,6 +40,11 @@ csharp_style_conditional_delegate_call = true:suggestion
 csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
 dotnet_diagnostic.CA1515.severity = none
 
+[pre-commit]
+end_of_line = lf
+indent_style = space
+indent_size = 2
+
 # Xml files
 [*.{xml,csproj,props}]
 indent_size = 2

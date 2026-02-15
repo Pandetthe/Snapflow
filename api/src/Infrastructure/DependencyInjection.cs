@@ -1,76 +1,169 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
+using Npgsql;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Snapflow.Application.Abstractions.Behaviours;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Persistence;
+using Snapflow.Infrastructure.Auth.Accessors;
+using Snapflow.Infrastructure.Auth.Entities;
+using Snapflow.Infrastructure.Auth.Managers;
 using Snapflow.Infrastructure.Authorization;
-using Snapflow.Infrastructure.Behaviours;
-using Snapflow.Infrastructure.DomainEvents;
-using Snapflow.Infrastructure.Identity;
+using Snapflow.Infrastructure.Common;
 using Snapflow.Infrastructure.Identity.Entities;
+using Snapflow.Infrastructure.Identity.Services;
 using Snapflow.Infrastructure.Mailing;
 using Snapflow.Infrastructure.Mailing.Templates;
 using Snapflow.Infrastructure.Persistence;
-using Snapflow.Infrastructure.Services;
 
 namespace Snapflow.Infrastructure;
 
 public static class DependencyInjection
 {
+    public static ILoggingBuilder AddInfrastructure(this ILoggingBuilder logging)
+    {
+        logging.AddOpenTelemetry(loggingOptions =>
+        {
+            loggingOptions.IncludeFormattedMessage = true;
+            loggingOptions.IncludeScopes = true;
+        });
+        return logging;
+    }
+
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services
-            .AddDatabase(configuration)
-            .AddHealthChecks(configuration)
-            .AddIdentityInternal()
-            .AddServices()
-            .AddAuthorizationInternal()
-            .AddHttpContextAccessor();
+        services.AddServiceDiscovery();
         services.AddHttpContextAccessor();
-        services.AddScoped<IUserContext, AppUserContext>();
-        services.AddScoped<IRankService, LexoRankService>();
-        services.AddSingleton(sp =>
+        services.ConfigureHttpClientDefaults(http =>
         {
-            var registry = new EmailTemplateRegistry();
-            registry.Register<EmailConfirmation>(EmailConfirmationModel.TemplateName);
-            registry.Register<PasswordReset>(PasswordResetModel.TemplateName);
-            return registry;
+            http.AddStandardResilienceHandler();
+            http.AddServiceDiscovery();
         });
-        services.AddScoped<EmailTemplateRenderer>();
-        services.Configure<SmtpOptions>(configuration.GetSection("Smtp"));
-        services.Configure<ServicesOptions>(configuration.GetSection("Services"));
+
+        services.AddPostgresInternal(configuration);
+        services.AddRedisCacheInternal(configuration);
+        services.AddHealthChecksInternal(configuration);
+        services.AddOpenTelemetryInternal(configuration);
+        services.AddAuthInternal();
+        services.AddMailingInternal(configuration);
+
+        services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
+        services.AddScoped<IRankService, LexoRankService>();
+        services.AddSingleton<HubCallerContextAccessor>();
         services.AddScoped<ServiceLinkBuilder>();
         return services;
     }
 
-    private static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddPostgresInternal(this IServiceCollection services, IConfiguration configuration)
     {
-        string? connectionString = configuration.GetConnectionString("Database");
+        string connectionString = configuration.GetConnectionString("Postgres")
+                    ?? throw new InvalidOperationException("Postgres connection string is missing.");
         services.AddDbContext<IAppDbContext, AppDbContext>(
             options => options
                 .UseNpgsql(connectionString, npgsqlOptions =>
                 {
                     npgsqlOptions.MigrationsHistoryTable("migration_history", Schemas.Default);
                     npgsqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
+                    npgsqlOptions.EnableRetryOnFailure(5);
                 })
                 .UseSnakeCaseNamingConvention());
         return services;
     }
 
-    private static IServiceCollection AddHealthChecks(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddRedisCacheInternal(this IServiceCollection services, IConfiguration configuration)
     {
-        services
-            .AddHealthChecks()
-            .AddNpgSql(configuration.GetConnectionString("Database")!);
+        var redisConn = configuration.GetConnectionString("Redis");
+
+        // Redis is an optional dependency, so if the connection string is not provided, we simply skip configuring the cache.
+        if (string.IsNullOrEmpty(redisConn)) return services;
+
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConn;
+            options.InstanceName = "Snapflow_Cache_";
+        });
 
         return services;
     }
 
-    private static IServiceCollection AddIdentityInternal(this IServiceCollection services)
+    private static IServiceCollection AddHealthChecksInternal(this IServiceCollection services, IConfiguration configuration)
+    {
+        var healthBuilder = services.AddHealthChecks();
+
+        healthBuilder.AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+
+        var postgresConn = configuration.GetConnectionString("Postgres");
+        if (!string.IsNullOrEmpty(postgresConn))
+        {
+            healthBuilder.AddNpgSql(
+                connectionString: postgresConn,
+                name: "postgres",
+                tags: ["ready"]);
+        }
+
+        var redisConn = configuration.GetConnectionString("Redis");
+        if (!string.IsNullOrEmpty(redisConn))
+        {
+            healthBuilder.AddRedis(
+                redisConnectionString: redisConn,
+                name: "redis",
+                tags: ["ready"]);
+        }
+        return services;
+    }
+
+    private static IServiceCollection AddOpenTelemetryInternal(this IServiceCollection services, IConfiguration configuration)
+    {
+        var otelBuilder = services.AddOpenTelemetry();
+
+        if (!string.IsNullOrEmpty(configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+        {
+            otelBuilder.UseAzureMonitor();
+        }
+
+        if (!string.IsNullOrWhiteSpace(configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]))
+        {
+            otelBuilder.UseOtlpExporter();
+        }
+
+        otelBuilder.ConfigureResource(resource => resource
+            .AddService(serviceName: configuration["OTEL_SERVICE_NAME"] ?? "api-server"));
+
+        otelBuilder
+            .WithMetrics(metrics =>
+            {
+                metrics
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddRuntimeInstrumentation()
+                    .AddProcessInstrumentation();
+            })
+            .WithTracing(tracing =>
+            {
+                tracing.AddAspNetCoreInstrumentation(options =>
+                {
+                    options.Filter = context =>
+                        !context.Request.Path.StartsWithSegments("/health") &&
+                        !context.Request.Path.StartsWithSegments("/alive");
+                })
+                .AddHttpClientInstrumentation()
+                .AddNpgsql()
+                .AddRedisInstrumentation();
+            });
+        return services;
+    }
+
+    private static IServiceCollection AddAuthInternal(this IServiceCollection services)
     {
         services.AddIdentity<AppUser, AppRole>(options =>
         {
@@ -82,9 +175,10 @@ public static class DependencyInjection
             options.Password.RequireDigit = Domain.Users.UserOptions.RequireDigitInPassword;
             options.Password.RequireNonAlphanumeric = Domain.Users.UserOptions.RequireNonAlphanumericInPassword;
         })
-            .AddSignInManager()
-            .AddEntityFrameworkStores<AppDbContext>()
-            .AddDefaultTokenProviders();
+                .AddSignInManager()
+                .AddEntityFrameworkStores<AppDbContext>()
+                .AddDefaultTokenProviders();
+
         services.ConfigureApplicationCookie(options =>
         {
             options.Cookie.Name = "Snapflow.Auth.Cookie";
@@ -101,32 +195,37 @@ public static class DependencyInjection
                 return Task.CompletedTask;
             };
         });
+
         services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
         services.AddAuthorizationBuilder();
+        services.AddAuthorization();
+
+        services.AddScoped<PermissionProvider>();
+        services.AddTransient<IAuthorizationHandler, BoardPermissionAuthorizationHandler>();
+        services.AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
+
         services.AddScoped<IUserManager, AppUserManager>();
         services.AddScoped<ISignInManager, AppSignInManager>();
         services.AddScoped<IRefreshTokenValidator, AppRefreshTokenValidator>();
         services.AddScoped<IUserContext, AppUserContext>();
         services.AddScoped<IAuthEmailSender, AuthEmailSender>();
-        return services;
-    }
-
-    private static IServiceCollection AddAuthorizationInternal(this IServiceCollection services)
-    {
-        services.AddAuthorization();
-
-        services.AddScoped<PermissionProvider>();
-
-        services.AddTransient<IAuthorizationHandler, BoardPermissionAuthorizationHandler>();
-
-        services.AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
 
         return services;
     }
 
-    private static IServiceCollection AddServices(this IServiceCollection services)
+    private static IServiceCollection AddMailingInternal(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
+        services.AddSingleton(sp =>
+        {
+            var registry = new EmailTemplateRegistry();
+            registry.Register<EmailConfirmation>(EmailConfirmationModel.TemplateName);
+            registry.Register<PasswordReset>(PasswordResetModel.TemplateName);
+            return registry;
+        });
+
+        services.AddScoped<EmailTemplateRenderer>();
+        services.Configure<SmtpOptions>(configuration.GetSection("Email"));
+        services.Configure<ServicesOptions>(configuration.GetSection("Services"));
 
         return services;
     }

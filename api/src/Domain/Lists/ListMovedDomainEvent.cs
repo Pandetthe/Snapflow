@@ -2,4 +2,9 @@
 
 namespace Snapflow.Domain.Lists;
 
-public sealed record ListMovedDomainEvent(int Id, int BoardId, int SwimlaneId, string Rank) : IDomainEvent;
+public sealed record ListMovedDomainEvent(
+    int Id,
+    int BoardId,
+    int SwimlaneId,
+    string Rank,
+    string? ConnectionId) : IDomainEvent;

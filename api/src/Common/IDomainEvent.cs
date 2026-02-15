@@ -1,8 +1,6 @@
 ﻿namespace Snapflow.Common;
 
-public interface IDomainEvent;
-
-public interface IDomainEvent<T> : IDomainEvent where T : IEntity
+public interface IDomainEvent
 {
-    public void SetEntity(T entity);
+    string? ConnectionId { get; init; }
 }
