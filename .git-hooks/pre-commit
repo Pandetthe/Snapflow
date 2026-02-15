@@ -3,6 +3,6 @@
 FILES=$(git diff --cached --name-only --diff-filter=ACM "*.cs")
 if [ -n "$FILES" ]
 then
-    dotnet format ./api/Snapflow.sln --no-restore --include $FILES
+    dotnet format ./server/Snapflow.sln --no-restore --include $FILES
     echo "$FILES" | xargs git add
 fi

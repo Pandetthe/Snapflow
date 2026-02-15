@@ -1,0 +1,20 @@
+root = true
+
+[pre-commit]
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+
+[*.{xml,yml}]
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+
+[*.md]
+trim_trailing_whitespace = false
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true

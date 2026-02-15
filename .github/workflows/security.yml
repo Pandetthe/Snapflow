@@ -4,13 +4,13 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - "api/**"
+      - "server/**"
       - "web/**"
       - ".github/workflows/**"
   pull_request:
     branches: [ "main" ]
     paths:
-      - "api/**"
+      - "server/**"
       - "web/**"
   schedule:
     - cron: '33 4 * * 4' 
@@ -34,7 +34,7 @@ jobs:
             src-path: "."
           - language: csharp
             build-mode: manual
-            src-path: "api"
+            src-path: "server"
           - language: javascript-typescript
             build-mode: none
             src-path: "web"
@@ -60,7 +60,7 @@ jobs:
 
       - name: Build C#
         if: matrix.language == 'csharp'
-        run: dotnet build ./api/Snapflow.slnx
+        run: dotnet build ./server/Snapflow.slnx
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
