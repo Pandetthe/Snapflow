@@ -1,0 +1,64 @@
+name: "Security Scan"
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "api/**"
+      - "web/**"
+      - ".github/workflows/security.yml"
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - "api/**"
+      - "web/**"
+  schedule:
+    - cron: '30 12 * * 1'
+
+jobs:
+  analyze:
+    name: CodeQL Analysis (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: csharp
+            build-mode: manual
+            src-path: "api"
+          - language: javascript-typescript
+            build-mode: none
+            src-path: "web"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        if: matrix.language == 'csharp'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          config: |
+            paths:
+              - ${{ matrix.src-path }}
+
+      - name: Build C# for Analysis
+        if: matrix.language == 'csharp'
+        run: dotnet build ./api/Snapflow.slnx
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
