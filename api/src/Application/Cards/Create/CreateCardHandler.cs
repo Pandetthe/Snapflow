@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Snapflow.Application.Abstractions.Behaviours;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
@@ -48,8 +47,9 @@ internal sealed class CreateCardHandler(
             CreatedAt = timeProvider.GetUtcNow(),
         };
 
-        card.Raise(new CardCreatedDomainEvent(card.BoardId, card.ListId,
-            card.Title, card.Description, card.Rank));
+        card.Raise((entity) =>
+            new CardCreatedDomainEvent(entity.Id, entity.BoardId, entity.ListId,
+                entity.Title, entity.Description, entity.Rank, userContext.ConnectionId));
 
         await dbContext.Cards.AddAsync(card, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

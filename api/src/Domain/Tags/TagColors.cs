@@ -1,5 +1,5 @@
 ﻿namespace Snapflow.Domain.Tags;
-    
+
 public enum TagColors
 {
     Red,

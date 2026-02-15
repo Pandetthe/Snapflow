@@ -3,7 +3,6 @@ using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
-using System.Collections.Immutable;
 using static Snapflow.Application.Lists.GetByBoardId.GetListsByBoardId;
 
 namespace Snapflow.Application.Lists.GetByBoardId;
@@ -24,9 +23,9 @@ internal sealed class GetListsByBoardIdHandler(
                 .Where(l => !l.IsDeleted)
                 .OrderBy(l => l.Rank)
                 .Select(l => new ListDto(
-                    l.Id, 
-                    l.BoardId, 
-                    l.SwimlaneId, 
+                    l.Id,
+                    l.BoardId,
+                    l.SwimlaneId,
                     l.Title,
                     l.Rank,
                     l.Width))

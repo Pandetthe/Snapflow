@@ -34,7 +34,7 @@ internal sealed class DeleteCardHandler(
         card.DeletedByCascade = false;
 
 
-        card.Raise(new CardDeletedDomainEvent(card.Id, card.BoardId));
+        card.Raise((entity) => new CardDeletedDomainEvent(entity.Id, entity.BoardId, userContext.ConnectionId));
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

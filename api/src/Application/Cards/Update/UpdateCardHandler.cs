@@ -30,7 +30,9 @@ internal sealed class CreateCardCommandHandler(
         card.UpdatedAt = timeProvider.GetUtcNow();
         card.UpdatedById = userContext.UserId;
 
-        card.Raise(new CardUpdatedDomainEvent(card.Id, card.BoardId, card.Title, card.Description));
+        card.Raise((entity) =>
+            new CardUpdatedDomainEvent(card.Id, card.BoardId, card.Title,
+                card.Description, userContext.ConnectionId));
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

@@ -1,61 +1,39 @@
-﻿namespace Snapflow.Common;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
-public interface IEntity
+namespace Snapflow.Common;
+
+public abstract class Entity<TEntity> : IEntity
+    where TEntity : Entity<TEntity>
 {
-    IReadOnlyCollection<IDomainEvent> DomainEvents { get; }
-    void ClearDomainEvents();
-    void Raise(IDomainEvent domainEvent);
+    private readonly List<Func<object, IDomainEvent>> _domainEvents = [];
+
+    [NotMapped]
+    public IReadOnlyCollection<Func<object, IDomainEvent>> DomainEvents => _domainEvents.AsReadOnly();
+
+    public void Raise(Func<TEntity, IDomainEvent> blueprint) =>
+        _domainEvents.Add(obj => blueprint((TEntity)obj));
+
+    public void ClearDomainEvents() => _domainEvents.Clear();
 }
 
-public interface IEntity<TKey> : IEntity where TKey : IEquatable<TKey>
+public abstract class Entity<TKey, TEntity> : IEntity<TKey>
+    where TKey : IEquatable<TKey>
+    where TEntity : Entity<TKey, TEntity>
 {
-    TKey Id { get; set; }
-}
+    private readonly List<Func<object, IDomainEvent>> _domainEvents = [];
 
-public abstract class Entity<TKey> : IEntity<TKey> where TKey : IEquatable<TKey>
-{
-    private readonly List<IDomainEvent> _domainEvents = [];
+    [NotMapped]
+    public IReadOnlyCollection<Func<object, IDomainEvent>> DomainEvents => _domainEvents.AsReadOnly();
 
-    public IReadOnlyCollection<IDomainEvent> DomainEvents => [.. _domainEvents];
+    public TKey Id { get; protected set; } = default!;
 
-    public TKey Id { get; set; } = default!;
+    public void Raise(Func<TEntity, IDomainEvent> blueprint) =>
+        _domainEvents.Add(obj => blueprint((TEntity)obj));
 
-    public override bool Equals(object? obj)
-    {
-        return obj is Entity<TKey> other
-            && other.GetType() == GetType()
-            && Id.Equals(other.Id);
-    }
+    public void ClearDomainEvents() => _domainEvents.Clear();
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(GetType(), Id);
-    }
+    public override bool Equals(object? obj) =>
+        obj is Entity<TKey, TEntity> other && Id.Equals(other.Id);
 
-    public void ClearDomainEvents()
-    {
-        _domainEvents.Clear();
-    }
-
-    public void Raise(IDomainEvent domainEvent)
-    {
-        _domainEvents.Add(domainEvent);
-    }
-}
-
-public abstract class Entity : IEntity
-{
-    private readonly List<IDomainEvent> _domainEvents = [];
-
-    public IReadOnlyCollection<IDomainEvent> DomainEvents => [.. _domainEvents];
-
-    public void ClearDomainEvents()
-    {
-        _domainEvents.Clear();
-    }
-
-    public void Raise(IDomainEvent domainEvent)
-    {
-        _domainEvents.Add(domainEvent);
-    }
+    public override int GetHashCode() => HashCode.Combine(GetType(), Id);
 }

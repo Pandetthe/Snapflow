@@ -6,7 +6,7 @@ namespace Snapflow.ArchitectureTests;
 public sealed class LayerTests : Base
 {
     [Fact]
-    public void Domain_Should_NotHaveDependencyOn_Application()
+    public void DomainLayer_Should_NotHaveDependencyOn_Application()
     {
         TestResult result = Types.InAssembly(DomainAssembly)
             .Should()
@@ -28,11 +28,11 @@ public sealed class LayerTests : Base
     }
 
     [Fact]
-    public void DomainLayer_ShouldNotHaveDependencyOn_ApiLayer()
+    public void DomainLayer_ShouldNotHaveDependencyOn_PresentationLayer()
     {
         TestResult result = Types.InAssembly(DomainAssembly)
             .Should()
-            .NotHaveDependencyOn(ApiAssembly.GetName().Name)
+            .NotHaveDependencyOn(PresentationAssembly.GetName().Name)
             .GetResult();
 
         result.IsSuccessful.Should().BeTrue();
@@ -50,22 +50,22 @@ public sealed class LayerTests : Base
     }
 
     [Fact]
-    public void ApplicationLayer_ShouldNotHaveDependencyOn_ApiLayer()
+    public void ApplicationLayer_ShouldNotHaveDependencyOn_PresentationLayer()
     {
         TestResult result = Types.InAssembly(ApplicationAssembly)
             .Should()
-            .NotHaveDependencyOn(ApiAssembly.GetName().Name)
+            .NotHaveDependencyOn(PresentationAssembly.GetName().Name)
             .GetResult();
 
         result.IsSuccessful.Should().BeTrue();
     }
 
     [Fact]
-    public void InfrastructureLayer_ShouldNotHaveDependencyOn_ApiLayer()
+    public void InfrastructureLayer_ShouldNotHaveDependencyOn_PresentationLayer()
     {
         TestResult result = Types.InAssembly(InfrastructureAssembly)
             .Should()
-            .NotHaveDependencyOn(ApiAssembly.GetName().Name)
+            .NotHaveDependencyOn(PresentationAssembly.GetName().Name)
             .GetResult();
 
         result.IsSuccessful.Should().BeTrue();

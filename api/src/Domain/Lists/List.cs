@@ -6,7 +6,7 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Domain.Lists;
 
-public class List : Entity<int>
+public class List : Entity<int, List>
 {
     public int BoardId { get; set; }
     public virtual Board Board { get; set; } = null!;

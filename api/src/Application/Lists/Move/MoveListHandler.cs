@@ -42,7 +42,9 @@ internal sealed class MoveListHandler(
         list.Rank = rankResult.Value;
         list.UpdatedById = userContext.UserId;
         list.UpdatedAt = timeProvider.GetUtcNow();
-        list.Raise(new ListMovedDomainEvent(list.Id, list.BoardId, list.SwimlaneId, list.Rank));
+        list.Raise((entity) =>
+            new ListMovedDomainEvent(entity.Id, entity.BoardId, entity.SwimlaneId,
+                entity.Rank, userContext.ConnectionId));
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

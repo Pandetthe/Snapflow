@@ -6,7 +6,7 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Domain.Swimlanes;
 
-public class Swimlane : Entity<int>
+public class Swimlane : Entity<int, Swimlane>
 {
     public int BoardId { get; set; }
     public Board Board { get; set; } = null!;

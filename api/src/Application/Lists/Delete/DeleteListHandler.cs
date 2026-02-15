@@ -46,7 +46,9 @@ internal sealed class DeleteListHandler(
             card.DeletedByCascade = true;
         }
 
-        list.Raise(new ListDeletedDomainEvent(list.Id, list.BoardId));
+        list.Raise((entity) =>
+            new ListDeletedDomainEvent(entity.Id, entity.BoardId,
+                userContext.ConnectionId));
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

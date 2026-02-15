@@ -1,0 +1,47 @@
+﻿@using Microsoft.AspNetCore.Components
+@namespace Snapflow.Presentation.Endpoints.Auth.FallbackForms
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>Snapflow - @Title</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        (function () {
+          try {
+            var stored = localStorage.getItem('theme');
+            var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var theme = stored || (systemDark ? 'dark' : 'light');
+            if (theme === 'dark') {
+              document.documentElement.classList.add('dark');
+            } else {
+              document.documentElement.classList.remove('dark');
+            }
+          } catch (e) { }
+        })();
+    </script>
+
+    <style>
+        html, body {
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-100 dark:bg-gray-900">
+    <main class="min-h-screen flex items-center justify-center px-4 py-12">
+        <div class="w-full max-w-md">
+            @ChildContent
+        </div>
+    </main>
+</body>
+</html>
+
+@code {
+    [Parameter] 
+    public required string Title { get; set; }
+    [Parameter] 
+    public RenderFragment? ChildContent { get; set; }
+}

@@ -7,7 +7,7 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Domain.Cards;
 
-public class Card : Entity<int>
+public class Card : Entity<int, Card>
 {
     public int BoardId { get; set; }
     public virtual Board Board { get; set; } = null!;

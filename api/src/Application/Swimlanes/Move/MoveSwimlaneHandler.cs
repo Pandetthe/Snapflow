@@ -33,7 +33,9 @@ internal sealed class MoveSwimlaneHandler(
         swimlane.Rank = rankResult.Value;
         swimlane.UpdatedById = userContext.UserId;
         swimlane.UpdatedAt = timeProvider.GetUtcNow();
-        swimlane.Raise(new SwimlaneMovedDomainEvent(swimlane.Id, swimlane.BoardId, swimlane.Rank));
+        swimlane.Raise((entity) =>
+            new SwimlaneMovedDomainEvent(entity.Id, entity.BoardId, entity.Rank,
+                userContext.ConnectionId));
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success(swimlane.Rank);
     }

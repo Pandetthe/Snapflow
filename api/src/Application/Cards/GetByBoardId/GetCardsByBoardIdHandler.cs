@@ -3,7 +3,6 @@ using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
-using System.Collections.Immutable;
 using static Snapflow.Application.Cards.GetByBoardId.GetCardsByBoardIdResponse;
 
 namespace Snapflow.Application.Cards.GetByBoardId;

@@ -4,7 +4,7 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Domain.Members;
 
-public class Member : Entity
+public class Member : Entity<Member>
 {
     public int BoardId { get; set; }
     public virtual Board Board { get; set; } = null!;

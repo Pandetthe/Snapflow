@@ -11,4 +11,6 @@ public interface IUserContext
     Task<IUser> GetUserAsync();
 
     bool IsAuthenticated { get; }
+
+    string? ConnectionId { get; }
 }

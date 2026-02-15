@@ -3,7 +3,6 @@ using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Lists;
-using System.Collections.Generic;
 using static Snapflow.Application.Cards.GetByListId.GetCardsByListIdResponse;
 
 namespace Snapflow.Application.Cards.GetByListId;
@@ -36,7 +35,7 @@ internal sealed class GetCardsByListIdHandler(
             .SingleOrDefaultAsync(cancellationToken);
 
         if (list == null)
-            return Result.Failure<IReadOnlyList<CardDto>> (ListErrors.NotFound(query.Id));
+            return Result.Failure<IReadOnlyList<CardDto>>(ListErrors.NotFound(query.Id));
 
         return list.Cards;
     }

@@ -9,7 +9,7 @@ namespace Snapflow.Application.Members.Get;
 internal sealed class GetMembersQueryHandler(
     IAppDbContext dbContext) : IQueryHandler<GetMembersQuery, List<GetMembersResponse>>
 {
-    public async Task<Result<List<GetMembersResponse>>> Handle(GetMembersQuery query, 
+    public async Task<Result<List<GetMembersResponse>>> Handle(GetMembersQuery query,
         CancellationToken cancellationToken = default)
     {
         var members = await dbContext.Members

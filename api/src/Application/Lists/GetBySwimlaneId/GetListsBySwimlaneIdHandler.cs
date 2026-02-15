@@ -3,7 +3,6 @@ using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Swimlanes;
-using System.Collections.Immutable;
 using static Snapflow.Application.Lists.GetBySwimlaneId.GetListsBySwimlaneIdResponse;
 
 namespace Snapflow.Application.Lists.GetBySwimlaneId;

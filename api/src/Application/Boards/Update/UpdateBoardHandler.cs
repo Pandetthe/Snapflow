@@ -29,7 +29,8 @@ internal sealed class UpdateBoardHandler(
         board.Description = command.Description;
         board.UpdatedAt = timeProvider.GetUtcNow();
         board.UpdatedById = userContext.UserId;
-        board.Raise(new BoardUpdatedDomainEvent(board.Id, board.Title, board.Description));
+        board.Raise((entity) =>
+            new BoardUpdatedDomainEvent(entity.Id, entity.Title, entity.Description, userContext.ConnectionId));
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

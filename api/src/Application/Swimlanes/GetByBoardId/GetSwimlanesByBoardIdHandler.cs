@@ -3,7 +3,6 @@ using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
-using System.Collections.Immutable;
 using static Snapflow.Application.Swimlanes.GetByBoardId.GetSwimlanesByBoardIdResponse;
 
 namespace Snapflow.Application.Swimlanes.GetByBoardId;
@@ -11,7 +10,7 @@ namespace Snapflow.Application.Swimlanes.GetByBoardId;
 internal sealed class GetSwimlanesByBoardIdHandler(
     IAppDbContext dbContext) : IQueryHandler<GetSwimlanesByBoardIdQuery, IReadOnlyList<SwimlaneDto>>
 {
-    public async Task<Result<IReadOnlyList<SwimlaneDto>>> Handle(GetSwimlanesByBoardIdQuery query, 
+    public async Task<Result<IReadOnlyList<SwimlaneDto>>> Handle(GetSwimlanesByBoardIdQuery query,
         CancellationToken cancellationToken = default)
     {
         var board = await dbContext.Boards
@@ -24,7 +23,7 @@ internal sealed class GetSwimlanesByBoardIdHandler(
                     .Where(s => !s.IsDeleted)
                     .OrderBy(s => s.Rank)
                     .Select(s => new SwimlaneDto(
-                        s.Id, 
+                        s.Id,
                         s.Title,
                         s.Rank,
                         s.Height))

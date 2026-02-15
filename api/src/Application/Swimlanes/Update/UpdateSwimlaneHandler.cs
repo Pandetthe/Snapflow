@@ -30,7 +30,9 @@ internal sealed class UpdateSwimlaneHandler(
         swimlane.UpdatedById = userContext.UserId;
         swimlane.UpdatedAt = timeProvider.GetUtcNow();
 
-        swimlane.Raise(new SwimlaneUpdatedDomainEvent(swimlane.Id, swimlane.BoardId, swimlane.Title, swimlane.Height));
+        swimlane.Raise((entity) =>
+            new SwimlaneUpdatedDomainEvent(entity.Id, entity.BoardId, entity.Title,
+                entity.Height, userContext.ConnectionId));
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

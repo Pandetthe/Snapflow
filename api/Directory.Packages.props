@@ -3,38 +3,50 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <!-- Api -->
+    <!-- Presentation -->
+    <PackageVersion Include="AspNetCore.HealthChecks.Redis" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
+    <PackageVersion Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.4.0" />
     <PackageVersion Include="EntityFrameworkCore.Exceptions.Common" Version="8.1.3" />
-    <PackageVersion Include="Hangfire" Version="1.8.21" />
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.10" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Core" Version="1.2.0" />
-    <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.9.0" />
+    <PackageVersion Include="Hangfire" Version="1.8.23" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.3.0" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.3.0" />
+    <PackageVersion Include="Npgsql.OpenTelemetry" Version="10.0.1" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Process" Version="1.15.0-beta.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.15.0-beta.1" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.12.40" />
     <!-- Infrastructure -->
-    <PackageVersion Include="EFCore.NamingConventions" Version="9.0.0" />
+    <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
     <PackageVersion Include="MailKit" Version="4.14.1" />
     <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />
-    <PackageVersion Include="Microsoft.Extensions.Identity.Core" Version="9.0.10" />
-    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.10" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10" />
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.10" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.10" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.10" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity" Version="2.3.9" />
+    <PackageVersion Include="Microsoft.Extensions.Identity.Core" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.3" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <!-- Application -->
-    <PackageVersion Include="Scrutor" Version="6.1.0" />
-    <PackageVersion Include="Serilog" Version="4.3.0" />
-    <PackageVersion Include="FluentValidation" Version="12.0.0" />
-    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+    <PackageVersion Include="Scrutor" Version="7.0.0" />
+    <PackageVersion Include="Serilog" Version="4.3.1" />
+    <PackageVersion Include="FluentValidation" Version="12.1.1" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <!-- Tests -->
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="FluentAssertions" Version="8.8.0" />
     <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
-    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageVersion Include="coverlet.collector" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
   </ItemGroup>
 </Project>

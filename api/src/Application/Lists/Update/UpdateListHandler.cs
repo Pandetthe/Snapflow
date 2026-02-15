@@ -30,7 +30,9 @@ internal sealed class UpdateListHandler(
         list.UpdatedById = userContext.UserId;
         list.UpdatedAt = timeProvider.GetUtcNow();
 
-        list.Raise(new ListUpdatedDomainEvent(list.Id, list.BoardId, list.Title, list.Width));
+        list.Raise((entity) =>
+            new ListUpdatedDomainEvent(entity.Id, entity.BoardId, entity.Title,
+                entity.Width, userContext.ConnectionId));
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

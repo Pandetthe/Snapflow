@@ -101,7 +101,7 @@ internal sealed class SwimlaneRankService(
             }
             List<SwimlaneRankDto> middle = await dbContext.Swimlanes
                 .AsNoTracking()
-                .Where(s => s.BoardId == groupId &&  !s.IsDeleted)
+                .Where(s => s.BoardId == groupId && !s.IsDeleted)
                 .Where(s => (leftRank == null || s.Rank.CompareTo(leftRank) >= 0) && (rightRank == null || s.Rank.CompareTo(rightRank) <= 0))
                 .OrderBy(s => s.Rank)
                 .Select(s => new SwimlaneRankDto(s.Id, s.Rank))
