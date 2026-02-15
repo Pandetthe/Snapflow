@@ -1,6 +1,6 @@
 <Solution>
   <Folder Name="/Aspire/">
-    <Project Path="../aspire/AppHost/AppHost.csproj" Id="b4ac89e6-da62-415c-92c8-64c0be446fd3" />
+    <Project Path="../deployment/AppHost/AppHost.csproj" Id="b4ac89e6-da62-415c-92c8-64c0be446fd3" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".dockerignore" />
