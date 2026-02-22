@@ -25,6 +25,7 @@ using Snapflow.Infrastructure.Identity.Services;
 using Snapflow.Infrastructure.Mailing;
 using Snapflow.Infrastructure.Mailing.Templates;
 using Snapflow.Infrastructure.Persistence;
+using Snapflow.Infrastructure.Persistence.Interceptors;
 
 namespace Snapflow.Infrastructure;
 
@@ -57,6 +58,7 @@ public static class DependencyInjection
         services.AddAuthInternal();
         services.AddMailingInternal(configuration);
 
+        services.AddScoped<DomainEventsBuffer>();
         services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
         services.AddScoped<IRankService, LexoRankService>();
         services.AddSingleton<HubCallerContextAccessor>();
@@ -68,14 +70,16 @@ public static class DependencyInjection
     {
         string connectionString = configuration.GetConnectionString("Postgres")
                     ?? throw new InvalidOperationException("Postgres connection string is missing.");
+        services.AddScoped<DispatchDomainEventsInterceptor>();
         services.AddDbContext<IAppDbContext, AppDbContext>(
-            options => options
+            (sp, options) => options
                 .UseNpgsql(connectionString, npgsqlOptions =>
                 {
                     npgsqlOptions.MigrationsHistoryTable("migration_history", Schemas.Default);
                     npgsqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
                     npgsqlOptions.EnableRetryOnFailure(5);
                 })
+                .AddInterceptors(sp.GetRequiredService<DispatchDomainEventsInterceptor>())
                 .UseSnakeCaseNamingConvention());
         return services;
     }

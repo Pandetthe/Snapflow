@@ -17,8 +17,7 @@ using System.Reflection.Emit;
 namespace Snapflow.Infrastructure.Persistence;
 
 public sealed class AppDbContext(
-        DbContextOptions<AppDbContext> options,
-        IDomainEventsDispatcher domainEventsDispatcher)
+        DbContextOptions<AppDbContext> options)
     : IdentityDbContext<AppUser, AppRole, int>(options), IAppDbContext
 {
     IQueryable<IUser> IAppDbContext.Users => Set<AppUser>().AsQueryable().Cast<IUser>();
@@ -42,32 +41,5 @@ public sealed class AppDbContext(
         {
             builder.Entity(entityType.ClrType).Ignore(nameof(IEntity.DomainEvents));
         }
-    }
-
-    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        int result = await base.SaveChangesAsync(cancellationToken);
-
-        await PublishDomainEventsAsync(cancellationToken);
-
-        return result;
-    }
-
-    private async Task PublishDomainEventsAsync(CancellationToken cancellationToken = default)
-    {
-        var domainEvents = ChangeTracker
-            .Entries<IEntity>()
-            .Select(entry => entry.Entity)
-            .SelectMany(entity =>
-            {
-                List<IDomainEvent> events = [];
-                foreach (var domainEvent in entity.DomainEvents)
-                    events.Add(domainEvent.Invoke(entity));
-
-                entity.ClearDomainEvents();
-                return events;
-            })
-            .ToList();
-        await domainEventsDispatcher.DispatchAsync(domainEvents, cancellationToken);
     }
 }
