@@ -12,7 +12,7 @@ using Snapflow.Infrastructure.Persistence;
 namespace Snapflow.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260215112936_Init")]
+    [Migration("20260222131702_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -295,7 +295,8 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Rank")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
                         .HasColumnName("rank");
 
                     b.Property<int>("SwimlaneId")
@@ -327,14 +328,16 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.HasIndex("DeletedById")
                         .HasDatabaseName("ix_cards_deleted_by_id");
 
-                    b.HasIndex("ListId")
-                        .HasDatabaseName("ix_cards_list_id");
-
                     b.HasIndex("SwimlaneId")
                         .HasDatabaseName("ix_cards_swimlane_id");
 
                     b.HasIndex("UpdatedById")
                         .HasDatabaseName("ix_cards_updated_by_id");
+
+                    b.HasIndex("ListId", "Rank")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cards_list_id_rank")
+                        .HasFilter("is_deleted = false");
 
                     b.ToTable("cards", "public");
                 });
@@ -378,7 +381,8 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Rank")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
                         .HasColumnName("rank");
 
                     b.Property<int>("SwimlaneId")
@@ -415,11 +419,13 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.HasIndex("DeletedById")
                         .HasDatabaseName("ix_lists_deleted_by_id");
 
-                    b.HasIndex("SwimlaneId")
-                        .HasDatabaseName("ix_lists_swimlane_id");
-
                     b.HasIndex("UpdatedById")
                         .HasDatabaseName("ix_lists_updated_by_id");
+
+                    b.HasIndex("SwimlaneId", "Rank")
+                        .IsUnique()
+                        .HasDatabaseName("ix_lists_swimlane_id_rank")
+                        .HasFilter("is_deleted = false");
 
                     b.ToTable("lists", "public");
                 });
@@ -511,9 +517,6 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_swimlanes");
 
-                    b.HasIndex("BoardId")
-                        .HasDatabaseName("ix_swimlanes_board_id");
-
                     b.HasIndex("CreatedById")
                         .HasDatabaseName("ix_swimlanes_created_by_id");
 
@@ -522,6 +525,11 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UpdatedById")
                         .HasDatabaseName("ix_swimlanes_updated_by_id");
+
+                    b.HasIndex("BoardId", "Rank")
+                        .IsUnique()
+                        .HasDatabaseName("ix_swimlanes_board_id_rank")
+                        .HasFilter("is_deleted = false");
 
                     b.ToTable("swimlanes", "public");
                 });

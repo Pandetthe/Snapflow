@@ -2,11 +2,12 @@
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
+using Snapflow.Domain.Ranking;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.Domain.Swimlanes;
 
-public class Swimlane : Entity<int, Swimlane>
+public class Swimlane : Entity<int, Swimlane>, IRankable
 {
     public Swimlane() { }
     

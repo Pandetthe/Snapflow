@@ -360,7 +360,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     board_id = table.Column<int>(type: "integer", nullable: false),
                     swimlane_id = table.Column<int>(type: "integer", nullable: false),
                     title = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    rank = table.Column<string>(type: "text", nullable: false),
+                    rank = table.Column<string>(type: "character varying(12)", maxLength: 12, nullable: false),
                     width = table.Column<int>(type: "integer", nullable: true),
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     created_by_id = table.Column<int>(type: "integer", nullable: false),
@@ -423,7 +423,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     list_id = table.Column<int>(type: "integer", nullable: false),
                     title = table.Column<string>(type: "text", nullable: false),
                     description = table.Column<string>(type: "text", nullable: false),
-                    rank = table.Column<string>(type: "text", nullable: false),
+                    rank = table.Column<string>(type: "character varying(12)", maxLength: 12, nullable: false),
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     created_by_id = table.Column<int>(type: "integer", nullable: false),
                     updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -564,10 +564,12 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                 column: "deleted_by_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_cards_list_id",
+                name: "ix_cards_list_id_rank",
                 schema: "public",
                 table: "cards",
-                column: "list_id");
+                columns: new[] { "list_id", "rank" },
+                unique: true,
+                filter: "is_deleted = false");
 
             migrationBuilder.CreateIndex(
                 name: "ix_cards_swimlane_id",
@@ -600,10 +602,12 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                 column: "deleted_by_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_lists_swimlane_id",
+                name: "ix_lists_swimlane_id_rank",
                 schema: "public",
                 table: "lists",
-                column: "swimlane_id");
+                columns: new[] { "swimlane_id", "rank" },
+                unique: true,
+                filter: "is_deleted = false");
 
             migrationBuilder.CreateIndex(
                 name: "ix_lists_updated_by_id",
@@ -625,10 +629,12 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_swimlanes_board_id",
+                name: "ix_swimlanes_board_id_rank",
                 schema: "public",
                 table: "swimlanes",
-                column: "board_id");
+                columns: new[] { "board_id", "rank" },
+                unique: true,
+                filter: "is_deleted = false");
 
             migrationBuilder.CreateIndex(
                 name: "ix_swimlanes_created_by_id",

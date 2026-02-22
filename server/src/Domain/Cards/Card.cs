@@ -4,10 +4,11 @@ using Snapflow.Domain.Lists;
 using Snapflow.Domain.Swimlanes;
 using Snapflow.Domain.Tags;
 using Snapflow.Domain.Users;
+using Snapflow.Domain.Ranking;
 
 namespace Snapflow.Domain.Cards;
 
-public class Card : Entity<int, Card>
+public class Card : Entity<int, Card>, IRankable
 {
     public Card() { }
     

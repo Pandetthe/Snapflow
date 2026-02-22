@@ -2,11 +2,12 @@
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Swimlanes;
+using Snapflow.Domain.Ranking;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.Domain.Lists;
 
-public class List : Entity<int, List>
+public class List : Entity<int, List>, IRankable
 {
     public List() { }
     

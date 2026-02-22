@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Snapflow.Domain.Lists;
 using Snapflow.Infrastructure.Auth.Entities;
+using Snapflow.Infrastructure.Common;
 
 namespace Snapflow.Infrastructure.Persistence.Configurations;
 
@@ -25,5 +26,13 @@ internal sealed class ListConfiguration : IEntityTypeConfiguration<List>
         builder.Property(l => l.Title)
             .IsRequired()
             .HasMaxLength(ListOptions.MaxTitleLength);
+
+        builder.Property(l => l.Rank)
+            .IsRequired()
+            .HasMaxLength(LexoRankService.Length);
+
+        builder.HasIndex(l => new { l.SwimlaneId, l.Rank })
+            .IsUnique()
+            .HasFilter("is_deleted = false");
     }
 }

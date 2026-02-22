@@ -18,10 +18,9 @@ internal sealed class DeleteListHandler(
         var userExists = await dbContext.Users.AsNoTracking()
             .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (!userExists)
-            return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
+            return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
         var list = await dbContext.Lists
-            .Include(l => l.Cards.Where(c => !c.IsDeleted))
             .SingleOrDefaultAsync(l => l.Id == command.Id && !l.IsDeleted, cancellationToken);
         if (list == null)
             return Result.Failure(ListErrors.NotFound(command.Id));
@@ -29,28 +28,36 @@ internal sealed class DeleteListHandler(
         DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
         int userId = userContext.UserId;
 
-        list.IsDeleted = true;
-        list.DeletedById = userId;
-        list.DeletedAt = dateTimeOffset;
-        list.DeletedByCascade = false;
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        // TODO: Optimize to not load entire cards into memory
-        //       Domain events for now cannot be raised without loading and
-        //       and modifying tracked entity.
-
-        foreach (var card in list.Cards)
+        try
         {
-            card.IsDeleted = true;
-            card.DeletedById = userId;
-            card.DeletedAt = dateTimeOffset;
-            card.DeletedByCascade = true;
+            list.IsDeleted = true;
+            list.DeletedById = userId;
+            list.DeletedAt = dateTimeOffset;
+            list.DeletedByCascade = false;
+
+            await dbContext.Cards
+                .Where(c => c.ListId == list.Id && !c.IsDeleted)
+                .ExecuteUpdateAsync(c => c
+                    .SetProperty(x => x.IsDeleted, true)
+                    .SetProperty(x => x.DeletedAt, dateTimeOffset)
+                    .SetProperty(x => x.DeletedById, userId)
+                    .SetProperty(x => x.DeletedByCascade, true),
+                    cancellationToken);
+
+            list.Raise((entity) =>
+                new ListDeletedDomainEvent(entity.Id, entity.BoardId,
+                    userContext.ConnectionId));
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
         }
-
-        list.Raise((entity) =>
-            new ListDeletedDomainEvent(entity.Id, entity.BoardId,
-                userContext.ConnectionId));
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
 
         return Result.Success();
     }
