@@ -38,6 +38,7 @@
     "prettier": "^3.6.2",
     "prettier-plugin-svelte": "^3.4.0",
     "prettier-plugin-tailwindcss": "^0.7.1",
+    "pino-pretty": "^13.0.0",
     "svelte": "^5.41.0",
     "svelte-check": "^4.3.3",
     "svelte-dnd-action": "^0.9.69",

@@ -130,6 +130,9 @@ public static class DependencyInjection
     {
         var otelBuilder = services.AddOpenTelemetry();
 
+        otelBuilder.ConfigureResource(resource => resource
+            .AddService(serviceName: configuration["OTEL_SERVICE_NAME"] ?? "api-server"));
+
         if (!string.IsNullOrEmpty(configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
         {
             otelBuilder.UseAzureMonitor();
@@ -140,9 +143,6 @@ public static class DependencyInjection
             otelBuilder.UseOtlpExporter();
         }
 
-        otelBuilder.ConfigureResource(resource => resource
-            .AddService(serviceName: configuration["OTEL_SERVICE_NAME"] ?? "api-server"));
-
         otelBuilder
             .WithMetrics(metrics =>
             {
@@ -150,10 +150,19 @@ public static class DependencyInjection
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
-                    .AddProcessInstrumentation();
+                    .AddProcessInstrumentation()
+                    .AddMeter("Microsoft.AspNetCore.Hosting")
+                    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+                    .AddMeter("System.Net.Http")
+                    .AddMeter("Npgsql");
             })
             .WithTracing(tracing =>
             {
+                if (string.Equals(configuration["OTEL_SAMPLER"], "always_on", StringComparison.OrdinalIgnoreCase))
+                {
+                    tracing.SetSampler(new AlwaysOnSampler());
+                }
+
                 tracing.AddAspNetCoreInstrumentation(options =>
                 {
                     options.Filter = context =>
@@ -161,9 +170,11 @@ public static class DependencyInjection
                         !context.Request.Path.StartsWithSegments("/alive");
                 })
                 .AddHttpClientInstrumentation()
+                .AddEntityFrameworkCoreInstrumentation()
                 .AddNpgsql()
                 .AddRedisInstrumentation();
             });
+
         return services;
     }
 

@@ -1,6 +1,7 @@
 import type { Handle } from '@sveltejs/kit';
 import { UsersService } from '$lib/services/users';
 import { apiClient } from '$lib/services/api.server.ts';
+import { logger } from '$lib/services/logger.server';
 
 export const handle: Handle = async ({ event, resolve }) => {
   const session = event.cookies.get('Snapflow.Auth.Cookie');
@@ -14,7 +15,7 @@ export const handle: Handle = async ({ event, resolve }) => {
         event.locals.user = result.user;
       }
     } catch (err) {
-      console.error('Failed to fetch user data:', err);
+      logger.error({ err }, 'Failed to fetch user data');
     }
   }
   return await resolve(event);
