@@ -1,4 +1,5 @@
 import type { ApiClient, ProblemDetails, Response } from '$lib/types/api';
+import logger from '$lib/logger';
 
 export interface SigninRequest {
   email: string;
@@ -32,13 +33,12 @@ export class AuthService {
 
   async #handleBadResponse<T>(response: globalThis.Response): Promise<Response<T>> {
     try {
-      const error = await response.json() as ProblemDetails & { ok: false };
+      const error = (await response.json()) as ProblemDetails & { ok: false };
       error.ok = false;
-      if ((error.status || 500) >= 500)
-        console.log('Server error:', error);
+      if ((error.status || 500) >= 500) logger.error({ error }, 'Server error');
       return error;
     } catch (err) {
-      console.log(err);
+      logger.error({ err }, 'Error parsing response');
       return { ok: false };
     }
   }

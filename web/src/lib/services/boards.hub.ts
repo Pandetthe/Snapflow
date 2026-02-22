@@ -1,5 +1,6 @@
 import { HubConnectionBuilder, type HubConnection } from '@microsoft/signalr';
 import { env } from '$env/dynamic/public';
+import logger from '$lib/logger';
 import type { Response, ProblemDetails, ValidationProblemDetails, IdResponse, RankResponse } from '$lib/types/app';
 import type {
   BoardsHubEvents,
@@ -29,9 +30,9 @@ export class BoardsHub {
   }
 
   async start() {
-    console.log('BoardsHub: Starting connection...');
+    logger.debug('BoardsHub: Starting connection...');
     await this.connection.start();
-    console.log('BoardsHub: Connection started.');
+    logger.info('BoardsHub: Connection started.');
   }
 
   async stop() {
@@ -52,10 +53,10 @@ export class BoardsHub {
   }
 
   private async handleResponse<T = void>(method: string, promise: Promise<any>): Promise<Response<T>> {
-    console.log(`BoardsHub: Awaiting response for ${method}...`);
+    logger.debug({ method }, 'BoardsHub: Awaiting response');
     try {
       const res = await promise;
-      console.log(`BoardsHub: Received response for ${method}:`, res);
+      logger.debug({ method, res }, 'BoardsHub: Received response');
       if (res === null || res === undefined) {
         return { ok: true } as Response<T>;
       }
@@ -77,12 +78,17 @@ export class BoardsHub {
         }
       }
 
+      if (!ok) {
+        logger.warn({ method, problem, validationProblem }, 'BoardsHub: Error response');
+      }
+
       return {
         ok: false,
         problem,
         validationProblem
       };
     } catch (err) {
+      logger.error({ method, err }, 'BoardsHub: Connection error');
       return {
         ok: false,
         problem: {
@@ -104,7 +110,7 @@ export class BoardsHub {
   }
 
   moveSwimlane(request: MoveSwimlaneRequest): Promise<Response<RankResponse>> {
-    console.log('BoardsHub: Invoking MoveSwimlane', request);
+    logger.debug({ request }, 'BoardsHub: Invoking MoveSwimlane');
     return this.handleResponse<RankResponse>('MoveSwimlane', this.connection.invoke('MoveSwimlane', request));
   }
 

@@ -2,9 +2,12 @@ import { parse } from 'set-cookie-parser';
 import type { RequestEvent, ServerLoadEvent } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import type { ApiClient } from '$lib/types/api';
+import logger from '$lib/logger';
+import { apiRequestCounter, apiRequestDuration } from '$lib/metrics';
 
 class ServerApiClient implements ApiClient {
   async fetch(path: string | undefined, init: RequestInit, event?: RequestEvent | ServerLoadEvent): Promise<Response> {
+    const start = Date.now();
     const base = env.API_BASE_URL;
     const cleanBase = base.replace(/\/+$/, '');
     const cleanPath = (path ?? '').replace(/^\/+/, '');
@@ -27,28 +30,67 @@ class ServerApiClient implements ApiClient {
       credentials: init.credentials ?? 'include',
     };
 
-    const response = await fetchFn(url, finalInit);
+    try {
+      const response = await fetchFn(url, finalInit);
+      const duration = Date.now() - start;
 
-    if (event) {
-      const setCookieHeader = response.headers.getSetCookie();
+      apiRequestCounter.add(1, {
+        method: init.method ?? 'GET',
+        url: path,
+        status: response.status
+      });
 
-      if (setCookieHeader) {
-        const cookies = parse(setCookieHeader);
-        for (const cookie of cookies) {
-          event.cookies.set(cookie.name, cookie.value, {
-            domain: cookie.domain,
-            expires: cookie.expires,
-            httpOnly: cookie.httpOnly,
-            maxAge: cookie.maxAge,
-            path: cookie.path ?? '/',
-            sameSite: cookie.sameSite as boolean | 'lax' | 'none' | 'strict' | undefined,
-            secure: cookie.secure
-          });
+      apiRequestDuration.record(duration, {
+        method: init.method ?? 'GET',
+        url: path,
+        status: response.status
+      });
+
+      logger.trace(
+        {
+          method: init.method ?? 'GET',
+          url: path,
+          status: response.status,
+          duration: `${duration}ms`,
+          fromServer: true,
+        },
+        'API Client Request'
+      );
+
+      if (event) {
+        const setCookieHeader = response.headers.getSetCookie();
+
+        if (setCookieHeader) {
+          const cookies = parse(setCookieHeader);
+          for (const cookie of cookies) {
+            event.cookies.set(cookie.name, cookie.value, {
+              domain: cookie.domain,
+              expires: cookie.expires,
+              httpOnly: cookie.httpOnly,
+              maxAge: cookie.maxAge,
+              path: cookie.path ?? '/',
+              sameSite: cookie.sameSite as boolean | 'lax' | 'none' | 'strict' | undefined,
+              secure: cookie.secure
+            });
+          }
         }
       }
-    }
 
-    return response;
+      return response;
+    } catch (err) {
+      const duration = Date.now() - start;
+      logger.error(
+        {
+          method: init.method ?? 'GET',
+          url: path,
+          err,
+          duration: `${duration}ms`,
+          fromServer: true,
+        },
+        'API Client Request Failed'
+      );
+      throw err;
+    }
   }
 }
 

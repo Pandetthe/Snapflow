@@ -34,11 +34,11 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-svelte": "^3.12.4",
     "globals": "^16.4.0",
+    "pino-pretty": "^13.0.0",
     "playwright": "^1.56.1",
     "prettier": "^3.6.2",
     "prettier-plugin-svelte": "^3.4.0",
     "prettier-plugin-tailwindcss": "^0.7.1",
-    "pino-pretty": "^13.0.0",
     "svelte": "^5.53.2",
     "svelte-check": "^4.3.3",
     "svelte-dnd-action": "^0.9.69",
@@ -59,7 +59,11 @@
     "@opentelemetry/exporter-logs-otlp-proto": "^0.212.0",
     "@opentelemetry/exporter-metrics-otlp-proto": "^0.212.0",
     "@opentelemetry/exporter-trace-otlp-proto": "^0.212.0",
+    "@opentelemetry/instrumentation-dns": "^0.55.0",
+    "@opentelemetry/instrumentation-http": "^0.212.0",
+    "@opentelemetry/instrumentation-net": "^0.56.0",
     "@opentelemetry/instrumentation-pino": "^0.57.0",
+    "@opentelemetry/instrumentation-undici": "^0.22.0",
     "@opentelemetry/resources": "^2.5.1",
     "@opentelemetry/sdk-logs": "^0.212.0",
     "@opentelemetry/sdk-node": "^0.212.0",
@@ -67,6 +71,7 @@
     "bits-ui": "^2.14.4",
     "import-in-the-middle": "^3.0.0",
     "pino": "^10.3.1",
+    "pino-opentelemetry-transport": "^2.0.0",
     "set-cookie-parser": "^2.7.2"
   }
 }

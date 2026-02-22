@@ -5,6 +5,7 @@
 	import type { ProblemDetails, PropertyValidationError } from '$lib/types/api';
 	import { errorStore } from '$lib/stores/error';
 	import { apiClient } from '$lib/services/api.client.ts';
+	import logger from '$lib/logger';
 
 	let { data } = $props();
 
@@ -177,7 +178,7 @@
 		isLoading = true;
     try {
 		  const response = await authService.resetPassword({ email: data.email, resetCode: data.code, newPassword: password });
-      console.log(JSON.stringify(response));
+      logger.debug({ response }, 'Reset password response');
       if (response.ok) {
         showSuccessModal = true;
       } else {

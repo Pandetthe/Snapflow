@@ -6,6 +6,7 @@
 	import { BoardsService } from '$lib/services/boards.api';
 	import { apiClient } from '$lib/services/api.client';
 	import { errorStore } from '$lib/stores/error';
+	import logger from '$lib/logger';
 	import { Button } from 'bits-ui';
 	import type { GetBoardsResponse } from '$lib/types/boards.api';
 
@@ -15,7 +16,7 @@
 
 	let boardModalOpen = $state(false);
 	let editingBoard = $state<GetBoardsResponse.BoardDto | undefined>(undefined);
-	const boardsService = new BoardsService(apiClient);
+	let boardsService: BoardsService;
 
 	setContext('boards-ui', {
 		openBoardModal: (board?: GetBoardsResponse.BoardDto) => {
@@ -35,7 +36,7 @@
 				title,
 				description
 			});
-			console.log(res);
+			logger.debug({ res }, 'Board update result');
 			if (res.ok) {
 				invalidate('/api/boards');
 			} else {
@@ -61,6 +62,7 @@
 	}
 
 	onMount(() => {
+		boardsService = new BoardsService(apiClient);
 		intervalId = setInterval(() => invalidate('/api/boards'), 10000);
 	});
 
