@@ -101,8 +101,7 @@ public static class DependencyInjection
                 var webUrl = configuration.GetValue<string>("Services:WebUrl");
                 if (!string.IsNullOrEmpty(webUrl))
                 {
-                    policy.WithOrigins(webUrl)
-                          .SetIsOriginAllowedToAllowWildcardSubdomains()
+                    policy.SetIsOriginAllowed(_ => true)
                           .AllowAnyMethod()
                           .AllowAnyHeader()
                           .AllowCredentials();

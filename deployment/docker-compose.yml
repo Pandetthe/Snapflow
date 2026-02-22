@@ -1,23 +1,23 @@
 services:
   web:
     build:
-      context: ./web
+      context: ./../web
       dockerfile: Dockerfile
     container_name: web
     expose:
       - "3000"
     environment:
       - PORT=3000
-      - API_BASE_URL=http://api:3001
+      - API_BASE_URL=http://server:3001
       - PUBLIC_API_BASE_URL=http://localhost:80/api
     networks:
       - frontend
 
-  api:
+  server:
     build:
-      context: ./api
+      context: ./../server
       dockerfile: Dockerfile
-    container_name: api
+    container_name: server
     expose:
       - "3001"
     environment:
@@ -30,7 +30,7 @@ services:
     container_name: proxy
     depends_on:
       - web
-      - api
+      - server
     ports:
       - "80:80"
     volumes:
