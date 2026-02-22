@@ -21,9 +21,6 @@ internal sealed class DeleteBoardHandler(
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
         var board = await dbContext.Boards
-            .Include(b => b.Swimlanes.Where(s => !s.IsDeleted))
-            .Include(b => b.Lists.Where(l => !l.IsDeleted))
-            .Include(b => b.Cards.Where(c => !c.IsDeleted))
             .SingleOrDefaultAsync(x => x.Id == command.BoardId && !x.IsDeleted, cancellationToken);
         if (board == null)
             return Result.Failure(BoardErrors.NotFound(command.BoardId));
@@ -31,41 +28,59 @@ internal sealed class DeleteBoardHandler(
         DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
         int userId = userContext.UserId;
 
-        board.IsDeleted = true;
-        board.DeletedAt = dateTimeOffset;
-        board.DeletedById = userId;
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        // TODO: Optimize to not load entire swimlanes and lists into memory
-        //       Domain events for now cannot be raised without loading and
-        //       and modifying tracked entity.
-
-        // TODO: Consider soft deleting Tags associated with Board
-
-        foreach (var swimlane in board.Swimlanes)
+        try
         {
-            swimlane.IsDeleted = true;
-            swimlane.DeletedAt = dateTimeOffset;
-            swimlane.DeletedById = userId;
-            swimlane.DeletedByCascade = true;
-        }
-        foreach (var list in board.Lists)
-        {
-            list.IsDeleted = true;
-            list.DeletedAt = dateTimeOffset;
-            list.DeletedById = userId;
-            list.DeletedByCascade = true;
-        }
-        foreach (var card in board.Cards)
-        {
-            card.IsDeleted = true;
-            card.DeletedAt = dateTimeOffset;
-            card.DeletedById = userId;
-            card.DeletedByCascade = true;
-        }
+            board.IsDeleted = true;
+            board.DeletedAt = dateTimeOffset;
+            board.DeletedById = userId;
 
-        board.Raise((entity) => new BoardDeletedDomainEvent(entity.Id, userContext.ConnectionId));
+            await dbContext.Swimlanes
+                .Where(s => s.BoardId == board.Id && !s.IsDeleted)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(x => x.IsDeleted, true)
+                    .SetProperty(x => x.DeletedAt, dateTimeOffset)
+                    .SetProperty(x => x.DeletedById, userId)
+                    .SetProperty(x => x.DeletedByCascade, true),
+                    cancellationToken);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.Lists
+                .Where(l => l.BoardId == board.Id && !l.IsDeleted)
+                .ExecuteUpdateAsync(l => l
+                    .SetProperty(x => x.IsDeleted, true)
+                    .SetProperty(x => x.DeletedAt, dateTimeOffset)
+                    .SetProperty(x => x.DeletedById, userId)
+                    .SetProperty(x => x.DeletedByCascade, true),
+                    cancellationToken);
+
+            await dbContext.Cards
+                .Where(c => c.BoardId == board.Id && !c.IsDeleted)
+                .ExecuteUpdateAsync(c => c
+                    .SetProperty(x => x.IsDeleted, true)
+                    .SetProperty(x => x.DeletedAt, dateTimeOffset)
+                    .SetProperty(x => x.DeletedById, userId)
+                    .SetProperty(x => x.DeletedByCascade, true),
+                    cancellationToken);
+
+            await dbContext.Tags
+                .Where(t => t.BoardId == board.Id && !t.IsDeleted)
+                .ExecuteUpdateAsync(t => t
+                    .SetProperty(x => x.IsDeleted, true)
+                    .SetProperty(x => x.DeletedAt, dateTimeOffset)
+                    .SetProperty(x => x.DeletedById, userId),
+                    cancellationToken);
+
+            board.Raise((entity) => new BoardDeletedDomainEvent(entity.Id, userContext.ConnectionId));
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
 
         return Result.Success();
     }
