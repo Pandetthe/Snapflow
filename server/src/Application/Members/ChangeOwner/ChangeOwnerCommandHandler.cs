@@ -22,12 +22,8 @@ internal sealed class ChangeOwnerCommandHandler(
             .SingleOrDefaultAsync(b => b.BoardId == command.BoardId && b.UserId == command.UserId, cancellationToken);
         if (newOwner == null)
             return Result.Failure(MemberErrors.NotFound(command.UserId, command.BoardId));
-        oldOwner.Raise((entity) => new MemberRoleChangedDomainEvent(entity.UserId,
-            entity.BoardId, oldOwner.Role, MemberRole.Admin, userContext.ConnectionId));
-        newOwner.Raise((entity) => new MemberRoleChangedDomainEvent(entity.UserId,
-            entity.BoardId, newOwner.Role, MemberRole.Owner, userContext.ConnectionId));
-        oldOwner.Role = MemberRole.Admin;
-        newOwner.Role = MemberRole.Owner;
+        oldOwner.UpdateRole(MemberRole.Admin, userContext.ConnectionId);
+        newOwner.UpdateRole(MemberRole.Owner, userContext.ConnectionId);
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

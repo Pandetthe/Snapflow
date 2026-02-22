@@ -21,7 +21,7 @@ internal sealed class MoveListHandler(
         var userExists = await dbContext.Users.AsNoTracking()
             .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (!userExists)
-            return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
+            return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
         var swimlane = await dbContext.Swimlanes
             .AsNoTracking()
@@ -34,17 +34,18 @@ internal sealed class MoveListHandler(
         if (list == null)
             return Result.Failure(ListErrors.NotFound(command.Id));
 
-        list.SwimlaneId = command.SwimlaneId;
         Result<string> rankResult = await rankService.GenerateRankAsync(
-            list.SwimlaneId, command.Id, command.BeforeId, cancellationToken);
+            command.SwimlaneId, command.Id, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
             return Result.Failure(rankResult.Error);
-        list.Rank = rankResult.Value;
-        list.UpdatedById = userContext.UserId;
-        list.UpdatedAt = timeProvider.GetUtcNow();
-        list.Raise((entity) =>
-            new ListMovedDomainEvent(entity.Id, entity.BoardId, entity.SwimlaneId,
-                entity.Rank, userContext.ConnectionId));
+
+        list.Move(
+            command.SwimlaneId,
+            rankResult.Value,
+            userContext.UserId,
+            timeProvider.GetUtcNow(),
+            userContext.ConnectionId);
+
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

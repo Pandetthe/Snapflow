@@ -25,14 +25,12 @@ internal sealed class UpdateSwimlaneHandler(
         if (swimlane == null)
             return Result.Failure(SwimlaneErrors.NotFound(command.Id));
 
-        swimlane.Title = command.Title;
-        swimlane.Height = command.Height;
-        swimlane.UpdatedById = userContext.UserId;
-        swimlane.UpdatedAt = timeProvider.GetUtcNow();
-
-        swimlane.Raise((entity) =>
-            new SwimlaneUpdatedDomainEvent(entity.Id, entity.BoardId, entity.Title,
-                entity.Height, userContext.ConnectionId));
+        swimlane.Update(
+            command.Title,
+            command.Height,
+            userContext.UserId,
+            timeProvider.GetUtcNow(),
+            userContext.ConnectionId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

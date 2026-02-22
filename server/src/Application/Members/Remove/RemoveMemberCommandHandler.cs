@@ -18,8 +18,7 @@ internal sealed class RemoveMemberCommandHandler(
             && b.UserId == command.UserId, cancellationToken);
         if (member == null)
             return Result.Failure(MemberErrors.NotFound(command.UserId, command.BoardId));
-        member.Raise((entity) => new MemberRemovedDomainEvent(entity.UserId, entity.BoardId,
-            userContext.ConnectionId));
+        member.Remove(userContext.ConnectionId);
         dbContext.Members.Remove(member);
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();

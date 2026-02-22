@@ -35,20 +35,15 @@ internal sealed class CreateListHandler(
         if (!rankResult.IsSuccess)
             return Result.Failure<int>(rankResult.Error);
 
-        var list = new List
-        {
-            BoardId = swimlaneBoardId.BoardId,
-            SwimlaneId = command.SwimlaneId,
-            Title = command.Title,
-            Rank = rankResult.Value,
-            Width = command.Width,
-            CreatedById = userContext.UserId,
-            CreatedAt = timeProvider.GetUtcNow(),
-        };
-
-        list.Raise((entity) =>
-            new ListCreatedDomainEvent(entity.Id, entity.BoardId, entity.SwimlaneId, entity.Title,
-                entity.Width, entity.Rank, userContext.ConnectionId));
+        var list = List.Create(
+            swimlaneBoardId.BoardId,
+            command.SwimlaneId,
+            command.Title,
+            command.Width,
+            rankResult.Value,
+            userContext.UserId,
+            timeProvider.GetUtcNow(),
+            userContext.ConnectionId);
 
         await dbContext.Lists.AddAsync(list, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

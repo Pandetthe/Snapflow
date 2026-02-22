@@ -21,7 +21,7 @@ internal sealed class MoveCardHandler(
         var userExists = await dbContext.Users.AsNoTracking()
             .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (!userExists)
-            return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
+            return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
         var list = await dbContext.Lists
             .AsNoTracking()
@@ -33,18 +33,20 @@ internal sealed class MoveCardHandler(
             .SingleOrDefaultAsync(s => s.Id == command.Id && !s.IsDeleted, cancellationToken);
         if (card == null)
             return Result.Failure(CardErrors.NotFound(command.Id));
-        card.ListId = command.ListId;
-        card.SwimlaneId = list.SwimlaneId;
+
         Result<string> rankResult = await rankService.GenerateRankAsync(
-            card.ListId, command.Id, command.BeforeId, cancellationToken);
+            command.ListId, command.Id, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
             return Result.Failure(rankResult.Error);
-        card.Rank = rankResult.Value;
-        card.UpdatedById = userContext.UserId;
-        card.UpdatedAt = timeProvider.GetUtcNow();
-        card.Raise((entity) =>
-            new CardMovedDomainEvent(entity.Id, entity.BoardId, entity.ListId,
-                entity.Rank, userContext.ConnectionId));
+
+        card.Move(
+            command.ListId,
+            list.SwimlaneId,
+            rankResult.Value,
+            userContext.UserId,
+            timeProvider.GetUtcNow(),
+            userContext.ConnectionId);
+
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

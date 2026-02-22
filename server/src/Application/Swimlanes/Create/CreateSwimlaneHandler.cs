@@ -32,19 +32,14 @@ internal sealed class CreateSwimlaneHandler(
         if (!rankResult.IsSuccess)
             return Result.Failure<int>(rankResult.Error);
 
-        var swimlane = new Swimlane
-        {
-            BoardId = command.BoardId,
-            Title = command.Title,
-            Rank = rankResult.Value,
-            Height = command.Height,
-            CreatedById = userContext.UserId,
-            CreatedAt = timeProvider.GetUtcNow(),
-        };
-
-        swimlane.Raise((entity) =>
-            new SwimlaneCreatedDomainEvent(entity.Id, entity.BoardId, entity.Title, entity.Height,
-                entity.Rank, userContext.ConnectionId));
+        var swimlane = Swimlane.Create(
+            command.BoardId,
+            command.Title,
+            command.Height,
+            rankResult.Value,
+            userContext.UserId,
+            timeProvider.GetUtcNow(),
+            userContext.ConnectionId);
 
         await dbContext.Swimlanes.AddAsync(swimlane, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

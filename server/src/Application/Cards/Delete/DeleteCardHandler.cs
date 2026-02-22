@@ -28,13 +28,7 @@ internal sealed class DeleteCardHandler(
         DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
         int userId = userContext.UserId;
 
-        card.IsDeleted = true;
-        card.DeletedById = userId;
-        card.DeletedAt = dateTimeOffset;
-        card.DeletedByCascade = false;
-
-
-        card.Raise((entity) => new CardDeletedDomainEvent(entity.Id, entity.BoardId, userContext.ConnectionId));
+        card.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

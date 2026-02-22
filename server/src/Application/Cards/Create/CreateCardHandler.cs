@@ -35,21 +35,16 @@ internal sealed class CreateCardHandler(
         if (!rankResult.IsSuccess)
             return Result.Failure<int>(rankResult.Error);
 
-        var card = new Card
-        {
-            ListId = command.ListId,
-            SwimlaneId = list.SwimlaneId,
-            BoardId = list.BoardId,
-            Title = command.Title,
-            Description = command.Description,
-            Rank = rankResult.Value,
-            CreatedById = userContext.UserId,
-            CreatedAt = timeProvider.GetUtcNow(),
-        };
-
-        card.Raise((entity) =>
-            new CardCreatedDomainEvent(entity.Id, entity.BoardId, entity.ListId,
-                entity.Title, entity.Description, entity.Rank, userContext.ConnectionId));
+        var card = Card.Create(
+            list.BoardId,
+            list.SwimlaneId,
+            command.ListId,
+            command.Title,
+            command.Description,
+            rankResult.Value,
+            userContext.UserId,
+            timeProvider.GetUtcNow(),
+            userContext.ConnectionId);
 
         await dbContext.Cards.AddAsync(card, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

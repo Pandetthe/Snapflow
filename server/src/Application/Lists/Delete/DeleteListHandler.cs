@@ -32,10 +32,7 @@ internal sealed class DeleteListHandler(
 
         try
         {
-            list.IsDeleted = true;
-            list.DeletedById = userId;
-            list.DeletedAt = dateTimeOffset;
-            list.DeletedByCascade = false;
+            list.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
 
             await dbContext.Cards
                 .Where(c => c.ListId == list.Id && !c.IsDeleted)
@@ -45,10 +42,6 @@ internal sealed class DeleteListHandler(
                     .SetProperty(x => x.DeletedById, userId)
                     .SetProperty(x => x.DeletedByCascade, true),
                     cancellationToken);
-
-            list.Raise((entity) =>
-                new ListDeletedDomainEvent(entity.Id, entity.BoardId,
-                    userContext.ConnectionId));
 
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);

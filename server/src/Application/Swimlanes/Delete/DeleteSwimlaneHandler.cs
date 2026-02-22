@@ -32,10 +32,7 @@ internal sealed class DeleteSwimlaneHandler(
 
         try
         {
-            swimlane.IsDeleted = true;
-            swimlane.DeletedById = userId;
-            swimlane.DeletedAt = dateTimeOffset;
-            swimlane.DeletedByCascade = false;
+            swimlane.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
 
             await dbContext.Lists
                 .Where(l => l.SwimlaneId == swimlane.Id && !l.IsDeleted)
@@ -54,9 +51,6 @@ internal sealed class DeleteSwimlaneHandler(
                     .SetProperty(x => x.DeletedById, userId)
                     .SetProperty(x => x.DeletedByCascade, true),
                     cancellationToken);
-
-            swimlane.Raise((entity) =>
-                new SwimlaneDeletedDomainEvent(entity.Id, entity.BoardId, userContext.ConnectionId));
 
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);

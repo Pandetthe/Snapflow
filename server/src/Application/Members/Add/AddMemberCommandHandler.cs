@@ -10,12 +10,7 @@ internal sealed class AddMemberCommandHandler(
 {
     public async Task<Result> Handle(AddMemberCommand command, CancellationToken cancellationToken = default)
     {
-        var member = new Member
-        {
-            UserId = command.UserId,
-            BoardId = command.BoardId,
-            Role = command.Role
-        };
+        var member = Member.Create(command.BoardId, command.UserId, command.Role);
 
         await dbContext.Members.AddAsync(member, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

@@ -18,21 +18,19 @@ internal sealed class UpdateListHandler(
         var userExists = await dbContext.Users.AsNoTracking()
             .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (!userExists)
-            return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
+            return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
         var list = await dbContext.Lists
             .SingleOrDefaultAsync(l => l.Id == command.Id && !l.IsDeleted, cancellationToken);
         if (list == null)
             return Result.Failure(ListErrors.NotFound(command.Id));
 
-        list.Title = command.Title;
-        list.Width = command.Width;
-        list.UpdatedById = userContext.UserId;
-        list.UpdatedAt = timeProvider.GetUtcNow();
-
-        list.Raise((entity) =>
-            new ListUpdatedDomainEvent(entity.Id, entity.BoardId, entity.Title,
-                entity.Width, userContext.ConnectionId));
+        list.Update(
+            command.Title,
+            command.Width,
+            userContext.UserId,
+            timeProvider.GetUtcNow(),
+            userContext.ConnectionId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

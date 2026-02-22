@@ -32,9 +32,7 @@ internal sealed class DeleteBoardHandler(
 
         try
         {
-            board.IsDeleted = true;
-            board.DeletedAt = dateTimeOffset;
-            board.DeletedById = userId;
+            board.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
 
             await dbContext.Swimlanes
                 .Where(s => s.BoardId == board.Id && !s.IsDeleted)
@@ -70,8 +68,6 @@ internal sealed class DeleteBoardHandler(
                     .SetProperty(x => x.DeletedAt, dateTimeOffset)
                     .SetProperty(x => x.DeletedById, userId),
                     cancellationToken);
-
-            board.Raise((entity) => new BoardDeletedDomainEvent(entity.Id, userContext.ConnectionId));
 
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);

@@ -8,7 +8,7 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Cards.Update;
 
-internal sealed class CreateCardCommandHandler(
+internal sealed class UpdateCardHandler(
     IAppDbContext dbContext,
     IUserContext userContext,
     TimeProvider timeProvider) : ICommandHandler<UpdateCardCommand>
@@ -18,21 +18,19 @@ internal sealed class CreateCardCommandHandler(
         var userExists = await dbContext.Users.AsNoTracking()
             .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (!userExists)
-            return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
+            return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
         var card = await dbContext.Cards
             .SingleOrDefaultAsync(c => c.Id == command.Id && !c.IsDeleted, cancellationToken);
         if (card == null)
-            return Result.Failure<int>(CardErrors.NotFound(command.Id));
+            return Result.Failure(CardErrors.NotFound(command.Id));
 
-        card.Title = command.Title;
-        card.Description = command.Description;
-        card.UpdatedAt = timeProvider.GetUtcNow();
-        card.UpdatedById = userContext.UserId;
-
-        card.Raise((entity) =>
-            new CardUpdatedDomainEvent(card.Id, card.BoardId, card.Title,
-                card.Description, userContext.ConnectionId));
+        card.Update(
+            command.Title,
+            command.Description,
+            userContext.UserId,
+            timeProvider.GetUtcNow(),
+            userContext.ConnectionId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

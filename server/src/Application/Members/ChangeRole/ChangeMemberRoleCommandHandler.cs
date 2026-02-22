@@ -17,9 +17,7 @@ internal sealed class ChangeMemberRoleCommandHandler(
             x => x.BoardId == command.BoardId && x.UserId == command.UserId, cancellationToken);
         if (member == null)
             return Result.Failure(MemberErrors.NotFound(command.UserId, command.BoardId));
-        member.Raise((entity) => new MemberRoleChangedDomainEvent(entity.UserId,
-            entity.BoardId, entity.Role, entity.Role, userContext.ConnectionId));
-        member.Role = command.Role;
+        member.UpdateRole(command.Role, userContext.ConnectionId);
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

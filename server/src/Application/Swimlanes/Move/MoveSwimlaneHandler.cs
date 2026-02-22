@@ -30,12 +30,13 @@ internal sealed class MoveSwimlaneHandler(
             swimlane.BoardId, command.Id, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
             return Result.Failure<string>(rankResult.Error);
-        swimlane.Rank = rankResult.Value;
-        swimlane.UpdatedById = userContext.UserId;
-        swimlane.UpdatedAt = timeProvider.GetUtcNow();
-        swimlane.Raise((entity) =>
-            new SwimlaneMovedDomainEvent(entity.Id, entity.BoardId, entity.Rank,
-                userContext.ConnectionId));
+        
+        swimlane.Move(
+            rankResult.Value,
+            userContext.UserId,
+            timeProvider.GetUtcNow(),
+            userContext.ConnectionId);
+
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success(swimlane.Rank);
     }

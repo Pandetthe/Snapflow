@@ -21,19 +21,12 @@ internal sealed class CreateBoardHandler(
         if (!userExists)
             return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
 
-        var board = new Board
-        {
-            Title = command.Title,
-            Description = command.Description,
-            CreatedById = userContext.UserId,
-            CreatedAt = timeProvider.GetUtcNow(),
-        };
-
-        board.Members.Add(new Member
-        {
-            Role = MemberRole.Owner,
-            UserId = userContext.UserId,
-        });
+        var board = Board.Create(
+            command.Title,
+            command.Description,
+            userContext.UserId,
+            timeProvider.GetUtcNow(),
+            userContext.ConnectionId);
 
         await dbContext.Boards.AddAsync(board, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
