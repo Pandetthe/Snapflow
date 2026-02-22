@@ -27,14 +27,13 @@ internal sealed class CreateBoardHandler(
             Description = command.Description,
             CreatedById = userContext.UserId,
             CreatedAt = timeProvider.GetUtcNow(),
-            Members = [
-                new Member
-                {
-                    Role = MemberRole.Owner,
-                    UserId = userContext.UserId,
-                }
-            ]
         };
+
+        board.Members.Add(new Member
+        {
+            Role = MemberRole.Owner,
+            UserId = userContext.UserId,
+        });
 
         await dbContext.Boards.AddAsync(board, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

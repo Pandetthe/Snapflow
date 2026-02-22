@@ -9,6 +9,8 @@ namespace Snapflow.Domain.Cards;
 
 public class Card : Entity<int, Card>
 {
+    public Card() { }
+    
     public int BoardId { get; set; }
     public virtual Board Board { get; set; } = null!;
     public int SwimlaneId { get; set; }
@@ -34,5 +36,5 @@ public class Card : Entity<int, Card>
     public bool IsDeleted { get; set; }
     public bool DeletedByCascade { get; set; }
 
-    public virtual ICollection<Tag> Tags { get; set; } = [];
+    public virtual ICollection<Tag> Tags { get; private set; } = [];
 }

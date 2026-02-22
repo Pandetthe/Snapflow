@@ -8,6 +8,8 @@ namespace Snapflow.Domain.Lists;
 
 public class List : Entity<int, List>
 {
+    public List() { }
+    
     public int BoardId { get; set; }
     public virtual Board Board { get; set; } = null!;
 
@@ -33,5 +35,5 @@ public class List : Entity<int, List>
     public bool IsDeleted { get; set; }
     public bool DeletedByCascade { get; set; }
 
-    public virtual ICollection<Card> Cards { get; set; } = [];
+    public virtual ICollection<Card> Cards { get; private set; } = [];
 }

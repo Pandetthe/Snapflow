@@ -8,6 +8,8 @@ namespace Snapflow.Domain.Swimlanes;
 
 public class Swimlane : Entity<int, Swimlane>
 {
+    public Swimlane() { }
+    
     public int BoardId { get; set; }
     public Board Board { get; set; } = null!;
 
@@ -30,6 +32,6 @@ public class Swimlane : Entity<int, Swimlane>
     public bool IsDeleted { get; set; }
     public bool DeletedByCascade { get; set; }
 
-    public virtual ICollection<List> Lists { get; set; } = [];
-    public virtual ICollection<Card> Cards { get; set; } = [];
+    public virtual ICollection<List> Lists { get; private set; } = [];
+    public virtual ICollection<Card> Cards { get; private set; } = [];
 }

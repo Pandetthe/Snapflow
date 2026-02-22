@@ -7,6 +7,8 @@ namespace Snapflow.Domain.Tags;
 
 public class Tag : Entity<int, Tag>
 {
+    public Tag() { }
+
     public int BoardId { get; set; }
     public virtual Board Board { get; set; } = null!;
 
@@ -26,5 +28,5 @@ public class Tag : Entity<int, Tag>
     public IUser? DeletedBy { get; set; }
     public bool IsDeleted { get; set; }
 
-    public virtual HashSet<Card> Cards { get; set; } = [];
+    public virtual HashSet<Card> Cards { get; private set; } = [];
 }

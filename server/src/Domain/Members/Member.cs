@@ -6,6 +6,8 @@ namespace Snapflow.Domain.Members;
 
 public class Member : Entity<Member>
 {
+    public Member() { }
+    
     public int BoardId { get; set; }
     public virtual Board Board { get; set; } = null!;
 

@@ -10,6 +10,8 @@ namespace Snapflow.Domain.Boards;
 
 public class Board : Entity<int, Board>
 {
+    public Board() { }
+    
     public required string Title { get; set; }
     public string Description { get; set; } = "";
 
@@ -26,9 +28,9 @@ public class Board : Entity<int, Board>
     public virtual IUser? DeletedBy { get; set; }
     public bool IsDeleted { get; set; }
 
-    public virtual ICollection<Member> Members { get; set; } = [];
-    public virtual ICollection<Swimlane> Swimlanes { get; set; } = [];
-    public virtual ICollection<List> Lists { get; set; } = [];
-    public virtual ICollection<Card> Cards { get; set; } = [];
-    public virtual ICollection<Tag> Tags { get; set; } = [];
+    public virtual ICollection<Member> Members { get; private set; } = [];
+    public virtual ICollection<Swimlane> Swimlanes { get; private set; } = [];
+    public virtual ICollection<List> Lists { get; private set; } = [];
+    public virtual ICollection<Card> Cards { get; private set; } = [];
+    public virtual ICollection<Tag> Tags { get; private set; } = [];
 }
