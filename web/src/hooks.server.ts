@@ -24,6 +24,10 @@ export const handle: Handle = async ({ event, resolve }) => {
   const response = await resolve(event);
   const duration = Date.now() - start;
 
+  if (event.url.pathname.endsWith('/health') || event.url.pathname.endsWith('/alive')) {
+    return response;
+  }
+
   requestCounter.add(1, {
     method: event.request.method,
     url: event.url.pathname,
@@ -42,6 +46,8 @@ export const handle: Handle = async ({ event, resolve }) => {
       url: event.url.pathname,
       status: response.status,
       duration_ms: duration,
+      user_id: event.locals.user?.id,
+      user_name: event.locals.user?.userName,
     },
     'Request processed'
   );
@@ -55,11 +61,17 @@ export const handleError: HandleServerError = ({ error, event }) => {
     url: event.url.pathname
   });
 
+  const errorObj = error instanceof Error
+    ? { message: error.message, stack: error.stack, name: error.name }
+    : { message: String(error) };
+
   logger.error(
     {
-      error,
+      err: errorObj,
       method: event.request.method,
       url: event.url.pathname,
+      user_id: event.locals.user?.id,
+      user_name: event.locals.user?.userName,
     },
     'Unhandled server error'
   );

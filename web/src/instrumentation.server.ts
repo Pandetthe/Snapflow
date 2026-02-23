@@ -42,10 +42,19 @@ if (connectionString || otlpEndpoint) {
 				instrumentations: [
 					new HttpInstrumentation({
 						ignoreIncomingRequestHook: (req) => {
-							return req.url?.includes('/health') || req.url?.includes('/alive') || false;
+							const url = req.url || '';
+							return url.includes('/health') || url.includes('/alive');
+						},
+						ignoreOutgoingRequestHook: (req) => {
+							const path = req.path || '';
+							return path.includes('/health') || path.includes('/alive');
 						},
 					}),
-					new UndiciInstrumentation(),
+					new UndiciInstrumentation({
+						ignoreRequestHook: (req) => {
+							return req.path.includes('/health') || req.path.includes('/alive');
+						}
+					}),
 					new NetInstrumentation(),
 					new DnsInstrumentation()
 				],

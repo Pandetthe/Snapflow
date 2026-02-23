@@ -8,7 +8,7 @@ import { apiRequestCounter, apiRequestDuration } from '$lib/metrics';
 class ServerApiClient implements ApiClient {
   async fetch(path: string | undefined, init: RequestInit, event?: RequestEvent | ServerLoadEvent): Promise<Response> {
     const start = Date.now();
-    const base = env.API_BASE_URL;
+    const base = env.API_BASE_URL || 'http://localhost:3001';
     const cleanBase = base.replace(/\/+$/, '');
     const cleanPath = (path ?? '').replace(/^\/+/, '');
     const url = `${cleanBase}/${cleanPath}`;
