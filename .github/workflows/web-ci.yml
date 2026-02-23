@@ -42,3 +42,20 @@ jobs:
           node-version: 22
       - run: npm ci --prefix web
       - run: npm run build --prefix web
+
+  test:
+    name: Test
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --prefix web
+      - run: npx playwright install --with-deps
+        working-directory: ./web
+      - run: npm run test:unit
+        working-directory: ./web
+      - run: npm run test:e2e
+        working-directory: ./web
