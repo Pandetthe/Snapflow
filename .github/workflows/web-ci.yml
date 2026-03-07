@@ -1,14 +1,15 @@
 name: "Web CI"
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
     paths:
       - "web/**"
       - ".github/workflows/web-ci.yml"
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
     paths:
       - "web/**"
+  workflow_dispatch: 
 
 permissions:
   contents: read
