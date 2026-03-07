@@ -8,6 +8,7 @@
   import { onDestroy, onMount, setContext } from 'svelte';
   import { BoardsHub } from '$lib/features/boards/hub/boards.hub';
   import { errorStore } from '$lib/ui/stores/error';
+  import { recentBoards } from '$lib/features/boards/stores/recent';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import { Button } from 'bits-ui';
 
@@ -157,6 +158,8 @@
       board = data.board;
       sortAll();
     }
+
+    recentBoards.add({ id: board.id, title: board.title });
   });
 
   setContext('hub', () => hub);

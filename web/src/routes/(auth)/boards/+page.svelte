@@ -6,6 +6,7 @@
   import { BoardsService } from '$lib/features/boards/api/boards.api';
   import { apiClient } from '$lib/core/api.client';
   import { errorStore } from '$lib/ui/stores/error';
+  import { recentBoards } from '$lib/features/boards/stores/recent';
   import logger from '$lib/logger';
   import { Button } from 'bits-ui';
   import type { GetBoardsResponse } from '$lib/features/boards/types/boards.api';
@@ -105,6 +106,47 @@
       New Board
     </Button.Root>
   </div>
+
+  {#if $recentBoards.length > 0}
+    <div class="mb-8">
+      <h2 class="mb-4 text-lg font-semibold text-gray-700 dark:text-gray-300">Recently Visited</h2>
+      <div class="flex flex-wrap gap-3">
+        {#each $recentBoards as board}
+          <a
+            href="/boards/{board.id}"
+            class="group relative flex min-w-[120px] items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/50 hover:shadow-md hover:shadow-blue-500/10 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-400/50 dark:hover:shadow-blue-400/10"
+          >
+            <div
+              class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-900/30 dark:text-blue-400"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <span
+              class="text-sm font-medium text-gray-700 transition-colors group-hover:text-blue-600 dark:text-gray-300 dark:group-hover:text-blue-400"
+            >
+              {board.title}
+            </span>
+            <div
+              class="absolute inset-0 rounded-xl bg-linear-to-r from-blue-500/0 to-blue-500/0 transition-all duration-300 group-hover:from-blue-500/5 group-hover:to-transparent"
+            ></div>
+          </a>
+        {/each}
+      </div>
+    </div>
+  {/if}
 
   {#if data.boards.length === 0}
     <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">
