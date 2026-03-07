@@ -1,14 +1,15 @@
 name: "Server CI"
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
     paths:
       - "server/**"
       - ".github/workflows/server-ci.yml"
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
     paths:
       - "server/**"
+  workflow_dispatch:
 
 permissions:
   contents: read
