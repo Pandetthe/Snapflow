@@ -5,41 +5,40 @@ import { trace, context } from '@opentelemetry/api';
 const isServer = !browser;
 const otlpEnabled = isServer && !!process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
 
-const transport = isServer
-  ? pino.transport({
-    targets: [
-      {
-        target: 'pino-pretty',
-        options: { colorize: true },
-        level: dev ? 'debug' : 'info'
+const targets: any[] = [];
+
+if (dev) {
+  targets.push({
+    target: 'pino-pretty',
+    options: { colorize: true },
+    level: 'debug'
+  });
+}
+
+if (otlpEnabled) {
+  targets.push({
+    target: 'pino-opentelemetry-transport',
+    options: {
+      url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.endsWith('/v1/logs')
+        ? process.env.OTEL_EXPORTER_OTLP_ENDPOINT
+        : `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT}/v1/logs`,
+      serviceName: process.env.OTEL_SERVICE_NAME || 'web-client',
+      resourceAttributes: {
+        'service.name': process.env.OTEL_SERVICE_NAME || 'web-client',
+        'deployment.environment': dev ? 'development' : 'production',
+        'telemetry.sdk.name': 'opentelemetry',
+        'telemetry.sdk.language': 'nodejs',
+        'instrumentation.name': 'web-client'
       },
-      ...(otlpEnabled
-        ? [
-          {
-            target: 'pino-opentelemetry-transport',
-            options: {
-              url: otlpEnabled ?
-                (process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.endsWith('/v1/logs')
-                  ? process.env.OTEL_EXPORTER_OTLP_ENDPOINT
-                  : `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT}/v1/logs`)
-                : undefined,
-              serviceName: process.env.OTEL_SERVICE_NAME || 'web-client',
-              resourceAttributes: {
-                'service.name': process.env.OTEL_SERVICE_NAME || 'web-client',
-                'deployment.environment': dev ? 'development' : 'production',
-                'telemetry.sdk.name': 'opentelemetry',
-                'telemetry.sdk.language': 'nodejs',
-                'instrumentation.name': 'web-client'
-              },
-              messageKey: 'msg',
-              loggerName: 'web-client'
-            },
-            level: 'info'
-          }
-        ]
-        : [])
-    ]
-  })
+      messageKey: 'msg',
+      loggerName: 'web-client'
+    },
+    level: 'info'
+  });
+}
+
+const transport = isServer && targets.length > 0
+  ? pino.transport({ targets })
   : undefined;
 
 const logger = pino(
