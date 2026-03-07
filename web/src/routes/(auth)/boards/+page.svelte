@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy, setContext } from 'svelte';
-  import { invalidate } from '$app/navigation';
+  import { invalidate, invalidateAll } from '$app/navigation';
   import Board from '$lib/features/boards/components/Board.svelte';
   import BoardModal from '$lib/features/boards/components/BoardModal.svelte';
   import { BoardsService } from '$lib/features/boards/api/boards.api';
@@ -39,14 +39,18 @@
       });
       logger.debug({ res }, 'Board update result');
       if (res.ok) {
-        invalidate('/api/boards');
+        await invalidateAll();
+        // Safety refresh for eventual consistency
+        setTimeout(() => invalidateAll(), 500);
       } else {
         errorStore.addError('Web.UpdateBoardFailed', 'Failed to update board');
       }
     } else {
       const res = await boardsService.createBoard({ title, description });
       if (res.ok) {
-        invalidate('/api/boards');
+        await invalidateAll();
+        // Safety refresh for eventual consistency
+        setTimeout(() => invalidateAll(), 500);
       } else {
         errorStore.addError('Web.CreateBoardFailed', 'Failed to create board');
       }
@@ -56,7 +60,9 @@
   async function handleDeleteBoard(id: number) {
     const res = await boardsService.deleteBoard(id);
     if (res.ok) {
-      invalidate('/api/boards');
+      await invalidateAll();
+      // Safety refresh for eventual consistency
+      setTimeout(() => invalidateAll(), 500);
     } else {
       errorStore.addError('Web.DeleteBoardFailed', 'Failed to delete board');
     }
