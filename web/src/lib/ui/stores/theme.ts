@@ -2,8 +2,17 @@ import { writable } from 'svelte/store';
 
 type Theme = 'light' | 'dark';
 
+function getInitialTheme(): Theme {
+  if (typeof window === 'undefined') return 'light';
+
+  const stored = localStorage.getItem('theme') as Theme | null;
+  if (stored) return stored;
+
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}
+
 function createThemeStore() {
-  const { subscribe, set, update } = writable<Theme>('light');
+  const { subscribe, set, update } = writable<Theme>(getInitialTheme());
 
   return {
     subscribe,
@@ -12,11 +21,7 @@ function createThemeStore() {
         const newTheme = theme === 'light' ? 'dark' : 'light';
         if (typeof window !== 'undefined') {
           localStorage.setItem('theme', newTheme);
-          if (newTheme === 'dark') {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
-          }
+          document.documentElement.classList.toggle('dark', newTheme === 'dark');
         }
         return newTheme;
       });
@@ -25,22 +30,14 @@ function createThemeStore() {
       set(theme);
       if (typeof window !== 'undefined') {
         localStorage.setItem('theme', theme);
-        if (theme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
+        document.documentElement.classList.toggle('dark', theme === 'dark');
       }
     },
     init: () => {
-      let initial: Theme = 'light';
+      const initial = getInitialTheme();
+      set(initial);
       if (typeof window !== 'undefined') {
-        const isDark = document.documentElement.classList.contains('dark');
-        initial = isDark ? 'dark' : 'light';
-        set(initial);
-        localStorage.setItem('theme', initial);
-      } else {
-        set(initial);
+        document.documentElement.classList.toggle('dark', initial === 'dark');
       }
       return initial;
     }

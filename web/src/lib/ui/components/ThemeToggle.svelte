@@ -1,17 +1,6 @@
 <script lang="ts">
   import { Button } from 'bits-ui';
   import { theme } from '$lib/ui/stores/theme';
-  import { onMount } from 'svelte';
-
-  let currentTheme = $state<'light' | 'dark'>('light');
-
-  onMount(() => {
-    currentTheme = theme.init();
-  });
-
-  theme.subscribe((value) => {
-    currentTheme = value;
-  });
 
   function toggleTheme() {
     theme.toggle();
@@ -22,7 +11,7 @@
   onclick={toggleTheme}
   class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
 >
-  {#if currentTheme === 'light'}
+  {#if $theme === 'light'}
     <svg
       class="h-4 w-4"
       fill="none"
