@@ -4,27 +4,28 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
-	html, body {
-		@apply bg-gray-100;
+  html,
+  body {
+    @apply bg-gray-100;
+  }
 
-	}
+  html.dark,
+  html.dark body {
+    @apply bg-gray-900;
+  }
 
-	html.dark, html.dark body {
-		@apply bg-gray-900;
-	}
+  .show-on-hover {
+    @apply opacity-100 transition-opacity duration-200;
+  }
 
-	.show-on-hover {
-		@apply opacity-100 transition-opacity duration-200;
-	}
-
-	@media (hover: hover) {
-		.show-on-hover {
-			@apply opacity-0;
-		}
-		.group:hover .show-on-hover {
-			@apply opacity-100;
-		}
-	}
+  @media (hover: hover) {
+    .show-on-hover {
+      @apply opacity-0;
+    }
+    .group:hover .show-on-hover {
+      @apply opacity-100;
+    }
+  }
 }
 
 @keyframes dots-bounce {
@@ -32,14 +33,16 @@
     transform: translateY(-10%);
     animation-timing-function: cubic-bezier(0.4, 0, 1, 1);
   }
-  0%, 50%, 100% {
+  0%,
+  50%,
+  100% {
     transform: none;
     animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
   }
 }
 
 .animate-dots-bounce {
-	animation: dots-bounce 1.5s infinite;
+  animation: dots-bounce 1.5s infinite;
 }
 
 @keyframes refresh-update {
@@ -58,5 +61,5 @@
 }
 
 .animate-refresh-update {
-	animation: refresh-update 0.5s ease-in-out;
+  animation: refresh-update 0.5s ease-in-out;
 }

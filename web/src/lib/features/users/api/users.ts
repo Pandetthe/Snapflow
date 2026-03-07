@@ -1,4 +1,4 @@
-import type { ApiClient, Response as ApiResponseType } from '$lib/types/api';
+import type { ApiClient, Response as ApiResponseType } from '$lib/core/types/api';
 import type { RequestEvent, ServerLoadEvent } from '@sveltejs/kit';
 
 export interface User {
@@ -12,14 +12,14 @@ export class UsersService {
     this.apiClient = apiClient;
   }
 
-  async getMe(event?: RequestEvent | ServerLoadEvent): Promise<(ApiResponseType<{ user: User }>)> {
+  async getMe(event?: RequestEvent | ServerLoadEvent): Promise<ApiResponseType<{ user: User }>> {
     const response = await this.apiClient.fetch('/me', { method: 'GET' }, event);
 
     if (!response.ok) {
       return { ok: false };
     }
 
-    const user = await response.json() as User;
+    const user = (await response.json()) as User;
     return { ok: true, user };
   }
 }

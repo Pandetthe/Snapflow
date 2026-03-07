@@ -1,4 +1,4 @@
-import type { ApiClient, ProblemDetails, Response } from '$lib/types/api';
+import type { ApiClient, ProblemDetails, Response } from '$lib/core/types/api';
 import logger from '$lib/logger';
 
 export interface SigninRequest {
@@ -47,9 +47,9 @@ export class AuthService {
     const response = await this.apiClient.fetch(`/auth/sign-in?useCookies=true`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
 
     if (!response.ok) {
@@ -60,7 +60,7 @@ export class AuthService {
 
   async signOut(): Promise<Response> {
     const response = await this.apiClient.fetch(`/auth/sign-out`, {
-      method: 'POST',
+      method: 'POST'
     });
 
     if (!response.ok) {
@@ -73,9 +73,9 @@ export class AuthService {
     const response = await this.apiClient.fetch(`/auth/sign-up`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
 
     if (!response.ok) {
@@ -88,9 +88,9 @@ export class AuthService {
     const response = await this.apiClient.fetch(`/auth/forgot-password`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
 
     if (!response.ok) {
@@ -104,9 +104,9 @@ export class AuthService {
     const response = await this.apiClient.fetch(`/auth/reset-password`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
 
     if (!response.ok) {
@@ -119,9 +119,9 @@ export class AuthService {
     const response = await this.apiClient.fetch(`/auth/resend-confirmation-email`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
 
     if (!response.ok) {

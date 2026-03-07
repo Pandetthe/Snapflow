@@ -1,4 +1,4 @@
-import type { RequestEvent, ServerLoadEvent } from "@sveltejs/kit";
+import type { RequestEvent, ServerLoadEvent } from '@sveltejs/kit';
 
 export interface PropertyValidationError {
   propertyName: string | null;
@@ -22,16 +22,18 @@ export interface ValidationProblemDetails extends ProblemDetails {
 export type ErrorResponse =
   | ({ ok: false } & ProblemDetails)
   | ({ ok: false } & ValidationProblemDetails)
-  | ({ ok: false });
+  | { ok: false };
 
-export type SuccessResponse<T> = [T] extends [void]
-  ? { ok: true }
-  : { ok: true } & T;
+export type SuccessResponse<T> = [T] extends [void] ? { ok: true } : { ok: true } & T;
 
 export type Response<T = void> = SuccessResponse<T> | ErrorResponse;
 
 export interface ApiClient {
-  fetch(path: string | undefined, init: RequestInit, event?: ApiEvent): Promise<globalThis.Response>;
+  fetch(
+    path: string | undefined,
+    init: RequestInit,
+    event?: ApiEvent
+  ): Promise<globalThis.Response>;
 }
 
 export type ApiEvent = RequestEvent | ServerLoadEvent;

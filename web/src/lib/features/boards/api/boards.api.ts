@@ -1,13 +1,19 @@
-import type { ApiClient, ApiEvent } from '$lib/types/api';
-import type { Response, ProblemDetails, ValidationProblemDetails } from '$lib/types/app';
-import type { GetBoardByIdResponse, GetBoardsResponse, IdResponse } from '$lib/types/boards.api';
+import type { ApiClient, ApiEvent } from '$lib/core/types/api';
+import type { Response, ProblemDetails, ValidationProblemDetails } from '$lib/core/types/app';
+import type {
+  GetBoardByIdResponse,
+  GetBoardsResponse,
+  IdResponse
+} from '$lib/features/boards/types/boards.api';
 
 export class BoardsService {
   constructor(private apiClient: ApiClient) {
     this.apiClient = apiClient;
   }
 
-  private async handleResponse<T = void>(promise: Promise<globalThis.Response>): Promise<Response<T>> {
+  private async handleResponse<T = void>(
+    promise: Promise<globalThis.Response>
+  ): Promise<Response<T>> {
     try {
       const response = await promise;
       const ok = response.ok;

@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { BoardsService } from '$lib/services/boards.api';
-import { apiClient } from '$lib/services/api.server';
+import { BoardsService } from '$lib/features/boards/api/boards.api';
+import { apiClient } from '$lib/server/api.server';
 
 export const load: PageServerLoad = async (event) => {
   const boardId = parseInt(event.params.id);
@@ -18,4 +18,3 @@ export const load: PageServerLoad = async (event) => {
     board: result.value
   };
 };
-

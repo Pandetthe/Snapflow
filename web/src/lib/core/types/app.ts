@@ -23,7 +23,12 @@ export interface ValidationProblemDetails extends ProblemDetails {
 
 export type Response<T = void> =
   | { ok: true; value: T; problem?: never; validationProblem?: never }
-  | { ok: false; value?: never; problem?: ProblemDetails; validationProblem?: ValidationProblemDetails };
+  | {
+      ok: false;
+      value?: never;
+      problem?: ProblemDetails;
+      validationProblem?: ValidationProblemDetails;
+    };
 
 export interface IdResponse<T = number> {
   id: T;
@@ -32,4 +37,3 @@ export interface IdResponse<T = number> {
 export interface RankResponse {
   rank: string;
 }
-

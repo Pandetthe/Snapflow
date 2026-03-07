@@ -1,11 +1,15 @@
-import type { ApiClient } from '$lib/types/api';
+import type { ApiClient } from '$lib/core/types/api';
 import type { RequestEvent, ServerLoadEvent } from '@sveltejs/kit';
 import { env } from '$env/dynamic/public';
 import logger from '$lib/logger';
 import { apiRequestCounter, apiRequestDuration } from '$lib/metrics';
 
 class ClientApiClient implements ApiClient {
-  async fetch(path: string | undefined, init: RequestInit, event?: RequestEvent | ServerLoadEvent): Promise<Response> {
+  async fetch(
+    path: string | undefined,
+    init: RequestInit,
+    event?: RequestEvent | ServerLoadEvent
+  ): Promise<Response> {
     const start = Date.now();
     let base = env.PUBLIC_API_BASE_URL;
 
@@ -18,7 +22,7 @@ class ClientApiClient implements ApiClient {
     const finalInit: RequestInit = {
       ...init,
       headers,
-      credentials: init.credentials ?? 'include',
+      credentials: init.credentials ?? 'include'
     };
 
     try {
@@ -42,7 +46,7 @@ class ClientApiClient implements ApiClient {
           method: init.method ?? 'GET',
           url: path,
           status: response.status,
-          duration: `${duration}ms`,
+          duration: `${duration}ms`
         },
         'API Client Request'
       );
@@ -55,7 +59,7 @@ class ClientApiClient implements ApiClient {
           method: init.method ?? 'GET',
           url: path,
           err,
-          duration: `${duration}ms`,
+          duration: `${duration}ms`
         },
         'API Client Request Failed'
       );

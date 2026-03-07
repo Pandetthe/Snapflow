@@ -1,7 +1,13 @@
 import { HubConnectionBuilder, type HubConnection } from '@microsoft/signalr';
 import { env } from '$env/dynamic/public';
 import logger from '$lib/logger';
-import type { Response, ProblemDetails, ValidationProblemDetails, IdResponse, RankResponse } from '$lib/types/app';
+import type {
+  Response,
+  ProblemDetails,
+  ValidationProblemDetails,
+  IdResponse,
+  RankResponse
+} from '$lib/core/types/app';
 import type {
   BoardsHubEvents,
   CreateSwimlaneRequest,
@@ -16,7 +22,7 @@ import type {
   UpdateCardRequest,
   MoveCardRequest,
   DeleteCardRequest
-} from '$lib/types/boards.hub';
+} from '$lib/features/boards/types/boards.hub';
 
 export class BoardsHub {
   private connection: HubConnection;
@@ -52,7 +58,10 @@ export class BoardsHub {
     this.connection.onreconnecting(callback);
   }
 
-  private async handleResponse<T = void>(method: string, promise: Promise<any>): Promise<Response<T>> {
+  private async handleResponse<T = void>(
+    method: string,
+    promise: Promise<any>
+  ): Promise<Response<T>> {
     logger.debug({ method }, 'BoardsHub: Awaiting response');
     try {
       const res = await promise;
@@ -102,7 +111,10 @@ export class BoardsHub {
 
   // Commands
   createSwimlane(request: CreateSwimlaneRequest): Promise<Response<IdResponse>> {
-    return this.handleResponse<IdResponse>('CreateSwimlane', this.connection.invoke('CreateSwimlane', request));
+    return this.handleResponse<IdResponse>(
+      'CreateSwimlane',
+      this.connection.invoke('CreateSwimlane', request)
+    );
   }
 
   updateSwimlane(request: UpdateSwimlaneRequest): Promise<Response> {
@@ -111,7 +123,10 @@ export class BoardsHub {
 
   moveSwimlane(request: MoveSwimlaneRequest): Promise<Response<RankResponse>> {
     logger.debug({ request }, 'BoardsHub: Invoking MoveSwimlane');
-    return this.handleResponse<RankResponse>('MoveSwimlane', this.connection.invoke('MoveSwimlane', request));
+    return this.handleResponse<RankResponse>(
+      'MoveSwimlane',
+      this.connection.invoke('MoveSwimlane', request)
+    );
   }
 
   deleteSwimlane(request: DeleteSwimlaneRequest): Promise<Response> {
@@ -119,7 +134,10 @@ export class BoardsHub {
   }
 
   createList(request: CreateListRequest): Promise<Response<IdResponse>> {
-    return this.handleResponse<IdResponse>('CreateList', this.connection.invoke('CreateList', request));
+    return this.handleResponse<IdResponse>(
+      'CreateList',
+      this.connection.invoke('CreateList', request)
+    );
   }
 
   updateList(request: UpdateListRequest): Promise<Response> {
@@ -127,7 +145,10 @@ export class BoardsHub {
   }
 
   moveList(request: MoveListRequest): Promise<Response<RankResponse>> {
-    return this.handleResponse<RankResponse>('MoveList', this.connection.invoke('MoveList', request));
+    return this.handleResponse<RankResponse>(
+      'MoveList',
+      this.connection.invoke('MoveList', request)
+    );
   }
 
   deleteList(request: DeleteListRequest): Promise<Response> {
@@ -135,15 +156,21 @@ export class BoardsHub {
   }
 
   createCard(request: CreateCardRequest): Promise<Response<IdResponse>> {
-    return this.handleResponse<IdResponse>('CreateCard', this.connection.invoke('CreateCard', request));
+    return this.handleResponse<IdResponse>(
+      'CreateCard',
+      this.connection.invoke('CreateCard', request)
+    );
   }
 
   updateCard(request: UpdateCardRequest): Promise<Response> {
     return this.handleResponse('UpdateCard', this.connection.invoke('UpdateCard', request));
   }
 
-  moveCard(request: MoveCardRequest): Promise<Response> {
-    return this.handleResponse('MoveCard', this.connection.invoke('MoveCard', request));
+  moveCard(request: MoveCardRequest): Promise<Response<RankResponse>> {
+    return this.handleResponse<RankResponse>(
+      'MoveCard',
+      this.connection.invoke('MoveCard', request)
+    );
   }
 
   deleteCard(request: DeleteCardRequest): Promise<Response> {

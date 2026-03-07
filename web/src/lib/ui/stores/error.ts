@@ -1,9 +1,7 @@
-import type { AppError } from '$lib/types/app';
+import type { AppError } from '$lib/core/types/app';
 import { writable } from 'svelte/store';
 
-
 function createErrorStore() {
-
   const { subscribe, set, update } = writable<AppError[]>([]);
   return {
     subscribe,
@@ -14,7 +12,7 @@ function createErrorStore() {
       update((currentErrors) => [...currentErrors, ...errors]);
     },
     clearError: () => set([]),
-    reset: () => set([]),
+    reset: () => set([])
   };
 }
 

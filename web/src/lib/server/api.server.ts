@@ -1,12 +1,16 @@
 import { parse } from 'set-cookie-parser';
 import type { RequestEvent, ServerLoadEvent } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import type { ApiClient } from '$lib/types/api';
+import type { ApiClient } from '$lib/core/types/api';
 import logger from '$lib/logger';
 import { apiRequestCounter, apiRequestDuration } from '$lib/metrics';
 
 class ServerApiClient implements ApiClient {
-  async fetch(path: string | undefined, init: RequestInit, event?: RequestEvent | ServerLoadEvent): Promise<Response> {
+  async fetch(
+    path: string | undefined,
+    init: RequestInit,
+    event?: RequestEvent | ServerLoadEvent
+  ): Promise<Response> {
     const start = Date.now();
     const base = env.API_BASE_URL || 'http://localhost:3001';
     const cleanBase = base.replace(/\/+$/, '');
@@ -27,7 +31,7 @@ class ServerApiClient implements ApiClient {
     const finalInit: RequestInit = {
       ...init,
       headers,
-      credentials: init.credentials ?? 'include',
+      credentials: init.credentials ?? 'include'
     };
 
     try {
@@ -52,7 +56,7 @@ class ServerApiClient implements ApiClient {
           url: path,
           status: response.status,
           duration: `${duration}ms`,
-          fromServer: true,
+          fromServer: true
         },
         'API Client Request'
       );
@@ -85,7 +89,7 @@ class ServerApiClient implements ApiClient {
           url: path,
           err,
           duration: `${duration}ms`,
-          fromServer: true,
+          fromServer: true
         },
         'API Client Request Failed'
       );

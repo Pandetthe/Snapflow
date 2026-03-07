@@ -8,7 +8,7 @@ function createThemeStore() {
   return {
     subscribe,
     toggle: () => {
-      update(theme => {
+      update((theme) => {
         const newTheme = theme === 'light' ? 'dark' : 'light';
         if (typeof window !== 'undefined') {
           localStorage.setItem('theme', newTheme);
