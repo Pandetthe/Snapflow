@@ -7,7 +7,6 @@ node_modules/
 /test-results/
 /playwright-report/
 /blob-report/
-/test-results/
 
 # Production
 /build/

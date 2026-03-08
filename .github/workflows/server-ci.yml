@@ -23,8 +23,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
-          cache: true
-          cache-binary-config-path: ./server/Snapflow.slnx
       - run: dotnet build ./server/Snapflow.slnx
 
   test:

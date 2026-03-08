@@ -32,7 +32,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "npm"
 
       - name: Configure Git
         run: |
@@ -40,16 +39,16 @@ jobs:
           git config --local user.name "GitHub Action"
 
       - name: Bump Version
+        id: bump
         run: |
           if [ -n "${{ inputs.version_number_override }}" ]; then
-            node scripts/bump-versions.js "${{ inputs.version_number_override }}"
+            node scripts/bump-versions.mjs "${{ inputs.version_number_override }}"
           else
-            node scripts/bump-versions.js
+            node scripts/bump-versions.mjs
           fi
 
       - name: Commit and Push
         run: |
-          VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" server/Directory.Build.props)
           git add .
-          git commit -m "chore(release): bump version to $VERSION [skip ci]"
-          git push
+          git commit -m "chore(release): bump version to ${{ steps.bump.outputs.new_version }} [skip ci]"
+          git push origin main
