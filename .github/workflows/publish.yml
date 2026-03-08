@@ -43,10 +43,15 @@ jobs:
       - name: Check for real changes
         id: check
         run: |
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           echo "Last tag: $LAST_TAG"
-          REAL_CHANGES=$(git diff --name-only $LAST_TAG HEAD | grep -vE '(\.md$|LICENSE$|^\.gitignore$|^\.dockerignore$|^\.editorconfig$|^\.github/|^\.vscode/|^scripts/)' | wc -l || echo "0")
-          echo "count=$REAL_CHANGES" >> $GITHUB_OUTPUT
+          if [ -z "$LAST_TAG" ]; then
+            echo "No tags found, assuming all files are new changes."
+            echo "count=1" >> $GITHUB_OUTPUT
+          else
+            REAL_CHANGES=$(git diff --name-only "$LAST_TAG" HEAD | grep -vE '(\.md$|LICENSE$|^\.gitignore$|^\.dockerignore$|^\.editorconfig$|^\.github/|^\.vscode/|^scripts/)' | wc -l || echo "0")
+            echo "count=$REAL_CHANGES" >> $GITHUB_OUTPUT
+          fi
 
       - name: Bump Versions
         if: github.event_name == 'workflow_dispatch' || steps.check.outputs.count > 0

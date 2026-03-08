@@ -6,6 +6,7 @@ on:
     paths:
       - "server/**"
       - "web/**"
+      - "scripts/**"
       - ".github/workflows/**"
   pull_request:
     branches: [ "main" ]
@@ -14,7 +15,7 @@ on:
       - "web/**"
   schedule:
     - cron: '33 4 * * 4' 
-
+  workflow_dispatch:
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
