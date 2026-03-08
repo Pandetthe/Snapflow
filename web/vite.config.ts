@@ -37,7 +37,7 @@ const logger = pino({
 });
 
 const stripAnsi = (str: string) =>
-  str.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-m]/g, '');
+  str.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-?]*[ -/]*[@-~]/g, '');
 
 export default defineConfig({
   customLogger: {
