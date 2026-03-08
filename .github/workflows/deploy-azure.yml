@@ -29,7 +29,7 @@ jobs:
         with:
           containerAppName: aca-snapflow-server-prod
           resourceGroup: snapflow
-          imageToDeploy: ghcr.io/${{ github.repository }}-server:latest
+          imageToDeploy: ghcr.io/pandetthe/snapflow-server:latest
           registryUrl: ghcr.io
           registryUsername: ${{ secrets.ACASNAPFLOWSERVERPROD_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.ACASNAPFLOWSERVERPROD_REGISTRY_PASSWORD }}
@@ -51,7 +51,7 @@ jobs:
         with:
           containerAppName: aca-snapflow-web-prod
           resourceGroup: snapflow
-          imageToDeploy: ghcr.io/${{ github.repository }}-web:latest
+          imageToDeploy: ghcr.io/pandetthe/snapflow-web:latest
           registryUrl: ghcr.io
           registryUsername: ${{ secrets.ACASNAPFLOWWEBPROD_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.ACASNAPFLOWWEBPROD_REGISTRY_PASSWORD }}
