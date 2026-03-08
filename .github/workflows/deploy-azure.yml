@@ -2,7 +2,7 @@ name: Deploy to Azure
 
 on:
   workflow_run:
-    workflows: ["Build and Push Server to GHCR", "Build and Push Web to GHCR"]
+    workflows: ["Publish"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
   deploy-server:
     name: Deploy Server
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.name == 'Build and Push Server to GHCR' && github.event.workflow_run.conclusion == 'success') }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.name == 'Publish' && github.event.workflow_run.conclusion == 'success') }}
     steps:
       - name: Azure Login
         uses: azure/login@v2
@@ -37,7 +37,7 @@ jobs:
   deploy-web:
     name: Deploy Web
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.name == 'Build and Push Web to GHCR' && github.event.workflow_run.conclusion == 'success') }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.name == 'Publish' && github.event.workflow_run.conclusion == 'success') }}
     steps:
       - name: Azure Login
         uses: azure/login@v2
