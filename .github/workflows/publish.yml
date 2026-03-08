@@ -149,8 +149,8 @@ jobs:
           file: ./server/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/snapflow-server:latest
-            ghcr.io/${{ github.repository_owner }}/snapflow-server:${{ needs.bump.outputs.tag }}
+            ghcr.io/pandetthe/snapflow-server:latest
+            ghcr.io/pandetthe/snapflow-server:${{ needs.bump.outputs.tag }}
 
   docker-web:
     name: Build & Push Web Image (GHCR)
@@ -185,5 +185,5 @@ jobs:
           file: ./web/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/snapflow-web:latest
-            ghcr.io/${{ github.repository_owner }}/snapflow-web:${{ needs.bump.outputs.tag }}
+            ghcr.io/pandetthe/snapflow-web:latest
+            ghcr.io/pandetthe/snapflow-web:${{ needs.bump.outputs.tag }}
