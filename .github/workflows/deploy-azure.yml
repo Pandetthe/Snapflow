@@ -3,37 +3,55 @@ name: Deploy to Azure
 on:
   workflow_run:
     workflows: ["Build and Push Server to GHCR", "Build and Push Web to GHCR"]
-    types:
-      - completed
-    branches:
-      - main
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
-  deploy:
-    name: Deploy to Azure Container Apps
+  deploy-server:
+    name: Deploy Server
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.name == 'Build and Push Server to GHCR' && github.event.workflow_run.conclusion == 'success') }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Azure Login
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.ACASNAPFLOWSERVERPROD_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.ACASNAPFLOWSERVERPROD_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.ACASNAPFLOWSERVERPROD_AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy Server to Container App
-        uses: azure/container-apps-deploy-action@v1
+        uses: azure/container-apps-deploy-action@v2
         with:
-          imageToDeploy: ghcr.io/${{ github.repository }}-server:latest
           containerAppName: aca-snapflow-server-prod
           resourceGroup: snapflow
-          containerAppEnvironment: managed-env-snapflow-prod
+          imageToDeploy: ghcr.io/${{ github.repository }}-server:latest
+          registryUrl: ghcr.io
+          registryUsername: ${{ secrets.ACASNAPFLOWSERVERPROD_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.ACASNAPFLOWSERVERPROD_REGISTRY_PASSWORD }}
+
+  deploy-web:
+    name: Deploy Web
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.name == 'Build and Push Web to GHCR' && github.event.workflow_run.conclusion == 'success') }}
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.ACASNAPFLOWWEBPROD_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.ACASNAPFLOWWEBPROD_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.ACASNAPFLOWWEBPROD_AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy Web to Container App
-        uses: azure/container-apps-deploy-action@v1
+        uses: azure/container-apps-deploy-action@v2
         with:
-          imageToDeploy: ghcr.io/${{ github.repository }}-web:latest
           containerAppName: aca-snapflow-web-prod
           resourceGroup: snapflow
-          containerAppEnvironment: managed-env-snapflow-prod
+          imageToDeploy: ghcr.io/${{ github.repository }}-web:latest
+          registryUrl: ghcr.io
+          registryUsername: ${{ secrets.ACASNAPFLOWWEBPROD_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.ACASNAPFLOWWEBPROD_REGISTRY_PASSWORD }}
