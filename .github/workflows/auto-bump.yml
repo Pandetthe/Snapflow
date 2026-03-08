@@ -1,3 +1,5 @@
+name: Auto Bump Version
+
 on:
   workflow_run:
     workflows: ["Server CI", "Web CI"]
