@@ -55,7 +55,7 @@ public static class DependencyInjection
         services.AddRedisCacheInternal(configuration);
         services.AddHealthChecksInternal(configuration);
         services.AddOpenTelemetryInternal(configuration);
-        services.AddAuthInternal();
+        services.AddAuthInternal(configuration);
         services.AddMailingInternal(configuration);
 
         services.AddScoped<DomainEventsBuffer>();
@@ -178,7 +178,7 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddAuthInternal(this IServiceCollection services)
+    private static IServiceCollection AddAuthInternal(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddIdentity<AppUser, AppRole>(options =>
         {
@@ -196,9 +196,33 @@ public static class DependencyInjection
 
         services.ConfigureApplicationCookie(options =>
         {
+            var servicesOptions = configuration.GetSection("Services").Get<ServicesOptions>();
+            var jwtOptions = configuration.GetSection("Jwt").Get<JwtOptions>();
+            string? cookieDomain = jwtOptions?.CookieDomain;
+
+            if (string.IsNullOrEmpty(cookieDomain) && !string.IsNullOrEmpty(servicesOptions?.WebUrl))
+            {
+                if (Uri.TryCreate(servicesOptions.WebUrl, UriKind.Absolute, out var webUri) &&
+                    !webUri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) &&
+                    !webUri.Host.Contains(".localhost", StringComparison.OrdinalIgnoreCase))
+                {
+                    var hostParts = webUri.Host.Split('.');
+                    if (hostParts.Length >= 2)
+                    {
+                        cookieDomain = "." + string.Join('.', hostParts.TakeLast(2));
+                    }
+                }
+            }
+
             options.Cookie.Name = "Snapflow.Auth.Cookie";
             options.Cookie.HttpOnly = true;
             options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+
+            if (!string.IsNullOrEmpty(cookieDomain))
+            {
+                options.Cookie.Domain = cookieDomain;
+            }
+
             options.Events.OnRedirectToLogin = context =>
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -241,6 +265,7 @@ public static class DependencyInjection
         services.AddScoped<EmailTemplateRenderer>();
         services.Configure<SmtpOptions>(configuration.GetSection("Email"));
         services.Configure<ServicesOptions>(configuration.GetSection("Services"));
+        services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
 
         return services;
     }
