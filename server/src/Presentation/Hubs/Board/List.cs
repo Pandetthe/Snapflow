@@ -18,15 +18,15 @@ public sealed partial class BoardHub
     [Authorize(BoardPermissions.Lists.Create)]
     public async Task<IResult> CreateList(
         CreateListRequest request,
-        ICommandHandler<CreateListCommand, int> handler)
+        ICommandHandler<CreateListCommand, CreateListResponse> handler)
     {
         if (logger.IsEnabled(LogLevel.Information))
         {
             logger.LogInformation("List create requested by connection {ConnectionId}.", Context.ConnectionId);
         }
         var command = new CreateListCommand(request.SwimlaneId, request.Title, request.Width, request.BeforeId);
-        Result<int> result = await handler.Handle(command, Context.ConnectionAborted);
-        return result.Match(Results.OkWithId, Results.Problem);
+        Result<CreateListResponse> result = await handler.Handle(command, Context.ConnectionAborted);
+        return result.Match(Results.Ok, Results.Problem);
     }
 
     public sealed record UpdateListRequest(int Id, string Title, int? Width);
@@ -34,15 +34,15 @@ public sealed partial class BoardHub
     [Authorize(BoardPermissions.Lists.Update)]
     public async Task<IResult> UpdateList(
         UpdateListRequest request,
-        ICommandHandler<UpdateListCommand> handler)
+        ICommandHandler<UpdateListCommand, UpdateListResponse> handler)
     {
         if (logger.IsEnabled(LogLevel.Information))
         {
             logger.LogInformation("List update requested by connection {ConnectionId}.", Context.ConnectionId);
         }
         var command = new UpdateListCommand(request.Id, request.Title, request.Width);
-        Result result = await handler.Handle(command);
-        return result.Match(Results.NoContent, Results.Problem);
+        Result<UpdateListResponse> result = await handler.Handle(command);
+        return result.Match(Results.Ok, Results.Problem);
     }
 
     public sealed record MoveListRequest(int Id, int SwimlaneId, int? BeforeId);

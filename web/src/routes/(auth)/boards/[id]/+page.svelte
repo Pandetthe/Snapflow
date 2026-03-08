@@ -53,14 +53,32 @@
         title,
         height: height
       });
-      if (!res?.ok) errorStore.addError('Web.UpdateSwimlaneFailed', 'Failed to update swimlane');
+      if (res?.ok) {
+        editingSwimlane.title = title;
+        editingSwimlane.height = height;
+      } else {
+        errorStore.addError('Web.UpdateSwimlaneFailed', 'Failed to update swimlane');
+      }
     } else {
       const res = await hub?.createSwimlane({
         title,
         height: height,
         beforeId: null
       });
-      if (!res?.ok) errorStore.addError('Web.CreateSwimlaneFailed', 'Failed to create swimlane');
+      if (res?.ok) {
+        if (!board.swimlanes.some((s) => s.id === res.value.id)) {
+          board.swimlanes.push({
+            id: res.value.id,
+            title,
+            height,
+            rank: res.value.rank,
+            lists: []
+          });
+          sortSwimlanes();
+        }
+      } else {
+        errorStore.addError('Web.CreateSwimlaneFailed', 'Failed to create swimlane');
+      }
     }
   }
 
@@ -76,7 +94,12 @@
         title,
         width: width
       });
-      if (!res?.ok) errorStore.addError('Web.UpdateListFailed', 'Failed to update list');
+      if (res?.ok) {
+        editingList.title = title;
+        editingList.width = width;
+      } else {
+        errorStore.addError('Web.UpdateListFailed', 'Failed to update list');
+      }
     } else if (targetSwimlaneId) {
       const res = await hub?.createList({
         swimlaneId: targetSwimlaneId,
@@ -84,7 +107,21 @@
         width: width,
         beforeId: null
       });
-      if (!res?.ok) errorStore.addError('Web.CreateListFailed', 'Failed to create list');
+      if (res?.ok) {
+        const swimlane = board.swimlanes.find((s) => s.id === targetSwimlaneId);
+        if (swimlane && !swimlane.lists.some((l) => l.id === res.value.id)) {
+          swimlane.lists.push({
+            id: res.value.id,
+            title,
+            width,
+            rank: res.value.rank,
+            cards: []
+          });
+          sortLists(swimlane);
+        }
+      } else {
+        errorStore.addError('Web.CreateListFailed', 'Failed to create list');
+      }
     }
   }
 
@@ -100,7 +137,15 @@
         title,
         description
       });
-      if (!res?.ok) errorStore.addError('Web.UpdateCardFailed', 'Failed to update card');
+      if (res?.ok) {
+        editingCard.title = title;
+        editingCard.description = description;
+        // Update audit info if available in the response
+        if (res.value.updatedAt) editingCard.updatedAt = res.value.updatedAt;
+        if (res.value.updatedBy) editingCard.updatedBy = res.value.updatedBy;
+      } else {
+        errorStore.addError('Web.UpdateCardFailed', 'Failed to update card');
+      }
     } else if (targetListId) {
       const res = await hub?.createCard({
         listId: targetListId,
@@ -108,7 +153,27 @@
         description,
         beforeId: null
       });
-      if (!res?.ok) errorStore.addError('Web.CreateCardFailed', 'Failed to create card');
+      if (res?.ok) {
+        for (const s of board.swimlanes) {
+          const list = s.lists.find((l) => l.id === targetListId);
+          if (list && !list.cards.some((c) => c.id === res.value.id)) {
+            list.cards.push({
+              id: res.value.id,
+              title,
+              description,
+              rank: res.value.rank,
+              createdAt: res.value.createdAt,
+              createdBy: res.value.createdBy,
+              updatedAt: null,
+              updatedBy: null
+            });
+            sortCards(list);
+            break;
+          }
+        }
+      } else {
+        errorStore.addError('Web.CreateCardFailed', 'Failed to create card');
+      }
     }
   }
 
@@ -176,10 +241,13 @@
       });
 
       hub.on('SwimlaneCreated', (payload) => {
-        const newSwimlane = {
-          ...payload,
-          lists: []
-        };
+        const existing = board.swimlanes.find((s) => s.id === payload.id);
+        if (existing) {
+          Object.assign(existing, payload);
+          sortSwimlanes();
+          return;
+        }
+        const newSwimlane = { ...payload, lists: [] };
         board.swimlanes.push(newSwimlane);
         sortSwimlanes();
       });
@@ -210,6 +278,12 @@
       hub.on('ListCreated', (payload) => {
         const swimlane = board.swimlanes.find((s) => s.id === payload.swimlaneId);
         if (swimlane) {
+          const existing = swimlane.lists.find((l) => l.id === payload.id);
+          if (existing) {
+            Object.assign(existing, payload);
+            sortLists(swimlane);
+            return;
+          }
           const newList = { ...payload, cards: [] };
           swimlane.lists.push(newList);
           sortLists(swimlane);
@@ -259,6 +333,12 @@
         for (const s of board.swimlanes) {
           const list = s.lists.find((l) => l.id === payload.listId);
           if (list) {
+            const existing = list.cards.find((c) => c.id === payload.id);
+            if (existing) {
+              Object.assign(existing, payload);
+              sortCards(list);
+              return;
+            }
             list.cards.push({
               ...payload,
               // temp

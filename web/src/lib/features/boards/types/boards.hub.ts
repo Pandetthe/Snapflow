@@ -166,3 +166,59 @@ export interface MoveCardRequest {
 export interface DeleteCardRequest {
   id: number;
 }
+
+export interface CreateSwimlaneResponse {
+  id: number;
+  rank: string;
+  createdAt: string;
+  createdBy: {
+    id: number;
+    userName: string;
+  };
+}
+
+export interface UpdateSwimlaneResponse {
+  updatedAt: string;
+  updatedBy: {
+    id: number;
+    userName: string;
+  };
+}
+
+export interface CreateListResponse {
+  id: number;
+  rank: string;
+  createdAt: string;
+  createdBy: {
+    id: number;
+    userName: string;
+  };
+}
+
+export interface UpdateListResponse {
+  updatedAt: string;
+  updatedBy: {
+    id: number;
+    userName: string;
+  };
+}
+
+export interface CreateCardResponse {
+  id: number;
+  rank: string;
+  createdAt: string;
+  createdBy: {
+    id: number;
+    userName: string;
+  };
+}
+
+export interface UpdateCardResponse {
+  updatedAt: string;
+  updatedBy: {
+    id: number;
+    userName: string;
+  };
+}
+
+

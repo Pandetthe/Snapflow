@@ -18,13 +18,13 @@ public sealed partial class BoardHub
     [Authorize(BoardPermissions.Swimlanes.Create)]
     public async Task<IResult> CreateSwimlane(
         CreateSwimlaneRequest request,
-        ICommandHandler<CreateSwimlaneCommand, int> handler)
+        ICommandHandler<CreateSwimlaneCommand, CreateSwimlaneResponse> handler)
     {
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Swimlane create requested by connection {ConnectionId}.", Context.ConnectionId);
         var command = new CreateSwimlaneCommand(Context.GetBoardId(), request.Title, request.Height, request.BeforeId);
-        Result<int> result = await handler.Handle(command);
-        return result.Match(Results.OkWithId, Results.Problem);
+        Result<CreateSwimlaneResponse> result = await handler.Handle(command);
+        return result.Match(Results.Ok, Results.Problem);
     }
 
     public sealed record UpdateSwimlaneRequest(int Id, string Title, int? Height);
@@ -32,13 +32,13 @@ public sealed partial class BoardHub
     [Authorize(BoardPermissions.Swimlanes.Update)]
     public async Task<IResult> UpdateSwimlane(
         UpdateSwimlaneRequest request,
-        ICommandHandler<UpdateSwimlaneCommand> handler)
+        ICommandHandler<UpdateSwimlaneCommand, UpdateSwimlaneResponse> handler)
     {
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Swimlane update requested by connection {ConnectionId}.", Context.ConnectionId);
         var command = new UpdateSwimlaneCommand(request.Id, request.Title, request.Height);
-        Result result = await handler.Handle(command);
-        return result.Match(Results.NoContent, Results.Problem);
+        Result<UpdateSwimlaneResponse> result = await handler.Handle(command);
+        return result.Match(Results.Ok, Results.Problem);
     }
 
     public sealed record MoveSwimlaneRequest(int Id, int? BeforeId);

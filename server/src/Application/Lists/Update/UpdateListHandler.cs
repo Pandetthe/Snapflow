@@ -5,35 +5,41 @@ using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Lists;
 using Snapflow.Domain.Users;
+using static Snapflow.Application.Lists.Update.UpdateListResponse;
 
 namespace Snapflow.Application.Lists.Update;
 
 internal sealed class UpdateListHandler(
     IAppDbContext dbContext,
     IUserContext userContext,
-    TimeProvider timeProvider) : ICommandHandler<UpdateListCommand>
+    TimeProvider timeProvider) : ICommandHandler<UpdateListCommand, UpdateListResponse>
 {
-    public async Task<Result> Handle(UpdateListCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<UpdateListResponse>> Handle(UpdateListCommand command, CancellationToken cancellationToken = default)
     {
-        var userExists = await dbContext.Users.AsNoTracking()
-            .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (!userExists)
-            return Result.Failure(UserErrors.NotFound(userContext.UserId));
+        var user = await dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
+        if (user == null)
+            return Result.Failure<UpdateListResponse>(UserErrors.NotFound(userContext.UserId));
 
         var list = await dbContext.Lists
             .SingleOrDefaultAsync(l => l.Id == command.Id && !l.IsDeleted, cancellationToken);
         if (list == null)
-            return Result.Failure(ListErrors.NotFound(command.Id));
+            return Result.Failure<UpdateListResponse>(ListErrors.NotFound(command.Id));
+
+        var updatedAt = timeProvider.GetUtcNow();
 
         list.Update(
             command.Title,
             command.Width,
             userContext.UserId,
-            timeProvider.GetUtcNow(),
+            updatedAt,
             userContext.ConnectionId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return Result.Success();
+        return new UpdateListResponse(
+            updatedAt,
+            UserDto.From(user));
     }
 }

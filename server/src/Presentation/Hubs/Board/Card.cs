@@ -18,7 +18,7 @@ public sealed partial class BoardHub
     [Authorize(BoardPermissions.Cards.Create)]
     public async Task<IResult> CreateCard(
         CreateCardRequest request,
-        ICommandHandler<CreateCardCommand, int> handler)
+        ICommandHandler<CreateCardCommand, CreateCardResponse> handler)
     {
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Card create requested by connection {ConnectionId}.", Context.ConnectionId);
@@ -27,8 +27,8 @@ public sealed partial class BoardHub
             request.Title,
             request.Description,
             request.BeforeId);
-        Result<int> result = await handler.Handle(command, Context.ConnectionAborted);
-        return result.Match(Results.OkWithId, Results.Problem);
+        Result<CreateCardResponse> result = await handler.Handle(command, Context.ConnectionAborted);
+        return result.Match(Results.Ok, Results.Problem);
     }
 
     public sealed record UpdateCardRequest(int Id, string Title, string Description);
@@ -36,7 +36,7 @@ public sealed partial class BoardHub
     [Authorize(BoardPermissions.Cards.Update)]
     public async Task<IResult> UpdateCard(
         UpdateCardRequest request,
-        ICommandHandler<UpdateCardCommand> handler)
+        ICommandHandler<UpdateCardCommand, UpdateCardResponse> handler)
     {
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Card update requested by connection {ConnectionId}.", Context.ConnectionId);
@@ -44,8 +44,8 @@ public sealed partial class BoardHub
             request.Id,
             request.Title,
             request.Description);
-        Result result = await handler.Handle(command, Context.ConnectionAborted);
-        return result.Match(Results.NoContent, Results.Problem);
+        Result<UpdateCardResponse> result = await handler.Handle(command, Context.ConnectionAborted);
+        return result.Match(Results.Ok, Results.Problem);
     }
 
     public sealed record MoveCardRequest(int Id, int ListId, int? BeforeId);

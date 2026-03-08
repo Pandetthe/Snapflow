@@ -21,7 +21,25 @@ import type {
   CreateCardRequest,
   UpdateCardRequest,
   MoveCardRequest,
-  DeleteCardRequest
+  DeleteCardRequest,
+  CreateSwimlaneResponse,
+  UpdateSwimlaneResponse,
+  CreateListResponse,
+  UpdateListResponse,
+  CreateCardResponse,
+  UpdateCardResponse,
+  SwimlaneCreatedEventPayload,
+  SwimlaneUpdatedEventPayload,
+  SwimlaneMovedEventPayload,
+  SwimlaneDeletedEventPayload,
+  ListCreatedEventPayload,
+  ListUpdatedEventPayload,
+  ListMovedEventPayload,
+  ListDeletedEventPayload,
+  CardCreatedEventPayload,
+  CardUpdatedEventPayload,
+  CardMovedEventPayload,
+  CardDeletedEventPayload
 } from '$lib/features/boards/types/boards.hub';
 
 export class BoardsHub {
@@ -110,15 +128,18 @@ export class BoardsHub {
   }
 
   // Commands
-  createSwimlane(request: CreateSwimlaneRequest): Promise<Response<IdResponse>> {
-    return this.handleResponse<IdResponse>(
+  createSwimlane(request: CreateSwimlaneRequest): Promise<Response<CreateSwimlaneResponse>> {
+    return this.handleResponse<CreateSwimlaneResponse>(
       'CreateSwimlane',
       this.connection.invoke('CreateSwimlane', request)
     );
   }
 
-  updateSwimlane(request: UpdateSwimlaneRequest): Promise<Response> {
-    return this.handleResponse('UpdateSwimlane', this.connection.invoke('UpdateSwimlane', request));
+  updateSwimlane(request: UpdateSwimlaneRequest): Promise<Response<UpdateSwimlaneResponse>> {
+    return this.handleResponse<UpdateSwimlaneResponse>(
+      'UpdateSwimlane',
+      this.connection.invoke('UpdateSwimlane', request)
+    );
   }
 
   moveSwimlane(request: MoveSwimlaneRequest): Promise<Response<RankResponse>> {
@@ -133,15 +154,18 @@ export class BoardsHub {
     return this.handleResponse('DeleteSwimlane', this.connection.invoke('DeleteSwimlane', request));
   }
 
-  createList(request: CreateListRequest): Promise<Response<IdResponse>> {
-    return this.handleResponse<IdResponse>(
+  createList(request: CreateListRequest): Promise<Response<CreateListResponse>> {
+    return this.handleResponse<CreateListResponse>(
       'CreateList',
       this.connection.invoke('CreateList', request)
     );
   }
 
-  updateList(request: UpdateListRequest): Promise<Response> {
-    return this.handleResponse('UpdateList', this.connection.invoke('UpdateList', request));
+  updateList(request: UpdateListRequest): Promise<Response<UpdateListResponse>> {
+    return this.handleResponse<UpdateListResponse>(
+      'UpdateList',
+      this.connection.invoke('UpdateList', request)
+    );
   }
 
   moveList(request: MoveListRequest): Promise<Response<RankResponse>> {
@@ -155,15 +179,18 @@ export class BoardsHub {
     return this.handleResponse('DeleteList', this.connection.invoke('DeleteList', request));
   }
 
-  createCard(request: CreateCardRequest): Promise<Response<IdResponse>> {
-    return this.handleResponse<IdResponse>(
+  createCard(request: CreateCardRequest): Promise<Response<CreateCardResponse>> {
+    return this.handleResponse<CreateCardResponse>(
       'CreateCard',
       this.connection.invoke('CreateCard', request)
     );
   }
 
-  updateCard(request: UpdateCardRequest): Promise<Response> {
-    return this.handleResponse('UpdateCard', this.connection.invoke('UpdateCard', request));
+  updateCard(request: UpdateCardRequest): Promise<Response<UpdateCardResponse>> {
+    return this.handleResponse<UpdateCardResponse>(
+      'UpdateCard',
+      this.connection.invoke('UpdateCard', request)
+    );
   }
 
   moveCard(request: MoveCardRequest): Promise<Response<RankResponse>> {
