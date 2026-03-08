@@ -1,15 +1,15 @@
 name: "Web CI"
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
     paths:
       - "web/**"
       - ".github/workflows/web-ci.yml"
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
     paths:
       - "web/**"
-  workflow_dispatch: 
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -19,44 +19,32 @@ env:
   PUBLIC_API_BASE_URL: http://api:3001
 
 jobs:
-  check:
-    name: Check
+  ci:
+    name: CI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
-          cache-dependency-path: 'web/package-lock.json'
-      - run: npm ci --prefix web
-      - run: npm run check --prefix web
+          cache: "npm"
+          cache-dependency-path: "web/package-lock.json"
 
-  build:
-    name: Build
-    needs: check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: npm ci --prefix web
-      - run: npm run build --prefix web
+      - name: Install dependencies
+        run: npm ci --prefix web
 
-  test:
-    name: Test
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: npm ci --prefix web
-      - run: npx playwright install --with-deps
+      - name: Check
+        run: npm run check --prefix web
+
+      - name: Build
+        run: npm run build --prefix web
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
         working-directory: ./web
-      - run: npm run test:unit
-        working-directory: ./web
-      - run: npm run test:e2e
+
+      - name: Run Tests
+        run: |
+          npm run test:unit
+          npm run test:e2e
         working-directory: ./web

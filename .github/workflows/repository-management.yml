@@ -1,0 +1,55 @@
+name: Repository Management
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Task to execute"
+        required: true
+        default: "Version Bump"
+        type: choice
+        options:
+          - "Version Bump"
+      version_number_override:
+        description: "New version (e.g. 2026.3.0). If empty, it will calculate automatically based on YYYY.MM.Patch."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  manage:
+    name: ${{ inputs.task }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Bump Version
+        run: |
+          if [ -n "${{ inputs.version_number_override }}" ]; then
+            node scripts/bump-versions.js "${{ inputs.version_number_override }}"
+          else
+            node scripts/bump-versions.js
+          fi
+
+      - name: Commit and Push
+        run: |
+          VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" server/Directory.Build.props)
+          git add .
+          git commit -m "chore(release): bump version to $VERSION [skip ci]"
+          git push

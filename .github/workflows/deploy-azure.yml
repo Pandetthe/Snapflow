@@ -1,0 +1,39 @@
+name: Deploy to Azure
+
+on:
+  workflow_run:
+    workflows: ["Build and Push Server to GHCR", "Build and Push Web to GHCR"]
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to Azure Container Apps
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Server to Container App
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          imageToDeploy: ghcr.io/${{ github.repository }}-server:latest
+          containerAppName: aca-snapflow-server-prod
+          resourceGroup: snapflow
+          containerAppEnvironment: managed-env-snapflow-prod
+
+      - name: Deploy Web to Container App
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          imageToDeploy: ghcr.io/${{ github.repository }}-web:latest
+          containerAppName: aca-snapflow-web-prod
+          resourceGroup: snapflow
+          containerAppEnvironment: managed-env-snapflow-prod

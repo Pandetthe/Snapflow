@@ -2,16 +2,17 @@ name: Build and Push Web to GHCR
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+    tags: ["v*"]
     paths:
-      - 'web/**'
-      - '.github/workflows/web-docker-ghcr.yml'
+      - "web/**"
+      - ".github/workflows/web-docker-ghcr.yml"
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'web/**'
-      - '.github/workflows/web-docker-ghcr.yml'
-  workflow_dispatch: 
+      - "web/**"
+      - ".github/workflows/web-docker-ghcr.yml"
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -42,12 +43,15 @@ jobs:
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=sha,format=short
+            type=ref,event=tag
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: ./web
           file: web/Dockerfile
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

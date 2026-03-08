@@ -1,12 +1,12 @@
 name: "Server CI"
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
     paths:
       - "server/**"
       - ".github/workflows/server-ci.yml"
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
     paths:
       - "server/**"
   workflow_dispatch:
@@ -22,7 +22,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: "10.0.x"
+          cache: true
+          cache-binary-config-path: ./server/Snapflow.slnx
       - run: dotnet build ./server/Snapflow.slnx
 
   test:
@@ -33,5 +35,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: "10.0.x"
       - run: dotnet test ./server/Snapflow.slnx

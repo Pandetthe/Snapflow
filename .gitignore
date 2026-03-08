@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+/test-results/
+/playwright-report/
+/blob-report/
+/test-results/
+
+# Production
+/build/
+/dist/
+
+# SvelteKit
+.svelte-kit/
+
+# IDEs and Editors
+.vs/
+.vscode/
+.idea/
+*.sln.dotSettings.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# .NET
+bin/
+obj/
+out/
+
+# Environment variables
+.env
+.env.*
+!.env.template
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+.npm/
+.eslintcache
+.stylelintcache
+node_modules.zip
