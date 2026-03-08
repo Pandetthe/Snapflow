@@ -1,0 +1,140 @@
+name: "Build & Test"
+
+on:
+  push:
+    branches: ["main", "develop"]
+    paths:
+      - "server/**"
+      - "web/**"
+      - "scripts/**"
+      - ".github/workflows/build-and-test.yml"
+  pull_request:
+    branches: ["main", "develop"]
+    paths:
+      - "server/**"
+      - "web/**"
+      - "scripts/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  server:
+    name: Build & Test Server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Build
+        run: dotnet build ./server/Snapflow.slnx
+      - name: Test
+        run: dotnet test ./server/Snapflow.slnx
+
+  web:
+    name: Build & Test Web
+    runs-on: ubuntu-latest
+    env:
+      API_BASE_URL: http://api:3001
+      PUBLIC_API_BASE_URL: http://api:3001
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: "web/package-lock.json"
+      - name: Install dependencies
+        run: npm ci --prefix web
+      - name: Check
+        run: npm run check --prefix web
+      - name: Build
+        run: npm run build --prefix web
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+        working-directory: ./web
+      - name: Run Tests
+        run: |
+          npm run test:unit
+          npm run test:e2e
+        working-directory: ./web
+
+  publish:
+    name: Bump and Publish
+    needs: [server, web]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.bump.outputs.new_version }}
+      tagged: ${{ steps.tag_check.outputs.tagged }}
+      tag: ${{ steps.tag_check.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set Git Identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Check for real changes
+        id: check
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "Last tag: $LAST_TAG"
+          if [ -z "$LAST_TAG" ]; then
+            echo "No tags found, assuming all files are new changes."
+            echo "count=1" >> $GITHUB_OUTPUT
+          else
+            REAL_CHANGES=$(git diff --name-only "$LAST_TAG" HEAD | grep -vE '(\.md$|LICENSE$|^\.gitignore$|^\.dockerignore$|^\.editorconfig$|^\.github/|^\.vscode/|^scripts/)' | wc -l || echo "0")
+            echo "count=$REAL_CHANGES" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Bump Versions
+        if: github.event_name == 'workflow_dispatch' || steps.check.outputs.count > 0
+        id: bump
+        run: node scripts/bump-versions.mjs
+
+      - name: Commit, Push and Tag
+        id: tag_check
+        run: |
+          echo "tagged=false" >> $GITHUB_OUTPUT
+          echo "tag=" >> $GITHUB_OUTPUT
+
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ] && [ "${{ steps.check.outputs.count }}" -eq 0 ]; then
+            echo "No release-worthy changes detected; skipping tagging."
+            exit 0
+          fi
+
+          VERSION="${{ steps.bump.outputs.new_version }}"
+          if [ -z "$VERSION" ]; then
+            echo "ERROR: bump step did not produce new_version."
+            exit 1
+          fi
+
+          TAG="v$VERSION"
+          git add .
+          git commit -m "chore(release): $VERSION [skip ci]" || echo "Nothing to commit."
+          git tag "$TAG"
+          git push origin main --tags
+
+          echo "tagged=true" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: steps.tag_check.outputs.tagged == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.tag_check.outputs.tag }}"
+          gh release create "$TAG" --generate-notes
