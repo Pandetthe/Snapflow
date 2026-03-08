@@ -42,16 +42,25 @@ jobs:
 
       - name: Check for real changes
         id: check
+        shell: bash
         run: |
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          echo "Last tag: $LAST_TAG"
-          if [ -z "$LAST_TAG" ]; then
-            echo "No tags found, assuming all files are new changes."
-            echo "count=1" >> $GITHUB_OUTPUT
+          set -euo pipefail
+
+          if git describe --tags --abbrev=0 >/dev/null 2>&1; then
+            LAST_REF="$(git describe --tags --abbrev=0)"
+            echo "Last tag: $LAST_REF"
           else
-            REAL_CHANGES=$(git diff --name-only "$LAST_TAG" HEAD | grep -vE '(\.md$|LICENSE$|^\.gitignore$|^\.dockerignore$|^\.editorconfig$|^\.github/|^\.vscode/|^scripts/)' | wc -l || echo "0")
-            echo "count=$REAL_CHANGES" >> $GITHUB_OUTPUT
+            LAST_REF="$(git rev-list --max-parents=0 HEAD)"
+            echo "No tags found. Using first commit as base: $LAST_REF"
           fi
+
+          REAL_CHANGES=$(
+            git diff --name-only "$LAST_REF" HEAD |
+            grep -vE '(\.md$|LICENSE$|^\.gitignore$|^\.dockerignore$|^\.editorconfig$|^\.github/|^\.vscode/|^scripts/)' |
+            wc -l
+          )
+
+          echo "count=$REAL_CHANGES" >> "$GITHUB_OUTPUT"
 
       - name: Bump Versions
         if: github.event_name == 'workflow_dispatch' || steps.check.outputs.count > 0
@@ -60,9 +69,12 @@ jobs:
 
       - name: Commit, Push and Tag (or skip)
         id: tag_check
+        shell: bash
         run: |
-          echo "tagged=false" >> $GITHUB_OUTPUT
-          echo "tag=" >> $GITHUB_OUTPUT
+          set -euo pipefail
+
+          echo "tagged=false" >> "$GITHUB_OUTPUT"
+          echo "tag=" >> "$GITHUB_OUTPUT"
 
           if [ "${{ github.event_name }}" != "workflow_dispatch" ] && [ "${{ steps.check.outputs.count }}" -eq 0 ]; then
             echo "No release-worthy changes detected; skipping tagging."
@@ -83,8 +95,8 @@ jobs:
           git tag "$TAG"
           git push origin main --tags
 
-          echo "tagged=true" >> $GITHUB_OUTPUT
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "tagged=true" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
   publish:
     name: Create GitHub Release
@@ -99,97 +111,79 @@ jobs:
           fetch-depth: 0
 
       - name: Create Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="${{ needs.bump.outputs.tag }}"
-          if [ -z "$TAG" ]; then
-            echo "ERROR: needs.bump.outputs.tag is empty."
-            exit 1
-          fi
-
-          gh release create "$TAG" \
-            --title "$TAG" \
-            --generate-notes
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.bump.outputs.tag }}
+          generate_release_notes: true
 
   docker-server:
-    name: Push Server Image
+    name: Build & Push Server Image (GHCR)
     needs: bump
     if: needs.bump.outputs.tagged == 'true'
     runs-on: ubuntu-latest
-    env:
-      REGISTRY: ghcr.io
-      IMAGE_NAME: pandetthe/snapflow-server
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.bump.outputs.tag }}
-          fetch-depth: 0
 
-      - uses: docker/login-action@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: docker/setup-buildx-action@v3
-
-      - uses: docker/metadata-action@v5
-        id: meta
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest,enable=true
-            type=raw,value=${{ needs.bump.outputs.tag }}
-            type=sha,format=short
-
-      - uses: docker/build-push-action@v5
+      - name: Build and push (server)
+        uses: docker/build-push-action@v6
         with:
           context: ./server
-          file: server/Dockerfile
+          file: ./server/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/snapflow-server:latest
+            ghcr.io/${{ github.repository_owner }}/snapflow-server:${{ needs.bump.outputs.tag }}
 
   docker-web:
-    name: Push Web Image
+    name: Build & Push Web Image (GHCR)
     needs: bump
     if: needs.bump.outputs.tagged == 'true'
     runs-on: ubuntu-latest
-    env:
-      REGISTRY: ghcr.io
-      IMAGE_NAME: pandetthe/snapflow-web
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.bump.outputs.tag }}
-          fetch-depth: 0
 
-      - uses: docker/login-action@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: docker/setup-buildx-action@v3
-
-      - uses: docker/metadata-action@v5
-        id: meta
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest,enable=true
-            type=raw,value=${{ needs.bump.outputs.tag }}
-            type=sha,format=short
-
-      - uses: docker/build-push-action@v5
+      - name: Build and push (web)
+        uses: docker/build-push-action@v6
         with:
           context: ./web
-          file: web/Dockerfile
+          file: ./web/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/snapflow-web:latest
+            ghcr.io/${{ github.repository_owner }}/snapflow-web:${{ needs.bump.outputs.tag }}
