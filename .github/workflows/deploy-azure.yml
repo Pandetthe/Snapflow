@@ -10,13 +10,81 @@ on:
 permissions:
   id-token: write
   contents: read
+  deployments: write
+
+concurrency:
+  group: azure-deploy-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   deploy-server:
     name: Deploy Server
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.name == 'Publish' && github.event.workflow_run.conclusion == 'success') }}
+    environment:
+      name: Production
     steps:
+      - name: Resolve image tag
+        id: vars
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            SHA="${{ github.event.workflow_run.head_sha }}"
+          else
+            SHA="${{ github.sha }}"
+          fi
+
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+
+          TAG=$(gh api -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/commits/${SHA}/pulls" 1>/dev/null 2>/dev/null && echo "" || true)
+
+          REL_TAG=$(gh api -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/releases/latest" \
+            --jq '.tag_name' 2>/dev/null || true)
+
+          if [ -z "$REL_TAG" ]; then
+            echo "No latest release tag found; cannot deploy a version tag."
+            exit 1
+          fi
+
+          echo "rel_tag=$REL_TAG" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Deployment
+        id: create_deploy
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const ref = "${{ steps.vars.outputs.sha }}";
+            const environment = "Production";
+            const res = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref,
+              environment,
+              auto_merge: false,
+              required_contexts: [],
+              description: `Deploy server ${process.env.REL_TAG || ""}`.trim()
+            });
+            core.setOutput("deployment_id", String(res.data.id));
+        env:
+          REL_TAG: ${{ steps.vars.outputs.rel_tag }}
+
+      - name: Mark Deployment In Progress
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment_id = Number("${{ steps.create_deploy.outputs.deployment_id }}");
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id,
+              state: "in_progress",
+              description: "Deploying server to Azure..."
+            });
+
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -29,16 +97,104 @@ jobs:
         with:
           containerAppName: aca-snapflow-server-prod
           resourceGroup: snapflow
-          imageToDeploy: ghcr.io/pandetthe/snapflow-server:latest
+          imageToDeploy: ghcr.io/pandetthe/snapflow-server:${{ steps.vars.outputs.rel_tag }}
           registryUrl: ghcr.io
           registryUsername: ${{ secrets.ACASNAPFLOWSERVERPROD_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.ACASNAPFLOWSERVERPROD_REGISTRY_PASSWORD }}
+
+      - name: Mark Deployment Success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment_id = Number("${{ steps.create_deploy.outputs.deployment_id }}");
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id,
+              state: "success",
+              description: "Server deployed successfully."
+            });
+
+      - name: Mark Deployment Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment_id = Number("${{ steps.create_deploy.outputs.deployment_id }}");
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id,
+              state: "failure",
+              description: "Server deployment failed."
+            });
 
   deploy-web:
     name: Deploy Web
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.name == 'Publish' && github.event.workflow_run.conclusion == 'success') }}
+    environment:
+      name: Production
     steps:
+      - name: Resolve image tag
+        id: vars
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            SHA="${{ github.event.workflow_run.head_sha }}"
+          else
+            SHA="${{ github.sha }}"
+          fi
+
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+
+          REL_TAG=$(gh api -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/releases/latest" \
+            --jq '.tag_name' 2>/dev/null || true)
+
+          if [ -z "$REL_TAG" ]; then
+            echo "No latest release tag found; cannot deploy a version tag."
+            exit 1
+          fi
+
+          echo "rel_tag=$REL_TAG" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Deployment
+        id: create_deploy
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const ref = "${{ steps.vars.outputs.sha }}";
+            const environment = "Production";
+            const res = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref,
+              environment,
+              auto_merge: false,
+              required_contexts: [],
+              description: `Deploy web ${process.env.REL_TAG || ""}`.trim()
+            });
+            core.setOutput("deployment_id", String(res.data.id));
+        env:
+          REL_TAG: ${{ steps.vars.outputs.rel_tag }}
+
+      - name: Mark Deployment In Progress
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment_id = Number("${{ steps.create_deploy.outputs.deployment_id }}");
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id,
+              state: "in_progress",
+              description: "Deploying web to Azure..."
+            });
+
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -51,7 +207,35 @@ jobs:
         with:
           containerAppName: aca-snapflow-web-prod
           resourceGroup: snapflow
-          imageToDeploy: ghcr.io/pandetthe/snapflow-web:latest
+          imageToDeploy: ghcr.io/pandetthe/snapflow-web:${{ steps.vars.outputs.rel_tag }}
           registryUrl: ghcr.io
           registryUsername: ${{ secrets.ACASNAPFLOWWEBPROD_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.ACASNAPFLOWWEBPROD_REGISTRY_PASSWORD }}
+
+      - name: Mark Deployment Success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment_id = Number("${{ steps.create_deploy.outputs.deployment_id }}");
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id,
+              state: "success",
+              description: "Web deployed successfully."
+            });
+
+      - name: Mark Deployment Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment_id = Number("${{ steps.create_deploy.outputs.deployment_id }}");
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id,
+              state: "failure",
+              description: "Web deployment failed."
+            });
