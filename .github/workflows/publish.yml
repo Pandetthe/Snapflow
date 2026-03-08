@@ -2,7 +2,7 @@ name: Publish
 
 on:
   workflow_run:
-    workflows: ["Server CI", "Web CI"]
+    workflows: ["Build & Test"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
