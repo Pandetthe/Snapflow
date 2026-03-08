@@ -1,16 +1,9 @@
 name: Build and Push Server to GHCR
 
 on:
-  push:
-    tags: ["v*"]
-    paths:
-      - "server/**"
-      - ".github/workflows/server-docker-ghcr.yml"
-  pull_request:
-    branches: ["main"]
-    paths:
-      - "server/**"
-      - ".github/workflows/server-docker-ghcr.yml"
+  workflow_run:
+    workflows: ["Auto Bump Version"]
+    types: [completed]
   workflow_dispatch:
 
 env:
@@ -20,6 +13,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     permissions:
       contents: read
       packages: write

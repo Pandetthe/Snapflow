@@ -77,13 +77,17 @@ if (!version || !/^\d{4}\.\d{1,2}\.\d+$/.test(version)) {
 console.log(`Smart Synchronizing versions to: ${version}`);
 
 if (fs.existsSync(webPackagePath)) {
-    try {
-        const webDir = path.join(rootDir, 'web');
-        execSync(`npm version ${version} --no-git-tag-version`, { cwd: webDir, stdio: 'inherit' });
-    } catch (e) {
-        const pkg = JSON.parse(fs.readFileSync(webPackagePath, 'utf8'));
-        pkg.version = version;
-        fs.writeFileSync(webPackagePath, JSON.stringify(pkg, null, 4) + '\n');
+    const pkg = JSON.parse(fs.readFileSync(webPackagePath, 'utf8'));
+    if (pkg.version !== version) {
+        try {
+            const webDir = path.join(rootDir, 'web');
+            execSync(`npm version ${version} --no-git-tag-version`, { cwd: webDir, stdio: 'inherit' });
+        } catch (e) {
+            pkg.version = version;
+            fs.writeFileSync(webPackagePath, JSON.stringify(pkg, null, 4) + '\n');
+        }
+    } else {
+        console.log(`Web version is already ${version}, skipping npm version.`);
     }
 }
 

@@ -1,11 +1,13 @@
-name: Auto Bump Version
-
 on:
   workflow_run:
     workflows: ["Server CI", "Web CI"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
+
+concurrency:
+  group: version-bump-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   bump:
