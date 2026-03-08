@@ -23,6 +23,7 @@ jobs:
     outputs:
       new_version: ${{ steps.bump.outputs.new_version }}
       tagged: ${{ steps.tag_check.outputs.tagged }}
+      tag: ${{ steps.tag_check.outputs.tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,16 +53,33 @@ jobs:
         id: bump
         run: node scripts/bump-versions.mjs
 
-      - name: Commit, Push and Tag
-        if: github.event_name == 'workflow_dispatch' || steps.check.outputs.count > 0
+      - name: Commit, Push and Tag (or skip)
         id: tag_check
         run: |
-          VERSION=${{ steps.bump.outputs.new_version }}
+          echo "tagged=false" >> $GITHUB_OUTPUT
+          echo "tag=" >> $GITHUB_OUTPUT
+
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ] && [ "${{ steps.check.outputs.count }}" -eq 0 ]; then
+            echo "No release-worthy changes detected; skipping tagging."
+            exit 0
+          fi
+
+          VERSION="${{ steps.bump.outputs.new_version }}"
+
+          if [ -z "$VERSION" ]; then
+            echo "ERROR: bump step did not produce new_version. Check scripts/bump-versions.mjs outputs."
+            exit 1
+          fi
+
+          TAG="v$VERSION"
+
           git add .
-          git commit -m "chore(release): $VERSION [skip ci]"
-          git tag v$VERSION
+          git commit -m "chore(release): $VERSION [skip ci]" || echo "Nothing to commit."
+          git tag "$TAG"
           git push origin main --tags
+
           echo "tagged=true" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
   publish:
     name: Create GitHub Release
@@ -72,14 +90,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ needs.bump.outputs.tag }}
           fetch-depth: 0
 
       - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG=$(git describe --tags --abbrev=0)
-          gh release create $TAG \
+          TAG="${{ needs.bump.outputs.tag }}"
+          if [ -z "$TAG" ]; then
+            echo "ERROR: needs.bump.outputs.tag is empty."
+            exit 1
+          fi
+
+          gh release create "$TAG" \
             --title "$TAG" \
             --generate-notes
 
@@ -93,23 +117,27 @@ jobs:
       IMAGE_NAME: pandetthe/snapflow-server
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bump.outputs.tag }}
+          fetch-depth: 0
+
       - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: docker/setup-buildx-action@v3
-      - name: Get Tag
-        id: vars
-        run: echo "tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+
       - uses: docker/metadata-action@v5
         id: meta
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable=true
-            type=raw,value=${{ steps.vars.outputs.tag }}
+            type=raw,value=${{ needs.bump.outputs.tag }}
             type=sha,format=short
+
       - uses: docker/build-push-action@v5
         with:
           context: ./server
@@ -130,23 +158,27 @@ jobs:
       IMAGE_NAME: pandetthe/snapflow-web
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bump.outputs.tag }}
+          fetch-depth: 0
+
       - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: docker/setup-buildx-action@v3
-      - name: Get Tag
-        id: vars
-        run: echo "tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+
       - uses: docker/metadata-action@v5
         id: meta
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable=true
-            type=raw,value=${{ steps.vars.outputs.tag }}
+            type=raw,value=${{ needs.bump.outputs.tag }}
             type=sha,format=short
+
       - uses: docker/build-push-action@v5
         with:
           context: ./web
