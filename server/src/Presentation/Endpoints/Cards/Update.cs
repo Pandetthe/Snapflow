@@ -15,18 +15,18 @@ internal sealed class Update : IEndpoint
         app.MapPatch("boards/{boardId:int}/cards/{cardId:int}", async (
             UpdateCardRequest request,
             int boardId, int cardId,
-            ICommandHandler<UpdateCardCommand> handler,
+            ICommandHandler<UpdateCardCommand, UpdateCardResponse> handler,
             CancellationToken cancellationToken) =>
         {
             var command = new UpdateCardCommand(cardId, request.Title, request.Description);
 
-            Result result = await handler.Handle(command, cancellationToken);
+            Result<UpdateCardResponse> result = await handler.Handle(command, cancellationToken);
 
-            return result.Match(Results.NoContent, Results.Problem);
+            return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Cards.Update)
         .WithTags(EndpointTags.Cards)
-        .Produces(StatusCodes.Status204NoContent)
+        .Produces<UpdateCardResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

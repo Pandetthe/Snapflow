@@ -15,18 +15,18 @@ internal sealed class Create : IEndpoint
         app.MapPost("boards/{boardId:int}/swimlanes", async (
             CreateSwimlaneRequest request,
             int boardId,
-            ICommandHandler<CreateSwimlaneCommand, int> handler,
+            ICommandHandler<CreateSwimlaneCommand, CreateSwimlaneResponse> handler,
             CancellationToken cancellationToken) =>
         {
             var command = new CreateSwimlaneCommand(boardId, request.Title, request.Heigth, request.BeforeId);
 
-            Result<int> result = await handler.Handle(command, cancellationToken);
+            Result<CreateSwimlaneResponse> result = await handler.Handle(command, cancellationToken);
 
-            return result.Match(Results.OkWithId, Results.Problem);
+            return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Swimlanes.Create)
         .WithTags(EndpointTags.Swimlanes)
-        .ProducesIdResponse()
+        .Produces<CreateSwimlaneResponse>(StatusCodes.Status200OK)
         .ProducesCustomValidationProblem();
     }
 }

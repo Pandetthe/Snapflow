@@ -16,18 +16,18 @@ internal sealed class Create : IEndpoint
             CreateCardRequest request,
             int boardId,
             int listId,
-            ICommandHandler<CreateCardCommand, int> handler,
+            ICommandHandler<CreateCardCommand, CreateCardResponse> handler,
             CancellationToken cancellationToken) =>
         {
             var command = new CreateCardCommand(listId, request.Title, request.Description, request.BeforeId);
 
-            Result<int> result = await handler.Handle(command, cancellationToken);
+            Result<CreateCardResponse> result = await handler.Handle(command, cancellationToken);
 
-            return result.Match(Results.OkWithId, Results.Problem);
+            return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Cards.Create)
         .WithTags(EndpointTags.Cards)
-        .ProducesIdResponse()
+        .Produces<CreateCardResponse>(StatusCodes.Status200OK)
         .ProducesCustomValidationProblem();
     }
 }

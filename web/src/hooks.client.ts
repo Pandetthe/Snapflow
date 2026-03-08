@@ -5,12 +5,12 @@ export const handleError: HandleClientError = ({ error, event }) => {
   logger.error(
     {
       error: error instanceof Error ? error : String(error),
-      url: event.url.pathname,
+      url: event.url.pathname
     },
     'Unhandled client side error'
   );
 
   return {
-    message: 'Something went wrong',
+    message: 'Something went wrong'
   };
 };

@@ -37,9 +37,7 @@ if (otlpEnabled) {
   });
 }
 
-const transport = isServer && targets.length > 0
-  ? pino.transport({ targets })
-  : undefined;
+const transport = isServer && targets.length > 0 ? pino.transport({ targets }) : undefined;
 
 const logger = pino(
   {

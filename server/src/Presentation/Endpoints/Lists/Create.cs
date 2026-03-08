@@ -16,18 +16,18 @@ internal sealed class Create : IEndpoint
             CreateListRequest request,
             int boardId,
             int swimlaneId,
-            ICommandHandler<CreateListCommand, int> handler,
+            ICommandHandler<CreateListCommand, CreateListResponse> handler,
             CancellationToken cancellationToken) =>
         {
             var command = new CreateListCommand(swimlaneId, request.Title, request.Width, request.BeforeId);
 
-            Result<int> result = await handler.Handle(command, cancellationToken);
+            Result<CreateListResponse> result = await handler.Handle(command, cancellationToken);
 
-            return result.Match(Results.OkWithId, Results.Problem);
+            return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Lists.Create)
         .WithTags(EndpointTags.Lists)
-        .ProducesIdResponse()
+        .Produces<CreateListResponse>(StatusCodes.Status200OK)
         .ProducesCustomValidationProblem();
     }
 }

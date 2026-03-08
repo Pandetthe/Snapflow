@@ -2,7 +2,5 @@
 export default {
   darkMode: 'class',
   content: ['./src/**/*.{html,js,svelte,ts}'],
-  plugins: [
-    require("tailwindcss-animate"),
-  ]
-}
+  plugins: [require('tailwindcss-animate')]
+};

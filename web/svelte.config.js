@@ -3,9 +3,9 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	preprocess: vitePreprocess(),
-	kit: {
-		adapter: adapter(),
+  preprocess: vitePreprocess(),
+  kit: {
+    adapter: adapter(),
     experimental: {
       instrumentation: {
         server: true
@@ -14,7 +14,7 @@ const config = {
         server: true
       }
     }
-	}
+  }
 };
 
 export default config;
