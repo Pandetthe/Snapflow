@@ -79,5 +79,8 @@
         "set-cookie-parser": "^2.7.2",
         "tailwind-merge": "^3.5.0",
         "web-haptics": "^0.0.6"
+    },
+    "overrides": {
+        "serialize-javascript": "7.0.4"
     }
 }
