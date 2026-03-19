@@ -5,6 +5,7 @@
   import type { PropertyValidationError, ProblemDetails } from '$lib/core/types/api';
   import { errorStore } from '$lib/ui/stores/error';
   import { apiClient } from '$lib/core/api.client';
+  import { triggerHaptic } from '$lib/ui/utils/haptics';
 
   let email = $state('');
   let userName = $state('');
@@ -95,6 +96,7 @@
     if (fieldErrors.password) {
       passwordError = fieldErrors.password.join('. ');
     }
+    triggerHaptic('error');
     errorStore.addErrors(generalErrors);
   }
 
@@ -234,6 +236,7 @@
     try {
       const response = await authService.signUp({ email, userName, password });
       if (response.ok) {
+        triggerHaptic('success');
         showSuccessModal = true;
       } else {
         if ('errors' in response && response.errors && Array.isArray(response.errors)) {

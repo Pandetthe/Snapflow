@@ -2,6 +2,7 @@
   import { Dialog, Button } from 'bits-ui';
   import { slide } from 'svelte/transition';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
+  import { triggerHaptic } from '$lib/ui/utils/haptics';
 
   let {
     open = $bindable(false),
@@ -33,6 +34,7 @@
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
     onConfirm(title, height);
+    triggerHaptic('success');
     open = false;
   }
 </script>

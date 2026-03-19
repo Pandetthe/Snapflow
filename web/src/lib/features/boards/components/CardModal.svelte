@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Dialog, Button } from 'bits-ui';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
-
+  import { triggerHaptic } from '$lib/ui/utils/haptics';
   let {
     open = $bindable(false),
     card = $bindable(undefined),
@@ -32,6 +32,7 @@
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
     onConfirm(title, description);
+    triggerHaptic('success');
     open = false;
   }
 </script>

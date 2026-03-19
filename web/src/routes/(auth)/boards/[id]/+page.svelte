@@ -11,12 +11,12 @@
   import { recentBoards } from '$lib/features/boards/stores/recent';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import { Button } from 'bits-ui';
+  import { triggerHaptic } from '$lib/ui/utils/haptics';
 
   let { data } = $props();
   let board = $state((() => data.board)());
   let hub = $state<BoardsHub | null>(null);
 
-  // Modal States
   let swimlaneModalOpen = $state(false);
   let editingSwimlane: GetBoardByIdResponse.SwimlaneDto | undefined = $state(undefined);
 
@@ -442,6 +442,7 @@
     board.swimlanes = e.detail.items;
     const { info } = e.detail;
     if (info.trigger === 'droppedIntoZone') {
+      triggerHaptic('success');
       const id = Number(info.id);
       const index = board.swimlanes.findIndex((s) => s.id === id);
       const nextItem = board.swimlanes[index + 1];

@@ -3,18 +3,15 @@
   import '../app.css';
   import favicon from '$lib/assets/favicon.svg';
   import { AppHeader } from '$lib/ui/components';
-  import { AuthService } from '$lib/features/auth/api/auth';
-  import { apiClient } from '$lib/core/api.client';
   import ErrorModal from '$lib/ui/components/ErrorModal.svelte';
   import { errorStore } from '$lib/ui/stores/error';
   import type { AppError } from '$lib/core/types/app.js';
   import { theme } from '$lib/ui/stores/theme';
   import { onDestroy, onMount } from 'svelte';
   import { pwaInfo } from 'virtual:pwa-info';
-
   let { children, data } = $props();
-  let authService = new AuthService(apiClient);
 
+  onDestroy(() => {});
   onMount(async () => {
     if (pwaInfo) {
       const { registerSW } = await import('virtual:pwa-register');

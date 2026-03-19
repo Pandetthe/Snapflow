@@ -9,6 +9,7 @@
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import { errorStore } from '$lib/ui/stores/error';
   import { ScrollArea } from 'bits-ui';
+  import { triggerHaptic } from '$lib/ui/utils/haptics';
 
   let { swimlane }: { swimlane: GetBoardByIdResponse.SwimlaneDto } = $props();
 
@@ -29,6 +30,7 @@
     swimlane.lists = e.detail.items;
     const { info } = e.detail;
     if (info.trigger === 'droppedIntoZone') {
+      triggerHaptic('success');
       const id = Number(info.id);
       const index = swimlane.lists.findIndex((l) => l.id === id);
       const nextItem = swimlane.lists[index + 1];

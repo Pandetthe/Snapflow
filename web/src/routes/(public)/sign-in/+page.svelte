@@ -9,6 +9,7 @@
   import Checkbox from '$lib/ui/components/Checkbox.svelte';
   import InputTextField from '$lib/ui/components/input/InputTextField.svelte';
   import LoadingDots from '$lib/ui/components/LoadingDots.svelte';
+  import { triggerHaptic } from '$lib/ui/utils/haptics';
   import { Mail, Lock, ChevronLeft, Info, LoaderCircle } from 'lucide-svelte';
 
   let email = $state('');
@@ -54,6 +55,7 @@
       signInInfoMessage = info.message;
       showSignInInfoModal = true;
       isResendLoading = false;
+      triggerHaptic('error');
       showResendConfirmationButton = problem.title === 'Users.SignIn.NotAllowed';
       return true;
     }
@@ -85,6 +87,7 @@
     if (fieldErrors.password) {
       passwordError = fieldErrors.password.join('. ');
     }
+    triggerHaptic('error');
     errorStore.addErrors(generalErrors);
   }
 
@@ -156,6 +159,7 @@
     try {
       const response = await authService.signIn({ email, password });
       if (response.ok) {
+        triggerHaptic('success');
         window.location.href = '/boards';
       } else {
         if ('errors' in response && response.errors && Array.isArray(response.errors)) {

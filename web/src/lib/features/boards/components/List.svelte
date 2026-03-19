@@ -8,6 +8,7 @@
   import Card from './Card.svelte';
   import { ScrollArea } from 'bits-ui';
   import { errorStore } from '$lib/ui/stores/error';
+  import { triggerHaptic } from '$lib/ui/utils/haptics';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
 
   let { list, swimlaneId }: { list: GetBoardByIdResponse.ListDto; swimlaneId: number } = $props();
@@ -29,6 +30,7 @@
     list.cards = e.detail.items;
     const { info } = e.detail;
     if (info.trigger === 'droppedIntoZone') {
+      triggerHaptic('success');
       const id = Number(info.id);
       const index = list.cards.findIndex((c) => c.id === id);
       const nextItem = list.cards[index + 1];
