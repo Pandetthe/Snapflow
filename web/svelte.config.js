@@ -6,6 +6,9 @@ const config = {
   preprocess: vitePreprocess(),
   kit: {
     adapter: adapter(),
+    serviceWorker: {
+      register: false
+    },
     experimental: {
       instrumentation: {
         server: true
