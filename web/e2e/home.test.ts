@@ -12,6 +12,7 @@ test('home page has expected title and heading', async ({ page }) => {
 test('home page shows sign in links for unauthenticated users', async ({ page }) => {
   await page.goto('/');
 
-  await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible();
+  await expect(page.getByRole('banner').getByRole('link', { name: 'Sign in' })).toBeVisible();
+  await expect(page.getByRole('main').getByRole('link', { name: 'Sign in' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Create test account' })).toBeVisible();
 });
