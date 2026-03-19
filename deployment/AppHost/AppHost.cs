@@ -1,5 +1,5 @@
 using Aspire.Hosting.Yarp.Transforms;
-using Microsoft.Extensions.Options;
+
 using System.Diagnostics;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -27,7 +27,7 @@ var api = builder.AddProject<Projects.Presentation>("api-server")
                  .WaitFor(db)
                  .WaitFor(redis)
                  .WaitFor(mailpit)
-                 .WithEnvironment("Services__WebUrl", $"{gatewayUrl}")
+                 .WithEnvironment("Services__WebUrl", gatewayUrl)
                  .WithEnvironment("Services__ApiUrl", $"{gatewayUrl}/api")
                  .WithEnvironment("Jwt__Secret", "super-tajne-haslo-minimum-32-znaki-!!!!")
                  .WithEnvironment("Email__Host", mailpit.GetEndpoint("smtp").Property(EndpointProperty.Host))
@@ -39,8 +39,7 @@ var apiUrl = api.GetEndpoint("http");
 
 var web = builder.AddViteApp("web-client", "../../web")
                  .WithReference(api)
-                 .WithReference(gateway)
-                 .WithEnvironment("API_BASE_URL", $"{apiUrl}")
+                 .WithEnvironment("API_BASE_URL", apiUrl)
                  .WithEnvironment("PUBLIC_API_BASE_URL", $"{gatewayUrl}/api");
 
 var otlpHttpEndpoint = builder.Configuration["ASPIRE_DASHBOARD_OTLP_HTTP_ENDPOINT_URL"];
@@ -51,20 +50,24 @@ if (!string.IsNullOrEmpty(otlpHttpEndpoint))
     if (isHttps)
     {
         var certPath = Path.Combine(AppContext.BaseDirectory, "aspire-dev-cert.pem");
-        using var proc = Process.Start(new ProcessStartInfo
+        try
         {
-            FileName = "dotnet",
-            Arguments = $"dev-certs https --export-path \"{certPath}\" --no-password --format pem",
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        });
-        proc?.WaitForExit(5000);
+            using var proc = Process.Start(new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = $"dev-certs https --export-path \"{certPath}\" --no-password --format pem",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            });
+            proc?.WaitForExit(5000);
 
-        if (File.Exists(certPath))
-        {
-            web.WithEnvironment("NODE_EXTRA_CA_CERTS", certPath);
+            if (File.Exists(certPath))
+            {
+                web.WithEnvironment("NODE_EXTRA_CA_CERTS", certPath);
+            }
         }
+        catch {}
     }
 }
 
@@ -75,7 +78,7 @@ gateway.WithConfiguration(yarp =>
     yarp.AddRoute("/api/{**catch-all}", api)
         .WithTransformPathRemovePrefix("/api");
 
-    yarp.AddRoute(web);
+    yarp.AddRoute("{**catch-all}", web);
 });
 
 builder.Build().Run();
