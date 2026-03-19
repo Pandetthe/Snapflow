@@ -70,16 +70,31 @@ export default defineConfig(({ command }) => {
         manifest: {
           name: 'Snapflow',
           short_name: 'Snapflow',
-          description: 'Simple, open-source kanban application for teams',
+          description: 'Simple, open-source kanban application that helps teams collaborate effectively.',
           theme_color: '#465fff',
           background_color: '#f9fafb',
           display: 'standalone',
+          scope: '/',
+          start_url: '/',
+          orientation: 'portrait-primary',
           icons: [
             {
               src: 'favicon.svg',
               sizes: 'any',
               type: 'image/svg+xml',
-              purpose: 'any maskable'
+              purpose: 'any'
+            },
+            {
+              src: 'web-app-manifest-192x192.png',
+              sizes: '192x192',
+              type: 'image/png',
+              purpose: 'maskable'
+            },
+            {
+              src: 'web-app-manifest-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable'
             }
           ]
         },
