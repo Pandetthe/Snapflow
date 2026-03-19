@@ -61,10 +61,6 @@
 <svelte:head>
   <link rel="icon" href={favicon} />
   {@html webManifestLink}
-  <meta name="theme-color" content={themeColor} />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <link rel="apple-touch-icon" href={favicon} />
 </svelte:head>
 
 <div class="relative flex min-h-screen flex-col bg-white dark:bg-gray-900">
