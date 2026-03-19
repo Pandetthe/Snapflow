@@ -11,7 +11,7 @@
   {/if}
 </svelte:head>
 
-<div class="flex min-h-screen items-center justify-center bg-gray-100 px-4 dark:bg-gray-900">
+<div class="flex min-h-screen items-center justify-center bg-white px-4 dark:bg-gray-900">
   <div class="w-full max-w-lg text-center">
     <div>
       {#if page.status === 404}

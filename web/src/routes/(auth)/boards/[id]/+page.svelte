@@ -479,7 +479,7 @@
   </Button.Root>
 </div>
 
-<div class="mt-16 flex min-h-screen flex-col bg-gray-50 sm:mt-0 dark:bg-gray-900">
+<div class="mt-16 flex min-h-screen flex-col bg-white sm:mt-0 dark:bg-gray-900">
   <div
     class="shrink-0 border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800"
   >

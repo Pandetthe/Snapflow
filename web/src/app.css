@@ -132,7 +132,7 @@
 @layer base {
   html,
   body {
-    @apply relative z-1 bg-gray-50 font-outfit font-normal text-text-main transition-colors duration-300;
+    @apply relative z-1 bg-white font-outfit font-normal text-text-main transition-colors duration-300;
   }
   html.dark,
   html.dark body {

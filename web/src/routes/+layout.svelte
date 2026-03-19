@@ -70,7 +70,7 @@
   <link rel="apple-touch-icon" href={favicon} />
 </svelte:head>
 
-<div class="relative flex min-h-screen flex-col bg-gray-100 dark:bg-gray-900">
+<div class="relative flex min-h-screen flex-col bg-white dark:bg-gray-900">
   {#if !isPublicRoute}
     <AppHeader
       onMenuToggle={() => (isSidebarOpen = !isSidebarOpen)}
