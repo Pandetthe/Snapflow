@@ -105,11 +105,20 @@ jobs:
           ref: ${{ needs.bump.outputs.tag }}
           fetch-depth: 0
 
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v5
+        with:
+          configuration: ".github/release-changelog-config.json"
+          toTag: ${{ needs.bump.outputs.tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.bump.outputs.tag }}
-          generate_release_notes: true
+          body: ${{ steps.build_changelog.outputs.changelog }}
 
   docker-server:
     name: Build & Push Server Image (GHCR)
