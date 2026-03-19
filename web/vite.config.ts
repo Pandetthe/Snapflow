@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { SvelteKitPWA } from '@vite-pwa/sveltekit'
 import pino from 'pino';
 
 const stripAnsi = (str: string) =>
@@ -20,21 +21,21 @@ const createCustomLogger = () => {
         },
         ...(otlpEndpoint
           ? [
-              {
-                target: 'pino-opentelemetry-transport',
-                options: {
-                  url: otlpEndpoint.endsWith('/v1/logs') ? otlpEndpoint : `${otlpEndpoint}/v1/logs`,
-                  serviceName: process.env.OTEL_SERVICE_NAME || 'web-client-vite',
-                  resourceAttributes: {
-                    'service.name': process.env.OTEL_SERVICE_NAME || 'web-client-vite',
-                    'telemetry.sdk.language': 'nodejs'
-                  },
-                  messageKey: 'msg',
-                  loggerName: 'vite'
+            {
+              target: 'pino-opentelemetry-transport',
+              options: {
+                url: otlpEndpoint.endsWith('/v1/logs') ? otlpEndpoint : `${otlpEndpoint}/v1/logs`,
+                serviceName: process.env.OTEL_SERVICE_NAME || 'web-client-vite',
+                resourceAttributes: {
+                  'service.name': process.env.OTEL_SERVICE_NAME || 'web-client-vite',
+                  'telemetry.sdk.language': 'nodejs'
                 },
-                level: 'info'
-              }
-            ]
+                messageKey: 'msg',
+                loggerName: 'vite'
+              },
+              level: 'info'
+            }
+          ]
           : [])
       ]
     }
@@ -45,7 +46,7 @@ const createCustomLogger = () => {
     warn: (msg: string) => logger.warn(stripAnsi(msg)),
     error: (msg: string) => logger.error(stripAnsi(msg)),
     warnOnce: (msg: string) => logger.warn(stripAnsi(msg)),
-    clearScreen: () => {},
+    clearScreen: () => { },
     hasErrorLogged: () => false,
     hasWarned: false
   };
@@ -61,7 +62,33 @@ export default defineConfig(({ command }) => {
       sourcemap: false,
       minify: 'esbuild',
     },
-    plugins: [tailwindcss(), sveltekit(), ...(isServe ? [devtoolsJson()] : [])],
+    plugins: [
+      tailwindcss(),
+      sveltekit(),
+      SvelteKitPWA({
+        registerType: 'autoUpdate',
+        manifest: {
+          name: 'Snapflow',
+          short_name: 'Snapflow',
+          description: 'Simple, open-source kanban application for teams',
+          theme_color: '#465fff',
+          background_color: '#f9fafb',
+          display: 'standalone',
+          icons: [
+            {
+              src: 'favicon.svg',
+              sizes: 'any',
+              type: 'image/svg+xml',
+              purpose: 'any maskable'
+            }
+          ]
+        },
+        workbox: {
+          globPatterns: ['client/**/*.{js,css,ico,png,svg,webp,webmanifest}']
+        }
+      }),
+      ...(isServe ? [devtoolsJson()] : [])
+    ],
     server: {
       allowedHosts: ['host.docker.internal', 'localhost', '.localhost']
     },

@@ -8,12 +8,38 @@
   import ErrorModal from '$lib/ui/components/ErrorModal.svelte';
   import { errorStore } from '$lib/ui/stores/error';
   import type { AppError } from '$lib/core/types/app.js';
+  import { theme } from '$lib/ui/stores/theme';
   import { onDestroy, onMount } from 'svelte';
+  import { pwaInfo } from 'virtual:pwa-info';
 
   let { children, data } = $props();
   let authService = new AuthService(apiClient);
 
-  const publicRoutes = ['/sign-in', '/sign-up', '/forgot-password', '/reset-password', '/email-confirmed'];
+  onMount(async () => {
+    if (pwaInfo) {
+      const { registerSW } = await import('virtual:pwa-register');
+      registerSW({
+        immediate: true,
+        onRegistered(r) {
+          console.info(`SW Registered: ${r}`);
+        },
+        onRegisterError(error) {
+          console.error('SW registration error', error);
+        }
+      });
+    }
+  });
+
+  const themeColor = $derived($theme === 'dark' ? '#111827' : '#f9fafb');
+  const webManifestLink = $derived(pwaInfo ? pwaInfo.webManifest.linkTag : '');
+
+  const publicRoutes = [
+    '/sign-in',
+    '/sign-up',
+    '/forgot-password',
+    '/reset-password',
+    '/email-confirmed'
+  ];
   const isPublicRoute = $derived(publicRoutes.includes(page.url.pathname));
 
   let showErrorModal = $state(false);
@@ -37,13 +63,18 @@
 
 <svelte:head>
   <link rel="icon" href={favicon} />
+  {@html webManifestLink}
+  <meta name="theme-color" content={themeColor} />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="apple-touch-icon" href={favicon} />
 </svelte:head>
 
 <div class="relative flex min-h-screen flex-col bg-gray-100 dark:bg-gray-900">
   {#if !isPublicRoute}
     <AppHeader
       onMenuToggle={() => (isSidebarOpen = !isSidebarOpen)}
-      isSidebarOpen={isSidebarOpen}
+      {isSidebarOpen}
       user={data?.user}
     />
   {/if}
