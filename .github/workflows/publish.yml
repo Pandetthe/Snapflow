@@ -1,10 +1,6 @@
 name: Publish
 
 on:
-  workflow_run:
-    workflows: ["Build & Test"]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -19,7 +15,6 @@ jobs:
   bump:
     name: Bump and Tag
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     outputs:
       new_version: ${{ steps.bump.outputs.new_version }}
       tagged: ${{ steps.tag_check.outputs.tagged }}
