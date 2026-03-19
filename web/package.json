@@ -31,7 +31,7 @@
         "@vite-pwa/sveltekit": "^1.1.0",
         "@vitejs/plugin-basic-ssl": "^2.1.4",
         "@vitest/browser-playwright": "^4.0.18",
-        "cookie": "^0.7.0",
+        "cookie": "0.7.2",
         "eslint": "^9.38.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-svelte": "^3.12.4",
@@ -81,6 +81,7 @@
         "web-haptics": "^0.0.6"
     },
     "overrides": {
-        "serialize-javascript": "7.0.4"
+        "serialize-javascript": "7.0.4",
+        "cookie": "0.7.2"
     }
 }
