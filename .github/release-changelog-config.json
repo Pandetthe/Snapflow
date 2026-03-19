@@ -42,6 +42,7 @@
   "sort": "ASC",
   "template": "${{CHANGELOG}}\n\n<details>\n<summary>Full list of changes</summary>\n${{UNCATEGORIZED}}\n</details>",
   "pr_template": "- ${{TITLE}} #${{NUMBER}}",
+  "commit_template": "- ${{MESSAGE}}",
   "empty_template": "- No notable changes in this release.",
   "label_extractor": [
     {

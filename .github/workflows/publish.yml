@@ -111,6 +111,7 @@ jobs:
         with:
           configuration: ".github/release-changelog-config.json"
           toTag: ${{ needs.bump.outputs.tag }}
+          mode: "COMMIT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
