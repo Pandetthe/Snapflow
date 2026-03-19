@@ -1,15 +1,20 @@
 <script lang="ts">
-  import { Button, Toggle, Dialog } from 'bits-ui';
+  import { Dialog } from 'bits-ui';
   import { authConfig } from '$lib/config/auth';
   import { AuthService } from '$lib/features/auth/api/auth';
   import type { PropertyValidationError, ProblemDetails } from '$lib/core/types/api';
   import { errorStore } from '$lib/ui/stores/error';
   import { apiClient } from '$lib/core/api.client';
+  import Button from '$lib/ui/components/Button.svelte';
+  import Checkbox from '$lib/ui/components/Checkbox.svelte';
+  import InputTextField from '$lib/ui/components/input/InputTextField.svelte';
+  import LoadingDots from '$lib/ui/components/LoadingDots.svelte';
+  import { Mail, Lock, ChevronLeft, Info, LoaderCircle } from 'lucide-svelte';
 
   let email = $state('');
   let password = $state('');
   let isLoading = $state(false);
-  let showPassword = $state(false);
+  let keepLoggedIn = $state<boolean | null>(null);
   let emailError = $state('');
   let passwordError = $state('');
 
@@ -184,161 +189,108 @@
   <title>Snapflow | Sign in</title>
 </svelte:head>
 
-<div class="flex min-h-screen items-center justify-center px-4 py-12">
-  <div class="w-full max-w-md">
-    <div class="rounded-2xl bg-white p-8 shadow-xl dark:bg-gray-800">
-      <div class="mb-8 text-center">
-        <h1 class="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Welcome back!</h1>
-        <p class="text-gray-600 dark:text-gray-400">Sign in to your Snapflow account</p>
+<div class="relative z-1 bg-white dark:bg-gray-900">
+  <div class="relative flex h-screen w-full flex-col overflow-hidden lg:flex-row dark:bg-gray-900">
+    <div class="flex w-full flex-1 flex-col lg:w-1/2">
+      <div class="mx-auto w-full max-w-md px-6 pt-5 sm:px-0 lg:pt-10">
+        <a
+          href="/"
+          class="inline-flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+        >
+          <ChevronLeft size={18} />
+          Back to home
+        </a>
       </div>
 
-      <form onsubmit={handleSignin} novalidate class="space-y-4">
-        <div class="space-y-1">
-          <label for="email" class="block text-xs font-medium text-gray-700 dark:text-gray-300">
-            Email address
-          </label>
-          <input
+      <div
+        class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-4 sm:px-0 lg:py-12"
+      >
+        <div class="mb-3 sm:mb-8">
+          <h1 class="mb-2 text-2xl font-semibold text-gray-800 sm:text-3xl dark:text-white/90">
+            Welcome back!
+          </h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Enter your email and password to sign in!
+          </p>
+        </div>
+
+        <form onsubmit={handleSignin} novalidate class="space-y-5">
+          <InputTextField
             id="email"
             name="email"
             type="email"
+            label="Email"
+            placeholder="info@example.com"
             autocomplete="email"
             bind:value={email}
-            placeholder="Enter your email"
-            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-500 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+            error={emailError}
+            leftIcon={Mail}
             maxlength={authConfig.email.maxLength}
-            oninput={(e) => validateEmailField(e.currentTarget.value)}
+            oninput={(e) => validateEmailField((e.currentTarget as HTMLInputElement).value)}
           />
-          <div
-            class={`overflow-hidden transition-all duration-300 ${emailError ? 'mt-2 max-h-96' : 'max-h-0'}`}
-          >
-            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{emailError}</p>
-          </div>
-        </div>
 
-        <div class="space-y-1">
-          <label for="password" class="block text-xs font-medium text-gray-700 dark:text-gray-300">
-            Password
-          </label>
-          <div class="relative">
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              autocomplete="current-password"
-              bind:value={password}
-              placeholder="Enter your password"
-              class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 pr-10 text-sm text-gray-900 placeholder-gray-500 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-              oninput={validatePasswordField}
-            />
-            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-              <Toggle.Root
-                bind:pressed={showPassword}
-                aria-label="Show password"
-                class="p-1 text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-              >
-                {#if showPassword}
-                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                    />
-                  </svg>
-                {:else}
-                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                {/if}
-              </Toggle.Root>
-            </div>
-
-            <div
-              class={`overflow-hidden transition-all duration-300 ${passwordError ? 'mt-2 max-h-96' : 'max-h-0'}`}
+          <InputTextField
+            id="password"
+            name="password"
+            type="password"
+            label="Password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            bind:value={password}
+            error={passwordError}
+            leftIcon={Lock}
+            showPasswordToggle={true}
+            oninput={validatePasswordField}
+          />
+          <div class="flex items-center justify-between">
+            <Checkbox bind:checked={keepLoggedIn} label="Keep me logged in" />
+            <a
+              href="/forgot-password"
+              class="text-sm whitespace-nowrap text-brand-500 hover:text-brand-600 dark:text-brand-400"
             >
-              <p class="mt-1 text-xs text-red-600 dark:text-red-400">{passwordError}</p>
-            </div>
+              Forgot password?
+            </a>
           </div>
-        </div>
-
-        <div class="text-right">
-          <a
-            href="/forgot-password"
-            class="text-sm text-blue-600 transition-colors duration-200 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            class="w-full justify-center"
+            disabled={isLoading || !email || !!emailError || !password || !!passwordError}
           >
-            Forgot your password?
-          </a>
+            {#if isLoading}
+              <LoaderCircle size={16} class="animate-spin" />
+              <span>Signing in<LoadingDots /></span>
+            {:else}
+              <span>Sign in</span>
+            {/if}
+          </Button>
+        </form>
+
+        <div class="mt-5">
+          <p class="text-center text-sm font-normal text-gray-700 sm:text-start dark:text-gray-400">
+            Don't have an account?
+            <a href="/sign-up" class="text-brand-500 hover:text-brand-600 dark:text-brand-400">
+              Sign Up
+            </a>
+          </p>
         </div>
-
-        <Button.Root
-          type="submit"
-          disabled={isLoading || !email || !!emailError || !password || !!passwordError}
-          class="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-blue-700 hover:shadow-lg disabled:cursor-not-allowed disabled:bg-blue-400"
-        >
-          {#if isLoading}
-            <svg
-              class="mr-2 h-4 w-4 animate-spin text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              ></circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373	 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            <span>Signing in</span>
-            <span class="inline-flex">
-              <span class="animate-dots-bounce" style="animation-delay: 0ms">.</span>
-              <span class="animate-dots-bounce" style="animation-delay: 150ms">.</span>
-              <span class="animate-dots-bounce" style="animation-delay: 300ms">.</span>
-            </span>
-          {:else}
-            <span>Sign in</span>
-          {/if}
-        </Button.Root>
-      </form>
-
-      <div class="mt-8 text-center">
-        <p class="text-gray-600 dark:text-gray-400">
-          Don't have an account?
-          <a
-            href="/sign-up"
-            class="font-semibold text-blue-600 transition-colors duration-200 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-          >
-            Sign up
-          </a>
-        </p>
       </div>
     </div>
 
-    <div class="mt-6 text-center">
-      <a
-        href="/"
-        class="text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-      >
-        ← Back to Home
-      </a>
+    <div
+      class="relative hidden min-h-screen w-full items-center justify-center overflow-hidden bg-brand-950 lg:flex lg:w-1/2 dark:bg-white/5"
+    >
+      <div class="absolute inset-0 opacity-10">
+        <svg class="h-full w-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)" />
+        </svg>
+      </div>
     </div>
   </div>
 </div>
@@ -353,21 +305,9 @@
     >
       <div class="space-y-4 text-center">
         <div
-          class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30"
+          class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30"
         >
-          <svg
-            class="h-6 w-6 text-blue-600 dark:text-blue-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"
-            />
-          </svg>
+          <Info size={24} class="text-brand-600 dark:text-brand-400" />
         </div>
         <Dialog.Title class="text-lg font-semibold text-gray-900 dark:text-white">
           {signInInfoTitle}
@@ -375,50 +315,25 @@
         <Dialog.Description class="text-sm text-gray-600 dark:text-gray-300">
           {signInInfoMessage}
         </Dialog.Description>
-        <div class="mt-4 flex justify-center">
+        <div class="mt-4 flex justify-center gap-3">
           {#if showResendConfirmationButton}
-            <Button.Root
+            <Button
+              variant="outline"
+              size="sm"
               onclick={resendEmailConfirmation}
-              class="mr-3 inline-flex h-9 items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+              disabled={isResendLoading}
             >
               {#if isResendLoading}
-                <svg
-                  class="mr-2 h-4 w-4 animate-spin text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373	 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                <span>Resending email confirmation</span>
-                <span class="inline-flex">
-                  <span class="animate-dots-bounce" style="animation-delay: 0ms">.</span>
-                  <span class="animate-dots-bounce" style="animation-delay: 150ms">.</span>
-                  <span class="animate-dots-bounce" style="animation-delay: 300ms">.</span>
-                </span>
+                <LoaderCircle size={14} class="animate-spin" />
+                <span>Resending<LoadingDots /></span>
               {:else}
-                <span>Resend email confirmation</span>
+                <span>Resend confirmation</span>
               {/if}
-            </Button.Root>
+            </Button>
           {/if}
-          <Button.Root
-            onclick={() => (showSignInInfoModal = false)}
-            class="inline-flex h-9 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
+          <Button variant="primary" size="sm" onclick={() => (showSignInInfoModal = false)}>
             OK
-          </Button.Root>
+          </Button>
         </div>
       </div>
     </Dialog.Content>

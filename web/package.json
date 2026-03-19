@@ -68,10 +68,13 @@
         "@opentelemetry/sdk-logs": "^0.212.0",
         "@opentelemetry/sdk-node": "^0.212.0",
         "@opentelemetry/semantic-conventions": "^1.39.0",
-        "bits-ui": "^2.14.4",
+        "bits-ui": "^2.16.3",
+        "clsx": "^2.1.1",
         "import-in-the-middle": "^3.0.0",
+        "lucide-svelte": "^0.577.0",
         "pino": "^10.3.1",
         "pino-opentelemetry-transport": "^2.0.0",
-        "set-cookie-parser": "^2.7.2"
+        "set-cookie-parser": "^2.7.2",
+        "tailwind-merge": "^3.5.0"
     }
 }
