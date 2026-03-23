@@ -114,7 +114,7 @@ export default defineConfig(({ command }) => {
       ...(isServe ? [devtoolsJson()] : [])
     ],
     server: {
-      allowedHosts: ['host.docker.internal', 'localhost', '.localhost']
+      allowedHosts: ['host.docker.internal', 'localhost', '.localhost', '.internal', 'aspire.dev.internal']
     },
     test: {
       expect: { requireAssertions: true },
