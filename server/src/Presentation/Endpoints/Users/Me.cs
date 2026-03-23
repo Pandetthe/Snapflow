@@ -1,6 +1,5 @@
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Users.Me;
-using Snapflow.Common;
 using Snapflow.Presentation.Extensions;
 
 namespace Snapflow.Presentation.Endpoints.Users;
@@ -15,12 +14,12 @@ internal sealed class Me : IEndpoint
         {
             var query = new MeQuery();
 
-            Result<MeResponse> result = await handler.Handle(query, cancellationToken);
+            var result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization()
         .WithTags(EndpointTags.Users)
-        .Produces<MeResponse>(StatusCodes.Status200OK);
+        .Produces<MeResponse>();
     }
 }

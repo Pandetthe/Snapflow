@@ -10,9 +10,8 @@ using Snapflow.Domain.Swimlanes;
 using Snapflow.Domain.Tags;
 using Snapflow.Domain.Users;
 using Snapflow.Infrastructure.Auth.Entities;
-using Snapflow.Infrastructure.Common;
-using Snapflow.Infrastructure.Identity.Entities;
-using System.Reflection.Emit;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Snapflow.Domain.Roles;
 
 namespace Snapflow.Infrastructure.Persistence;
 
@@ -21,6 +20,7 @@ public sealed class AppDbContext(
     : IdentityDbContext<AppUser, AppRole, int>(options), IAppDbContext
 {
     IQueryable<IUser> IAppDbContext.Users => Set<AppUser>().AsQueryable().Cast<IUser>();
+    IQueryable<IRole> IAppDbContext.Roles => Set<AppRole>().AsQueryable().Cast<IRole>();
     public DbSet<Board> Boards { get; private set; }
     public DbSet<Swimlane> Swimlanes { get; private set; }
     public DbSet<List> Lists { get; private set; }
@@ -37,7 +37,7 @@ public sealed class AppDbContext(
         var entityTypes = builder.Model.GetEntityTypes()
             .Where(t => typeof(IEntity).IsAssignableFrom(t.ClrType));
 
-        foreach (var entityType in entityTypes)
+        foreach (IMutableEntityType entityType in entityTypes)
         {
             builder.Entity(entityType.ClrType).Ignore(nameof(IEntity.DomainEvents));
         }

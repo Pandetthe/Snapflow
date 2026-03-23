@@ -4,6 +4,7 @@ using Snapflow.Domain.Boards;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
 using Snapflow.Domain.Members;
+using Snapflow.Domain.Roles;
 using Snapflow.Domain.Swimlanes;
 using Snapflow.Domain.Tags;
 using Snapflow.Domain.Users;
@@ -14,6 +15,7 @@ public interface IAppDbContext
 {
     DatabaseFacade Database { get; }
     IQueryable<IUser> Users { get; }
+    IQueryable<IRole> Roles { get; }
 
     DbSet<Board> Boards { get; }
 

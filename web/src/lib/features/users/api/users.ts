@@ -1,10 +1,18 @@
 import type { ApiClient, Response as ApiResponseType } from '$lib/core/types/api';
 import type { RequestEvent, ServerLoadEvent } from '@sveltejs/kit';
 
+export enum AvatarType {
+  Gravatar = 'gravatar',
+  Generated = 'generated',
+  Uploaded = 'uploaded',
+}
+
 export interface User {
   id: number;
   userName: string;
   email: string;
+  avatarUrl: string;
+  avatarType: AvatarType;
 }
 
 export class UsersService {
@@ -20,6 +28,7 @@ export class UsersService {
     }
 
     const user = (await response.json()) as User;
+    console.log('Fetched user:', user);
     return { ok: true, user };
   }
 }

@@ -13,18 +13,18 @@ namespace Snapflow.Infrastructure.Identity.Services;
 
 internal sealed class AuthEmailSender : IAuthEmailSender
 {
-    private readonly SmtpOptions _smtpOptions;
+    private readonly EmailOptions _emailOptions;
     private readonly EmailTemplateRenderer _templateRenderer;
     private readonly ServiceLinkBuilder _serviceLinkBuilder;
 
     public AuthEmailSender(
         IHttpContextAccessor httpContextAccessor,
         LinkGenerator linkGenerator,
-        IOptions<SmtpOptions> smtpOptions,
+        IOptions<EmailOptions> smtpOptions,
         EmailTemplateRenderer templateRenderer,
         ServiceLinkBuilder serviceLinkBuilder)
     {
-        _smtpOptions = smtpOptions.Value;
+        _emailOptions = smtpOptions.Value;
         _templateRenderer = templateRenderer;
         _serviceLinkBuilder = serviceLinkBuilder;
     }
@@ -32,13 +32,13 @@ internal sealed class AuthEmailSender : IAuthEmailSender
     private async Task SendMailAsync(string toEmail, string subject, string bodyText, string bodyHtml)
     {
         using var client = new SmtpClient();
-        await client.ConnectAsync(_smtpOptions.Host, _smtpOptions.Port, _smtpOptions.SecureSocketOptions);
+        await client.ConnectAsync(_emailOptions.Host, _emailOptions.Port, _emailOptions.SecureSocketOptions);
 
-        if (_smtpOptions.RequireAuthentication && !string.IsNullOrWhiteSpace(_smtpOptions.UserName))
-            await client.AuthenticateAsync(_smtpOptions.UserName, _smtpOptions.Password);
+        if (_emailOptions.RequireAuthentication && !string.IsNullOrWhiteSpace(_emailOptions.UserName))
+            await client.AuthenticateAsync(_emailOptions.UserName, _emailOptions.Password);
 
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(_smtpOptions.FromName, _smtpOptions.FromEmail));
+        message.From.Add(new MailboxAddress(_emailOptions.FromName, _emailOptions.FromEmail));
         message.To.Add(MailboxAddress.Parse(toEmail));
         message.Subject = subject;
 

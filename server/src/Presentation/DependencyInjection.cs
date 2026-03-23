@@ -66,7 +66,7 @@ public static class DependencyInjection
             });
             options.AddSchemaTransformer((schema, context, cancellationToken) =>
             {
-                var type = context.JsonTypeInfo.Type;
+                Type type = context.JsonTypeInfo.Type;
 
                 if (type.IsPrimitive || type == typeof(string) || type == typeof(decimal))
                 {
@@ -74,21 +74,14 @@ public static class DependencyInjection
                 }
                 var isMyAssembly = type.Assembly == typeof(Application.DependencyInjection).Assembly;
 
-                if (isMyAssembly)
+                if (!isMyAssembly)
                 {
-                    if (type.FullName != null)
-                    {
-                        var simpleName = type.Name;
+                    return Task.CompletedTask;
+                }
 
-                        if (type.IsNested)
-                        {
-                            schema.Title = type.FullName.Split('.').Last().Replace('+', '.');
-                        }
-                        else
-                        {
-                            schema.Title = type.Name;
-                        }
-                    }
+                if (type.FullName != null)
+                {
+                    schema.Title = type.IsNested ? type.FullName.Split('.').Last().Replace('+', '.') : type.Name;
                 }
                 return Task.CompletedTask;
             });
@@ -113,7 +106,7 @@ public static class DependencyInjection
 
     private static IServiceCollection AddEndpointsInternal(this IServiceCollection services)
     {
-        ServiceDescriptor[] serviceDescriptors = Assembly
+        var serviceDescriptors = Assembly
             .GetExecutingAssembly()
             .DefinedTypes
             .Where(type => type is { IsAbstract: false, IsInterface: false } &&
@@ -139,7 +132,7 @@ public static class DependencyInjection
         this WebApplication app,
         RouteGroupBuilder? routeGroupBuilder = null)
     {
-        IEnumerable<IEndpoint> endpoints = app.Services.GetRequiredService<IEnumerable<IEndpoint>>();
+        var endpoints = app.Services.GetRequiredService<IEnumerable<IEndpoint>>();
 
         IEndpointRouteBuilder builder = routeGroupBuilder is null ? app : routeGroupBuilder;
 

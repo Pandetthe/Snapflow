@@ -11,7 +11,9 @@ public interface ISignInManager
 
     Task<Result> TwoFactorRecoveryCodeSignInAsync(string recoveryCode);
 
-    Task RefreshSignInAsync(IUser user);
+    Task<Result> RefreshSignInAsync(string refreshToken);
+
+    Task<Result> SignOutAllAsync(IUser user);
 
     Task SignOutAsync();
 }

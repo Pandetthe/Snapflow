@@ -7,11 +7,7 @@
 	import { Button } from '$lib/ui/components';
 
 	interface Props {
-		user: {
-			userName: string;
-			email: string;
-			avatarUrl?: string;
-		} | null;
+		user?: User;
 		mobile?: boolean;
 		onAction?: () => void;
 	}
@@ -57,8 +53,7 @@
 			>
 				<div class="h-10 w-10 overflow-hidden rounded-full ring-2 ring-gray-100 dark:ring-gray-800">
 					<img
-						src={user.avatarUrl ||
-							`https://ui-avatars.com/api/?name=${encodeURIComponent(user.userName || user.email || 'User')}&background=465fff&color=fff`}
+						src={user.avatarUrl}
 						alt="User"
 						class="h-full w-full object-cover"
 					/>

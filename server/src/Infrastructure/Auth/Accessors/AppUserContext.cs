@@ -17,10 +17,8 @@ internal sealed class AppUserContext(
         {
             if (httpContextAccessor.HttpContext == null)
                 throw new InvalidOperationException("No http context available.");
-            string? userId = userManager.GetUserId(httpContextAccessor.HttpContext.User);
-            if (int.TryParse(userId, out int id))
-                return id;
-            throw new InvalidOperationException("User identifier is not available.");
+            var userId = userManager.GetUserId(httpContextAccessor.HttpContext.User);
+            return int.TryParse(userId, out var id) ? id : throw new InvalidOperationException("User identifier is not available.");
         }
     }
 
@@ -30,8 +28,8 @@ internal sealed class AppUserContext(
         {
             if (httpContextAccessor.HttpContext == null)
                 throw new InvalidOperationException("No http context available.");
-            string userName = userManager.GetUserName(httpContextAccessor.HttpContext.User)
-                ?? throw new InvalidOperationException("UserName is not available.");
+            var userName = userManager.GetUserName(httpContextAccessor.HttpContext.User)
+                           ?? throw new InvalidOperationException("UserName is not available.");
             return userName;
         }
     }

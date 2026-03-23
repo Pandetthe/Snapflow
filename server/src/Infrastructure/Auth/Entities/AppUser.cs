@@ -12,6 +12,27 @@ public sealed class AppUser : IdentityUser<int>, IUser
 
     public IReadOnlyCollection<Func<object, IDomainEvent>> DomainEvents => _domainEvents.AsReadOnly();
 
+    public byte[]? AvatarData { get; set; }
+
+    public string? AvatarContentType { get; set; }
+
+    public string? AvatarUrl { get; set; }
+
+    public AvatarType AvatarType { get; set; } = AvatarType.Generated;
+    
+    public static AppUser Create(string email, string userName)
+    {
+        var user = new AppUser
+        {
+            Email = email,
+            UserName = userName
+        };
+
+        user.Raise(u => new UserSignedUpDomainEvent(u.Id));
+
+        return user;
+    }
+
     public void Raise(Func<AppUser, IDomainEvent> blueprint) =>
         _domainEvents.Add(obj => blueprint((AppUser)obj));
 

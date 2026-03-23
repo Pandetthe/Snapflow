@@ -2,8 +2,10 @@
 
 namespace Snapflow.Infrastructure.Mailing;
 
-public sealed class SmtpOptions
+public sealed class EmailOptions
 {
+    public const string SectionName = "Email";
+    
     public string Host { get; init; } = "";
     public int Port { get; init; } = 25;
     public SecureSocketOptions SecureSocketOptions { get; init; }

@@ -11,9 +11,7 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
 {
     private static AppUser EnsureIsAppUser(IUser user)
     {
-        if (user is not AppUser appUser)
-            throw new ArgumentException("User must be of type AppUser.", nameof(user));
-        return appUser;
+        return user as AppUser ?? throw new ArgumentException("User must be of type AppUser.", nameof(user));
     }
 
     public async Task<IUser?> FindByIdAsync(int userId) =>
@@ -29,28 +27,22 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
     {
         return code switch
         {
-            "DuplicateUserName" => nameof(IUser.UserName),
-            "InvalidUserName" => nameof(IUser.UserName),
-            "DuplicateEmail" => nameof(IUser.Email),
-            "InvalidEmail" => nameof(IUser.Email),
+            "DuplicateUserName" or "InvalidUserName" => nameof(IUser.UserName),
+            "DuplicateEmail" or "InvalidEmail" => nameof(IUser.Email),
             _ => null,
         };
     }
 
     public async Task<Result<IUser>> CreateAsync(string email, string userName, string password)
     {
-        var user = new AppUser
-        {
-            UserName = userName,
-            Email = email,
-        };
-        var result = await userManager.CreateAsync(user, password);
-        if (!result.Succeeded)
-        {
-            PropertyValidationError[] errors = result.Errors.Select(e => new PropertyValidationError(GetPropertyName(e.Code), e.Code, e.Description)).ToArray();
-            return Result.ValidationFailure<IUser>(new ValidationError(errors));
-        }
-        return Result.Success<IUser>(user);
+        var user = AppUser.Create(email, userName);
+
+        IdentityResult result = await userManager.CreateAsync(user, password);
+        if (result.Succeeded)
+            return Result.Success<IUser>(user);
+
+        var errors = result.Errors.Select(e => new PropertyValidationError(GetPropertyName(e.Code), e.Code, e.Description)).ToArray();
+        return Result.ValidationFailure<IUser>(new ValidationError(errors));
     }
 
     public async Task<string> GenerateEmailConfirmationTokenAsync(IUser user) =>
@@ -61,24 +53,22 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
 
     public async Task<Result> ConfirmEmailAsync(IUser user, string token)
     {
-        var result = await userManager.ConfirmEmailAsync(EnsureIsAppUser(user), token);
-        if (!result.Succeeded)
-        {
-            PropertyValidationError[] errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
-            return Result.ValidationFailure<IUser>(new ValidationError(errors));
-        }
-        return Result.Success();
+        IdentityResult result = await userManager.ConfirmEmailAsync(EnsureIsAppUser(user), token);
+        if (result.Succeeded)
+            return Result.Success();
+
+        var errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
+        return Result.ValidationFailure<IUser>(new ValidationError(errors));
     }
 
     public async Task<Result> ChangeEmailAsync(IUser user, string newEmail, string token)
     {
-        var result = await userManager.ChangeEmailAsync(EnsureIsAppUser(user), newEmail, token);
-        if (!result.Succeeded)
-        {
-            PropertyValidationError[] errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
-            return Result.ValidationFailure<IUser>(new ValidationError(errors));
-        }
-        return Result.Success();
+        IdentityResult result = await userManager.ChangeEmailAsync(EnsureIsAppUser(user), newEmail, token);
+        if (result.Succeeded)
+            return Result.Success();
+
+        var errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
+        return Result.ValidationFailure<IUser>(new ValidationError(errors));
     }
 
     public Task<bool> IsEmailConfirmedAsync(IUser user) =>
@@ -89,16 +79,13 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
 
     public async Task<Result> ResetPasswordAsync(IUser user, string code, string newPassword)
     {
-        var result = await userManager.ResetPasswordAsync(EnsureIsAppUser(user), code, newPassword);
-        if (!result.Succeeded)
-        {
-            if (result.Errors.Any(e => e.Code == "InvalidToken"))
-            {
-                return Result.Failure(UserErrors.PasswordResetInvalidCode);
-            }
-            PropertyValidationError[] errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
-            return Result.ValidationFailure<IUser>(new ValidationError(errors));
-        }
-        return Result.Success();
+        IdentityResult result = await userManager.ResetPasswordAsync(EnsureIsAppUser(user), code, newPassword);
+        if (result.Succeeded)
+            return Result.Success();
+
+        if (result.Errors.Any(e => e.Code == "InvalidToken"))
+            return Result.Failure(UserErrors.PasswordResetInvalidCode);
+        var errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
+        return Result.ValidationFailure<IUser>(new ValidationError(errors));
     }
 }

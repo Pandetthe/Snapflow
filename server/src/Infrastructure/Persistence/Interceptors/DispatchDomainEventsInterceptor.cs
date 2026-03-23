@@ -1,19 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Data.Common;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Snapflow.Common;
 using Snapflow.Infrastructure.Common;
-using System.Data.Common;
 
 namespace Snapflow.Infrastructure.Persistence.Interceptors;
 
 internal sealed class DispatchDomainEventsInterceptor(
     DomainEventsBuffer buffer,
-    IDomainEventsDispatcher dispatcher) 
+    IDomainEventsDispatcher dispatcher)
     : SaveChangesInterceptor, IDbTransactionInterceptor
 {
-    public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
-        DbContextEventData eventData, 
-        InterceptionResult<int> result, 
+    public override async ValueTask<int> SavedChangesAsync(
+        SaveChangesCompletedEventData eventData,
+        int result,
         CancellationToken cancellationToken = default)
     {
         if (eventData.Context is not null)
@@ -21,14 +21,6 @@ internal sealed class DispatchDomainEventsInterceptor(
             CollectDomainEvents(eventData.Context);
         }
 
-        return await base.SavingChangesAsync(eventData, result, cancellationToken);
-    }
-
-    public override async ValueTask<int> SavedChangesAsync(
-        SaveChangesCompletedEventData eventData, 
-        int result, 
-        CancellationToken cancellationToken = default)
-    {
         if (eventData.Context?.Database.CurrentTransaction is null)
         {
             await DispatchEventsAsync(cancellationToken);
@@ -38,10 +30,15 @@ internal sealed class DispatchDomainEventsInterceptor(
     }
 
     public async Task TransactionCommittedAsync(
-        DbTransaction transaction, 
-        TransactionEndEventData eventData, 
+        DbTransaction transaction,
+        TransactionEndEventData eventData,
         CancellationToken cancellationToken = default)
     {
+        if (eventData.Context is not null)
+        {
+            CollectDomainEvents(eventData.Context);
+        }
+
         await DispatchEventsAsync(cancellationToken);
     }
 
