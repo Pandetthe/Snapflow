@@ -4,7 +4,6 @@ using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
-using Snapflow.Domain.Members;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Boards.Create;

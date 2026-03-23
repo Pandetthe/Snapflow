@@ -1,3 +1,3 @@
-﻿namespace Snapflow.Presentation.Infrastructure;
+﻿namespace Snapflow.Presentation.Contracts;
 
 public sealed record RankResponse(string Rank);

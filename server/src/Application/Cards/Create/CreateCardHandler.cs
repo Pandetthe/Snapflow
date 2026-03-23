@@ -19,7 +19,7 @@ internal sealed class CreateCardHandler(
 {
     public async Task<Result<CreateCardResponse>> Handle(CreateCardCommand command, CancellationToken cancellationToken = default)
     {
-        var user = await dbContext.Users
+        IUser? user = await dbContext.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
@@ -32,12 +32,12 @@ internal sealed class CreateCardHandler(
             .SingleOrDefaultAsync(cancellationToken);
         if (list == null)
             return Result.Failure<CreateCardResponse>(ListErrors.NotFound(command.ListId));
-        Result<string> rankResult = await rankService.GenerateRankAsync(
+        var rankResult = await rankService.GenerateRankAsync(
             command.ListId, null, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
             return Result.Failure<CreateCardResponse>(rankResult.Error);
 
-        var createdAt = timeProvider.GetUtcNow();
+        DateTimeOffset createdAt = timeProvider.GetUtcNow();
 
         var card = Card.Create(
             list.BoardId,

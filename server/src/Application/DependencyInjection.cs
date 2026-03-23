@@ -41,7 +41,7 @@ public static class DependencyInjection
         return services;
     }
 
-    internal static IServiceCollection AddCustomServices(this IServiceCollection services)
+    private static IServiceCollection AddCustomServices(this IServiceCollection services)
     {
         services.AddScoped<IEntityRankService<Swimlane>, SwimlaneRankService>();
         services.AddScoped<IEntityRankService<List>, ListRankService>();

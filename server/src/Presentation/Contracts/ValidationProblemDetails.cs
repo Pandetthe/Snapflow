@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Snapflow.Common;
 
-namespace Snapflow.Presentation.Infrastructure;
+namespace Snapflow.Presentation.Contracts;
 
-public class ValidationProblemDetails : ProblemDetails
+public sealed class ValidationProblemDetails : ProblemDetails
 {
     public PropertyValidationError[] Errors { get; set; } = Array.Empty<PropertyValidationError>();
 }

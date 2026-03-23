@@ -12,7 +12,7 @@ internal sealed class GetBoardByIdHandler(
 {
     public async Task<Result<GetBoardByIdResponse>> Handle(GetBoardByIdQuery query, CancellationToken cancellationToken = default)
     {
-        var board = await context.Boards
+        GetBoardByIdResponse? board = await context.Boards
             .AsNoTracking()
             .Where(b => b.Id == query.Id && !b.IsDeleted)
             .Select(b => new GetBoardByIdResponse(
@@ -52,9 +52,6 @@ internal sealed class GetBoardByIdHandler(
                     .ToList()))
             .SingleOrDefaultAsync(cancellationToken);
 
-        if (board == null)
-            return Result.Failure<GetBoardByIdResponse>(BoardErrors.NotFound(query.Id));
-
-        return board;
+        return board ?? Result.Failure<GetBoardByIdResponse>(BoardErrors.NotFound(query.Id));
     }
 }

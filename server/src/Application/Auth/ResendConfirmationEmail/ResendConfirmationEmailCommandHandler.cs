@@ -11,9 +11,7 @@ internal sealed class ResendConfirmationEmailCommandHandler(
 {
     public async Task<Result> Handle(ResendConfirmationEmailCommand command, CancellationToken cancellationToken = default)
     {
-        if (await userManager.FindByEmailAsync(command.Email) is not { } user)
-            return Result.Success();
-        if (await userManager.IsEmailConfirmedAsync(user))
+        if (await userManager.FindByEmailAsync(command.Email) is not { } user || await userManager.IsEmailConfirmedAsync(user))
             return Result.Success();
         var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
         await emailSender.SendConfirmationLinkAsync(user, code);

@@ -23,6 +23,6 @@ public static class ProducesExtensions
         this RouteHandlerBuilder builder,
         int statusCode = StatusCodes.Status400BadRequest)
     {
-        return builder.Produces<Infrastructure.ValidationProblemDetails>(statusCode, "application/problem+json");
+        return builder.Produces<ValidationProblemDetails>(statusCode, "application/problem+json");
     }
 }

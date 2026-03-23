@@ -12,10 +12,10 @@ internal sealed class SignInCommandHandler(
 {
     public async Task<Result> Handle(SignInCommand command, CancellationToken cancellationToken = default)
     {
-        var user = await userManager.FindByEmailAsync(command.Email);
+        IUser? user = await userManager.FindByEmailAsync(command.Email);
         if (user is null)
             return Result.Failure(UserErrors.SignInFailed);
-        var result = await signInManager.PasswordSignInAsync(user, command.Password, command.UseCookies, command.UseSessionCookies, true);
+        Result result = await signInManager.PasswordSignInAsync(user, command.Password, command.UseCookies, command.UseSessionCookies, true);
 
         if (!result.IsSuccess && result.Error.Code != UserErrors.SignInTwoFactorRequired.Code)
             return result;

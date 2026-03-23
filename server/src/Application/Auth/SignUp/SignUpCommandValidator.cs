@@ -27,12 +27,12 @@ internal sealed class SignUpCommandValidator : AbstractValidator<SignUpCommand>
             .MaximumLength(UserOptions.MaxPasswordLength)
             .WithMessage($"Password must not exceed {UserOptions.MaxPasswordLength} characters.")
             .Matches(@"[a-z]").WithMessage("Password must contain at least one lowercase letter.")
-            .When(x => UserOptions.RequireLowercaseInPassword)
+            .When(_ => UserOptions.RequireLowercaseInPassword)
             .Matches(@"[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
-            .When(x => UserOptions.RequireUppercaseInPassword)
+            .When(_ => UserOptions.RequireUppercaseInPassword)
             .Matches(@"\d").WithMessage("Password must contain at least one number.")
-            .When(x => UserOptions.RequireDigitInPassword)
+            .When(_ => UserOptions.RequireDigitInPassword)
             .Matches(@"[^\da-zA-Z]").WithMessage("Password must contain at least one symbol.")
-            .When(x => UserOptions.RequireNonAlphanumericInPassword);
+            .When(_ => UserOptions.RequireNonAlphanumericInPassword);
     }
 }

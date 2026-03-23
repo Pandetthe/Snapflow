@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
@@ -20,15 +21,15 @@ internal sealed class DeleteBoardHandler(
         if (!userExists)
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
-        var board = await dbContext.Boards
+        Board? board = await dbContext.Boards
             .SingleOrDefaultAsync(x => x.Id == command.BoardId && !x.IsDeleted, cancellationToken);
         if (board == null)
             return Result.Failure(BoardErrors.NotFound(command.BoardId));
 
         DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
-        int userId = userContext.UserId;
+        var userId = userContext.UserId;
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
