@@ -1,4 +1,5 @@
 ﻿using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -84,6 +85,9 @@ public static class DependencyInjection
                     })
                     .AddInterceptors(sp.GetRequiredService<DispatchDomainEventsInterceptor>())
                     .UseSnakeCaseNamingConvention());
+            services.AddDataProtection()
+                .PersistKeysToDbContext<AppDbContext>()
+                .SetApplicationName("Snapflow");
         }
 
         private void AddRedisCacheInternal(IConfiguration configuration)

@@ -8,6 +8,7 @@
     <PackageReference Include="Hangfire" />
     <PackageReference Include="Jdenticon-net" />
     <PackageReference Include="MailKit" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" />

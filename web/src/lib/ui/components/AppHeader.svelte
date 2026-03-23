@@ -4,15 +4,12 @@
 	import UserMenu from '$lib/ui/components/UserMenu.svelte';
 	import GithubButton from '$lib/ui/components/GithubButton.svelte';
 	import { Button as BitsButton } from 'bits-ui';
+	import type { User } from '$lib/features/users/api/users';
 
 	interface Props {
 		onMenuToggle?: () => void;
 		isSidebarOpen?: boolean;
-		user?: {
-			userName: string;
-			email: string;
-			avatarUrl?: string;
-		} | null;
+		user: User | null;
 	}
 
 	let { onMenuToggle, isSidebarOpen = false, user = null }: Props = $props();

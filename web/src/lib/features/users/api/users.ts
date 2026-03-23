@@ -24,7 +24,15 @@ export class UsersService {
     const response = await this.apiClient.fetch('/me', { method: 'GET' }, event);
 
     if (!response.ok) {
-      return { ok: false };
+      return {
+        ok: false,
+        status: response.status,
+        type: null,
+        title: response.statusText || 'Error',
+        detail: null,
+        instance: null,
+        traceId: ''
+      };
     }
 
     const user = (await response.json()) as User;

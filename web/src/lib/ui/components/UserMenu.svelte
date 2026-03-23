@@ -1,13 +1,14 @@
 <script lang="ts">
-	import { ChevronDown, User, Settings, Info, LogOut } from 'lucide-svelte';
+	import { ChevronDown, Settings, User as UserIcon, Info, LogOut } from 'lucide-svelte';
 	import { DropdownMenu } from 'bits-ui';
 	import { AuthService } from '$lib/features/auth/api/auth';
 	import { apiClient } from '$lib/core/api.client';
 	import { errorStore } from '$lib/ui/stores/error';
 	import { Button } from '$lib/ui/components';
+	import type { User } from '$lib/features/users/api/users';
 
 	interface Props {
-		user?: User;
+		user: User | null;
 		mobile?: boolean;
 		onAction?: () => void;
 	}
@@ -39,7 +40,7 @@
 	}
 
 	const menuItems = [
-		{ href: '/profile', icon: User, text: 'Edit profile' },
+		{ href: '/profile', icon: UserIcon, text: 'Edit profile' },
 		{ href: '/settings', icon: Settings, text: 'Account settings' },
 		{ href: '/support', icon: Info, text: 'Support' }
 	];

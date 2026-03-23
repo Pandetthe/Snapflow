@@ -15,6 +15,9 @@ export const handle: Handle = async ({ event, resolve }) => {
       const result = await new UsersService(apiClient).getMe(event);
       if (result.ok) {
         event.locals.user = result.user;
+      } else if ('status' in result && result.status === 401) {
+        event.locals.session = null;
+        event.cookies.delete('Snapflow.Auth.Cookie', { path: '/' });
       }
     } catch (err) {
       logger.error({ err }, 'Failed to fetch user data');

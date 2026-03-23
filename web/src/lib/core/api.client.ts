@@ -11,7 +11,7 @@ class ClientApiClient implements ApiClient {
     event?: RequestEvent | ServerLoadEvent
   ): Promise<Response> {
     const start = Date.now();
-    let base = env.PUBLIC_API_BASE_URL;
+    let base = env.PUBLIC_API_BASE_URL || '';
 
     const cleanBase = base.replace(/\/+$/, '');
     const cleanPath = (path ?? '').replace(/^\/+/, '');

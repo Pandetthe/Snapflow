@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
@@ -17,7 +18,7 @@ namespace Snapflow.Infrastructure.Persistence;
 
 public sealed class AppDbContext(
         DbContextOptions<AppDbContext> options)
-    : IdentityDbContext<AppUser, AppRole, int>(options), IAppDbContext
+    : IdentityDbContext<AppUser, AppRole, int>(options), IAppDbContext, IDataProtectionKeyContext
 {
     IQueryable<IUser> IAppDbContext.Users => Set<AppUser>().AsQueryable().Cast<IUser>();
     IQueryable<IRole> IAppDbContext.Roles => Set<AppRole>().AsQueryable().Cast<IRole>();
@@ -27,6 +28,8 @@ public sealed class AppDbContext(
     public DbSet<Member> Members { get; private set; }
     public DbSet<Tag> Tags { get; private set; }
     public DbSet<Card> Cards { get; private set; }
+    
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; private set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
