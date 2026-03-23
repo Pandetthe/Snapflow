@@ -46,29 +46,6 @@ var otlpHttpEndpoint = builder.Configuration["ASPIRE_DASHBOARD_OTLP_HTTP_ENDPOIN
 if (!string.IsNullOrEmpty(otlpHttpEndpoint))
 {
     web.WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", otlpHttpEndpoint);
-
-    if (isHttps)
-    {
-        var certPath = Path.Combine(AppContext.BaseDirectory, "aspire-dev-cert.pem");
-        try
-        {
-            using var proc = Process.Start(new ProcessStartInfo
-            {
-                FileName = "dotnet",
-                Arguments = $"dev-certs https --export-path \"{certPath}\" --no-password --format pem",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            });
-            proc?.WaitForExit(5000);
-
-            if (File.Exists(certPath))
-            {
-                web.WithEnvironment("NODE_EXTRA_CA_CERTS", certPath);
-            }
-        }
-        catch {}
-    }
 }
 
 web.PublishAsDockerFile();
