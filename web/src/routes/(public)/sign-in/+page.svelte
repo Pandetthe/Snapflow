@@ -41,7 +41,9 @@
       return await authService.signIn(values);
     },
     onSuccess: () => {
-      window.location.href = '/boards';
+      setTimeout(() => {
+        window.location.href = '/boards';
+      }, 300);
     },
     onError: (problem: ProblemDetails) => {
       const handledCodes = [
