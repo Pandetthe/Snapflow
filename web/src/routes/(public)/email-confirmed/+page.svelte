@@ -1,58 +1,70 @@
 <script lang="ts">
-  import { Button } from 'bits-ui';
+  import { Button as AppButton, SplitLayout } from '$lib/ui/components';
+  import { Check, ChevronLeft } from 'lucide-svelte';
+  import { cn } from '$lib/ui/utils';
 </script>
 
 <svelte:head>
   <title>Snapflow | Email confirmed</title>
 </svelte:head>
 
-<div class="flex min-h-screen items-center justify-center px-4 py-12">
-  <div class="w-full max-w-md">
-    <div class="rounded-2xl bg-white p-8 shadow-xl dark:bg-gray-800">
-      <div class="mb-6 text-center">
-        <div
-          class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20"
-        >
-          <svg
-            class="h-8 w-8 text-green-600 dark:text-green-400"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </div>
+<SplitLayout>
+  {#snippet header()}
+    <a
+      href="/"
+      class="inline-flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+    >
+      <ChevronLeft size={18} />
+      Back to home
+    </a>
+  {/snippet}
 
-        <h1 class="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Email confirmed!</h1>
-        <p class="text-gray-600 dark:text-gray-400">
-          Your email address has been successfully confirmed.
-        </p>
-      </div>
+  <div class="flex flex-1 flex-col items-center justify-center text-center">
+    <div
+      class={cn(
+        'animate-bounce-subtle mx-auto flex h-16 w-16 items-center justify-center rounded-full shadow-inner transition-all duration-500',
+        'bg-green-100 dark:bg-green-900/40'
+      )}
+    >
+      <Check
+        size={32}
+        class={cn('transition-transform duration-500', 'text-green-600 dark:text-green-400')}
+      />
+    </div>
 
-      <div class="space-y-4">
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          You can now sign in with your account.
-        </p>
+    <div class="mt-6 space-y-2">
+      <h1 class="text-2xl font-semibold text-gray-800 sm:text-3xl dark:text-white/90">
+        Email confirmed!
+      </h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Your email address has been successfully verified. You can now sign in to your account.
+      </p>
+    </div>
 
-        <div class="mt-4 flex gap-3">
-          <Button.Root
-            href="/sign-in"
-            class="inline-flex h-9 w-full items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
-          >
-            Sign in
-          </Button.Root>
-
-          <Button.Root
-            href="/"
-            class="inline-flex h-9 w-full items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Home
-          </Button.Root>
-        </div>
-      </div>
+    <div class="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
+      <AppButton
+        href="/sign-in"
+        variant="primary"
+        size="md"
+        class="w-full justify-center sm:w-auto sm:min-w-[160px]"
+      >
+        Sign in
+      </AppButton>
     </div>
   </div>
-</div>
+</SplitLayout>
+
+<style>
+  @keyframes bounce-subtle {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-2px);
+    }
+  }
+  .animate-bounce-subtle {
+    animation: bounce-subtle 3s ease-in-out infinite;
+  }
+</style>
