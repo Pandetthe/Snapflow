@@ -2,6 +2,7 @@
 	import { Label } from 'bits-ui';
 	import { FileText, Upload, X } from 'lucide-svelte';
 	import { cn } from '$lib/ui/utils';
+	import { slide } from 'svelte/transition';
 
 	interface Props {
 		files?: File[];
@@ -177,7 +178,9 @@
 	</button>
 
 	{#if helperText && !hasError}
-		<span id={helperTextId} class="text-xs text-gray-500 dark:text-gray-400">{helperText}</span>
+		<div transition:slide={{ axis: 'y', duration: 200 }}>
+			<span id={helperTextId} class="text-xs text-gray-500 dark:text-gray-400">{helperText}</span>
+		</div>
 	{/if}
 
 	{#if files.length > 0}
@@ -229,6 +232,8 @@
 	{/if}
 
 	{#if hasError && errorText}
-		<span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
+		<div transition:slide={{ axis: 'y', duration: 200 }}>
+			<span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
+		</div>
 	{/if}
 </div>

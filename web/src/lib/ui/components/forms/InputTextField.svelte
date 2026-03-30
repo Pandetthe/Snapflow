@@ -1,14 +1,17 @@
 <script lang="ts">
-  import type { HTMLTextareaAttributes } from 'svelte/elements';
+  import type { HTMLInputAttributes } from 'svelte/elements';
   import { Label } from 'bits-ui';
   import { cn } from '$lib/ui/utils';
-  import type { Icon as IconType } from 'lucide-svelte';
+  import { Eye, EyeOff, Search, type Icon as IconType } from 'lucide-svelte';
+  import { slide } from 'svelte/transition';
 
-  interface Props extends HTMLTextareaAttributes {
+  interface Props extends HTMLInputAttributes {
     value?: string;
     label?: string;
     helperText?: string;
     error?: string;
+    type?: string;
+    showPasswordToggle?: boolean;
     leftIcon?: typeof IconType;
     rightIcon?: typeof IconType;
     leftIconDecorated?: boolean;
@@ -23,6 +26,8 @@
     label,
     helperText,
     error,
+    type = 'text',
+    showPasswordToggle = false,
     leftIcon: LeftIcon,
     rightIcon: RightIcon,
     leftIconDecorated = false,
@@ -31,10 +36,11 @@
     disabled = false,
     required = false,
     readonly = false,
-    rows = 4,
     ...rest
   }: Props = $props();
 
+  let showPassword = $state(false);
+  const inputType = $derived(type === 'password' && showPassword ? 'text' : type);
   const normalizedName = $derived.by(() => (typeof name === 'string' ? name : undefined));
   const isDisabled = $derived.by(() => Boolean(disabled));
   const isRequired = $derived.by(() => Boolean(required));
@@ -56,7 +62,7 @@
   });
 
   const leadingPaddingClass = $derived.by(() => {
-    if (!LeftIcon) {
+    if (!(LeftIcon || type === 'search')) {
       return '';
     }
 
@@ -75,32 +81,38 @@
     {#if LeftIcon}
       {#if leftIconDecorated}
         <span
-          class="absolute left-0 top-6 flex h-11 w-[46px] -translate-y-1/2 items-center justify-center border-r border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400"
+          class="absolute top-1/2 left-0 flex h-11 w-[46px] -translate-y-1/2 items-center justify-center border-r border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400"
         >
           <LeftIcon size={18} />
         </span>
       {:else}
         <div
-          class="absolute left-4 top-6 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-brand-500"
+          class="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400 transition-colors"
         >
           <LeftIcon size={18} />
         </div>
       {/if}
+    {:else if type === 'search'}
+      <div
+        class="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400 transition-colors"
+      >
+        <Search size={18} />
+      </div>
     {/if}
 
-    <textarea
+    <input
       {id}
       name={normalizedName}
+      type={inputType}
       disabled={isDisabled}
       required={isRequired}
       readonly={isReadonly}
       bind:value
-      {rows}
       aria-invalid={hasError}
       aria-describedby={describedBy}
       aria-errormessage={hasError ? errorTextId : undefined}
       class={cn(
-        'flex w-full appearance-none rounded-lg border bg-transparent px-4 py-2.5 text-sm shadow-theme-xs transition-all duration-200',
+        'flex h-11 w-full appearance-none rounded-lg border bg-transparent px-4 py-2.5 text-sm shadow-theme-xs transition-all duration-200',
         hasError
           ? 'border-error-500 text-gray-800 placeholder:text-gray-400 hover:border-error-500 hover:bg-error-50/30 dark:border-error-500 dark:bg-transparent dark:text-white/90 dark:placeholder:text-white/30 dark:hover:border-error-500 dark:hover:bg-error-500/10'
           : 'border-gray-300 text-gray-800 placeholder:text-gray-400 hover:border-brand-500 hover:bg-black/3 dark:border-gray-700 dark:bg-transparent dark:text-white/90 dark:placeholder:text-white/30 dark:hover:border-brand-500 dark:hover:bg-white/6',
@@ -108,23 +120,47 @@
           ? 'focus-visible:border-error-500 focus-visible:ring-2 focus-visible:ring-error-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:border-error-500 dark:focus-visible:ring-offset-gray-950'
           : 'focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:border-brand-500 dark:focus-visible:ring-offset-gray-950',
         'disabled:cursor-not-allowed disabled:bg-gray-50/50 disabled:opacity-80 dark:disabled:bg-gray-900/50',
-        isReadonly && !isDisabled && (hasError
-          ? 'cursor-default hover:border-error-500 hover:bg-transparent dark:hover:border-error-500 dark:hover:bg-transparent'
-          : 'cursor-default hover:border-gray-300 hover:bg-transparent dark:hover:border-gray-700 dark:hover:bg-transparent'),
+        isReadonly &&
+          !isDisabled &&
+          (hasError
+            ? 'cursor-default hover:border-error-500 hover:bg-transparent dark:hover:border-error-500 dark:hover:bg-transparent'
+            : 'cursor-default hover:border-gray-300 hover:bg-transparent dark:hover:border-gray-700 dark:hover:bg-transparent'),
         leadingPaddingClass,
-        RightIcon && 'pr-11',
+        type === 'password' && showPasswordToggle && 'pr-12',
+        type !== 'password' && RightIcon && 'pr-11',
         className
       )}
       {...rest}
-    ></textarea>
+    />
 
-    {#if RightIcon}
+    {#if type === 'password' && showPasswordToggle}
+      <button
+        type="button"
+        class={cn(
+          'absolute top-1/2 right-4 -translate-y-1/2 transition-colors',
+          isDisabled || isReadonly
+            ? 'cursor-not-allowed text-gray-400 dark:text-gray-600'
+            : hasError
+              ? 'cursor-pointer text-error-500 hover:text-error-600 dark:text-error-400 dark:hover:text-error-300'
+              : 'cursor-pointer text-gray-500 hover:text-brand-500 active:scale-95 group-focus-within:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 dark:group-focus-within:text-brand-500'
+        )}
+        onclick={() => (showPassword = !showPassword)}
+        aria-label={showPassword ? 'Hide password' : 'Show password'}
+        disabled={isDisabled || isReadonly}
+      >
+        {#if showPassword}
+          <EyeOff size={18} />
+        {:else}
+          <Eye size={18} />
+        {/if}
+      </button>
+    {:else if RightIcon}
       <span
         class={cn(
-          'pointer-events-none absolute right-4 top-6 -translate-y-1/2 transition-colors',
+          'pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 transition-colors',
           hasError
-            ? 'text-error-500 group-focus-within:text-error-500 dark:text-error-400'
-            : 'text-gray-500 group-focus-within:text-brand-500 dark:text-gray-400'
+            ? 'text-error-500 dark:text-error-400'
+            : 'text-gray-500 dark:text-gray-400'
         )}
       >
         <RightIcon size={20} />
@@ -133,10 +169,14 @@
   </div>
 
   {#if helperText && !hasError}
-    <span id={helperTextId} class="text-xs text-gray-500 dark:text-gray-400">{helperText}</span>
+    <div transition:slide={{ axis: 'y', duration: 200 }}>
+      <span id={helperTextId} class="text-xs text-gray-500 dark:text-gray-400">{helperText}</span>
+    </div>
   {/if}
 
   {#if hasError}
-    <span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
+    <div transition:slide={{ axis: 'y', duration: 200 }}>
+      <span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
+    </div>
   {/if}
 </div>

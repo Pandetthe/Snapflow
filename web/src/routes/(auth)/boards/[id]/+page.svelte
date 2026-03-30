@@ -11,7 +11,7 @@
   import { recentBoards } from '$lib/features/boards/stores/recent';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import { Button } from 'bits-ui';
-  import { triggerHaptic } from '$lib/ui/utils/haptics';
+  import { triggerHaptic } from '$lib/ui/utils';
 
   let { data } = $props();
   let board = $state((() => data.board)());

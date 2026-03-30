@@ -2,8 +2,7 @@
   import { page } from '$app/state';
   import '../app.css';
   import favicon from '$lib/assets/favicon.svg';
-  import { AppHeader } from '$lib/ui/components';
-  import ErrorModal from '$lib/ui/components/ErrorModal.svelte';
+  import { AppHeader, ErrorModal } from '$lib/ui/components';
   import { errorStore } from '$lib/ui/stores/error';
   import type { AppError } from '$lib/core/types/app.js';
   import { theme } from '$lib/ui/stores/theme';

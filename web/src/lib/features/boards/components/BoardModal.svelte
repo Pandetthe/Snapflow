@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Dialog, Button } from 'bits-ui';
   import type { GetBoardsResponse } from '$lib/features/boards/types/boards.api';
-  import { triggerHaptic } from '$lib/ui/utils/haptics';
+  import { triggerHaptic } from '$lib/ui/utils';
 
   let {
     open = $bindable(false),

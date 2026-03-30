@@ -3,7 +3,8 @@
   import { parseTime } from '@internationalized/date';
   import { Clock3, X, type Icon as IconType } from 'lucide-svelte';
   import { cn } from '$lib/ui/utils';
-  import ClockPicker from './ClockPicker.svelte';
+  import { ClockPicker } from '$lib/ui/components';
+  import { slide } from 'svelte/transition';
 
   interface Props {
     value?: string;
@@ -258,7 +259,9 @@
                 {part}
                 class={cn(
                   'rounded-md px-1 py-0.5 text-sm text-gray-800 transition-all focus:bg-black/5 focus-visible:ring-1 focus-visible:outline-none aria-[valuetext=Empty]:text-gray-400 data-invalid:text-error-500 dark:text-white/90 dark:focus:bg-white/10 dark:aria-[valuetext=Empty]:text-white/30',
-                  hasError ? 'focus-visible:ring-error-500 dark:focus-visible:ring-error-500' : 'focus-visible:ring-brand-500 dark:focus-visible:ring-brand-500',
+                  hasError
+                    ? 'focus-visible:ring-error-500 dark:focus-visible:ring-error-500'
+                    : 'focus-visible:ring-brand-500 dark:focus-visible:ring-brand-500',
                   !isReadonly &&
                     part !== 'dayPeriod' &&
                     'cursor-text hover:bg-black/5 dark:hover:bg-white/10',
@@ -286,9 +289,10 @@
               hasError
                 ? 'text-error-500 focus-visible:ring-error-500'
                 : 'text-gray-500 focus-visible:ring-brand-500 dark:text-gray-400',
-              !isTriggerDisabled && (hasError
-                ? 'cursor-pointer hover:text-error-600 active:scale-95 dark:hover:text-error-300'
-                : 'cursor-pointer hover:text-brand-500 active:scale-95 dark:hover:text-brand-400'),
+              !isTriggerDisabled &&
+                (hasError
+                  ? 'cursor-pointer hover:text-error-600 active:scale-95 dark:hover:text-error-300'
+                  : 'cursor-pointer hover:text-brand-500 active:scale-95 dark:hover:text-brand-400'),
               isTriggerDisabled && 'cursor-not-allowed opacity-50'
             )}
             onclick={clearTime}
@@ -341,10 +345,14 @@
   </TimeField.Root>
 
   {#if helperText && !hasError}
-    <span id={helperTextId} class="text-xs text-gray-500 dark:text-gray-400">{helperText}</span>
+    <div transition:slide={{ axis: 'y', duration: 200 }}>
+      <span id={helperTextId} class="text-xs text-gray-500 dark:text-gray-400">{helperText}</span>
+    </div>
   {/if}
 
   {#if hasError}
-    <span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
+    <div transition:slide={{ axis: 'y', duration: 200 }}>
+      <span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
+    </div>
   {/if}
 </div>

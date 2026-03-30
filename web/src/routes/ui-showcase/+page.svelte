@@ -9,9 +9,11 @@
     Switch,
     RadioButton,
     RadioGroup,
-    Textarea
+    Textarea,
+    Progress
   } from '$lib/ui/components';
   import { CalendarDays, Clock3, CreditCard, Plus, Settings } from 'lucide-svelte';
+  import { onMount } from 'svelte';
 
   let switchDefault = $state(false);
   let switchChecked = $state(true);
@@ -94,6 +96,14 @@
     { value: 'turquoise-blue', label: 'Turquoise Blue' },
     { value: 'burnt-orange', label: 'Burnt Orange' }
   ];
+
+  let progressValue = $state(13);
+  onMount(() => {
+    const interval = setInterval(() => {
+      progressValue = (progressValue + 1) % 101;
+    }, 150);
+    return () => clearInterval(interval);
+  });
 </script>
 
 <svelte:head>
@@ -145,19 +155,21 @@
                   </div>
                 </td>
                 <td class="p-4 text-center">
-                  <Button {size} {variant}>Button</Button>
+                  <Button {size} {variant} haptic="success">Button</Button>
                 </td>
                 <td class="p-4 text-center">
-                  <Button {size} {variant} startIcon={Plus}>Start</Button>
+                  <Button {size} {variant} startIcon={Plus} haptic="error">Start</Button>
                 </td>
                 <td class="p-4 text-center">
-                  <Button {size} {variant} endIcon={Plus}>End</Button>
+                  <Button {size} {variant} endIcon={Plus} haptic="warning">End</Button>
                 </td>
                 <td class="p-4 text-center">
-                  <Button {size} {variant} startIcon={Plus} endIcon={Settings}>Both</Button>
+                  <Button {size} {variant} startIcon={Plus} endIcon={Settings} haptic="success"
+                    >Both</Button
+                  >
                 </td>
                 <td class="p-4 text-center">
-                  <Button {size} {variant} startIcon={Plus} aria-label="Add" />
+                  <Button {size} {variant} startIcon={Plus} haptic="light" />
                 </td>
               </tr>
             {/each}
@@ -172,11 +184,7 @@
 
         <Button id="button-primary-disabled" variant="primary" disabled>Primary disabled</Button>
 
-        <Button id="button-primary-readonly" variant="primary" readonly>Primary readonly</Button>
-
         <Button id="button-outline-disabled" variant="outline" disabled>Outline disabled</Button>
-
-        <Button id="button-outline-readonly" variant="outline" readonly>Outline readonly</Button>
       </div>
     </section>
 
@@ -557,7 +565,7 @@
         Textareas
       </h2>
 
-      <div class="rounded-xl p-6 space-y-8">
+      <div class="space-y-8 rounded-xl p-6">
         <div class="grid grid-cols-1 gap-8 sm:grid-cols-2">
           <Textarea label="Basic Textarea" placeholder="Enter some long text here..." />
           <Textarea label="With Rows" placeholder="This one has 6 rows..." rows={6} />
@@ -912,6 +920,50 @@
             <Switch checked={false} />
             <Switch checked={true} />
             <Switch checked={true} disabled />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-8">
+      <h2
+        class="border-l-4 border-brand-500 pl-3 text-xl font-semibold text-gray-800 dark:text-white/90"
+      >
+        Progress
+      </h2>
+
+      <div
+        class="grid grid-cols-1 gap-12 rounded-xl border border-gray-100 p-8 md:grid-cols-2 dark:border-gray-800"
+      >
+        <div class="space-y-8">
+          <div>
+            <h3 class="mb-5 text-sm font-bold tracking-widest text-gray-400 uppercase">Variants</h3>
+            <div class="space-y-6">
+              <Progress value={progressValue} label="Primary (Default)" showValue />
+              <Progress value={progressValue} variant="success" label="Success" showValue />
+              <Progress value={progressValue} variant="warning" label="Warning" showValue />
+              <Progress value={progressValue} variant="danger" label="Danger" showValue />
+              <Progress value={progressValue} variant="info" label="Info" showValue />
+            </div>
+          </div>
+
+          <div>
+            <h3 class="mb-5 text-sm font-bold tracking-widest text-gray-400 uppercase">States</h3>
+            <div class="space-y-6">
+              <Progress indeterminate label="Indeterminate" variant="primary" />
+              <Progress value={100} variant="success" label="Completed" showValue />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-5 text-sm font-bold tracking-widest text-gray-400 uppercase">Sizes</h3>
+          <div class="space-y-8">
+            <Progress value={progressValue} size="xs" label="Extra Small (xs)" showValue />
+            <Progress value={progressValue} size="sm" label="Small (sm)" showValue />
+            <Progress value={progressValue} size="md" label="Medium (md)" showValue />
+            <Progress value={progressValue} size="lg" label="Large (lg)" showValue />
+            <Progress value={progressValue} size="xl" label="Extra Large (xl)" showValue />
           </div>
         </div>
       </div>

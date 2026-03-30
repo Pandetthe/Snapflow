@@ -4,6 +4,8 @@
 
 import type { User } from '$lib/features/users/api/users';
 
+declare module '*.svelte';
+
 declare global {
   namespace App {
     interface Locals {

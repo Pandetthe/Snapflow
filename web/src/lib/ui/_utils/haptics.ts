@@ -2,10 +2,8 @@ import { WebHaptics } from 'web-haptics';
 import { browser } from '$app/environment';
 
 export type HapticPreset = 'success' | 'warning' | 'error' | 'light' | 'medium' | 'heavy' | 'soft' | 'rigid' | 'selection' | 'nudge' | 'buzz';
-
-// Singleton instance
 export const haptics = browser ? new WebHaptics({
-  debug: false
+  debug: true
 }) : null;
 
 /**

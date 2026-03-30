@@ -4,6 +4,7 @@ import logger from '$lib/logger';
 export interface SigninRequest {
   email: string;
   password: string;
+  rememberMe: boolean;
 }
 
 export interface SignupRequest {
@@ -44,13 +45,16 @@ export class AuthService {
   }
 
   async signIn(data: SigninRequest): Promise<Response> {
-    const response = await this.apiClient.fetch(`/auth/sign-in?useCookies=true`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    });
+    const { rememberMe, ...payload } = data;
+    const response = await this.apiClient.fetch(
+      `/auth/sign-in?useCookies=true&useSessionCookies=${!rememberMe}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
 
     if (!response.ok) {
       return await this.#handleBadResponse(response);

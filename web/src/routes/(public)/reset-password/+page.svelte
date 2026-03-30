@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { Button, Toggle, Dialog } from 'bits-ui';
+  import { Toggle, Dialog } from 'bits-ui';
+  import { Button } from '$lib/ui/components';
+  import { triggerHaptic } from '$lib/ui/utils';
   import { authConfig } from '$lib/config/auth';
   import { AuthService } from '$lib/features/auth/api/auth';
   import type { ProblemDetails, PropertyValidationError } from '$lib/core/types/api';
@@ -172,6 +174,7 @@
 
     if (password !== repeatPassword) {
       passwordError = 'Passwords do not match';
+      triggerHaptic('error');
       return;
     }
 
@@ -184,8 +187,10 @@
       });
       logger.debug({ response }, 'Reset password response');
       if (response.ok) {
+        triggerHaptic('success');
         showSuccessModal = true;
       } else {
+        triggerHaptic('error');
         if ('errors' in response && response.errors && Array.isArray(response.errors)) {
           handleValidationErrors(response.errors);
         } else if ('title' in response) {
@@ -198,6 +203,7 @@
         }
       }
     } catch (err) {
+      triggerHaptic('error');
       if (err instanceof Error) {
         if (err.message === 'Failed to fetch') {
           errorStore.addError('Web.ConnectionProblem', 'Problem with connection to the server');
@@ -512,42 +518,15 @@
           </div>
         </div>
 
-        <Button.Root
+        <Button
           type="submit"
-          disabled={isLoading || !password || !repeatPassword || password !== repeatPassword}
-          class="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-blue-700 hover:shadow-lg disabled:cursor-not-allowed disabled:bg-blue-400"
+          disabled={!password || !repeatPassword || password !== repeatPassword}
+          {isLoading}
+          loadingText="Resetting password"
+          class="w-full justify-center"
         >
-          {#if isLoading}
-            <svg
-              class="mr-2 h-4 w-4 animate-spin text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              ></circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            <span>Resetting password</span>
-            <span class="inline-flex">
-              <span class="animate-dots-bounce" style="animation-delay: 0ms">.</span>
-              <span class="animate-dots-bounce" style="animation-delay: 150ms">.</span>
-              <span class="animate-dots-bounce" style="animation-delay: 300ms">.</span>
-            </span>
-          {:else}
-            <span>Reset password</span>
-          {/if}
-        </Button.Root>
+          Reset password
+        </Button>
       </form>
 
       <div class="mt-8 text-center">
@@ -632,12 +611,13 @@
         </div>
 
         <div class="animate-fade-in flex gap-3" style="animation-delay: 300ms">
-          <Button.Root
+          <Button
             href="/sign-in"
-            class="ring-offset-background focus-visible:ring-ring inline-flex h-10 w-full items-center justify-center rounded-md bg-green-600 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-green-700 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+            variant="primary"
+            class="w-full justify-center bg-green-600 hover:bg-green-700"
           >
             Sign in now
-          </Button.Root>
+          </Button>
         </div>
       </div>
     </Dialog.Content>
@@ -677,12 +657,16 @@
           {resetPasswordInfoMessage}
         </Dialog.Description>
         <div class="mt-4 flex justify-center">
-          <Button.Root
-            onclick={() => (showResetPasswordInfoModal = false)}
-            class="inline-flex h-9 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          <Button
+            onclick={() => {
+              showResetPasswordInfoModal = false;
+            }}
+            variant="primary"
+            size="sm"
+            class="bg-blue-600 hover:bg-blue-700"
           >
             OK
-          </Button.Root>
+          </Button>
         </div>
       </div>
     </Dialog.Content>

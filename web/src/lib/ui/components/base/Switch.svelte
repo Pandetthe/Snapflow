@@ -1,33 +1,31 @@
 <script lang="ts">
-  import { Checkbox } from 'bits-ui';
+  import { Switch } from 'bits-ui';
   import { cn } from '$lib/ui/utils';
-  import { Check, X } from 'lucide-svelte';
+  import { slide } from 'svelte/transition';
 
   interface Props {
-    checked?: boolean | null;
-    onCheckedChange?: (checked: boolean | null) => void;
+    checked?: boolean;
+    onCheckedChange?: (checked: boolean) => void;
     disabled?: boolean;
     readonly?: boolean | null;
     required?: boolean | null;
-    tristate?: boolean;
     name?: string | null;
     value?: string;
     label?: string;
     helperText?: string;
-    class?: string;
     error?: string | boolean;
     id?: string;
+    class?: string;
   }
 
   const generatedId = $props.id();
 
   let {
-    checked = $bindable(null),
+    checked = $bindable(false),
     onCheckedChange,
     disabled = false,
     readonly = false,
     required = false,
-    tristate = false,
     name,
     value = 'on',
     label,
@@ -68,32 +66,13 @@
     event.stopPropagation();
   }
 
-  function handleCheckedChange() {
+  function handleCheckedChange(nextChecked: boolean) {
     if (isDisabled || isReadonly) {
       return;
     }
 
-    if (tristate) {
-      if (checked === null) {
-        checked = true;
-      } else if (checked === true) {
-        checked = false;
-      } else {
-        checked = null;
-      }
-    } else {
-      checked = checked === true ? null : true;
-    }
-
-    onCheckedChange?.(checked);
-  }
-
-  function handleRootClick(e: MouseEvent | KeyboardEvent) {
-    if (isDisabled || isReadonly) {
-      return;
-    }
-    e.preventDefault();
-    handleCheckedChange();
+    checked = nextChecked;
+    onCheckedChange?.(nextChecked);
   }
 </script>
 
@@ -106,7 +85,7 @@
       aria-hidden="true"
       name={normalizedName}
       {value}
-      checked={checked === true}
+      {checked}
       required={isRequired}
       disabled={isDisabled}
     />
@@ -115,7 +94,7 @@
   <label
     for={id}
     class={cn(
-      'inline-flex items-center text-sm font-medium select-none',
+      'inline-flex items-center gap-3 text-sm font-medium select-none',
       isDisabled
         ? 'cursor-not-allowed text-gray-400 dark:text-gray-600'
         : isReadonly
@@ -125,60 +104,41 @@
       className
     )}
   >
-    <Checkbox.Root
+    <Switch.Root
       {id}
-      checked={checked === true}
-      indeterminate={tristate && checked === false}
+      {checked}
       disabled={isDisabled}
       aria-invalid={hasError}
       aria-describedby={describedBy}
       aria-errormessage={hasError && errorText ? errorTextId : undefined}
       aria-readonly={isReadonly}
       onpointerdown={preventReadonlyInteraction}
-      onclick={handleRootClick}
-      onkeydown={(e) => {
-        if (e.key === ' ' || e.key === 'Enter') {
-          handleRootClick(e);
-        }
-      }}
+      onclick={preventReadonlyInteraction}
+      onkeydown={preventReadonlyInteraction}
+      onCheckedChange={handleCheckedChange}
       class={cn(
-        'flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-[1.25px] transition-all duration-200',
+        'peer inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-all duration-200',
         hasError
           ? 'border-error-500 bg-transparent hover:border-error-500 hover:bg-error-50/30 dark:border-error-500 dark:hover:border-error-500 dark:hover:bg-error-500/10'
-          : 'border-gray-300 bg-transparent hover:border-brand-500 hover:bg-black/3 dark:border-gray-700 dark:hover:border-brand-500 dark:hover:bg-white/6',
+          : 'border-gray-300 bg-transparent hover:border-brand-500 hover:bg-black/3 dark:border-gray-700 dark:bg-transparent dark:hover:border-brand-500 dark:hover:bg-white/6',
         hasError
           ? 'focus-visible:ring-2 focus-visible:ring-error-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-950'
           : 'focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-950',
         hasError
-          ? 'data-[state=checked]:border-error-500 data-[state=checked]:bg-error-500 data-[state=checked]:hover:bg-error-500 data-[state=indeterminate]:border-error-500 data-[state=indeterminate]:bg-error-500 dark:data-[state=checked]:border-error-500 dark:data-[state=checked]:bg-error-500 dark:data-[state=checked]:hover:bg-error-500'
-          : 'data-[state=checked]:border-brand-500 data-[state=checked]:bg-brand-500 data-[state=checked]:hover:bg-brand-500 data-[state=indeterminate]:border-brand-500 data-[state=indeterminate]:bg-brand-500 dark:data-[state=checked]:hover:bg-brand-500',
-        label && 'mr-3',
+          ? 'data-[state=checked]:border-error-500 data-[state=checked]:bg-error-500 data-[state=checked]:hover:bg-error-500 dark:data-[state=checked]:border-error-500 dark:data-[state=checked]:bg-error-500 dark:data-[state=checked]:hover:bg-error-500'
+          : 'data-[state=checked]:border-brand-500 data-[state=checked]:bg-brand-500 data-[state=checked]:hover:bg-brand-500 dark:data-[state=checked]:border-brand-500 dark:data-[state=checked]:bg-brand-500 dark:data-[state=checked]:hover:bg-brand-500',
         isReadonly && !isDisabled && 'cursor-default',
         !isDisabled && !isReadonly && 'cursor-pointer',
-        'peer disabled:cursor-not-allowed',
-        isDisabled &&
-          'border-gray-300 bg-gray-100 opacity-100 dark:border-gray-700 dark:bg-gray-900',
-        isDisabled &&
-          checked !== null &&
-          'border-gray-400 bg-gray-200 dark:border-gray-600 dark:bg-gray-800'
+        'disabled:cursor-not-allowed disabled:bg-gray-100 disabled:opacity-80 dark:disabled:bg-gray-800'
       )}
     >
-      {#snippet children({ checked: isChecked, indeterminate: isIndeterminate })}
-        {#if isIndeterminate}
-          <X
-            size={14}
-            class={cn(isDisabled ? 'text-gray-500 dark:text-gray-400' : 'text-white')}
-            strokeWidth={3}
-          />
-        {:else if isChecked}
-          <Check
-            size={14}
-            class={cn(isDisabled ? 'text-gray-500 dark:text-gray-400' : 'text-white')}
-            strokeWidth={3}
-          />
-        {/if}
-      {/snippet}
-    </Checkbox.Root>
+      <Switch.Thumb
+        class={cn(
+          'pointer-events-none block h-5 w-5 rounded-full bg-white shadow-theme-xs ring-0 transition-transform duration-200',
+          'data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0'
+        )}
+      />
+    </Switch.Root>
 
     {#if label}
       {label}
@@ -186,10 +146,14 @@
   </label>
 
   {#if helperText && !hasError}
-    <span id={helperTextId} class="text-xs text-gray-500 dark:text-gray-400">{helperText}</span>
+    <div transition:slide={{ axis: 'y', duration: 200 }}>
+      <span id={helperTextId} class="text-xs text-gray-500 dark:text-gray-400">{helperText}</span>
+    </div>
   {/if}
 
   {#if hasError && errorText}
-    <span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
+    <div transition:slide={{ axis: 'y', duration: 200 }}>
+      <span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
+    </div>
   {/if}
 </div>

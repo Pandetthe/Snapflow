@@ -8,7 +8,7 @@
   import Card from './Card.svelte';
   import { ScrollArea } from 'bits-ui';
   import { errorStore } from '$lib/ui/stores/error';
-  import { triggerHaptic } from '$lib/ui/utils/haptics';
+  import { triggerHaptic } from '$lib/ui/utils';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
 
   let { list, swimlaneId }: { list: GetBoardByIdResponse.ListDto; swimlaneId: number } = $props();
