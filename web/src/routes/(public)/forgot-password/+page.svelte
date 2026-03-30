@@ -3,7 +3,7 @@
   import { authConfig } from '$lib/config/auth';
   import { AuthService } from '$lib/features/auth/api/auth';
   import { apiClient } from '$lib/core/api.client';
-  import { createForm, triggerHaptic } from '$lib/ui/utils';
+  import { createForm } from '$lib/ui/utils';
   import { Mail, ChevronLeft } from 'lucide-svelte';
   import ForgotPasswordModal from '$lib/features/auth/components/ForgotPasswordModal.svelte';
 
@@ -33,11 +33,7 @@
       return await authService.forgotPassword(values);
     },
     onSuccess: () => {
-      triggerHaptic('success');
       showForgotPasswordModal = true;
-    },
-    onError: () => {
-      triggerHaptic('error');
     }
   });
 </script>
