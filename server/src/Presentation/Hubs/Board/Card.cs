@@ -27,7 +27,7 @@ public sealed partial class BoardHub
             request.Title,
             request.Description,
             request.BeforeId);
-        Result<CreateCardResponse> result = await handler.Handle(command, Context.ConnectionAborted);
+        var result = await handler.Handle(command, Context.ConnectionAborted);
         return result.Match(Results.Ok, Results.Problem);
     }
 
@@ -44,7 +44,7 @@ public sealed partial class BoardHub
             request.Id,
             request.Title,
             request.Description);
-        Result<UpdateCardResponse> result = await handler.Handle(command, Context.ConnectionAborted);
+        var result = await handler.Handle(command, Context.ConnectionAborted);
         return result.Match(Results.Ok, Results.Problem);
     }
 

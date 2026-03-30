@@ -8,9 +8,9 @@ namespace Snapflow.Presentation.Hubs.Board;
 public sealed partial class BoardHub(
     ILogger<BoardHub> logger) : Hub<IBoardHubClient>
 {
-    public async override Task OnConnectedAsync()
+    public override async Task OnConnectedAsync()
     {
-        var httpContext = Context.GetHttpContext();
+        HttpContext? httpContext = Context.GetHttpContext();
         if (httpContext is null)
         {
             logger.LogError("Connection {ConnectionId} aborted: HttpContext is null.", Context.ConnectionId);
@@ -18,7 +18,7 @@ public sealed partial class BoardHub(
             return;
         }
         if (!httpContext.Request.RouteValues.TryGetValue("boardId", out var boardIdObj) ||
-            !int.TryParse(boardIdObj?.ToString(), out int boardId))
+            !int.TryParse(boardIdObj?.ToString(), out var boardId))
         {
             logger.LogWarning("Connection {ConnectionId} aborted: invalid or missing boardId in route.", Context.ConnectionId);
             Context.Abort();
