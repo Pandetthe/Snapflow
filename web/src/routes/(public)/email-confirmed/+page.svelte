@@ -46,7 +46,7 @@
         href="/sign-in"
         variant="primary"
         size="md"
-        class="w-full justify-center sm:w-auto sm:min-w-[160px]"
+        class="w-full justify-center sm:w-auto sm:min-w-40"
       >
         Sign in
       </AppButton>

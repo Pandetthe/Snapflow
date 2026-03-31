@@ -137,11 +137,13 @@
       <button
         type="button"
         class={cn(
-          'absolute top-1/2 right-4 -translate-y-1/2 transition-colors',
+          'absolute top-1/2 right-4 -translate-y-1/2 transition-all duration-200 flex items-center justify-center',
+          'h-11 w-11 min-w-11 min-h-11 rounded-lg outline-none',
+          'focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950',
           isDisabled || isReadonly
             ? 'cursor-not-allowed text-gray-400 dark:text-gray-600'
             : hasError
-              ? 'cursor-pointer text-error-500 hover:text-error-600 dark:text-error-400 dark:hover:text-error-300'
+              ? 'cursor-pointer text-error-500 hover:text-error-600 focus-visible:ring-error-500 dark:text-error-400 dark:hover:text-error-300'
               : 'cursor-pointer text-gray-500 hover:text-brand-500 active:scale-95 group-focus-within:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 dark:group-focus-within:text-brand-500'
         )}
         onclick={() => (showPassword = !showPassword)}
