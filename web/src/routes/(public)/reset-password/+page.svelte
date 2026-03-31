@@ -91,11 +91,11 @@
 <SplitLayout>
   {#snippet header()}
     <a
-      href="/sign-in"
-      class="inline-flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+      href="/"
+      class="inline-flex items-center gap-1.5 rounded-sm text-sm text-gray-500 transition-all duration-200 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-950"
     >
       <ChevronLeft size={18} />
-      Back to sign in
+      Back to home
     </a>
   {/snippet}
 
@@ -159,7 +159,7 @@
       Remember your password?
       <a
         href="/sign-in"
-        class="font-semibold text-brand-500 hover:text-brand-600 dark:text-brand-400"
+        class="rounded-sm text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:text-brand-400 dark:hover:text-brand-500 dark:focus-visible:ring-offset-gray-950"
       >
         Sign in
       </a>
