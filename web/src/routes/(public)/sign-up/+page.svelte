@@ -166,6 +166,7 @@
       showPasswordToggle={true}
       error={form.errors.repeatPassword}
       helperText={passwordsMatch && !form.errors.repeatPassword ? 'Passwords match' : undefined}
+      helperTextClass="text-green-600 dark:text-green-400"
     />
 
     <AppButton

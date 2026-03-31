@@ -3,11 +3,13 @@
   import { parseDate, today, getLocalTimeZone } from '@internationalized/date';
   import { CalendarDays, ChevronLeft, ChevronRight, X, type Icon as IconType } from 'lucide-svelte';
   import { cn } from '$lib/ui/utils';
+  import { slide } from 'svelte/transition';
 
   interface Props {
     value?: string;
     label?: string;
     helperText?: string;
+    helperTextClass?: string;
     error?: string;
     id?: string;
     name?: string | null;
@@ -28,6 +30,7 @@
     value = $bindable(''),
     label,
     helperText,
+    helperTextClass,
     error,
     id = generatedId,
     name,
@@ -507,10 +510,14 @@
   </DatePicker.Root>
 
   {#if helperText && !hasError}
-    <span id={helperTextId} class="text-xs text-gray-500 dark:text-gray-400">{helperText}</span>
-  {/if}
+    <div transition:slide={{ axis: 'y', duration: 200 }}>
+      <span id={helperTextId} class={cn("text-xs text-gray-500 dark:text-gray-400", helperTextClass)}>
+        {helperText}
+      </span>
+    </div>  {/if}
 
   {#if hasError}
-    <span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
-  {/if}
+    <div transition:slide={{ axis: 'y', duration: 200 }}>
+      <span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
+    </div>  {/if}
 </div>

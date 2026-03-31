@@ -9,6 +9,7 @@
     value?: string;
     label?: string;
     helperText?: string;
+    helperTextClass?: string;
     error?: string;
     type?: string;
     showPasswordToggle?: boolean;
@@ -25,6 +26,7 @@
     value = $bindable(''),
     label,
     helperText,
+    helperTextClass,
     error,
     type = 'text',
     showPasswordToggle = false,
@@ -172,7 +174,9 @@
 
   {#if helperText && !hasError}
     <div transition:slide={{ axis: 'y', duration: 200 }}>
-      <span id={helperTextId} class="text-xs text-gray-500 dark:text-gray-400">{helperText}</span>
+      <span id={helperTextId} class={cn("text-xs text-gray-500 dark:text-gray-400", helperTextClass)}>
+        {helperText}
+      </span>
     </div>
   {/if}
 
