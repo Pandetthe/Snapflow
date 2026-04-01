@@ -2,22 +2,22 @@
   import { Button as BitsButton } from 'bits-ui';
   import type { Icon as IconType } from 'lucide-svelte';
   import type { Snippet } from 'svelte';
-  import type { HTMLButtonAttributes } from 'svelte/elements';
   import { LoaderCircle } from 'lucide-svelte';
   import { cn, haptics, type HapticPreset } from '$lib/ui/utils';
   import { LoadingDots } from '$lib/ui/components';
   import type { Variant, Size } from '$lib/ui/types';
 
   interface Props {
+    [key: string]: any;
     variant?: Variant;
     size?: Size;
     startIcon?: typeof IconType;
     endIcon?: typeof IconType;
     children?: Snippet;
     class?: string;
-    href?: string;
     id?: string;
-    type?: HTMLButtonAttributes['type'];
+    href?: string;
+    type?: "button" | "submit" | "reset";
     disabled?: boolean;
     haptic?: HapticPreset | number | number[];
     isLoading?: boolean;
@@ -53,7 +53,7 @@
     primary:
       'bg-brand-500 text-white shadow-sm hover:bg-brand-600 active:bg-brand-700 disabled:bg-brand-300',
     outline:
-      'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 active:bg-gray-100 focus-visible:border-brand-500 disabled:bg-gray-50/50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:focus-visible:border-brand-500 dark:hover:bg-white/[0.03] dark:active:bg-white/[0.08] dark:hover:text-gray-300 dark:disabled:bg-gray-900/50',
+      'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 active:bg-gray-100 focus-visible:border-brand-500 disabled:bg-gray-50/50 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-600 dark:focus-visible:border-brand-500 dark:hover:bg-white/[0.03] dark:active:bg-white/[0.08] dark:hover:text-gray-300 dark:disabled:bg-gray-900/50',
     ghost:
       'bg-transparent text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5',
     danger:

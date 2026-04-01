@@ -14,6 +14,7 @@
   } from '$lib/ui/components';
   import { CalendarDays, Clock3, CreditCard, Plus, Settings } from 'lucide-svelte';
   import { onMount } from 'svelte';
+  import { FullLayout } from '$lib/ui/components';
 
   let switchDefault = $state(false);
   let switchChecked = $state(true);
@@ -110,7 +111,8 @@
   <title>Snapflow | UI Showcase</title>
 </svelte:head>
 
-<div class="container mx-auto space-y-12">
+<FullLayout>
+<div class="container mx-auto w-full space-y-12">
   <header class="border-b border-gray-200 pb-6 dark:border-gray-800">
     <h1 class="text-3xl font-bold text-gray-800 dark:text-white/90">UI Showcase</h1>
   </header>
@@ -970,3 +972,4 @@
     </section>
   </div>
 </div>
+</FullLayout>

@@ -1,8 +1,11 @@
 <script lang="ts">
-  import { ExternalLink, Menu, X } from 'lucide-svelte';
-  import { ThemeToggle, UserMenu, GithubButton } from '$lib/ui/components';
-  import { Button as BitsButton } from 'bits-ui';
+  import { Menu, X, LogOut } from 'lucide-svelte';
+  import { ThemeToggle, UserMenu, GithubButton, Button } from '$lib/ui/components';
+  import { AuthService } from '$lib/features/auth/api/auth';
+  import { apiClient } from '$lib/core/api.client';
+  import { errorStore } from '$lib/ui/stores/error';
   import type { User } from '$lib/features/users/api/users';
+  import { Dialog } from 'bits-ui';
 
   interface Props {
     onMenuToggle?: () => void;
@@ -13,37 +16,61 @@
   let { onMenuToggle, isSidebarOpen = false, user = null }: Props = $props();
   let mobileMenuOpen = $state(false);
 
+  const authService = new AuthService(apiClient);
+
+  async function handleSignOut() {
+    try {
+      const response = await authService.signOut();
+      if (response.ok) {
+        closeMobileMenu();
+        window.location.href = '/';
+      } else {
+        errorStore.addError(null, 'Problem with connection to the server');
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.message === 'Failed to fetch') {
+          errorStore.addError('Web.ConnectionProblem', 'Problem with connection to the server');
+        } else {
+          errorStore.addError(err.name, err.message);
+        }
+      } else {
+        errorStore.addError(null, 'Unknown error occurred during sign out');
+      }
+    }
+  }
+
   function isMobileMenuOpen() {
     return onMenuToggle ? isSidebarOpen : mobileMenuOpen;
   }
 
-  function toggleMobileMenu() {
+  function handleMenuToggle(isOpen: boolean) {
     if (onMenuToggle) {
-      onMenuToggle();
+      if (isOpen !== isSidebarOpen) onMenuToggle();
       return;
     }
+    mobileMenuOpen = isOpen;
+  }
 
-    mobileMenuOpen = !mobileMenuOpen;
+  function toggleMobileMenu() {
+    handleMenuToggle(!isMobileMenuOpen());
   }
 
   function closeMobileMenu() {
-    if (onMenuToggle) {
-      if (isSidebarOpen) {
-        onMenuToggle();
-      }
-      return;
-    }
-
-    mobileMenuOpen = false;
+    handleMenuToggle(false);
   }
 </script>
 
 <header
   class="sticky top-0 z-40 flex w-full flex-col border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
 >
-  <div class="flex w-full items-center justify-between gap-2 px-3 py-3 sm:gap-3 lg:px-6 lg:py-4">
-    <a href="/" class="flex shrink-0 items-center gap-2">
-      <span class="text-xl font-bold text-gray-900 dark:text-white">Snapflow</span>
+  <Dialog.Root open={isMobileMenuOpen()} onOpenChange={handleMenuToggle}>
+    <div class="flex w-full items-center justify-between gap-2 px-5 py-3 sm:px-6 sm:py-4 lg:px-8">
+      <a
+      href="/"
+      class="flex shrink-0 items-center gap-2 rounded-md outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
+    >
+      <span class="text-2xl font-bold text-gray-900 dark:text-white">Snapflow</span>
     </a>
 
     <div class="hidden min-w-0 items-center justify-end gap-2 md:flex">
@@ -55,53 +82,61 @@
       <div
         class="flex shrink-0 items-center border-l border-gray-200 pl-2 sm:pl-4 dark:border-gray-800"
       >
-        <UserMenu {user} />
+        <UserMenu {handleSignOut} {user} />
       </div>
     </div>
 
-    <BitsButton.Root
+    <Button
+      variant="outline"
       onclick={toggleMobileMenu}
-      class="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 transition-all hover:bg-gray-50 active:scale-95 md:hidden dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800"
+      class="relative md:hidden h-11 w-11 p-0 rounded-full flex items-center justify-center border-gray-200 bg-white text-gray-700 hover:bg-gray-50 active:scale-95 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800"
       aria-label={isMobileMenuOpen() ? 'Close mobile menu' : 'Open mobile menu'}
       aria-expanded={isMobileMenuOpen()}
       aria-controls="mobile-header-menu"
     >
-      {#if isMobileMenuOpen()}
-        <X size={20} />
-      {:else}
+      <div
+        class="absolute flex items-center justify-center transition-all duration-200 {isMobileMenuOpen() ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}"
+      >
         <Menu size={20} />
-      {/if}
-    </BitsButton.Root>
+      </div>
+      <div
+        class="absolute flex items-center justify-center transition-all duration-200 {isMobileMenuOpen() ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}"
+      >
+        <X size={20} />
+      </div>
+    </Button>
   </div>
 
-  {#if isMobileMenuOpen()}
+  <Dialog.Overlay
+    class="absolute top-full left-0 z-30 h-screen w-full bg-gray-900/40 backdrop-blur-sm md:hidden dark:bg-gray-900/60 duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
+  />
+
+  <Dialog.Content
+    class="absolute top-full left-0 z-40 w-full border-b border-gray-200 bg-white px-5 pt-3 pb-5 shadow-xl md:hidden dark:border-gray-800 dark:bg-gray-900 sm:px-6 duration-250 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-4 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-4"
+  >
+    <Dialog.Title class="sr-only">Mobile menu</Dialog.Title>
     <div
-      id="mobile-header-menu"
-      class="border-t border-gray-200 px-3 pt-3 pb-3 md:hidden dark:border-gray-800"
+      class="mb-3 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900"
     >
-      <div
-        class="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-800/40"
-      >
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Theme</span>
-        <ThemeToggle />
+        <UserMenu {handleSignOut} {user} mobile onAction={closeMobileMenu} />
       </div>
 
-      <a
-        href="https://github.com/pandetthe/Snapflow"
-        target="_blank"
-        rel="noopener noreferrer"
-        onclick={closeMobileMenu}
-        class="mt-2 flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-300 dark:hover:bg-gray-800"
-      >
-        GitHub repository
-        <ExternalLink size={16} class="text-gray-500 dark:text-gray-400" />
-      </a>
-
-      <div
-        class="mt-3 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900"
-      >
-        <UserMenu {user} mobile onAction={closeMobileMenu} />
+      <div class="grid {user ? 'grid-cols-3' : 'grid-cols-2'} gap-2 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
+        <ThemeToggle showLabel />
+        <GithubButton showLabel onclick={closeMobileMenu} />
+        {#if user}
+          <div class="text-gray-700 dark:text-gray-300">
+            <Button
+              variant="outline"
+              onclick={handleSignOut}
+              class="w-full justify-start font-medium"
+              startIcon={LogOut}
+            >
+              Sign out
+            </Button>
+          </div>
+        {/if}
       </div>
-    </div>
-  {/if}
+  </Dialog.Content>
+</Dialog.Root>
 </header>

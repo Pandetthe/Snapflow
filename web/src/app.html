@@ -9,7 +9,11 @@
           var stored = localStorage.getItem('theme');
           var systemDark =
             window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          var theme = stored || (systemDark ? 'dark' : 'light');
+          var theme = stored || 'system';
+          document.documentElement.setAttribute('data-theme', theme);
+          if (theme === 'system') {
+            theme = systemDark ? 'dark' : 'light';
+          }
           if (theme === 'dark') {
             document.documentElement.classList.add('dark');
           } else {

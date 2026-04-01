@@ -18,5 +18,6 @@ export { default as FileInput } from './forms/FileInput.svelte';
 export { default as Dropzone } from './forms/Dropzone.svelte';
 export { default as AppHeader } from './layout/AppHeader.svelte';
 export { default as SplitLayout } from './layout/SplitLayout.svelte';
+export { default as FullLayout } from './layout/FullLayout.svelte';
 export { default as UserMenu } from './navigation/UserMenu.svelte';
 export { default as ErrorModal } from './feedback/ErrorModal.svelte';

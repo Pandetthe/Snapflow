@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Button } from 'bits-ui';
+  import { FullLayout } from '$lib/ui/components';
 
   let { data } = $props();
 </script>
@@ -8,9 +9,10 @@
   <title>Snapflow | Simple kanban for teams</title>
 </svelte:head>
 
-<div class="flex flex-1 items-center justify-center px-4 py-12">
-  <div class="w-full max-w-4xl text-center">
-    <div class="mb-16 duration-700 animate-in fade-in-0 slide-in-from-bottom-4">
+<FullLayout>
+  <div class="flex flex-1 items-center justify-center px-4 py-12">
+    <div class="w-full max-w-4xl text-center">
+      <div class="mb-16 duration-700 animate-in fade-in-0 slide-in-from-bottom-4">
       <h1
         class="mb-6 bg-linear-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-7xl leading-tight font-bold text-transparent"
       >
@@ -151,3 +153,4 @@
     </div>
   </div>
 </div>
+</FullLayout>

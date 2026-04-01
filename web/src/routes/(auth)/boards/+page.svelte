@@ -82,9 +82,9 @@
   <title>Snapflow | Boards</title>
 </svelte:head>
 
-<div class="relative mt-10 min-h-screen p-4 sm:p-6 md:mt-0 lg:p-8">
-  <div class="mb-4 flex items-center justify-between sm:mb-6">
-    <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">
+<div class="flex-1 w-full relative p-4 sm:p-6 lg:p-8">
+    <div class="mb-4 flex items-center justify-between sm:mb-6">
+      <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">
       Hi {data.user.userName}, these are your boards:
     </h1>
     <Button.Root
@@ -173,9 +173,9 @@
     onDelete={handleDeleteBoard}
   />
 
-  <div
-    class="animate-refresh-update fixed right-2 bottom-2 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-[10px] text-gray-600 shadow-sm sm:right-4 sm:bottom-4 sm:px-3 sm:py-2 sm:text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-  >
-    Last refreshed: {formatTime(refreshTime)}
-  </div>
+    <div
+      class="animate-refresh-update fixed right-2 bottom-2 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-[10px] text-gray-600 shadow-sm sm:right-4 sm:bottom-4 sm:px-3 sm:py-2 sm:text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+    >
+      Last refreshed: {formatTime(refreshTime)}
+    </div>
 </div>

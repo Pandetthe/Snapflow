@@ -128,6 +128,9 @@
 }
 
 @layer base {
+  html {
+    scrollbar-gutter: stable;
+  }
   html,
   body {
     @apply relative z-1 bg-white font-outfit font-normal text-text-main transition-colors duration-300;
