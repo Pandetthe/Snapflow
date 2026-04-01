@@ -31,12 +31,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   const csp = [
     "default-src 'self'",
+    `connect-src 'self' ${apiBaseUrl}`,
     "script-src 'self' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
-    `img-src 'self' data: ${apiBaseUrl}`,
-    "object-src 'none'",
-    "require-trusted-types-for 'script'"
+    `img-src 'self' data: ${apiBaseUrl} https://ui-avatars.com`,
+    "object-src 'none'"
   ].join('; ');
 
   response.headers.set('Content-Security-Policy', csp);
