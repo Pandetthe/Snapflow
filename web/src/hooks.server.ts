@@ -31,8 +31,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   const csp = [
     "default-src 'self'",
-    `connect-src 'self' ${apiBaseUrl}`,
-    "script-src 'self' 'unsafe-inline'",
+    `connect-src 'self' ${apiBaseUrl} https://cloudflareinsights.com`,
+    "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     `img-src 'self' data: ${apiBaseUrl} https://ui-avatars.com`,

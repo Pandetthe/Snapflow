@@ -16,5 +16,8 @@ internal sealed class MemberConfiguration : IEntityTypeConfiguration<Member>
             .HasForeignKey(b => b.UserId)
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
+        builder.HasIndex(b => new { b.BoardId, b.Role })
+            .IsUnique()
+            .HasFilter("\"role\" = 0"); // 0 is Owner enum value
     }
 }

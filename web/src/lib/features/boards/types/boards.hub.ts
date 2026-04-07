@@ -174,6 +174,7 @@ export interface CreateSwimlaneResponse {
   createdBy: {
     id: number;
     userName: string;
+    avatarUrl: string | null;
   };
 }
 
@@ -182,6 +183,7 @@ export interface UpdateSwimlaneResponse {
   updatedBy: {
     id: number;
     userName: string;
+    avatarUrl: string | null;
   };
 }
 
@@ -192,6 +194,7 @@ export interface CreateListResponse {
   createdBy: {
     id: number;
     userName: string;
+    avatarUrl: string | null;
   };
 }
 
@@ -200,6 +203,7 @@ export interface UpdateListResponse {
   updatedBy: {
     id: number;
     userName: string;
+    avatarUrl: string | null;
   };
 }
 
@@ -210,6 +214,7 @@ export interface CreateCardResponse {
   createdBy: {
     id: number;
     userName: string;
+    avatarUrl: string | null;
   };
 }
 
@@ -218,6 +223,7 @@ export interface UpdateCardResponse {
   updatedBy: {
     id: number;
     userName: string;
+    avatarUrl: string | null;
   };
 }
 

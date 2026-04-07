@@ -146,7 +146,7 @@
         href="/sign-up" 
         class="rounded-sm text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:text-brand-400 dark:hover:text-brand-500 dark:focus-visible:ring-offset-gray-950"
       >
-        Sign Up
+        Sign up
       </a>
     </p>
   {/snippet}

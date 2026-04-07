@@ -41,6 +41,19 @@ export function createForm<TValues extends Record<string, any>>(config: FormConf
     formState.serverErrors = {};
   }
 
+  function reset(nextValues?: Partial<TValues>) {
+    const values = {
+      ...config.initialValues,
+      ...(nextValues ?? {})
+    } as TValues;
+
+    formState.values = values;
+    formState.serverErrors = {};
+    formState.isSubmitted = false;
+    formState.isSubmitting = false;
+    prevValues = { ...values };
+  }
+
   function setError(field: keyof TValues, message: string) {
     formState.serverErrors[field] = message;
   }
@@ -137,6 +150,7 @@ export function createForm<TValues extends Record<string, any>>(config: FormConf
     get isSubmitting() { return formState.isSubmitting; },
     handleSubmit,
     setError,
-    resetErrors
+    resetErrors,
+    reset
   };
 }

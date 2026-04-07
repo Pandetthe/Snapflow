@@ -1,7 +1,10 @@
 <script lang="ts">
-  import { Dialog, Button } from 'bits-ui';
+  import { Dialog } from 'bits-ui';
+  import { Button, InputTextField, Textarea } from '$lib/ui/components';
+  import { createForm } from '$lib/ui/utils';
+  import { X } from 'lucide-svelte';
+  import type { Response } from '$lib/core/types/api';
   import type { GetBoardsResponse } from '$lib/features/boards/types/boards.api';
-  import { triggerHaptic } from '$lib/ui/utils';
 
   let {
     open = $bindable(false),
@@ -11,31 +14,50 @@
   }: {
     open: boolean;
     board?: GetBoardsResponse.BoardDto;
-    onConfirm: (title: string, description: string) => void;
+    onConfirm: (title: string, description: string) => Promise<Response<any>>;
     onDelete?: (id: number) => void;
   } = $props();
 
-  let title = $state('');
-  let description = $state('');
+  const form = createForm({
+    initialValues: {
+      title: '',
+      description: ''
+    },
+    validate: (values) => {
+      const errors: Record<string, string> = {};
 
-  $effect(() => {
-    if (open) {
-      if (board) {
-        title = board.title;
-        description = board.description || '';
-      } else {
-        title = '';
-        description = '';
+      if (!values.title.trim()) {
+        errors.title = 'Title is required';
+      } else if (values.title.trim().length < 3) {
+        errors.title = 'Title must be at least 3 characters';
+      } else if (values.title.trim().length > 100) {
+        errors.title = 'Title must be less than 100 characters';
       }
+
+      if (values.description.length > 500) {
+        errors.description = 'Description must be less than 500 characters';
+      }
+
+      return errors;
+    },
+    onSubmit: async (values) => {
+      return onConfirm(values.title.trim(), values.description.trim());
+    },
+    onSuccess: () => {
+      open = false;
     }
   });
 
-  function handleSubmit(e: SubmitEvent) {
-    e.preventDefault();
-    onConfirm(title, description);
-    triggerHaptic('success');
-    open = false;
-  }
+  $effect(() => {
+    if (open) {
+      form.reset({
+        title: board?.title ?? '',
+        description: board?.description ?? ''
+      });
+    } else {
+      form.reset();
+    }
+  });
 </script>
 
 <Dialog.Root bind:open>
@@ -44,73 +66,88 @@
       class="fixed inset-0 z-50 bg-black/80 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
     />
     <Dialog.Content
-      class="bg-background fixed top-[50%] left-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-lg duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:rounded-lg md:w-full dark:border-gray-700 dark:bg-gray-800"
+      class="fixed top-[50%] left-[50%] z-50 max-h-[88vh] w-[calc(100%-1.25rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] overflow-y-auto rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:w-full sm:p-6 dark:border-gray-700 dark:bg-gray-900"
     >
-      <Dialog.Title
-        class="text-lg leading-none font-semibold tracking-tight text-gray-900 dark:text-gray-100"
-      >
-        {board ? 'Edit Board' : 'Create Board'}
-      </Dialog.Title>
-      <form onsubmit={handleSubmit} class="mt-4 space-y-4">
-        <div class="space-y-2">
-          <label
-            for="board-title"
-            class="text-sm leading-none font-medium text-gray-900 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-gray-100"
-          >
-            Title
-          </label>
-          <input
-            id="board-title"
-            type="text"
-            bind:value={title}
-            class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            placeholder="Board title"
-            minlength="3"
-            maxlength="100"
-            required
-          />
+      <div class="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <Dialog.Title class="text-xl font-semibold text-gray-900 dark:text-white">
+            {board ? 'Edit board' : 'Create new board'}
+          </Dialog.Title>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {board
+              ? 'Update board details for your team.'
+              : 'Give it a name and optional description.'}
+          </p>
         </div>
-        <div class="space-y-2">
-          <label
-            for="board-description"
-            class="text-sm leading-none font-medium text-gray-900 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-gray-100"
-          >
-            Description
-          </label>
-          <textarea
-            id="board-description"
-            bind:value={description}
-            class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            placeholder="Board description"
-            maxlength="500"
-          ></textarea>
-        </div>
-        <div class="flex justify-end gap-2">
+        <button
+          type="button"
+          aria-label="Close modal"
+          class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100 dark:focus-visible:ring-offset-gray-950"
+          onclick={() => (open = false)}
+        >
+          <X size={18} />
+        </button>
+      </div>
+
+      <form onsubmit={form.handleSubmit} novalidate class="space-y-4 sm:space-y-5">
+        <InputTextField
+          id="board-title"
+          name="title"
+          label="Board title"
+          placeholder="e.g. Product roadmap"
+          maxlength={100}
+          required={true}
+          bind:value={form.values.title}
+          error={form.errors.title}
+        />
+
+        <Textarea
+          id="board-description"
+          name="description"
+          label="Description"
+          placeholder="Optional context for this board"
+          maxlength={500}
+          rows={4}
+          bind:value={form.values.description}
+          error={form.errors.description}
+          helperText={`${form.values.description.length}/500`}
+          class="resize-y"
+        />
+
+        <div class="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
           {#if board && onDelete}
-            <Button.Root
+            <Button
               type="button"
+              variant="danger"
+              class="sm:mr-auto"
               onclick={() => {
                 onDelete(board.id);
                 open = false;
               }}
-              class="mr-auto inline-flex h-10 items-center justify-center rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 shadow-sm transition-colors hover:bg-red-50 hover:text-red-700 focus-visible:ring-1 focus-visible:ring-red-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 dark:border-red-900 dark:bg-gray-900 dark:text-red-400 dark:hover:bg-red-900/20"
             >
               Delete
-            </Button.Root>
+            </Button>
           {/if}
-          <Button.Root
+
+          <Button
             type="button"
-            onclick={() => (open = false)}
-            class="inline-flex h-10 items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900 shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-1 focus-visible:ring-gray-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-50"
+            variant="outline"
+            onclick={() => {
+              open = false;
+            }}
           >
             Cancel
-          </Button.Root>
-          <Button.Root
+          </Button>
+
+          <Button
             type="submit"
-            class="inline-flex h-10 items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:ring-1 focus-visible:ring-gray-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90"
+            variant="primary"
+            disabled={!form.values.title.trim() || form.isSubmitting}
+            isLoading={form.isSubmitting}
+            loadingText={board ? 'Saving' : 'Creating'}
           >
-            {board ? 'Save Changes' : 'Create'}
-          </Button.Root>
+            {board ? 'Save changes' : 'Create board'}
+          </Button>
         </div>
       </form>
     </Dialog.Content>

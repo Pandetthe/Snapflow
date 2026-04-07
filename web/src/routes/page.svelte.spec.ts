@@ -1,7 +1,13 @@
 import { page } from 'vitest/browser';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import Page from './+page.svelte';
+
+vi.mock('$env/dynamic/public', () => ({
+  env: {
+    PUBLIC_API_BASE_URL: 'http://localhost:5000'
+  }
+}));
 
 describe('/+page.svelte', () => {
   it('should render main heading', async () => {

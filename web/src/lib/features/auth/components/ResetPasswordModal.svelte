@@ -76,7 +76,7 @@
       <div class="space-y-6 text-center">
         <div
           class={cn(
-            'animate-bounce-subtle mx-auto flex h-16 w-16 items-center justify-center rounded-full shadow-inner transition-all duration-500',
+            'mx-auto flex h-16 w-16 items-center justify-center rounded-full shadow-inner transition-all duration-500',
             info.bgColor
           )}
         >
@@ -115,7 +115,7 @@
 
         <div class="flex flex-col-reverse justify-center gap-3 sm:flex-row">
           {#if variant === 'success'}
-            <Button href="/sign-in" variant="primary" size="md" class="w-full justify-center">
+            <Button href="/sign-in" variant="primary" size="md" class="w-full justify-center" haptic="medium">
               Sign in now
             </Button>
           {:else}
@@ -126,6 +126,7 @@
               variant="primary"
               size="md"
               class="min-w-[140px]"
+              haptic="light"
             >
               Understand
             </Button>
@@ -136,17 +137,4 @@
   </Dialog.Portal>
 </Dialog.Root>
 
-<style>
-  @keyframes bounce-subtle {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-2px);
-    }
-  }
-  .animate-bounce-subtle {
-    animation: bounce-subtle 3s ease-in-out infinite;
-  }
-</style>
+

@@ -1,76 +1,38 @@
 <script lang="ts">
-  import { onMount, onDestroy, setContext } from 'svelte';
-  import { invalidate, invalidateAll } from '$app/navigation';
-  import Board from '$lib/features/boards/components/Board.svelte';
-  import BoardModal from '$lib/features/boards/components/BoardModal.svelte';
-  import { BoardsService } from '$lib/features/boards/api/boards.api';
-  import { apiClient } from '$lib/core/api.client';
-  import { errorStore } from '$lib/ui/stores/error';
+  import { onMount, onDestroy } from 'svelte';
+  import { invalidate } from '$app/navigation';
+  import BoardCard from '$lib/features/boards/components/BoardCard.svelte';
+  import BoardCardSkeleton from '$lib/features/boards/components/BoardCardSkeleton.svelte';
   import { recentBoards } from '$lib/features/boards/stores/recent';
-  import logger from '$lib/logger';
-  import { Button } from 'bits-ui';
-  import type { GetBoardsResponse } from '$lib/features/boards/types/boards.api';
+  import { Button, FullLayout, Input, Skeleton } from '$lib/ui/components';
+  import { Clock3, History, Folders, Plus } from 'lucide-svelte';
+  import { slide, fade } from 'svelte/transition';
 
   let { data } = $props();
   let intervalId: NodeJS.Timeout;
   let refreshTime = $derived(new Date(data.refreshTime));
 
-  let boardModalOpen = $state(false);
-  let editingBoard = $state<GetBoardsResponse.BoardDto | undefined>(undefined);
-  let boardsService: BoardsService;
+  type BoardData = { id: number; title: string; yourRole?: string };
 
-  setContext('boards-ui', {
-    openBoardModal: (board?: GetBoardsResponse.BoardDto) => {
-      editingBoard = board;
-      boardModalOpen = true;
-    }
+  $effect(() => {
+    recentBoards.configure(data.user.id);
+  });
+
+  let searchQuery = $state('');
+  let filteredBoards = $derived(
+    data.boards.filter((b: BoardData) => b.title.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+  let isMounted = $state(false);
+  onMount(() => {
+    isMounted = true;
   });
 
   function formatTime(date: Date) {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
 
-  async function handleConfirmBoard(title: string, description: string) {
-    if (editingBoard) {
-      const res = await boardsService.updateBoard({
-        id: editingBoard.id,
-        title,
-        description
-      });
-      logger.debug({ res }, 'Board update result');
-      if (res.ok) {
-        await invalidateAll();
-        // Safety refresh for eventual consistency
-        setTimeout(() => invalidateAll(), 500);
-      } else {
-        errorStore.addError('Web.UpdateBoardFailed', 'Failed to update board');
-      }
-    } else {
-      const res = await boardsService.createBoard({ title, description });
-      if (res.ok) {
-        await invalidateAll();
-        // Safety refresh for eventual consistency
-        setTimeout(() => invalidateAll(), 500);
-      } else {
-        errorStore.addError('Web.CreateBoardFailed', 'Failed to create board');
-      }
-    }
-  }
-
-  async function handleDeleteBoard(id: number) {
-    const res = await boardsService.deleteBoard(id);
-    if (res.ok) {
-      await invalidateAll();
-      // Safety refresh for eventual consistency
-      setTimeout(() => invalidateAll(), 500);
-    } else {
-      errorStore.addError('Web.DeleteBoardFailed', 'Failed to delete board');
-    }
-  }
-
   onMount(() => {
-    boardsService = new BoardsService(apiClient);
-    intervalId = setInterval(() => invalidate('/api/boards'), 10000);
+    intervalId = setInterval(() => invalidate('/api/boards'), 60000);
   });
 
   onDestroy(() => {
@@ -82,100 +44,160 @@
   <title>Snapflow | Boards</title>
 </svelte:head>
 
-<div class="flex-1 w-full relative p-4 sm:p-6 lg:p-8">
-    <div class="mb-4 flex items-center justify-between sm:mb-6">
-      <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">
-      Hi {data.user.userName}, these are your boards:
-    </h1>
-    <Button.Root
-      onclick={() => {
-        editingBoard = undefined;
-        boardModalOpen = true;
-      }}
-      class="inline-flex h-10 items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:ring-1 focus-visible:ring-gray-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="mr-2"
-      >
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      New Board
-    </Button.Root>
-  </div>
+<FullLayout>
+  <div class="relative w-full flex-1 pb-20 sm:pb-6">
+    {#if isMounted}
+      <div in:fade={{ duration: 400 }}>
+        <div class="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+          <div class="space-y-1">
+            <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl dark:text-white">
+              Hi {data.user.userName}!
+            </h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Manage your projects and collaborate with your team.
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="relative w-full sm:w-64">
+              <Input
+                type="search"
+                placeholder="Search boards..."
+                bind:value={searchQuery}
+                class="h-10"
+              />
+            </div>
+            <Button
+              variant="primary"
+              size="md"
+              haptic="light"
+              startIcon={Plus}
+              class="hidden sm:inline-flex"
+              href="/boards/new"
+            >
+              New Board
+            </Button>
+          </div>
+        </div>
 
-  {#if $recentBoards.length > 0}
-    <div class="mb-8">
-      <h2 class="mb-4 text-lg font-semibold text-gray-700 dark:text-gray-300">Recently Visited</h2>
-      <div class="flex flex-wrap gap-3">
-        {#each $recentBoards as board}
-          <a
-            href="/boards/{board.id}"
-            class="group relative flex min-w-[120px] items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/50 hover:shadow-md hover:shadow-blue-500/10 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-400/50 dark:hover:shadow-blue-400/10"
+        {#if $recentBoards.length > 0}
+          <div class="mb-8 lg:mb-10" transition:slide={{ duration: 400 }}>
+            <h2
+              class="mb-4 flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-400"
+            >
+              <History class="h-3.5 w-3.5" />
+              Recently visited
+            </h2>
+            <div
+              class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:gap-5 xl:gap-6"
+            >
+              {#each $recentBoards as boardId}
+                {@const board = data.boards.find((b: BoardData) => b.id === Number(boardId))}
+                {#if board}
+                  <BoardCard
+                    title={board.title}
+                    id={board.id.toString()}
+                    href={`/boards/${board.id}`}
+                    editHref={`/boards/${board.id}/edit`}
+                    yourRole={(board as BoardData).yourRole}
+                  />
+                {/if}
+              {/each}
+            </div>
+          </div>
+        {/if}
+
+        <h2
+          class="mb-4 flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-400"
+        >
+          <span class="flex items-center gap-2">
+            <Folders class="h-3.5 w-3.5" />
+            Your boards
+          </span>
+        </h2>
+
+        {#if data.boards.length === 0}
+          <div
+            class="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 px-4 py-12 text-center dark:border-gray-800 sm:py-20"
           >
             <div
-              class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-900/30 dark:text-blue-400"
+              class="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 dark:bg-gray-800/30"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+              <Folders class="h-8 w-8 text-gray-400" />
             </div>
-            <span
-              class="text-sm font-medium text-gray-700 transition-colors group-hover:text-blue-600 dark:text-gray-300 dark:group-hover:text-blue-400"
-            >
-              {board.title}
-            </span>
-            <div
-              class="absolute inset-0 rounded-xl bg-linear-to-r from-blue-500/0 to-blue-500/0 transition-all duration-300 group-hover:from-blue-500/5 group-hover:to-transparent"
-            ></div>
-          </a>
-        {/each}
+            <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">No boards found</h3>
+            <p class="mb-8 max-w-sm text-sm text-gray-500 dark:text-gray-400">
+              {searchQuery
+                ? `No boards match "${searchQuery}". Try a different search term.`
+                : 'Get started by creating your first board to organize your tasks and projects.'}
+            </p>
+            {#if !searchQuery}
+              <Button href="/boards/new" variant="primary" startIcon={Plus}
+                >Create First Board</Button
+              >
+            {/if}
+          </div>
+        {:else}
+          <div
+            class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:gap-5 xl:gap-6"
+          >
+            {#each filteredBoards as board}
+              <BoardCard
+                title={board.title}
+                id={board.id.toString()}
+                href={`/boards/${board.id}`}
+                editHref={`/boards/${board.id}/edit`}
+                yourRole={(board as BoardData).yourRole}
+              />
+            {/each}
+          </div>
+        {/if}
+
+        <div
+          class="mt-12 flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400"
+        >
+          <Clock3 class="h-3 w-3" />
+          <span>Last refreshed: <span class="font-medium">{formatTime(refreshTime)}</span></span>
+        </div>
       </div>
-    </div>
-  {/if}
+    {:else}
+      <div class="flex flex-col gap-8">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div class="space-y-3">
+            <Skeleton class="h-9 w-48" />
+            <Skeleton class="h-4 w-64" />
+          </div>
+          <div class="flex items-center gap-3">
+            <Skeleton class="h-10 w-full rounded-lg sm:w-64" />
+            <Skeleton class="hidden h-11 w-35 rounded-lg sm:block" />
+          </div>
+        </div>
 
-  {#if data.boards.length === 0}
-    <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">
-      You don't have any boards yet.
-    </p>
-  {:else}
-    <div class="grid grid-cols-1 items-stretch gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {#each data.boards as board}
-        <Board {board} />
-      {/each}
-    </div>
-  {/if}
+        <div class="space-y-4">
+          <Skeleton class="h-4 w-32" />
+          <div
+            class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:gap-5 xl:gap-6"
+          >
+            <BoardCardSkeleton />
+            <BoardCardSkeleton />
+            <BoardCardSkeleton />
+            <BoardCardSkeleton />
+            <BoardCardSkeleton />
+            <BoardCardSkeleton />
+          </div>
+        </div>
+      </div>
+    {/if}
 
-  <BoardModal
-    bind:open={boardModalOpen}
-    board={editingBoard}
-    onConfirm={handleConfirmBoard}
-    onDelete={handleDeleteBoard}
-  />
-
-    <div
-      class="animate-refresh-update fixed right-2 bottom-2 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-[10px] text-gray-600 shadow-sm sm:right-4 sm:bottom-4 sm:px-3 sm:py-2 sm:text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+    <Button
+      variant="primary"
+      size="lg"
+      startIcon={Plus}
+      haptic="light"
+      class="fixed right-4 bottom-4 z-40 h-14 w-14 min-w-14 rounded-full p-0 shadow-lg sm:hidden"
+      href="/boards/new"
+      aria-label="Create board"
     >
-      Last refreshed: {formatTime(refreshTime)}
-    </div>
-</div>
+      <span class="sr-only">Create board</span>
+    </Button>
+  </div>
+</FullLayout>

@@ -12,7 +12,7 @@ internal sealed class ChangeMemberRoleCommandValidator : AbstractValidator<Chang
         RuleFor(c => c.BoardId)
             .GreaterThan(0).WithMessage("Invalid board identifier.");
         RuleFor(x => x.Role)
-            .IsInEnum().WithMessage("Role must be a valid BoardMemberRole.")
+            .IsInEnum().WithMessage("Role must be a valid role.")
             .NotEqual(MemberRole.Owner).WithMessage("Role cannot be set to Owner.");
     }
 }

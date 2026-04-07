@@ -1,6 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { Button } from 'bits-ui';
+  import { Button } from '$lib/ui/components';
+  import { dev } from '$app/environment';
 </script>
 
 <svelte:head>
@@ -19,7 +20,7 @@
           <div class="relative">
             <div class="flex items-center justify-center gap-4">
               <span
-                class="bg-linear-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-[10rem] font-black text-transparent"
+                class="bg-linear-to-r from-brand-600 via-brand-500 to-brand-600 bg-clip-text text-[10rem] font-black text-transparent"
                 >404</span
               >
             </div>
@@ -71,13 +72,26 @@
         <p class="mb-2 text-lg text-gray-600 dark:text-gray-300">
           We encountered an unexpected error.
         </p>
+        {#if dev}
+          <div
+            class="mx-auto mt-6 max-w-full overflow-hidden rounded-lg border border-red-200 bg-red-50 p-4 text-left dark:border-red-900/30 dark:bg-red-900/10"
+          >
+            <p
+              class="font-mono text-sm font-bold wrap-break-word whitespace-pre-wrap text-red-600 dark:text-red-400"
+            >
+              Error: {page.error?.message}
+            </p>
+          </div>
+        {/if}
       {/if}
     </div>
 
     <div class="flex flex-col justify-center gap-4 sm:flex-row">
-      <Button.Root
+      <Button
         href="/"
-        class="inline-flex items-center justify-center rounded-lg border border-blue-300 bg-blue-50 px-6 py-3 font-medium text-blue-700 shadow-sm transition-colors duration-200 hover:bg-blue-100 hover:shadow-md dark:border-blue-600 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
+        variant="primary"
+        size="lg"
+        class="inline-flex min-w-[160px] items-center justify-center"
       >
         <svg class="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
           <path
@@ -85,13 +99,14 @@
           />
         </svg>
         Go Home
-      </Button.Root>
+      </Button>
 
       {#if page.status !== 404}
-        <Button.Root
+        <Button
           href="https://github.com/Pandetthe/Snapflow/issues"
-          target="_blank"
-          class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 font-medium text-gray-700 shadow-sm transition-colors duration-200 hover:bg-gray-50 hover:shadow-md dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          variant="outline"
+          size="lg"
+          class="inline-flex min-w-[160px] items-center justify-center"
         >
           <svg class="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
             <path
@@ -99,7 +114,7 @@
             />
           </svg>
           Report Issue
-        </Button.Root>
+        </Button>
       {/if}
     </div>
   </div>

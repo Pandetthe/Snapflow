@@ -28,38 +28,43 @@ internal sealed class DeleteSwimlaneHandler(
         DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
         int userId = userContext.UserId;
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        var strategy = dbContext.Database.CreateExecutionStrategy();
 
-        try
+        await strategy.ExecuteAsync(async () =>
         {
-            swimlane.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
+            using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            await dbContext.Lists
-                .Where(l => l.SwimlaneId == swimlane.Id && !l.IsDeleted)
-                .ExecuteUpdateAsync(l => l
-                    .SetProperty(x => x.IsDeleted, true)
-                    .SetProperty(x => x.DeletedAt, dateTimeOffset)
-                    .SetProperty(x => x.DeletedById, userId)
-                    .SetProperty(x => x.DeletedByCascade, true),
-                    cancellationToken);
+            try
+            {
+                swimlane.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
 
-            await dbContext.Cards
-                .Where(c => c.SwimlaneId == swimlane.Id && !c.IsDeleted)
-                .ExecuteUpdateAsync(c => c
-                    .SetProperty(x => x.IsDeleted, true)
-                    .SetProperty(x => x.DeletedAt, dateTimeOffset)
-                    .SetProperty(x => x.DeletedById, userId)
-                    .SetProperty(x => x.DeletedByCascade, true),
-                    cancellationToken);
+                await dbContext.Lists
+                    .Where(l => l.SwimlaneId == swimlane.Id && !l.IsDeleted)
+                    .ExecuteUpdateAsync(l => l
+                        .SetProperty(x => x.IsDeleted, true)
+                        .SetProperty(x => x.DeletedAt, dateTimeOffset)
+                        .SetProperty(x => x.DeletedById, userId)
+                        .SetProperty(x => x.DeletedByCascade, true),
+                        cancellationToken);
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-        }
-        catch
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
+                await dbContext.Cards
+                    .Where(c => c.SwimlaneId == swimlane.Id && !c.IsDeleted)
+                    .ExecuteUpdateAsync(c => c
+                        .SetProperty(x => x.IsDeleted, true)
+                        .SetProperty(x => x.DeletedAt, dateTimeOffset)
+                        .SetProperty(x => x.DeletedById, userId)
+                        .SetProperty(x => x.DeletedByCascade, true),
+                        cancellationToken);
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        });
 
         return Result.Success();
     }

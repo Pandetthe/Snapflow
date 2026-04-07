@@ -1,44 +1,54 @@
 import { writable } from 'svelte/store';
 
-export interface RecentBoard {
-  id: number;
-  title: string;
-}
-
 const STORAGE_KEY = 'recent-boards';
 const MAX_RECENT = 5;
 
-function getStoredRecent(): RecentBoard[] {
+let currentStorageKey = STORAGE_KEY;
+
+function getStorageKey(userId?: number | string | null) {
+  return userId ? `${STORAGE_KEY}:${userId}` : STORAGE_KEY;
+}
+
+function getStoredRecent(storageKey: string): number[] {
   if (typeof window === 'undefined') return [];
-  const stored = localStorage.getItem(STORAGE_KEY);
+  const stored = localStorage.getItem(storageKey);
   if (!stored) return [];
   try {
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(Number).filter((id) => !isNaN(id));
   } catch {
     return [];
   }
 }
 
 function createRecentBoardsStore() {
-  const { subscribe, set, update } = writable<RecentBoard[]>(getStoredRecent());
+  const { subscribe, set, update } = writable<number[]>([]);
+
+  function persist(ids: number[]) {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(currentStorageKey, JSON.stringify(ids));
+    }
+  }
 
   return {
     subscribe,
-    add: (board: RecentBoard) => {
-      update((boards) => {
-        const filtered = boards.filter((b) => b.id !== board.id);
-        const newBoards = [board, ...filtered].slice(0, MAX_RECENT);
-
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(newBoards));
-        }
-        return newBoards;
+    configure: (userId?: number | string | null) => {
+      currentStorageKey = getStorageKey(userId);
+      set(getStoredRecent(currentStorageKey));
+    },
+    add: (boardId: number) => {
+      update((ids) => {
+        const filtered = ids.filter((id) => id !== boardId);
+        const newIds = [boardId, ...filtered].slice(0, MAX_RECENT);
+        persist(newIds);
+        return newIds;
       });
     },
     clear: () => {
       set([]);
       if (typeof window !== 'undefined') {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(currentStorageKey);
       }
     }
   };

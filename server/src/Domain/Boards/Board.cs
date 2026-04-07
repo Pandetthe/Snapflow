@@ -1,4 +1,4 @@
-﻿using Snapflow.Common;
+using Snapflow.Common;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
 using Snapflow.Domain.Members;
@@ -68,5 +68,41 @@ public class Board : Entity<int, Board>
         DeletedAt = deletedAt;
 
         Raise(b => new BoardDeletedDomainEvent(b.Id, connectionId));
+    }
+
+    public void AddMembers(IReadOnlyList<(int UserId, MemberRole Role)> memberRequests, string? connectionId = null)
+    {
+        foreach (var (userId, role) in memberRequests)
+        {
+            var member = Member.Create(Id, userId, role, connectionId);
+            Members.Add(member);
+        }
+    }
+
+    public void SyncMembers(IReadOnlyList<(int UserId, MemberRole Role)> syncRequests, string? connectionId = null)
+    {
+        var existingMembers = Members.ToList();
+        var syncRequestUserIds = syncRequests.Select(r => r.UserId).ToList();
+
+        foreach (var member in existingMembers.Where(m => m.Role != MemberRole.Owner && !syncRequestUserIds.Contains(m.UserId)))
+        {
+            Members.Remove(member);
+            member.Remove(connectionId);
+        }
+
+        foreach (var (userId, role) in syncRequests)
+        {
+            if (role == MemberRole.Owner) continue;
+
+            var existing = existingMembers.FirstOrDefault(m => m.UserId == userId);
+            if (existing == null)
+            {
+                Members.Add(Member.Create(Id, userId, role, connectionId));
+            }
+            else if (existing.Role != role && existing.Role != MemberRole.Owner)
+            {
+                existing.UpdateRole(role, connectionId);
+            }
+        }
     }
 }

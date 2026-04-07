@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Snapflow.Domain.Members;
 
 namespace Snapflow.Application.Boards.Get;
 
@@ -15,6 +16,7 @@ public sealed class GetBoardsResponse
         int Id,
         string Title,
         string Description,
+        MemberRole YourRole,
         DateTimeOffset CreatedAt,
         UserDto CreatedBy,
         DateTimeOffset? UpdatedAt,

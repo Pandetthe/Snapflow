@@ -10,12 +10,19 @@
   import { errorStore } from '$lib/ui/stores/error';
   import { recentBoards } from '$lib/features/boards/stores/recent';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
-  import { Button } from 'bits-ui';
+  import { Button as BitsButton } from 'bits-ui';
+  import { Button as AppButton } from '$lib/ui/components';
   import { triggerHaptic } from '$lib/ui/utils';
+  import { Pencil } from 'lucide-svelte';
+  import { fade } from 'svelte/transition';
 
   let { data } = $props();
   let board = $state((() => data.board)());
   let hub = $state<BoardsHub | null>(null);
+
+  $effect(() => {
+    recentBoards.configure(data.user.id);
+  });
 
   let swimlaneModalOpen = $state(false);
   let editingSwimlane: GetBoardByIdResponse.SwimlaneDto | undefined = $state(undefined);
@@ -28,7 +35,6 @@
   let targetListId: number | null = $state(null);
   let editingCard: GetBoardByIdResponse.CardDto | undefined = $state(undefined);
 
-  // Context for child components
   setContext('ui', {
     openSwimlaneModal: (swimlane?: GetBoardByIdResponse.SwimlaneDto) => {
       editingSwimlane = swimlane;
@@ -142,7 +148,7 @@
         editingCard.description = description;
         // Update audit info if available in the response
         if (res.value.updatedAt) editingCard.updatedAt = res.value.updatedAt;
-        if (res.value.updatedBy) editingCard.updatedBy = res.value.updatedBy;
+        if (res.value.updatedBy) editingCard.updatedBy = res.value.updatedBy as any;
       } else {
         errorStore.addError('Web.UpdateCardFailed', 'Failed to update card');
       }
@@ -163,7 +169,7 @@
               description,
               rank: res.value.rank,
               createdAt: res.value.createdAt,
-              createdBy: res.value.createdBy,
+              createdBy: res.value.createdBy as any,
               updatedAt: null,
               updatedBy: null
             });
@@ -224,7 +230,7 @@
       sortAll();
     }
 
-    recentBoards.add({ id: board.id, title: board.title });
+    recentBoards.add(board.id);
   });
 
   setContext('hub', () => hub);
@@ -345,7 +351,8 @@
               createdAt: new Date().toISOString(),
               createdBy: {
                 id: 1,
-                userName: 'John Doe'
+                userName: 'John Doe',
+                avatarUrl: null
               },
               updatedAt: null,
               updatedBy: null
@@ -471,16 +478,16 @@
 </svelte:head>
 
 <div class="fixed top-4 left-4 z-50 flex items-center space-x-3">
-  <Button.Root
+  <BitsButton.Root
     href="/boards/"
     class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
     title="Boards"
   >
     ←
-  </Button.Root>
+  </BitsButton.Root>
 </div>
 
-<div class="mt-16 flex min-h-screen flex-col bg-white sm:mt-0 dark:bg-gray-900">
+<div class="mt-16 flex min-h-screen flex-col bg-white sm:mt-0 dark:bg-gray-900" in:fade={{ duration: 400 }}>
   <div
     class="shrink-0 border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800"
   >
@@ -493,6 +500,14 @@
           </h1>
         </div>
       </div>
+      <AppButton
+        href={`/boards/${board.id}/edit`}
+        variant="outline"
+        size="sm"
+        startIcon={Pencil}
+      >
+        Edit board
+      </AppButton>
     </div>
   </div>
 

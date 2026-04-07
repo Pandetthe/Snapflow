@@ -55,7 +55,7 @@
     outline:
       'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 active:bg-gray-100 focus-visible:border-brand-500 disabled:bg-gray-50/50 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-600 dark:focus-visible:border-brand-500 dark:hover:bg-white/[0.03] dark:active:bg-white/[0.08] dark:hover:text-gray-300 dark:disabled:bg-gray-900/50',
     ghost:
-      'bg-transparent text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5',
+      'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white',
     danger:
       'bg-error-500 text-white hover:bg-error-600 active:bg-error-700 disabled:bg-error-300',
     success:

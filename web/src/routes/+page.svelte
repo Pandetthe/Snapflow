@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Button } from 'bits-ui';
   import { FullLayout } from '$lib/ui/components';
+  import { fade } from 'svelte/transition';
 
   let { data } = $props();
 </script>
@@ -10,7 +11,7 @@
 </svelte:head>
 
 <FullLayout>
-  <div class="flex flex-1 items-center justify-center px-4 py-12">
+  <div class="flex flex-1 items-center justify-center px-4 py-12" in:fade={{ duration: 400 }}>
     <div class="w-full max-w-4xl text-center">
       <div class="mb-16 duration-700 animate-in fade-in-0 slide-in-from-bottom-4">
       <h1

@@ -8,6 +8,8 @@
   } = $props();
 </script>
 
-<div class="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+<div
+  class="mx-auto flex w-full max-w-[1800px] flex-1 flex-col items-stretch justify-start px-8 py-6 sm:px-10 lg:px-14 xl:px-20"
+>
   {@render children()}
 </div>

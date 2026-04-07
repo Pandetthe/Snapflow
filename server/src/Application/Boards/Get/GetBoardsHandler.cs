@@ -30,6 +30,7 @@ internal sealed class GetBoardsHandler(
                 b.Id,
                 b.Title,
                 b.Description,
+                b.Members.Where(m => m.UserId == userContext.UserId).Select(m => m.Role).Single(),
                 b.CreatedAt,
                 UserDto.From(b.CreatedBy),
                 b.UpdatedAt,

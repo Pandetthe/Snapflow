@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Members;
@@ -25,8 +25,8 @@ internal sealed class PermissionProvider(IAppDbContext dbContext)
             BoardPermissions.Cards.Create,
             BoardPermissions.Cards.Update,
             BoardPermissions.Cards.Delete,
-            BoardPermissions.Cards.Move
-
+            BoardPermissions.Cards.Move,
+            BoardPermissions.Boards.Transfer
         },
         [MemberRole.Admin] = new()
         {
@@ -44,7 +44,6 @@ internal sealed class PermissionProvider(IAppDbContext dbContext)
             BoardPermissions.Cards.Update,
             BoardPermissions.Cards.Delete,
             BoardPermissions.Cards.Move
-
         },
         [MemberRole.Member] = new()
         {

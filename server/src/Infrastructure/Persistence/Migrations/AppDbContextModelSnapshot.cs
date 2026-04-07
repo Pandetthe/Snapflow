@@ -18,7 +18,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("public")
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -469,6 +469,11 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_board_members_user_id");
+
+                    b.HasIndex("BoardId", "Role")
+                        .IsUnique()
+                        .HasDatabaseName("ix_board_members_board_id_role")
+                        .HasFilter("\"role\" = 0");
 
                     b.ToTable("board_members", "public");
                 });

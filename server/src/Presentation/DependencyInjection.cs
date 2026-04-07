@@ -11,6 +11,8 @@ using Snapflow.Presentation.Endpoints;
 using Snapflow.Presentation.Middlewares;
 using StackExchange.Redis;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Snapflow.Presentation;
 
@@ -24,6 +26,11 @@ public static class DependencyInjection
         services.AddDomainEventHandlersInternal();
 
         services.AddExceptionHandler<GlobalExceptionHandler>();
+        
+        services.ConfigureHttpJsonOptions(options =>
+        {
+            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+        });
 
         var signalRBuilder = services.AddSignalR(options =>
         {

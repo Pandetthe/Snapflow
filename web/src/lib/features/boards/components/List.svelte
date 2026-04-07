@@ -1,7 +1,6 @@
 <script lang="ts">
   import { flip } from 'svelte/animate';
-  import { slide } from 'svelte/transition';
-  import { dragHandleZone, dragHandle, SHADOW_ITEM_MARKER_PROPERTY_NAME } from 'svelte-dnd-action';
+  import { dragHandleZone, dragHandle } from 'svelte-dnd-action';
   import type { DndEvent } from 'svelte-dnd-action';
   import { getContext } from 'svelte';
   import type { BoardsHub } from '$lib/features/boards/hub/boards.hub';

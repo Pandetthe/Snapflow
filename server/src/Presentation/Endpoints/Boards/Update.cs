@@ -1,4 +1,4 @@
-﻿using Snapflow.Application.Abstractions.Messaging;
+using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Boards.Update;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
@@ -8,7 +8,10 @@ namespace Snapflow.Presentation.Endpoints.Boards;
 
 internal sealed class Update : IEndpoint
 {
-    public sealed record UpdateBoardRequest(string Title, string Description);
+    public sealed record UpdateBoardRequest(
+        string Title,
+        string Description,
+        IReadOnlyList<UpdateBoardMemberRequest>? Members = null);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -18,7 +21,11 @@ internal sealed class Update : IEndpoint
             ICommandHandler<UpdateBoardCommand> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new UpdateBoardCommand(boardId, request.Title, request.Description);
+            var command = new UpdateBoardCommand(
+                boardId,
+                request.Title,
+                request.Description,
+                request.Members);
 
             Result result = await handler.Handle(command, cancellationToken);
 

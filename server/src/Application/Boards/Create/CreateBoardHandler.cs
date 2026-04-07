@@ -4,6 +4,7 @@ using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
+using Snapflow.Domain.Members;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Boards.Create;
@@ -26,6 +27,28 @@ internal sealed class CreateBoardHandler(
             userContext.UserId,
             timeProvider.GetUtcNow(),
             userContext.ConnectionId);
+
+        if (command.Members?.Count > 0)
+        {
+            var memberUserIds = command.Members.Select(m => m.UserId).ToList();
+            
+            var existingUsers = await dbContext.Users.AsNoTracking()
+                .Where(u => memberUserIds.Contains(u.Id))
+                .Select(u => u.Id)
+                .ToListAsync(cancellationToken);
+            
+            var notFoundUserId = memberUserIds.FirstOrDefault(id => !existingUsers.Contains(id));
+            if (notFoundUserId != 0)
+                return Result.Failure<int>(UserErrors.NotFound(notFoundUserId));
+
+            var ownerCount = command.Members.Count(m => m.Role == MemberRole.Owner);
+            if (ownerCount > 0)
+                return Result.Failure<int>(MemberErrors.OwnerAlreadyExists(board.Id));
+
+            board.AddMembers(
+                command.Members.Select(m => (m.UserId, m.Role)).ToList(),
+                userContext.ConnectionId);
+        }
 
         await dbContext.Boards.AddAsync(board, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

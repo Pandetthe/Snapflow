@@ -12,6 +12,7 @@ export namespace GetBoardsResponse {
     createdBy: UserDto;
     updatedAt: string | null;
     updatedBy: UserDto | null;
+    yourRole?: string;
   }
 }
 
@@ -21,11 +22,17 @@ export namespace GetBoardByIdResponse {
     title: string;
     description: string;
     swimlanes: SwimlaneDto[];
+    members: BoardMemberDto[];
   }
 
   export interface UserDto {
     id: number;
     userName: string;
+    avatarUrl: string | null;
+  }
+
+  export interface BoardMemberDto extends UserDto {
+    role: MemberRole;
   }
 
   export interface SwimlaneDto {
@@ -56,9 +63,42 @@ export namespace GetBoardByIdResponse {
   }
 }
 
+export namespace GetBoardDetailsResponse {
+  export interface BoardDto {
+    id: number;
+    title: string;
+    description: string;
+    members: BoardMemberDto[];
+  }
+
+  export interface UserDto {
+    id: number;
+    userName: string;
+    avatarUrl: string | null;
+  }
+
+  export interface BoardMemberDto extends UserDto {
+    role: MemberRole;
+  }
+}
+
 export interface CreateBoardRequest {
   title: string;
   description: string;
+  members?: CreateBoardMemberRequest[] | null;
+}
+
+export type MemberRole = 'owner' | 'admin' | 'member' | 'viewer';
+
+export interface CreateBoardMemberRequest {
+  userId: number;
+  role: MemberRole;
+}
+
+export interface UpdateBoardRequest {
+  title: string;
+  description: string;
+  members: CreateBoardMemberRequest[];
 }
 
 export interface IdResponse {

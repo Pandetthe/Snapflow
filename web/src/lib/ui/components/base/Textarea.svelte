@@ -67,7 +67,7 @@
 <div class="flex w-full flex-col gap-1.5">
   {#if label}
     <Label.Root for={id} class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-      {label}
+      {label}{#if isRequired}<span class="text-error-500" aria-hidden="true">*</span>{/if}
     </Label.Root>
   {/if}
 
@@ -135,7 +135,7 @@
   </div>
 
   {#if helperText && !hasError}
-    <span id={helperTextId} class="text-xs text-gray-500 dark:text-gray-400">{helperText}</span>
+    <span id={helperTextId} class="text-xs text-gray-600 dark:text-gray-400">{helperText}</span>
   {/if}
 
   {#if hasError}

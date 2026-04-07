@@ -28,29 +28,34 @@ internal sealed class DeleteListHandler(
         DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
         int userId = userContext.UserId;
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        var strategy = dbContext.Database.CreateExecutionStrategy();
 
-        try
+        await strategy.ExecuteAsync(async () =>
         {
-            list.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
+            using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            await dbContext.Cards
-                .Where(c => c.ListId == list.Id && !c.IsDeleted)
-                .ExecuteUpdateAsync(c => c
-                    .SetProperty(x => x.IsDeleted, true)
-                    .SetProperty(x => x.DeletedAt, dateTimeOffset)
-                    .SetProperty(x => x.DeletedById, userId)
-                    .SetProperty(x => x.DeletedByCascade, true),
-                    cancellationToken);
+            try
+            {
+                list.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-        }
-        catch
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
+                await dbContext.Cards
+                    .Where(c => c.ListId == list.Id && !c.IsDeleted)
+                    .ExecuteUpdateAsync(c => c
+                        .SetProperty(x => x.IsDeleted, true)
+                        .SetProperty(x => x.DeletedAt, dateTimeOffset)
+                        .SetProperty(x => x.DeletedById, userId)
+                        .SetProperty(x => x.DeletedByCascade, true),
+                        cancellationToken);
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        });
 
         return Result.Success();
     }

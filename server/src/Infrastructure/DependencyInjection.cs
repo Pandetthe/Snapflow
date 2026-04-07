@@ -1,4 +1,5 @@
 ﻿using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -19,6 +20,7 @@ using Snapflow.Application.Abstractions.Services;
 using Snapflow.Infrastructure.Auth.Accessors;
 using Snapflow.Infrastructure.Auth.Entities;
 using Snapflow.Infrastructure.Auth.Managers;
+using Snapflow.Infrastructure.Authorization;
 using Snapflow.Infrastructure.Common;
 using Snapflow.Infrastructure.Identity.Services;
 using Snapflow.Infrastructure.Mailing;
@@ -235,6 +237,9 @@ public static class DependencyInjection
             });
             services.AddAuthorizationBuilder();
             services.AddAuthorization();
+            services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
+            services.AddScoped<PermissionProvider>();
+            services.AddScoped<IAuthorizationHandler, BoardPermissionAuthorizationHandler>();
 
             services.AddScoped<IUserManager, AppUserManager>();
             services.AddScoped<ISignInManager, AppSignInManager>();

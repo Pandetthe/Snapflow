@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { ChevronDown, User as UserIcon, LogOut } from 'lucide-svelte';
 	import { DropdownMenu } from 'bits-ui';
-	import { Button } from '$lib/ui/components';
+	import { Button, UserAvatar } from '$lib/ui/components';
 	import type { User } from '$lib/features/users/api/users';
+	import { onMount } from 'svelte';
 
 	interface Props {
 		user: User | null;
@@ -12,6 +13,11 @@
 	}
 
 	let { user, mobile = false, handleSignOut, onAction }: Props = $props();
+
+	let isMounted = $state(false);
+	onMount(() => {
+		isMounted = true;
+	});
 
 	const menuItems = [
 		{ href: '/profile', icon: UserIcon, text: 'Edit profile' }
@@ -24,14 +30,12 @@
 			<div
 				class="mb-4 flex items-center gap-3 rounded-lg border border-gray-300 bg-gray-50/80 px-3 py-2.5 shadow-sm dark:border-gray-600 dark:bg-gray-800/50"
 			>
-				<div class="h-10 w-10 overflow-hidden rounded-full ring-2 ring-white shadow-sm dark:ring-gray-700">
-					<img
-						src={user.avatarUrl ||
-							`https://ui-avatars.com/api/?name=${encodeURIComponent(user.userName || user.email || 'User')}&background=465fff&color=fff`}
-						alt="User"
-						class="h-full w-full object-cover"
+					<UserAvatar 
+						src={user.avatarUrl} 
+						name={user.userName || user.email || 'User'} 
+						size={40} 
+						class="ring-2 ring-white shadow-sm dark:ring-gray-700"
 					/>
-				</div>
 
 				<div class="min-w-0">
 					<p class="truncate text-sm font-bold text-gray-900 dark:text-white">{user.userName}</p>
@@ -82,16 +86,12 @@
 						{...triggerProps}
 						class="group flex cursor-pointer items-center gap-3 rounded-lg p-1 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950 active:scale-95"
 					>
-						<div
-							class="h-10 w-10 overflow-hidden rounded-full ring-2 ring-gray-100 transition-all dark:ring-gray-800 group-focus-visible:ring-brand-500"
-						>
-							<img
-								src={user.avatarUrl ||
-									`https://ui-avatars.com/api/?name=${encodeURIComponent(user.userName || user.email || 'User')}&background=465fff&color=fff`}
-								alt="User"
-								class="h-full w-full object-cover"
-							/>
-						</div>
+						<UserAvatar 
+							src={user.avatarUrl} 
+							name={user.userName || user.email || 'User'} 
+							size={40} 
+							class="ring-2 ring-gray-100 transition-all dark:ring-gray-800 group-focus-visible:ring-brand-500"
+						/>
 
 						<div class="hidden text-left sm:block">
 							<p class="flex items-center gap-1 text-sm font-medium text-gray-900 dark:text-white">

@@ -1,14 +1,25 @@
 import type { ApiClient, ApiEvent } from '$lib/core/types/api';
 import type { Response, ProblemDetails, ValidationProblemDetails } from '$lib/core/types/app';
 import type {
+  CreateBoardRequest,
   GetBoardByIdResponse,
+  GetBoardDetailsResponse,
   GetBoardsResponse,
-  IdResponse
+  IdResponse,
+  UpdateBoardRequest
 } from '$lib/features/boards/types/boards.api';
 
 export class BoardsService {
   constructor(private apiClient: ApiClient) {
     this.apiClient = apiClient;
+  }
+
+  private buildProblem(status: number, statusText: string, detail?: string | null): ProblemDetails {
+    return {
+      status,
+      title: statusText || 'Error',
+      detail: detail?.trim() || null
+    };
   }
 
   private async handleResponse<T = void>(
@@ -32,18 +43,25 @@ export class BoardsService {
       let validationProblem: ValidationProblemDetails | undefined;
 
       try {
-        const data = await response.json();
-        if (data.errors && Array.isArray(data.errors)) {
-          validationProblem = data as ValidationProblemDetails;
+        const contentType = response.headers.get('content-type') ?? '';
+        const body = await response.text();
+
+        if (body.trim().length > 0) {
+          if (contentType.includes('application/json')) {
+            const data = JSON.parse(body) as ValidationProblemDetails | ProblemDetails;
+            if ('errors' in data && Array.isArray(data.errors)) {
+              validationProblem = data;
+            } else {
+              problem = data;
+            }
+          } else {
+            problem = this.buildProblem(response.status, response.statusText, body);
+          }
         } else {
-          problem = data as ProblemDetails;
+          problem = this.buildProblem(response.status, response.statusText);
         }
       } catch (err) {
-        problem = {
-          status: response.status,
-          title: response.statusText,
-          detail: 'Failed to parse error response'
-        };
+        problem = this.buildProblem(response.status, response.statusText, 'Failed to parse error response');
       }
 
       return {
@@ -71,7 +89,11 @@ export class BoardsService {
     return this.handleResponse(this.apiClient.fetch(`/boards/${id}`, { method: 'GET' }, event));
   }
 
-  createBoard(request: { title: string; description: string }): Promise<Response<IdResponse>> {
+  getBoardDetails(id: number, event?: ApiEvent): Promise<Response<GetBoardDetailsResponse.BoardDto>> {
+    return this.handleResponse(this.apiClient.fetch(`/boards/${id}/details`, { method: 'GET' }, event));
+  }
+
+  createBoard(request: CreateBoardRequest): Promise<Response<IdResponse>> {
     return this.handleResponse(
       this.apiClient.fetch('boards', {
         method: 'POST',
@@ -83,17 +105,26 @@ export class BoardsService {
     );
   }
 
-  updateBoard(request: { id: number; title: string; description: string }): Promise<Response> {
+  updateBoard(id: number, request: UpdateBoardRequest): Promise<Response> {
     return this.handleResponse(
-      this.apiClient.fetch(`boards/${request.id}`, {
+      this.apiClient.fetch(`boards/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          title: request.title,
-          description: request.description
-        })
+        body: JSON.stringify(request)
+      })
+    );
+  }
+
+  changeOwner(id: number, request: { userId: number }): Promise<Response> {
+    return this.handleResponse(
+      this.apiClient.fetch(`boards/${id}/change-owner`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request)
       })
     );
   }

@@ -1,4 +1,4 @@
-﻿namespace Snapflow.Domain.Boards;
+namespace Snapflow.Domain.Boards;
 
 public static class BoardPermissions
 {
@@ -14,6 +14,7 @@ public static class BoardPermissions
         public const string View = StartingPoint + "View";
         public const string Update = StartingPoint + "Update";
         public const string Delete = StartingPoint + "Delete";
+        public const string Transfer = StartingPoint + "Transfer";
     }
 
     public static class Swimlanes

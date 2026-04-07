@@ -15,6 +15,7 @@
   import { CalendarDays, Clock3, CreditCard, Plus, Settings } from 'lucide-svelte';
   import { onMount } from 'svelte';
   import { FullLayout } from '$lib/ui/components';
+  import BoardCard from '$lib/features/boards/components/BoardCard.svelte';
 
   let switchDefault = $state(false);
   let switchChecked = $state(true);
@@ -968,6 +969,35 @@
             <Progress value={progressValue} size="xl" label="Extra Large (xl)" showValue />
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="space-y-8">
+      <h2
+        class="border-l-4 border-brand-500 pl-3 text-xl font-semibold text-gray-800 dark:text-white/90"
+      >
+        Board Cards
+      </h2>
+
+      <div class="flex flex-wrap gap-8 p-6 rounded-xl border border-gray-100 dark:border-gray-800">
+        <BoardCard
+          title="Scenography board"
+          id="scenography"
+          href="#"
+          class="w-[280px]"
+        />
+        <BoardCard
+          title="Project Alpha"
+          id="project-alpha"
+          href="#"
+          class="w-[280px]"
+        />
+        <BoardCard
+          title="Marketing Team"
+          id="marketing-team"
+          href="#"
+          class="w-[280px]"
+        />
       </div>
     </section>
   </div>

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
@@ -29,55 +29,60 @@ internal sealed class DeleteBoardHandler(
         DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
         var userId = userContext.UserId;
 
-        await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        var strategy = dbContext.Database.CreateExecutionStrategy();
 
-        try
+        await strategy.ExecuteAsync(async () =>
         {
-            board.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
+            await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            await dbContext.Swimlanes
-                .Where(s => s.BoardId == board.Id && !s.IsDeleted)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(x => x.IsDeleted, true)
-                    .SetProperty(x => x.DeletedAt, dateTimeOffset)
-                    .SetProperty(x => x.DeletedById, userId)
-                    .SetProperty(x => x.DeletedByCascade, true),
-                    cancellationToken);
+            try
+            {
+                board.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
 
-            await dbContext.Lists
-                .Where(l => l.BoardId == board.Id && !l.IsDeleted)
-                .ExecuteUpdateAsync(l => l
-                    .SetProperty(x => x.IsDeleted, true)
-                    .SetProperty(x => x.DeletedAt, dateTimeOffset)
-                    .SetProperty(x => x.DeletedById, userId)
-                    .SetProperty(x => x.DeletedByCascade, true),
-                    cancellationToken);
+                await dbContext.Swimlanes
+                    .Where(s => s.BoardId == board.Id && !s.IsDeleted)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(x => x.IsDeleted, true)
+                        .SetProperty(x => x.DeletedAt, dateTimeOffset)
+                        .SetProperty(x => x.DeletedById, userId)
+                        .SetProperty(x => x.DeletedByCascade, true),
+                        cancellationToken);
 
-            await dbContext.Cards
-                .Where(c => c.BoardId == board.Id && !c.IsDeleted)
-                .ExecuteUpdateAsync(c => c
-                    .SetProperty(x => x.IsDeleted, true)
-                    .SetProperty(x => x.DeletedAt, dateTimeOffset)
-                    .SetProperty(x => x.DeletedById, userId)
-                    .SetProperty(x => x.DeletedByCascade, true),
-                    cancellationToken);
+                await dbContext.Lists
+                    .Where(l => l.BoardId == board.Id && !l.IsDeleted)
+                    .ExecuteUpdateAsync(l => l
+                        .SetProperty(x => x.IsDeleted, true)
+                        .SetProperty(x => x.DeletedAt, dateTimeOffset)
+                        .SetProperty(x => x.DeletedById, userId)
+                        .SetProperty(x => x.DeletedByCascade, true),
+                        cancellationToken);
 
-            await dbContext.Tags
-                .Where(t => t.BoardId == board.Id && !t.IsDeleted)
-                .ExecuteUpdateAsync(t => t
-                    .SetProperty(x => x.IsDeleted, true)
-                    .SetProperty(x => x.DeletedAt, dateTimeOffset)
-                    .SetProperty(x => x.DeletedById, userId),
-                    cancellationToken);
+                await dbContext.Cards
+                    .Where(c => c.BoardId == board.Id && !c.IsDeleted)
+                    .ExecuteUpdateAsync(c => c
+                        .SetProperty(x => x.IsDeleted, true)
+                        .SetProperty(x => x.DeletedAt, dateTimeOffset)
+                        .SetProperty(x => x.DeletedById, userId)
+                        .SetProperty(x => x.DeletedByCascade, true),
+                        cancellationToken);
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-        }
-        catch
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
+                await dbContext.Tags
+                    .Where(t => t.BoardId == board.Id && !t.IsDeleted)
+                    .ExecuteUpdateAsync(t => t
+                        .SetProperty(x => x.IsDeleted, true)
+                        .SetProperty(x => x.DeletedAt, dateTimeOffset)
+                        .SetProperty(x => x.DeletedById, userId),
+                        cancellationToken);
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        });
 
         return Result.Success();
     }

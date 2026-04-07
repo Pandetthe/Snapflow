@@ -22,7 +22,7 @@
   <div class="flex flex-1 flex-col items-center justify-center text-center">
     <div
       class={cn(
-        'animate-bounce-subtle mx-auto flex h-16 w-16 items-center justify-center rounded-full shadow-inner transition-all duration-500',
+        'mx-auto flex h-16 w-16 items-center justify-center rounded-full shadow-inner transition-all duration-500',
         'bg-green-100 dark:bg-green-900/40'
       )}
     >
@@ -54,17 +54,4 @@
   </div>
 </SplitLayout>
 
-<style>
-  @keyframes bounce-subtle {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-2px);
-    }
-  }
-  .animate-bounce-subtle {
-    animation: bounce-subtle 3s ease-in-out infinite;
-  }
-</style>
+

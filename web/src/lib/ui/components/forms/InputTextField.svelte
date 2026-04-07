@@ -2,7 +2,7 @@
   import type { HTMLInputAttributes } from 'svelte/elements';
   import { Label } from 'bits-ui';
   import { cn } from '$lib/ui/utils';
-  import { Eye, EyeOff, Search, type Icon as IconType } from 'lucide-svelte';
+  import { Eye, EyeOff, Search, Loader2, type Icon as IconType } from 'lucide-svelte';
   import { slide } from 'svelte/transition';
 
   interface Props extends HTMLInputAttributes {
@@ -17,6 +17,7 @@
     rightIcon?: typeof IconType;
     leftIconDecorated?: boolean;
     id?: string;
+    isLoading?: boolean;
   }
 
   const generatedId = $props.id();
@@ -38,6 +39,7 @@
     disabled = false,
     required = false,
     readonly = false,
+    isLoading = false,
     ...rest
   }: Props = $props();
 
@@ -75,7 +77,7 @@
 <div class="flex w-full flex-col gap-1.5">
   {#if label}
     <Label.Root for={id} class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-      {label}
+      {label}{#if isRequired}<span class="text-error-500" aria-hidden="true">*</span>{/if}
     </Label.Root>
   {/if}
 
@@ -158,23 +160,27 @@
           <Eye size={18} />
         {/if}
       </button>
-    {:else if RightIcon}
+    {:else if RightIcon || isLoading}
       <span
         class={cn(
-          'pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 transition-colors',
+          'absolute top-1/2 right-4 -translate-y-1/2 transition-colors',
           hasError
             ? 'text-error-500 dark:text-error-400'
             : 'text-gray-500 dark:text-gray-400'
         )}
       >
-        <RightIcon size={20} />
+        {#if isLoading}
+          <Loader2 size={18} class="animate-spin text-brand-500" />
+        {:else if RightIcon}
+          <RightIcon size={20} />
+        {/if}
       </span>
     {/if}
   </div>
 
   {#if helperText && !hasError}
     <div transition:slide={{ axis: 'y', duration: 200 }}>
-      <span id={helperTextId} class={cn("text-xs text-gray-500 dark:text-gray-400", helperTextClass)}>
+      <span id={helperTextId} class={cn("text-xs text-gray-600 dark:text-gray-400", helperTextClass)}>
         {helperText}
       </span>
     </div>
@@ -186,3 +192,12 @@
     </div>
   {/if}
 </div>
+
+<style>
+  input[type="search"]::-webkit-search-decoration,
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-results-button,
+  input[type="search"]::-webkit-search-results-decoration {
+    display: none;
+  }
+</style>

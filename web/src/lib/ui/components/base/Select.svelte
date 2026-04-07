@@ -280,7 +280,7 @@
         </Select.Trigger>
 
         <Select.Portal>
-          <Select.Content class={contentClass} side="bottom" sideOffset={6} avoidCollisions={false}>
+          <Select.Content class={contentClass} side="bottom" sideOffset={6} avoidCollisions>
             <div class={scrollButtonSlotClass}>
               <Select.ScrollUpButton class={scrollUpButtonClass}>
                 <ChevronsUp size={14} />
@@ -346,7 +346,7 @@
         </Select.Trigger>
 
         <Select.Portal>
-          <Select.Content class={contentClass} side="bottom" sideOffset={6} avoidCollisions={false}>
+          <Select.Content class={contentClass} side="bottom" sideOffset={6} avoidCollisions>
             <div class={scrollButtonSlotClass}>
               <Select.ScrollUpButton class={scrollUpButtonClass}>
                 <ChevronsUp size={14} />
