@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
   import GeoPattern from 'geopattern';
   import { cn } from '$lib/ui/utils';
   import { Pencil } from 'lucide-svelte';

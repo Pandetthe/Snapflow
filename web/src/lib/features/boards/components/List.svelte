@@ -8,9 +8,11 @@
   import { ScrollArea } from 'bits-ui';
   import { errorStore } from '$lib/ui/stores/error';
   import { triggerHaptic } from '$lib/ui/utils';
+  import { Button } from '$lib/ui/components';
+  import { GripVertical, Pencil, Plus } from 'lucide-svelte';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
 
-  let { list, swimlaneId }: { list: GetBoardByIdResponse.ListDto; swimlaneId: number } = $props();
+  let { list = $bindable(), swimlaneId }: { list: GetBoardByIdResponse.ListDto; swimlaneId: number } = $props();
 
   const getHub = getContext<() => BoardsHub | null>('hub');
   const hub = $derived(getHub());
@@ -40,9 +42,11 @@
         const movedItem = list.cards.find((c) => c.id === id);
         if (movedItem) movedItem.rank = res.value.rank;
         list.cards.sort((a, b) => a.rank.localeCompare(b.rank));
+        list.cards = [...list.cards];
       } else {
         errorStore.addError('Web.MoveCardFailed', 'Failed to move card');
         list.cards.sort((a, b) => a.rank.localeCompare(b.rank));
+        list.cards = [...list.cards];
       }
     }
   }
@@ -51,85 +55,78 @@
 <div
   role="group"
   style:width={list.width ? `${list.width}px` : 'auto'}
-  class="flex h-full max-h-full min-w-[200px] shrink-0 flex-col overflow-hidden rounded-lg bg-white shadow-sm transition-[background-color,border-color,box-shadow,opacity] duration-200 dark:bg-gray-700"
+  class="flex h-full max-h-full min-h-0 min-w-[220px] shrink-0 flex-col overflow-hidden rounded-lg bg-transparent px-1 transition-all duration-200 focus-within:shadow-sm"
 >
-  <!-- List Header -->
-  <div class="group mb-3 flex items-start justify-between gap-2 px-3 pt-3">
+  <div class="group mb-2 flex items-start justify-between gap-2 rounded-lg border border-gray-200/80 bg-gray-50/95 px-3 py-1.5 dark:border-gray-700/70 dark:bg-gray-700/45">
     <div class="min-w-0 flex-1">
       <div class="flex items-center gap-2">
         <div
           use:dragHandle
-          class="list-drag-handle show-on-hover cursor-move touch-none text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+          class="list-drag-handle show-on-hover cursor-move touch-none rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-white/70 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-800"
         >
-          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-            <path
-              d="M7 6a1 1 0 100-2 1 1 0 000 2zM7 11a1 1 0 100-2 1 1 0 000 2zM7 16a1 1 0 100-2 1 1 0 000 2zM13 6a1 1 0 100-2 1 1 0 000 2zM13 11a1 1 0 100-2 1 1 0 000 2zM13 16a1 1 0 100-2 1 1 0 000 2z"
-            />
-          </svg>
+          <GripVertical class="h-4 w-4" />
         </div>
         <h3 class="min-w-0 flex-1 text-sm font-bold wrap-break-word text-gray-900 dark:text-white">
           {list.title}
         </h3>
       </div>
-      <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+      <p class="mt-0.5 pl-8 text-xs text-gray-500 dark:text-gray-400">
         {list.cards.length} card{list.cards.length !== 1 ? 's' : ''}
       </p>
     </div>
 
-    <button
+    <Button
+      type="button"
+      variant="ghost"
+      size="xs"
       onclick={() => ui.openListModal(swimlaneId, list)}
       aria-label="Edit list"
-      class="show-on-hover rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-gray-300"
+      startIcon={Pencil}
+      class="show-on-hover h-7 w-7 min-w-0 rounded-md p-0 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
       title="Edit list"
     >
-      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-        />
-      </svg>
-    </button>
+      <span class="sr-only">Edit list</span>
+    </Button>
   </div>
 
   <ScrollArea.Root class="list-scroll-area relative flex-1 overflow-hidden" type="auto">
     <ScrollArea.Viewport class="h-full w-full rounded-[inherit]">
-      <div class="flex flex-col px-3 pb-3">
+      <div class="flex h-full min-h-0 flex-col pb-3">
         <section
           use:dragHandleZone={{
             items: list.cards,
             flipDurationMs: 150,
             type: 'cards',
             dropTargetStyle: {},
-            useCursorForDetection: true
+            useCursorForDetection: true,
+            zoneTabIndex: -1
           }}
           onconsider={handleCardConsider}
           onfinalize={handleCardFinalize}
-          class="flex flex-1 flex-col gap-2"
+          class="flex flex-col gap-2 min-h-[50px] flex-1"
         >
           {#each list.cards as card (card.id)}
-            <div animate:flip={{ duration: 150 }}>
+            <div
+              animate:flip={{ duration: 150 }}
+              class="relative z-20 rounded-lg transition-shadow duration-200 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-900"
+            >
               <Card {card} listId={list.id} />
             </div>
           {/each}
-          <div class="mt-1">
-            <button
-              onclick={() => ui.openCardModal(list.id)}
-              class="add-card-button order-last flex w-full items-center justify-center gap-2 rounded-lg bg-transparent px-4 py-6 text-sm text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600"
-            >
-              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              Add Card
-            </button>
-          </div>
         </section>
+
+        <div class="relative z-10 mt-2 mb-2">
+          <Button
+            type="button"
+            variant="outline"
+            startIcon={Plus}
+            onclick={() => ui.openCardModal(list.id)}
+            aria-label="Add card"
+            class="add-card-button h-9 w-full justify-center border-dashed border-gray-300 bg-white/70 px-3 text-gray-600 hover:border-gray-400 hover:bg-white dark:border-gray-600 dark:bg-gray-800/40 dark:text-gray-300 dark:hover:bg-gray-700"
+          >
+            <span class="sr-only">Add card</span>
+          </Button>
+        </div>
       </div>
     </ScrollArea.Viewport>
     <ScrollArea.Scrollbar
@@ -140,7 +137,6 @@
         class="relative flex-1 rounded-full bg-gray-300 transition-colors duration-200 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500"
       />
     </ScrollArea.Scrollbar>
-    <ScrollArea.Corner />
   </ScrollArea.Root>
 </div>
 

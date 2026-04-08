@@ -76,6 +76,10 @@ export class BoardsHub {
     this.connection.onreconnecting(callback);
   }
 
+  onReconnected(callback: (connectionId?: string) => void) {
+    this.connection.onreconnected(callback);
+  }
+
   private async handleResponse<T = void>(
     method: string,
     promise: Promise<any>

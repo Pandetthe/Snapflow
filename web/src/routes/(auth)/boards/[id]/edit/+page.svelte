@@ -7,24 +7,13 @@
     Button,
     FullLayout,
     InputTextField,
-    RoleBadge,
+    GoBackButton,
     Textarea,
     UserAvatar
   } from '$lib/ui/components';
   import RoleSelector from '$lib/features/boards/components/RoleSelector.svelte';
   import { createForm } from '$lib/ui/utils';
-  import {
-    ArrowLeft,
-    Shield,
-    Trash2,
-    Users,
-    Search,
-    X,
-    UserPlus,
-    Plus,
-    Check,
-    AlertTriangle
-  } from 'lucide-svelte';
+  import { Trash2, Users, X, UserPlus, Check } from 'lucide-svelte';
   import { afterNavigate, goto } from '$app/navigation';
   import type { MemberRole } from '$lib/features/boards/types/boards.api';
   import { fade, slide, fly } from 'svelte/transition';
@@ -42,7 +31,6 @@
   type OwnerMember = SearchUserDto & { role: 'owner' };
   type MemberData = { id?: number; userId?: number; role: MemberRole | string; userName: string; avatarUrl: string | null };
 
-  let backText = $state('Back');
   let backHref = $state('/boards');
 
   let searchQuery = $state('');
@@ -321,15 +309,9 @@
   <div class="mx-auto w-full max-w-5xl space-y-8 pb-12" in:fade={{ duration: 400 }}>
     <header class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
-        <Button
+        <GoBackButton
           href={backHref}
-          variant="ghost"
-          size="sm"
-          class="-ml-2.5 text-gray-600 hover:bg-gray-100 dark:hover:bg-white/5"
-          startIcon={ArrowLeft}
-        >
-          {backText}
-        </Button>
+        />
       </div>
 
       <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
@@ -344,7 +326,7 @@
       </div>
     </header>
 
-    <div class="grid items-start gap-8 lg:grid-cols-[1fr_minmax(320px,400px)]">
+    <div class="grid items-start gap-8 lg:grid-cols-[1fr_minmax(20rem,25rem)]">
       <div class="space-y-8">
         <section
           class="group rounded-3xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-brand-500/30 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-brand-500/20"
@@ -375,7 +357,7 @@
             />
 
             <div class="flex items-center justify-between pt-2">
-              <p class="text-[11px] text-gray-600 dark:text-gray-400">
+              <p class="text-xs text-gray-600 dark:text-gray-400">
                 <span class="text-error-500">*</span> Required fields
               </p>
               <div class="flex gap-3">
@@ -505,7 +487,7 @@
 
             {#each selectedMembers as member (member.id)}
               <div
-                class="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50/50 p-3 transition-all duration-200 dark:border-gray-800 dark:bg-white/[0.02]"
+                class="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50/50 p-3 transition-all duration-200 dark:border-gray-800 dark:bg-white/2"
                 transition:slide={{ duration: 300 }}
               >
                 <div class="flex items-center gap-3">
@@ -537,8 +519,6 @@
             {/each}
           </div>
         </section>
-
-
       </aside>
     </div>
   </div>

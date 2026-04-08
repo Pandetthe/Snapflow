@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { Button, InputTextField, SplitLayout } from '$lib/ui/components';
+  import { Button, GoBackButton, InputTextField, SplitLayout } from '$lib/ui/components';
   import { authConfig } from '$lib/config/auth';
   import { AuthService } from '$lib/features/auth/api/auth';
   import { apiClient } from '$lib/core/api.client';
   import { createForm } from '$lib/ui/utils';
-  import { Mail, ChevronLeft } from 'lucide-svelte';
+  import { Mail } from 'lucide-svelte';
   import ForgotPasswordModal from '$lib/features/auth/components/ForgotPasswordModal.svelte';
 
   let showForgotPasswordModal = $state(false);
@@ -44,13 +44,9 @@
 
 <SplitLayout>
   {#snippet header()}
-    <a
+    <GoBackButton
       href="/sign-in"
-      class="inline-flex items-center gap-1.5 rounded-sm text-sm text-gray-500 transition-all duration-200 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-950"
-    >
-      <ChevronLeft size={18} />
-      Back to sign in
-    </a>
+    />
   {/snippet}
 
   <div class="mb-3 sm:mb-8">

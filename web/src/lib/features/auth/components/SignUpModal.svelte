@@ -1,10 +1,30 @@
 <script lang="ts">
   import { Dialog } from 'bits-ui';
-  import { Button as AppButton } from '$lib/ui/components';
+  import { Button as AppButton, ResponsiveDialog } from '$lib/ui/components';
   import { Check } from 'lucide-svelte';
   import { cn } from '$lib/ui/utils';
 
-  let { open = $bindable(false) } = $props<{ open: boolean }>();
+  let {
+    open = $bindable(false),
+    desktopMode = 'modal',
+    mobileMode = 'drawer',
+    desktopPlacement = 'center',
+    mobilePlacement = 'center',
+    desktopAnimation = 'fade-zoom',
+    mobileAnimation = 'slide-up',
+    mobileDrawerSide = 'bottom',
+    triggerElement = undefined
+  } = $props<{
+    open: boolean;
+    desktopMode?: 'modal' | 'drawer';
+    mobileMode?: 'modal' | 'drawer';
+    desktopPlacement?: 'center' | 'trigger';
+    mobilePlacement?: 'center' | 'trigger';
+    desktopAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    mobileAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    mobileDrawerSide?: 'top' | 'right' | 'bottom' | 'left';
+    triggerElement?: HTMLElement | null;
+  }>();
 
   let redirectCountdown = $state(5);
   let sliderWidth = $state(100);
@@ -42,16 +62,21 @@
   });
 </script>
 
-<Dialog.Root bind:open>
-  <Dialog.Portal>
-    <Dialog.Overlay
-      class="fixed inset-0 z-50 bg-black/40 backdrop-blur-md transition-all duration-500 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
-    />
-    <Dialog.Content
-      escapeKeydownBehavior="ignore"
-      interactOutsideBehavior="ignore"
-      class="fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/10 bg-white/95 p-8 shadow-2xl backdrop-blur-xl duration-500 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 dark:bg-gray-800/95"
-    >
+<ResponsiveDialog
+  bind:open
+  size="md"
+  {desktopMode}
+  {mobileMode}
+  {mobileDrawerSide}
+  {desktopPlacement}
+  {mobilePlacement}
+  {desktopAnimation}
+  {mobileAnimation}
+  {triggerElement}
+  escapeClosable={false}
+  overlayClosable={false}
+  contentClass="border-white/10 bg-white/95 backdrop-blur-xl dark:bg-gray-900/95"
+>
       <div class="space-y-6 text-center">
         <div
           class={cn(
@@ -99,8 +124,6 @@
           </AppButton>
         </div>
       </div>
-    </Dialog.Content>
-  </Dialog.Portal>
-</Dialog.Root>
+    </ResponsiveDialog>
 
 

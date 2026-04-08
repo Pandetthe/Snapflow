@@ -1,6 +1,6 @@
 <script lang="ts">
   import { AlertDialog } from 'bits-ui';
-  import { Button, InputTextField } from '$lib/ui/components';
+  import { Button, InputTextField, ResponsiveAlertDialog } from '$lib/ui/components';
   import { TriangleAlert } from 'lucide-svelte';
 
   let {
@@ -8,6 +8,14 @@
     title = '',
     deleteConfirmation = $bindable(''),
     canDelete = false,
+    desktopMode = 'modal',
+    mobileMode = 'drawer',
+    desktopPlacement = 'center',
+    mobilePlacement = 'center',
+    desktopAnimation = 'fade-zoom',
+    mobileAnimation = 'slide-up',
+    mobileDrawerSide = 'bottom',
+    triggerElement = undefined,
     onConfirm = () => {},
     isDeleting = false
   }: {
@@ -15,6 +23,14 @@
     title: string;
     deleteConfirmation: string;
     canDelete: boolean;
+    desktopMode?: 'modal' | 'drawer';
+    mobileMode?: 'modal' | 'drawer';
+    desktopPlacement?: 'center' | 'trigger';
+    mobilePlacement?: 'center' | 'trigger';
+    desktopAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    mobileAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    mobileDrawerSide?: 'top' | 'right' | 'bottom' | 'left';
+    triggerElement?: HTMLElement | null;
     onConfirm?: () => void;
     isDeleting?: boolean;
   } = $props();
@@ -26,16 +42,19 @@
   });
 </script>
 
-<AlertDialog.Root bind:open>
-  <AlertDialog.Portal>
-    <AlertDialog.Overlay
-      class="fixed inset-0 z-50 bg-black/40 backdrop-blur-md transition-all duration-500 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
-    />
-    <AlertDialog.Content
-      interactOutsideBehavior="close"
-      escapeKeydownBehavior="close"
-      class="fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/10 bg-white/95 p-8 shadow-2xl backdrop-blur-xl duration-500 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 dark:bg-gray-800/95"
-    >
+<ResponsiveAlertDialog
+  bind:open
+  size="md"
+  {desktopMode}
+  {mobileMode}
+  {mobileDrawerSide}
+  {desktopPlacement}
+  {mobilePlacement}
+  {desktopAnimation}
+  {mobileAnimation}
+  {triggerElement}
+  contentClass="border-white/10 bg-white/95 backdrop-blur-xl dark:bg-gray-900/95"
+>
       <div class="space-y-6 text-center">
         <div
           class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-50 shadow-inner dark:bg-rose-500/10"
@@ -71,9 +90,9 @@
           <AlertDialog.Cancel>
             {#snippet children()}
               <Button
-                variant="ghost"
+                variant="outline"
                 size="md"
-                class="w-full sm:min-w-[140px]"
+                class="w-full sm:min-w-32"
                 disabled={isDeleting}
                 haptic="light">Cancel</Button
               >
@@ -82,17 +101,15 @@
           <Button
             variant="danger"
             size="md"
-            class="w-full justify-center shadow-md shadow-rose-500/20 sm:min-w-[140px]"
+            class="w-full justify-center shadow-md shadow-rose-500/20 sm:min-w-32"
             onclick={onConfirm}
             disabled={!canDelete}
             isLoading={isDeleting}
-            loadingText="Deleting..."
+            loadingText="Deleting"
             haptic="heavy"
           >
             Delete board
           </Button>
         </div>
       </div>
-    </AlertDialog.Content>
-  </AlertDialog.Portal>
-</AlertDialog.Root>
+    </ResponsiveAlertDialog>

@@ -2,8 +2,8 @@
   import { authConfig } from '$lib/config/auth';
   import { AuthService } from '$lib/features/auth/api/auth';
   import { apiClient } from '$lib/core/api.client';
-  import { Button as AppButton, InputTextField, SplitLayout } from '$lib/ui/components';
-  import { Mail, Lock, User, ChevronLeft } from 'lucide-svelte';
+  import { Button as AppButton, GoBackButton, InputTextField, SplitLayout } from '$lib/ui/components';
+  import { Mail, Lock, User } from 'lucide-svelte';
   import { createForm } from '$lib/ui/_utils/form.svelte';
   import SignUpModal from '$lib/features/auth/components/SignUpModal.svelte';
   import PasswordStrength from '$lib/features/auth/components/PasswordStrength.svelte';
@@ -91,13 +91,9 @@
 
 <SplitLayout>
   {#snippet header()}
-    <a
+    <GoBackButton
       href="/"
-      class="inline-flex items-center gap-1.5 rounded-sm text-sm text-gray-500 transition-all duration-200 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-950"
-    >
-      <ChevronLeft size={18} />
-      Back to home
-    </a>
+    />
   {/snippet}
 
   <div class="mb-3 sm:mb-8">

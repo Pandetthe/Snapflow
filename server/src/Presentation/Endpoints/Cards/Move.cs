@@ -15,14 +15,14 @@ internal sealed class Move : IEndpoint
         app.MapPost("boards/{boardId:int}/cards/{cardId:int}/move", async (
             MoveCardRequest request,
             int boardId, int cardId,
-            ICommandHandler<MoveCardCommand> handler,
+            ICommandHandler<MoveCardCommand, string> handler,
             CancellationToken cancellationToken) =>
         {
             var command = new MoveCardCommand(cardId, request.ListId, request.BeforeId);
 
-            Result result = await handler.Handle(command, cancellationToken);
+            Result<string> result = await handler.Handle(command, cancellationToken);
 
-            return result.Match(Results.NoContent, Results.Problem);
+            return result.Match(Results.OkWithRank, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Cards.Move)
         .WithTags(EndpointTags.Cards)

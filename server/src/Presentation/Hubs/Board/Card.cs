@@ -53,13 +53,13 @@ public sealed partial class BoardHub
     [Authorize(BoardPermissions.Cards.Move)]
     public async Task<IResult> MoveCard(
         MoveCardRequest request,
-        ICommandHandler<MoveCardCommand> handler)
+        ICommandHandler<MoveCardCommand, string> handler)
     {
         if (logger.IsEnabled(LogLevel.Information))
-            logger.LogInformation("Card update requested by connection {ConnectionId}.", Context.ConnectionId);
+            logger.LogInformation("Card move requested by connection {ConnectionId}.", Context.ConnectionId);
         var command = new MoveCardCommand(request.Id, request.ListId, request.BeforeId);
-        Result result = await handler.Handle(command, Context.ConnectionAborted);
-        return result.Match(Results.NoContent, Results.Problem);
+        Result<string> result = await handler.Handle(command, Context.ConnectionAborted);
+        return result.Match(Results.OkWithRank, Results.Problem);
     }
 
     public sealed record DeleteCardRequest(int Id);

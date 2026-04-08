@@ -1,14 +1,30 @@
 <script lang="ts">
   import type { AppError } from '$lib/core/types/app';
   import { AlertDialog } from 'bits-ui';
-  import { Button } from '$lib/ui/components';
+  import { Button, ResponsiveAlertDialog } from '$lib/ui/components';
 
   let {
     isOpen = $bindable(false),
-    errors = $bindable([])
+    errors = $bindable([]),
+    desktopMode = 'modal',
+    mobileMode = 'drawer',
+    desktopPlacement = 'center',
+    mobilePlacement = 'center',
+    desktopAnimation = 'fade-zoom',
+    mobileAnimation = 'slide-up',
+    mobileDrawerSide = 'bottom',
+    triggerElement = undefined
   }: {
     isOpen?: boolean;
     errors?: AppError[];
+    desktopMode?: 'modal' | 'drawer';
+    mobileMode?: 'modal' | 'drawer';
+    desktopPlacement?: 'center' | 'trigger';
+    mobilePlacement?: 'center' | 'trigger';
+    desktopAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    mobileAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    mobileDrawerSide?: 'top' | 'right' | 'bottom' | 'left';
+    triggerElement?: HTMLElement | null;
   } = $props();
 
   function hasValue(v: string | null): v is string {
@@ -23,16 +39,20 @@
   }
 </script>
 
-<AlertDialog.Root bind:open={isOpen} onOpenChangeComplete={onOpenChange}>
-  <AlertDialog.Portal>
-    <AlertDialog.Overlay
-      class="fixed inset-0 z-50 bg-black/40 backdrop-blur-md transition-all duration-500 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
-    />
-    <AlertDialog.Content
-      interactOutsideBehavior="close"
-      escapeKeydownBehavior="close"
-      class="fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/10 bg-white/95 p-8 shadow-2xl backdrop-blur-xl duration-500 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 dark:bg-gray-800/95"
-    >
+<ResponsiveAlertDialog
+  bind:open={isOpen}
+  onOpenChange={onOpenChange}
+  size="md"
+  {desktopMode}
+  {mobileMode}
+  {mobileDrawerSide}
+  {desktopPlacement}
+  {mobilePlacement}
+  {desktopAnimation}
+  {mobileAnimation}
+  {triggerElement}
+  contentClass="border-white/10 bg-white/95 backdrop-blur-xl dark:bg-gray-900/95"
+>
       <div class="text-center">
         <div
           class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full shadow-inner bg-rose-50 dark:bg-rose-900/20 transition-all duration-500"
@@ -117,8 +137,6 @@
           {/snippet}
         </AlertDialog.Cancel>
       </div>
-    </AlertDialog.Content>
-  </AlertDialog.Portal>
-</AlertDialog.Root>
+    </ResponsiveAlertDialog>
 
 

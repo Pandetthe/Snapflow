@@ -7,13 +7,16 @@
   import { BoardsHub } from '$lib/features/boards/hub/boards.hub';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import { errorStore } from '$lib/ui/stores/error';
+  import { Button } from '$lib/ui/components';
   import { ScrollArea } from 'bits-ui';
   import { triggerHaptic } from '$lib/ui/utils';
+  import { GripVertical, Pencil, Plus } from 'lucide-svelte';
 
-  let { swimlane }: { swimlane: GetBoardByIdResponse.SwimlaneDto } = $props();
+  let { swimlane = $bindable() }: { swimlane: GetBoardByIdResponse.SwimlaneDto } = $props();
 
   const getHub = getContext<() => BoardsHub | null>('hub');
   const hub = $derived(getHub());
+  const getBoard = getContext<() => GetBoardByIdResponse.BoardDto>('board');
 
   interface BoardUI {
     openSwimlaneModal: (swimlane?: GetBoardByIdResponse.SwimlaneDto) => void;
@@ -26,24 +29,45 @@
   }
 
   async function handleListFinalize(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
+    console.log('[ListFinalize] EVENT WYWOŁANY!', e.detail.info);
     swimlane.lists = e.detail.items;
     const { info } = e.detail;
-    if (info.trigger === 'droppedIntoZone') {
+    
+    if (info.trigger === 'droppedIntoZone' || info.trigger === 'droppedIntoAnotherZone') {
       triggerHaptic('success');
       const id = Number(info.id);
+
       const index = swimlane.lists.findIndex((l) => l.id === id);
+      console.log(`[ListFinalize] Szukam index dla id ${id} -> Wynik: ${index}`);
+      if (index === -1) {
+        console.log('[ListFinalize] PRZERWANO: index === -1 (nie znaleziono listy na tej pływalni)');
+        return;
+      }
+
       const nextItem = swimlane.lists[index + 1];
       const beforeId = nextItem ? nextItem.id : null;
+      const oldRank = swimlane.lists[index].rank;
 
+      console.log(`[ListFinalize] Wysyłam do API -> id: ${id}, swimlaneId: ${swimlane.id}, beforeId: ${beforeId}`);
       let res = await hub?.moveList({ id, swimlaneId: swimlane.id, beforeId });
+      console.log(`[ListFinalize] Wynik API:`, res);
+      
       if (res && res.ok) {
         const movedItem = swimlane.lists.find((l) => l.id === id);
-        if (movedItem) movedItem.rank = res.value.rank;
+        if (movedItem && res.value?.rank) {
+          console.log(`[MoveListRank SUCCESS] Lista: "${movedItem.title}" | RANK PRZED: ${oldRank} | RANK PO: ${res.value.rank}`);
+          movedItem.rank = res.value.rank;
+        }
         swimlane.lists.sort((a, b) => a.rank.localeCompare(b.rank));
+        swimlane.lists = [...swimlane.lists];
       } else {
+        console.log(`[MoveListRank ERROR] Failed to move list`);
         errorStore.addError('Web.MoveListFailed', 'Failed to move list');
         swimlane.lists.sort((a, b) => a.rank.localeCompare(b.rank));
+        swimlane.lists = [...swimlane.lists];
       }
+    } else {
+       console.log('[ListFinalize] Inny trigger:', info.trigger);
     }
   }
 </script>
@@ -52,21 +76,17 @@
   data-id={swimlane.id}
   role="group"
   style:height={swimlane.height ? `${swimlane.height}px` : undefined}
-  class="flex flex-col rounded-lg bg-gray-100 p-4 transition-[background-color,border-color,box-shadow,opacity] duration-200 dark:bg-gray-800 {swimlane.height
+  class="flex flex-col transition-all duration-200 focus-within:shadow-sm {swimlane.height
     ? ''
     : 'flex-1'}"
 >
-  <div class="group mb-4 flex items-start gap-2">
+  <div class="group flex items-start gap-2 rounded-none bg-gray-50/95 px-3 py-2 dark:bg-gray-700/45">
     <div class="flex flex-1 items-start gap-2">
       <div
         use:dragHandle
-        class="show-on-hover cursor-move touch-none pt-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+        class="show-on-hover cursor-move touch-none rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-white/70 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-800"
       >
-        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path
-            d="M7 6a1 1 0 100-2 1 1 0 000 2zM7 11a1 1 0 100-2 1 1 0 000 2zM7 16a1 1 0 100-2 1 1 0 000 2zM13 6a1 1 0 100-2 1 1 0 000 2zM13 11a1 1 0 100-2 1 1 0 000 2zM13 16a1 1 0 100-2 1 1 0 000 2z"
-          />
-        </svg>
+        <GripVertical class="h-5 w-5" />
       </div>
 
       <div class="min-w-0 flex-1">
@@ -76,20 +96,17 @@
           >
             {swimlane.title}
           </h2>
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
             onclick={() => ui.openSwimlaneModal(swimlane)}
-            class="show-on-hover rounded-md p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+            startIcon={Pencil}
+            class="show-on-hover h-7 w-7 min-w-0 rounded-md p-0 text-gray-400 hover:bg-white hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
             title="Edit swimlane"
           >
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-              />
-            </svg>
-          </button>
+            <span class="sr-only">Edit swimlane</span>
+          </Button>
         </div>
         <p class="text-xs text-gray-500 dark:text-gray-400">
           {swimlane.lists.length} list{swimlane.lists.length !== 1 ? 's' : ''}
@@ -98,43 +115,50 @@
     </div>
   </div>
 
-  <ScrollArea.Root class="swimlane-scroll-area relative mb-2 flex-1 overflow-hidden" type="auto">
+  <ScrollArea.Root class="swimlane-scroll-area relative mt-3 flex-1 overflow-hidden" type="auto">
     <ScrollArea.Viewport class="h-full w-full rounded-[inherit]">
-      <div class="flex h-full gap-3 pb-4">
+      <div class="flex h-full px-3 pb-0 sm:px-4">
         <section
           use:dragHandleZone={{
             items: swimlane.lists,
             flipDurationMs: 150,
             type: 'lists',
             dropTargetStyle: {},
-            useCursorForDetection: true
+            useCursorForDetection: true,
+            zoneTabIndex: -1
           }}
           onconsider={handleListConsider}
           onfinalize={handleListFinalize}
-          class="flex h-full gap-3"
+          class="flex h-full items-stretch gap-4"
         >
-          {#each swimlane.lists as list (list.id)}
-            <div class="h-full min-h-0" animate:flip={{ duration: 150 }}>
-              <List {list} swimlaneId={swimlane.id} />
+          {#each swimlane.lists as list, index (list.id)}
+            <div
+              class="relative z-20 flex min-h-0 self-stretch rounded-lg transition-shadow duration-200 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-900"
+              animate:flip={{ duration: 150 }}
+            >
+              <List bind:list={swimlane.lists[index]} swimlaneId={swimlane.id} />
+              {#if index < swimlane.lists.length - 1}
+                <span
+                  aria-hidden="true"
+                  class="pointer-events-none absolute -inset-y-0.5 -right-2 w-px bg-gray-300/90 dark:bg-gray-600/90"
+                ></span>
+              {/if}
             </div>
           {/each}
-          <div class="mt-0">
-            <button
-              onclick={() => ui.openListModal(swimlane.id)}
-              class="add-list-button order-last flex h-fit w-72 shrink items-center justify-center gap-2 self-start rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-            >
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              <span class="font-medium">Add List</span>
-            </button>
-          </div>
         </section>
+
+        <div class="relative z-10 mt-0 ml-4 self-start">
+          <Button
+            type="button"
+            variant="outline"
+            startIcon={Plus}
+            onclick={() => ui.openListModal(swimlane.id)}
+            aria-label="Add list"
+              class="add-list-button h-10 w-12 justify-center border-dashed border-gray-300 bg-white/70 px-0 text-gray-600 hover:border-gray-400 hover:bg-white dark:border-gray-600 dark:bg-gray-800/40 dark:text-gray-300 dark:hover:bg-gray-700"
+          >
+            <span class="sr-only">Add list</span>
+          </Button>
+        </div>
       </div>
     </ScrollArea.Viewport>
     <ScrollArea.Scrollbar
@@ -145,7 +169,6 @@
         class="relative flex-1 rounded-full bg-gray-300 transition-colors duration-200 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500"
       />
     </ScrollArea.Scrollbar>
-    <ScrollArea.Corner />
   </ScrollArea.Root>
 </div>
 

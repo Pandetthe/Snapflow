@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Dialog } from 'bits-ui';
-  import { Button, InputTextField, Textarea } from '$lib/ui/components';
+  import { Button, InputTextField, Textarea, ResponsiveDialog } from '$lib/ui/components';
   import { createForm } from '$lib/ui/utils';
   import { X } from 'lucide-svelte';
   import type { Response } from '$lib/core/types/api';
@@ -9,12 +9,28 @@
   let {
     open = $bindable(false),
     board = $bindable(undefined),
+    desktopMode = 'modal',
+    mobileMode = 'drawer',
+    desktopPlacement = 'center',
+    mobilePlacement = 'center',
+    desktopAnimation = 'fade-zoom',
+    mobileAnimation = 'slide-up',
+    mobileDrawerSide = 'bottom',
+    triggerElement = undefined,
     onConfirm,
     onDelete
   }: {
     open: boolean;
     board?: GetBoardsResponse.BoardDto;
-    onConfirm: (title: string, description: string) => Promise<Response<any>>;
+    desktopMode?: 'modal' | 'drawer';
+    mobileMode?: 'modal' | 'drawer';
+    desktopPlacement?: 'center' | 'trigger';
+    mobilePlacement?: 'center' | 'trigger';
+    desktopAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    mobileAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    mobileDrawerSide?: 'top' | 'right' | 'bottom' | 'left';
+    triggerElement?: HTMLElement | null;
+    onConfirm: (title: string, description: string) => Promise<Response<unknown>>;
     onDelete?: (id: number) => void;
   } = $props();
 
@@ -60,14 +76,19 @@
   });
 </script>
 
-<Dialog.Root bind:open>
-  <Dialog.Portal>
-    <Dialog.Overlay
-      class="fixed inset-0 z-50 bg-black/80 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
-    />
-    <Dialog.Content
-      class="fixed top-[50%] left-[50%] z-50 max-h-[88vh] w-[calc(100%-1.25rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] overflow-y-auto rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:w-full sm:p-6 dark:border-gray-700 dark:bg-gray-900"
-    >
+<ResponsiveDialog
+  bind:open
+  size="lg"
+  {desktopMode}
+  {mobileMode}
+  {mobileDrawerSide}
+  {desktopPlacement}
+  {mobilePlacement}
+  {desktopAnimation}
+  {mobileAnimation}
+  {triggerElement}
+  contentClass="sm:w-full"
+>
       <div class="mb-4 flex items-start justify-between gap-3">
         <div>
           <Dialog.Title class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -135,6 +156,7 @@
             onclick={() => {
               open = false;
             }}
+            class="w-full sm:w-auto sm:min-w-32"
           >
             Cancel
           </Button>
@@ -145,11 +167,10 @@
             disabled={!form.values.title.trim() || form.isSubmitting}
             isLoading={form.isSubmitting}
             loadingText={board ? 'Saving' : 'Creating'}
+            class="w-full sm:w-auto sm:min-w-32"
           >
             {board ? 'Save changes' : 'Create board'}
           </Button>
         </div>
       </form>
-    </Dialog.Content>
-  </Dialog.Portal>
-</Dialog.Root>
+    </ResponsiveDialog>

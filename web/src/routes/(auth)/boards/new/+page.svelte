@@ -6,13 +6,14 @@
     Button,
     FullLayout,
     InputTextField,
+    GoBackButton,
     RoleBadge,
     Textarea,
     UserAvatar
   } from '$lib/ui/components';
   import RoleSelector from '$lib/features/boards/components/RoleSelector.svelte';
   import { createForm } from '$lib/ui/utils';
-  import { ArrowLeft, FolderPlus, Plus, Users, X, Search, UserPlus } from 'lucide-svelte';
+  import { FolderPlus, Plus, Users, X, Search, UserPlus } from 'lucide-svelte';
   import type { MemberRole } from '$lib/features/boards/types/boards.api';
   import { fade, slide, fly } from 'svelte/transition';
 
@@ -81,8 +82,8 @@
         members: members.length > 0 ? members : undefined
       });
     },
-    onSuccess: (response: { value: { id: number } }) => {
-      window.location.href = `/boards/${response.value.id}`;
+    onSuccess: (response) => {
+      window.location.href = `/boards/${response.id}`;
     }
   });
 
@@ -156,15 +157,9 @@
   <div class="mx-auto w-full max-w-5xl space-y-8 pb-12" in:fade={{ duration: 400 }}>
     <header class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
-        <Button
+        <GoBackButton
           href={backHref}
-          variant="ghost"
-          size="sm"
-          class="-ml-2.5 text-gray-600 hover:bg-gray-100 dark:hover:bg-white/5"
-          startIcon={ArrowLeft}
-        >
-          Back
-        </Button>
+        />
       </div>
 
       <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
@@ -179,7 +174,7 @@
       </div>
     </header>
 
-    <div class="grid items-start gap-8 lg:grid-cols-[1fr_minmax(320px,400px)]">
+    <div class="grid items-start gap-8 lg:grid-cols-[1fr_minmax(20rem,25rem)]">
       <div class="space-y-6">
         <section
           class="group rounded-3xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-brand-500/30 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-brand-500/20"
@@ -210,7 +205,7 @@
             />
 
             <div class="flex items-center justify-between pt-2">
-              <p class="text-[11px] text-gray-600 dark:text-gray-400">
+              <p class="text-xs text-gray-600 dark:text-gray-400">
                 <span class="text-error-500">*</span> Required fields
               </p>
               <Button
@@ -307,7 +302,7 @@
 
             {#each selectedMembers as member (member.id)}
               <div
-                class="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50/50 p-3 transition-all duration-200 dark:border-gray-800 dark:bg-white/[0.02]"
+                class="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50/50 p-3 transition-all duration-200 dark:border-gray-800 dark:bg-white/2"
                 transition:slide={{ duration: 300 }}
               >
                 <div class="flex items-center gap-3">

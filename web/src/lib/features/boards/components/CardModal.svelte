@@ -1,117 +1,174 @@
 <script lang="ts">
-  import { Dialog, Button } from 'bits-ui';
+  import { Dialog } from 'bits-ui';
+  import { Button, InputTextField, Textarea, ResponsiveDialog } from '$lib/ui/components';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
-  import { triggerHaptic } from '$lib/ui/utils';
+  import type { Response } from '$lib/core/types/app';
+  import { createForm } from '$lib/ui/utils';
   let {
     open = $bindable(false),
     card = $bindable(undefined),
+    desktopMode = 'modal',
+    mobileMode = 'drawer',
+    desktopPlacement = 'center',
+    mobilePlacement = 'center',
+    desktopAnimation = 'fade-zoom',
+    mobileAnimation = 'slide-up',
+    mobileDrawerSide = 'bottom',
+    triggerElement = undefined,
     onConfirm,
     onDelete
   }: {
     open: boolean;
     card?: GetBoardByIdResponse.CardDto;
-    onConfirm: (title: string, description: string) => void;
-    onDelete?: (id: number) => void;
+    desktopMode?: 'modal' | 'drawer';
+    mobileMode?: 'modal' | 'drawer';
+    desktopPlacement?: 'center' | 'trigger';
+    mobilePlacement?: 'center' | 'trigger';
+    desktopAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    mobileAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    mobileDrawerSide?: 'top' | 'right' | 'bottom' | 'left';
+    triggerElement?: HTMLElement | null;
+    onConfirm: (title: string, description: string) => Promise<Response<unknown>>;
+    onDelete?: (id: number) => Promise<boolean>;
   } = $props();
 
-  let title = $state('');
-  let description = $state('');
+  let isDeleting = $state(false);
 
-  $effect(() => {
-    if (open) {
-      if (card) {
-        title = card.title;
-        description = card.description || '';
-      } else {
-        title = '';
-        description = '';
+  const form = createForm({
+    initialValues: {
+      title: '',
+      description: ''
+    },
+    validate: (values) => {
+      const errors: Record<string, string> = {};
+
+      if (!values.title.trim()) {
+        errors.title = 'Title is required';
+      } else if (values.title.trim().length < 3) {
+        errors.title = 'Title must be at least 3 characters';
+      } else if (values.title.trim().length > 50) {
+        errors.title = 'Title must be less than 50 characters';
       }
+
+      if (values.description.length > 1000) {
+        errors.description = 'Description must be less than 1000 characters';
+      }
+
+      return errors;
+    },
+    onSubmit: async (values) => {
+      return onConfirm(values.title.trim(), values.description.trim());
+    },
+    onSuccess: () => {
+      open = false;
     }
   });
 
-  function handleSubmit(e: SubmitEvent) {
-    e.preventDefault();
-    onConfirm(title, description);
-    triggerHaptic('success');
-    open = false;
+  $effect(() => {
+    if (open) {
+      form.reset({
+        title: card?.title ?? '',
+        description: card?.description ?? ''
+      });
+    } else {
+      form.reset();
+    }
+  });
+
+  async function handleDelete() {
+    if (!card || !onDelete || isDeleting) {
+      return;
+    }
+
+    isDeleting = true;
+    try {
+      const deleted = await onDelete(card.id);
+      if (deleted) {
+        open = false;
+      }
+    } finally {
+      isDeleting = false;
+    }
   }
 </script>
 
-<Dialog.Root bind:open>
-  <Dialog.Portal>
-    <Dialog.Overlay
-      class="fixed inset-0 z-50 bg-black/80 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
-    />
-    <Dialog.Content
-      class="bg-background fixed top-[50%] left-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-lg duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:rounded-lg md:w-full dark:border-gray-700 dark:bg-gray-800"
-    >
+<ResponsiveDialog
+  bind:open
+  size="lg"
+  {desktopMode}
+  {mobileMode}
+  {mobileDrawerSide}
+  {desktopPlacement}
+  {mobilePlacement}
+  {desktopAnimation}
+  {mobileAnimation}
+  {triggerElement}
+  contentClass="sm:rounded-lg md:w-full"
+>
       <Dialog.Title
         class="text-lg leading-none font-semibold tracking-tight text-gray-900 dark:text-gray-100"
       >
         {card ? 'Edit Card' : 'Create Card'}
       </Dialog.Title>
-      <form onsubmit={handleSubmit} class="mt-4 space-y-4">
-        <div class="space-y-2">
-          <label
-            for="card-title"
-            class="text-sm leading-none font-medium text-gray-900 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-gray-100"
-          >
-            Title
-          </label>
-          <input
-            id="card-title"
-            type="text"
-            bind:value={title}
-            class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            placeholder="Card title"
-            minlength="3"
-            maxlength="50"
-            required
-          />
-        </div>
-        <div class="space-y-2">
-          <label
-            for="card-description"
-            class="text-sm leading-none font-medium text-gray-900 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-gray-100"
-          >
-            Description
-          </label>
-          <textarea
-            id="card-description"
-            bind:value={description}
-            class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            placeholder="Card description"
-            maxlength="1000"
-          ></textarea>
-        </div>
-        <div class="flex justify-end gap-2">
+      <form onsubmit={form.handleSubmit} novalidate class="mt-4 space-y-4">
+        <InputTextField
+          id="card-title"
+          name="title"
+          label="Title"
+          placeholder="Card title"
+          maxlength={50}
+          required={true}
+          bind:value={form.values.title}
+          error={form.errors.title}
+        />
+
+        <Textarea
+          id="card-description"
+          name="description"
+          label="Description"
+          placeholder="Card description"
+          maxlength={1000}
+          rows={4}
+          bind:value={form.values.description}
+          error={form.errors.description}
+          helperText={`${form.values.description.length}/1000`}
+        />
+
+        <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           {#if card && onDelete}
-            <Button.Root
+            <Button
               type="button"
-              onclick={() => {
-                onDelete(card.id);
-                open = false;
-              }}
-              class="mr-auto inline-flex h-10 items-center justify-center rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 shadow-sm transition-colors hover:bg-red-50 hover:text-red-700 focus-visible:ring-1 focus-visible:ring-red-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 dark:border-red-900 dark:bg-gray-900 dark:text-red-400 dark:hover:bg-red-900/20"
+              onclick={handleDelete}
+              variant="danger"
+              disabled={form.isSubmitting || isDeleting}
+              isLoading={isDeleting}
+              loadingText="Deleting"
+              class="w-full sm:mr-auto sm:min-w-32"
             >
               Delete
-            </Button.Root>
+            </Button>
           {/if}
-          <Button.Root
+          <Button
             type="button"
-            onclick={() => (open = false)}
-            class="inline-flex h-10 items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900 shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-1 focus-visible:ring-gray-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-50"
+            onclick={() => {
+              open = false;
+            }}
+            variant="outline"
+            disabled={form.isSubmitting || isDeleting}
+            class="w-full sm:min-w-32"
           >
             Cancel
-          </Button.Root>
-          <Button.Root
+          </Button>
+          <Button
             type="submit"
-            class="inline-flex h-10 items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:ring-1 focus-visible:ring-gray-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90"
+            variant="primary"
+            disabled={!form.values.title.trim() || form.isSubmitting || isDeleting}
+            isLoading={form.isSubmitting}
+            loadingText={card ? 'Saving' : 'Creating'}
+            class="w-full sm:min-w-32"
           >
             {card ? 'Save Changes' : 'Create'}
-          </Button.Root>
+          </Button>
         </div>
       </form>
-    </Dialog.Content>
-  </Dialog.Portal>
-</Dialog.Root>
+    </ResponsiveDialog>

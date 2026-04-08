@@ -50,13 +50,13 @@ public sealed partial class BoardHub
     [Authorize(BoardPermissions.Lists.Move)]
     public async Task<IResult> MoveList(
         MoveListRequest request,
-        ICommandHandler<MoveListCommand> handler)
+        ICommandHandler<MoveListCommand, string> handler)
     {
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("List move requested by connection {ConnectionId}.", Context.ConnectionId);
         var command = new MoveListCommand(request.Id, request.SwimlaneId, request.BeforeId);
-        Result result = await handler.Handle(command);
-        return result.Match(Results.NoContent, Results.Problem);
+        Result<string> result = await handler.Handle(command);
+        return result.Match(Results.OkWithRank, Results.Problem);
     }
 
     public sealed record DeleteListRequest(int Id);

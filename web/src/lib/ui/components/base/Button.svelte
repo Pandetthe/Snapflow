@@ -53,7 +53,7 @@
     primary:
       'bg-brand-500 text-white shadow-sm hover:bg-brand-600 active:bg-brand-700 disabled:bg-brand-300',
     outline:
-      'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 active:bg-gray-100 focus-visible:border-brand-500 disabled:bg-gray-50/50 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-600 dark:focus-visible:border-brand-500 dark:hover:bg-white/[0.03] dark:active:bg-white/[0.08] dark:hover:text-gray-300 dark:disabled:bg-gray-900/50',
+      'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 active:bg-gray-100 focus-visible:border-brand-500 disabled:bg-gray-50/50 dark:bg-gray-800/60 dark:text-gray-200 dark:border-gray-700 dark:focus-visible:border-brand-500 dark:hover:bg-gray-700/70 dark:active:bg-gray-700 dark:hover:text-white dark:disabled:bg-gray-800/30',
     ghost:
       'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white',
     danger:

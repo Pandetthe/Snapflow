@@ -10,15 +10,16 @@
   import { errorStore } from '$lib/ui/stores/error';
   import { recentBoards } from '$lib/features/boards/stores/recent';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
-  import { Button as BitsButton } from 'bits-ui';
-  import { Button as AppButton } from '$lib/ui/components';
+  import { Button, FullBleedLayout, GoBackButton, LoadingDots } from '$lib/ui/components';
   import { triggerHaptic } from '$lib/ui/utils';
-  import { Pencil } from 'lucide-svelte';
+  import { Folders, Pencil, Plus, Loader2 } from 'lucide-svelte';
   import { fade } from 'svelte/transition';
+  import type { Response } from '$lib/core/types/app';
 
   let { data } = $props();
   let board = $state((() => data.board)());
   let hub = $state<BoardsHub | null>(null);
+  let connectionState = $state<'connecting' | 'connected' | 'reconnecting' | 'disconnected'>('connecting');
 
   $effect(() => {
     recentBoards.configure(data.user.id);
@@ -52,9 +53,13 @@
     }
   });
 
-  async function handleSwimlaneConfirm(title: string, height: number | null) {
+  async function handleSwimlaneConfirm(title: string, height: number | null): Promise<Response<any>> {
+    if (!hub) {
+      return { ok: false, problem: { title: 'Board hub unavailable', detail: 'Please try again.' } };
+    }
+
     if (editingSwimlane) {
-      const res = await hub?.updateSwimlane({
+      const res = await hub.updateSwimlane({
         id: editingSwimlane.id,
         title,
         height: height
@@ -62,11 +67,10 @@
       if (res?.ok) {
         editingSwimlane.title = title;
         editingSwimlane.height = height;
-      } else {
-        errorStore.addError('Web.UpdateSwimlaneFailed', 'Failed to update swimlane');
       }
+      return res;
     } else {
-      const res = await hub?.createSwimlane({
+      const res = await hub.createSwimlane({
         title,
         height: height,
         beforeId: null
@@ -82,20 +86,42 @@
           });
           sortSwimlanes();
         }
-      } else {
-        errorStore.addError('Web.CreateSwimlaneFailed', 'Failed to create swimlane');
       }
+      return res;
     }
   }
 
-  async function handleSwimlaneDelete(id: number) {
-    const res = await hub?.deleteSwimlane({ id });
-    if (!res?.ok) errorStore.addError('Web.DeleteSwimlaneFailed', 'Failed to delete swimlane');
+  async function handleSwimlaneDelete(id: number): Promise<boolean> {
+    if (!hub) {
+      triggerHaptic('error');
+      errorStore.addError('Web.BoardHubUnavailable', 'Board connection is unavailable');
+      return false;
+    }
+
+    const res = await hub.deleteSwimlane({ id });
+    if (!res.ok) {
+      triggerHaptic('error');
+      errorStore.addError('Web.DeleteSwimlaneFailed', 'Failed to delete swimlane');
+      return false;
+    }
+
+    const index = board.swimlanes.findIndex((swimlane) => swimlane.id === id);
+    if (index !== -1) {
+      board.swimlanes.splice(index, 1);
+      board.swimlanes = [...board.swimlanes];
+    }
+
+    triggerHaptic('success');
+    return true;
   }
 
-  async function handleListConfirm(title: string, width: number | null) {
+  async function handleListConfirm(title: string, width: number | null): Promise<Response<any>> {
+    if (!hub) {
+      return { ok: false, problem: { title: 'Board hub unavailable', detail: 'Please try again.' } };
+    }
+
     if (editingList) {
-      const res = await hub?.updateList({
+      const res = await hub.updateList({
         id: editingList.id,
         title,
         width: width
@@ -103,11 +129,10 @@
       if (res?.ok) {
         editingList.title = title;
         editingList.width = width;
-      } else {
-        errorStore.addError('Web.UpdateListFailed', 'Failed to update list');
       }
+      return res;
     } else if (targetSwimlaneId) {
-      const res = await hub?.createList({
+      const res = await hub.createList({
         swimlaneId: targetSwimlaneId,
         title,
         width: width,
@@ -125,20 +150,50 @@
           });
           sortLists(swimlane);
         }
-      } else {
-        errorStore.addError('Web.CreateListFailed', 'Failed to create list');
+      }
+      return res;
+    }
+
+    return {
+      ok: false,
+      problem: { title: 'Invalid target swimlane', detail: 'Please choose swimlane and try again.' }
+    };
+  }
+
+  async function handleListDelete(id: number): Promise<boolean> {
+    if (!hub) {
+      triggerHaptic('error');
+      errorStore.addError('Web.BoardHubUnavailable', 'Board connection is unavailable');
+      return false;
+    }
+
+    const res = await hub.deleteList({ id });
+    if (!res.ok) {
+      triggerHaptic('error');
+      errorStore.addError('Web.DeleteListFailed', 'Failed to delete list');
+      return false;
+    }
+
+    for (const swimlane of board.swimlanes) {
+      const index = swimlane.lists.findIndex((list) => list.id === id);
+      if (index !== -1) {
+        swimlane.lists.splice(index, 1);
+        swimlane.lists = [...swimlane.lists];
+        break;
       }
     }
+
+    triggerHaptic('success');
+    return true;
   }
 
-  async function handleListDelete(id: number) {
-    const res = await hub?.deleteList({ id });
-    if (!res?.ok) errorStore.addError('Web.DeleteListFailed', 'Failed to delete list');
-  }
+  async function handleCardConfirm(title: string, description: string): Promise<Response<any>> {
+    if (!hub) {
+      return { ok: false, problem: { title: 'Board hub unavailable', detail: 'Please try again.' } };
+    }
 
-  async function handleCardConfirm(title: string, description: string) {
     if (editingCard) {
-      const res = await hub?.updateCard({
+      const res = await hub.updateCard({
         id: editingCard.id,
         title,
         description
@@ -149,11 +204,10 @@
         // Update audit info if available in the response
         if (res.value.updatedAt) editingCard.updatedAt = res.value.updatedAt;
         if (res.value.updatedBy) editingCard.updatedBy = res.value.updatedBy as any;
-      } else {
-        errorStore.addError('Web.UpdateCardFailed', 'Failed to update card');
       }
+      return res;
     } else if (targetListId) {
-      const res = await hub?.createCard({
+      const res = await hub.createCard({
         listId: targetListId,
         title,
         description,
@@ -177,15 +231,49 @@
             break;
           }
         }
-      } else {
-        errorStore.addError('Web.CreateCardFailed', 'Failed to create card');
       }
+      return res;
     }
+
+    return {
+      ok: false,
+      problem: { title: 'Invalid target list', detail: 'Please choose list and try again.' }
+    };
   }
 
-  async function handleCardDelete(id: number) {
-    const res = await hub?.deleteCard({ id });
-    if (!res?.ok) errorStore.addError('Web.DeleteCardFailed', 'Failed to delete card');
+  async function handleCardDelete(id: number): Promise<boolean> {
+    if (!hub) {
+      triggerHaptic('error');
+      errorStore.addError('Web.BoardHubUnavailable', 'Board connection is unavailable');
+      return false;
+    }
+
+    const res = await hub.deleteCard({ id });
+    if (!res.ok) {
+      triggerHaptic('error');
+      errorStore.addError('Web.DeleteCardFailed', 'Failed to delete card');
+      return false;
+    }
+
+    for (const swimlane of board.swimlanes) {
+      for (const list of swimlane.lists) {
+        const index = list.cards.findIndex((card) => card.id === id);
+        if (index !== -1) {
+          list.cards.splice(index, 1);
+          list.cards = [...list.cards];
+          triggerHaptic('success');
+          return true;
+        }
+      }
+    }
+
+    triggerHaptic('success');
+    return true;
+  }
+
+  function openCreateSwimlaneModal() {
+    editingSwimlane = undefined;
+    swimlaneModalOpen = true;
   }
 
   function sortAll() {
@@ -210,18 +298,21 @@
       (a: GetBoardByIdResponse.SwimlaneDto, b: GetBoardByIdResponse.SwimlaneDto) =>
         a.rank.localeCompare(b.rank)
     );
+    board.swimlanes = [...board.swimlanes];
   }
 
   function sortLists(swimlane: GetBoardByIdResponse.SwimlaneDto) {
     swimlane.lists.sort((a: GetBoardByIdResponse.ListDto, b: GetBoardByIdResponse.ListDto) =>
       a.rank.localeCompare(b.rank)
     );
+    swimlane.lists = [...swimlane.lists];
   }
 
   function sortCards(list: GetBoardByIdResponse.ListDto) {
     list.cards.sort((a: GetBoardByIdResponse.CardDto, b: GetBoardByIdResponse.CardDto) =>
       a.rank.localeCompare(b.rank)
     );
+    list.cards = [...list.cards];
   }
 
   $effect(() => {
@@ -312,7 +403,7 @@
           const index = s.lists.findIndex((l) => l.id === payload.id);
           if (index !== -1) {
             [movedList] = s.lists.splice(index, 1);
-            s.lists = s.lists;
+            s.lists = [...s.lists];
             break;
           }
         }
@@ -329,7 +420,7 @@
           const index = s.lists.findIndex((l) => l.id === payload.id);
           if (index !== -1) {
             s.lists.splice(index, 1);
-            s.lists = s.lists;
+            s.lists = [...s.lists];
             break;
           }
         }
@@ -370,7 +461,7 @@
             const index = l.cards.findIndex((c) => c.id === payload.id);
             if (index !== -1) {
               [movedCard] = l.cards.splice(index, 1);
-              l.cards = l.cards;
+              l.cards = [...l.cards];
               break;
             }
           }
@@ -408,7 +499,7 @@
             const index = l.cards.findIndex((c) => c.id === payload.id);
             if (index !== -1) {
               l.cards.splice(index, 1);
-              l.cards = l.cards;
+              l.cards = [...l.cards];
               return;
             }
           }
@@ -420,17 +511,20 @@
       });
 
       hub.onClose((err) => {
-        if (err) {
-          errorStore.addError(err.name, err.message);
-        }
+        connectionState = 'disconnected';
       });
 
       hub.onReconnecting((err) => {
-        if (err) {
-          errorStore.addError(err.name, err.message);
-        }
+        connectionState = 'reconnecting';
       });
+
+      hub.onReconnected((connId) => {
+        connectionState = 'connected';
+      });
+
+      connectionState = 'connected';
     } catch (err) {
+      connectionState = 'disconnected';
       if (err instanceof Error) {
         errorStore.addError(err.name, err.message);
       } else {
@@ -440,18 +534,21 @@
   });
 
   function handleSwimlaneConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.SwimlaneDto>>) {
-    board.swimlanes = e.detail.items;
+    board.swimlanes = [...e.detail.items];
   }
 
   async function handleSwimlaneFinalize(
     e: CustomEvent<DndEvent<GetBoardByIdResponse.SwimlaneDto>>
   ) {
-    board.swimlanes = e.detail.items;
+    board.swimlanes = [...e.detail.items];
     const { info } = e.detail;
     if (info.trigger === 'droppedIntoZone') {
       triggerHaptic('success');
       const id = Number(info.id);
       const index = board.swimlanes.findIndex((s) => s.id === id);
+      if (index === -1) {
+        return;
+      }
       const nextItem = board.swimlanes[index + 1];
       const beforeId = nextItem ? nextItem.id : null;
 
@@ -460,9 +557,11 @@
         const moved = board.swimlanes.find((s) => s.id === id);
         if (moved) moved.rank = res.value.rank;
         sortSwimlanes();
+        board.swimlanes = [...board.swimlanes];
       } else {
         errorStore.addError('Web.MoveSwimlaneFailed', 'Failed to move swimlane');
         sortSwimlanes();
+        board.swimlanes = [...board.swimlanes];
       }
     }
   }
@@ -477,80 +576,111 @@
   <title>Snapflow | {board.title}</title>
 </svelte:head>
 
-<div class="fixed top-4 left-4 z-50 flex items-center space-x-3">
-  <BitsButton.Root
-    href="/boards/"
-    class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-    title="Boards"
-  >
-    ←
-  </BitsButton.Root>
-</div>
+<FullBleedLayout>
+  {#if connectionState !== 'connected'}
+    <div class="fixed bottom-4 right-4 z-50 flex h-14 items-center gap-3 rounded-full px-6 text-sm font-medium text-white shadow-lg transition-all dark:shadow-black/40 {connectionState === 'disconnected' ? 'bg-red-600' : 'bg-primary-600 dark:bg-primary-500'}">
+      {#if connectionState === 'connecting'}
+        <Loader2 class="h-4 w-4 animate-spin" /> <span class="flex items-center gap-0.5">Connecting<LoadingDots /></span>
+      {:else if connectionState === 'reconnecting'}
+        <Loader2 class="h-4 w-4 animate-spin" /> <span class="flex items-center gap-0.5">Reconnecting<LoadingDots /></span>
+      {:else}
+        <div class="h-2.5 w-2.5 rounded-full bg-white bg-red-600"></div> <span>Disconnected</span>
+      {/if}
+    </div>
+  {/if}
+  <div class="w-full space-y-0 overflow-x-clip pb-12" in:fade={{ duration: 400 }}>
+    <div class="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen border-b border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div class="flex w-full items-center px-8 sm:px-10 lg:px-14 xl:px-20">
+        <div class="shrink-0 pr-8 sm:pr-10 lg:pr-14 xl:pr-20">
+          <GoBackButton
+            href="/boards"
+            hideTextOnMobile={true}
+          />
 
-<div class="mt-16 flex min-h-screen flex-col bg-white sm:mt-0 dark:bg-gray-900" in:fade={{ duration: 400 }}>
-  <div
-    class="shrink-0 border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800"
-  >
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-4">
-        <div class="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
-        <div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+        </div>
+
+        <div class="min-w-0 flex-1 py-2 border-x border-gray-200 px-8 sm:px-10 lg:px-14 xl:px-20 dark:border-gray-700">
+          <h1 class="truncate text-xl font-bold tracking-tight text-gray-900 dark:text-white">
             {board.title}
           </h1>
+          <p class="mt-0.5 truncate text-sm text-gray-500 dark:text-gray-400">
+            {board.description?.trim()}
+          </p>
+        </div>
+
+        <div class="shrink-0 pl-8 sm:pl-10 lg:pl-14 xl:pl-20">
+          <Button
+            href={`/boards/${board.id}/edit`}
+            variant="ghost"
+            size="sm"
+            class="h-9 min-w-9 justify-center px-2.5 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white text-sm sm:h-11 sm:min-w-32 sm:px-4"
+            startIcon={Pencil}
+            aria-label="Edit board"
+          >
+            <span class="hidden sm:inline">Edit Board</span>
+          </Button>
         </div>
       </div>
-      <AppButton
-        href={`/boards/${board.id}/edit`}
-        variant="outline"
-        size="sm"
-        startIcon={Pencil}
-      >
-        Edit board
-      </AppButton>
     </div>
-  </div>
 
-  <div class="flex min-h-0 flex-1 flex-col gap-4 py-6">
-    <section
-      use:dragHandleZone={{
-        items: board.swimlanes,
-        flipDurationMs: 150,
-        type: 'swimlanes',
-        dropTargetStyle: {},
-        useCursorForDetection: true
-      }}
-      onconsider={handleSwimlaneConsider}
-      onfinalize={handleSwimlaneFinalize}
-      class="flex flex-col gap-4"
-    >
-      {#each board.swimlanes as swimlane (swimlane.id)}
-        <div animate:flip={{ duration: 150 }}>
-          <Swimlane {swimlane} />
-        </div>
-      {/each}
-      <div class="mx-6">
-        <button
-          onclick={() => {
-            editingSwimlane = undefined;
-            swimlaneModalOpen = true;
-          }}
-          class="flex h-full w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50/50 p-4 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+    <section class="space-y-6">
+      {#if board.swimlanes.length === 0}
+        <div
+          class="mb-6 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 px-4 py-12 text-center dark:border-gray-700 sm:py-16"
         >
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          <span class="font-medium">Add Swimlane</span>
-        </button>
+          <div
+            class="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 dark:bg-gray-800/40"
+          >
+            <Folders class="h-8 w-8 text-gray-400" />
+          </div>
+          <h2 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">No swimlanes yet</h2>
+          <p class="max-w-md text-sm text-gray-500 dark:text-gray-400">
+            Start by creating your first swimlane to structure this board.
+          </p>
+        </div>
+      {/if}
+
+      <div class="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
+        <section
+          use:dragHandleZone={{
+            items: board.swimlanes,
+            flipDurationMs: 150,
+            type: 'swimlanes',
+            dropTargetStyle: {},
+            useCursorForDetection: true,
+            zoneTabIndex: -1,
+            zoneItemTabIndex: 0
+          }}
+          onconsider={handleSwimlaneConsider}
+          onfinalize={handleSwimlaneFinalize}
+          class="flex flex-col gap-0"
+        >
+          {#each board.swimlanes as swimlane, index (swimlane.id)}
+            <div
+              animate:flip={{ duration: 150 }}
+              class="relative z-20 w-full transition-shadow duration-200 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-900"
+            >
+              <Swimlane bind:swimlane={board.swimlanes[index]} />
+            </div>
+          {/each}
+        </section>
+
+        <div class="relative z-10 overflow-hidden">
+          <Button
+            type="button"
+            variant="outline"
+            startIcon={Plus}
+            onclick={openCreateSwimlaneModal}
+            aria-label="Add swimlane"
+            class="mt-1 h-12 w-full justify-center border-dashed border-gray-300 bg-gray-50/60 px-3 text-gray-600 hover:border-gray-400 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800/40 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            <span class="sr-only">Add swimlane</span>
+          </Button>
+        </div>
       </div>
     </section>
   </div>
-</div>
+</FullBleedLayout>
 
 <SwimlaneModal
   bind:open={swimlaneModalOpen}

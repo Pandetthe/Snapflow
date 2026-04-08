@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Button as AppButton, SplitLayout } from '$lib/ui/components';
-  import { Check, ChevronLeft } from 'lucide-svelte';
+  import { Button as AppButton, GoBackButton, SplitLayout } from '$lib/ui/components';
+  import { Check } from 'lucide-svelte';
   import { cn } from '$lib/ui/utils';
 </script>
 
@@ -10,13 +10,9 @@
 
 <SplitLayout>
   {#snippet header()}
-    <a
+    <GoBackButton
       href="/"
-      class="inline-flex items-center gap-1.5 rounded-sm text-sm text-gray-500 transition-all duration-200 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-950"
-    >
-      <ChevronLeft size={18} />
-      Back to home
-    </a>
+    />
   {/snippet}
 
   <div class="flex flex-1 flex-col items-center justify-center text-center">

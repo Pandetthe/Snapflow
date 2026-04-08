@@ -91,7 +91,7 @@
         href="/"
         variant="primary"
         size="lg"
-        class="inline-flex min-w-[160px] items-center justify-center"
+        class="inline-flex min-w-40 items-center justify-center"
       >
         <svg class="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
           <path
@@ -106,7 +106,7 @@
           href="https://github.com/Pandetthe/Snapflow/issues"
           variant="outline"
           size="lg"
-          class="inline-flex min-w-[160px] items-center justify-center"
+          class="inline-flex min-w-40 items-center justify-center"
         >
           <svg class="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
             <path
