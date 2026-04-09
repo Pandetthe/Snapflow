@@ -40,7 +40,13 @@
   "sort": "ASC",
   "template": "#{{CHANGELOG}}\n\n<details>\n<summary>Full list of changes</summary>\n#{{UNCATEGORIZED}}\n</details>",
   "pr_template": "- #{{TITLE}}",
-  "commit_template": "- #{{MESSAGE}}",
+  "commit_template": "- #{{TITLE}}",
+  "transformers": [
+    {
+      "pattern": "^- (?:feat|fix|docs|style|refactor|perf|test|build|ci|chore)(?:\\([^)]+\\))?!?:\\s*(.+)$",
+      "target": "- $1"
+    }
+  ],
   "label_extractor": [
     {
       "pattern": "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(?:\\((.*)\\))?!?: (.*)$",
