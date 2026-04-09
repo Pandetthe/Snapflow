@@ -28,10 +28,11 @@ export const handle: Handle = async ({ event, resolve }) => {
   const response = await resolve(event);
 
   const apiBaseUrl = env.PUBLIC_API_BASE_URL || '';
+  const wsBaseUrl = apiBaseUrl.replace(/^http/, 'ws');
 
   const csp = [
     "default-src 'self'",
-    `connect-src 'self' ${apiBaseUrl} https://cloudflareinsights.com`,
+    `connect-src 'self' ${apiBaseUrl} ${wsBaseUrl} https://cloudflareinsights.com`,
     "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
