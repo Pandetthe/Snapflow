@@ -7,6 +7,9 @@
 
   let { card, listId }: { card: GetBoardByIdResponse.CardDto; listId: number } = $props();
 
+  const getBoardState = getContext<() => string>('boardState');
+  const boardState = $derived(getBoardState());
+
   interface BoardUI {
     openListModal: (swimlaneId: number, list?: GetBoardByIdResponse.ListDto) => void;
     openCardModal: (listId: number, card?: GetBoardByIdResponse.CardDto) => void;
@@ -23,7 +26,7 @@
       <div class="show-on-hover flex items-center gap-1">
         <div
           use:dragHandle
-          class="card-drag-handle cursor-move rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-800"
+          class="card-drag-handle rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-800 {boardState === 'connected' ? 'cursor-move' : 'cursor-not-allowed opacity-50'}"
         >
           <GripVertical class="h-3.5 w-3.5" />
         </div>
@@ -41,6 +44,7 @@
         variant="ghost"
         size="xs"
         onclick={() => ui.openCardModal(listId, card)}
+        disabled={boardState !== 'connected'}
         startIcon={Pencil}
         class="h-6 w-6 min-w-0 rounded-md p-0 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
         title="Edit card"

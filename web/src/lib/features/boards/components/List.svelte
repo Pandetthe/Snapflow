@@ -1,6 +1,6 @@
 <script lang="ts">
   import { flip } from 'svelte/animate';
-  import { dragHandleZone, dragHandle } from 'svelte-dnd-action';
+  import { dragHandleZone, dragHandle, TRIGGERS } from 'svelte-dnd-action';
   import type { DndEvent } from 'svelte-dnd-action';
   import { getContext } from 'svelte';
   import type { BoardsHub } from '$lib/features/boards/hub/boards.hub';
@@ -16,6 +16,8 @@
 
   const getHub = getContext<() => BoardsHub | null>('hub');
   const hub = $derived(getHub());
+  const getBoardState = getContext<() => string>('boardState');
+  const boardState = $derived(getBoardState());
 
   interface BoardUI {
     openListModal: (swimlaneId: number, list?: GetBoardByIdResponse.ListDto) => void;
@@ -30,7 +32,7 @@
   async function handleCardFinalize(e: CustomEvent<DndEvent<GetBoardByIdResponse.CardDto>>) {
     list.cards = e.detail.items;
     const { info } = e.detail;
-    if (info.trigger === 'droppedIntoZone') {
+    if (info.trigger === TRIGGERS.DROPPED_INTO_ZONE || info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER) {
       triggerHaptic('success');
       const id = Number(info.id);
       const index = list.cards.findIndex((c) => c.id === id);
@@ -62,7 +64,7 @@
       <div class="flex items-center gap-2">
         <div
           use:dragHandle
-          class="list-drag-handle show-on-hover cursor-move touch-none rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-white/70 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-800"
+          class="list-drag-handle show-on-hover touch-none rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-white/70 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-800 {boardState === 'connected' ? 'cursor-move' : 'cursor-not-allowed opacity-50'}"
         >
           <GripVertical class="h-4 w-4" />
         </div>
@@ -80,6 +82,7 @@
       variant="ghost"
       size="xs"
       onclick={() => ui.openListModal(swimlaneId, list)}
+      disabled={boardState !== 'connected'}
       aria-label="Edit list"
       startIcon={Pencil}
       class="show-on-hover h-7 w-7 min-w-0 rounded-md p-0 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
@@ -99,7 +102,8 @@
             type: 'cards',
             dropTargetStyle: {},
             useCursorForDetection: true,
-            zoneTabIndex: -1
+            zoneTabIndex: -1,
+            dragDisabled: boardState !== 'connected'
           }}
           onconsider={handleCardConsider}
           onfinalize={handleCardFinalize}
@@ -121,6 +125,7 @@
             variant="outline"
             startIcon={Plus}
             onclick={() => ui.openCardModal(list.id)}
+            disabled={boardState !== 'connected'}
             aria-label="Add card"
             class="add-card-button h-9 w-full justify-center border-dashed border-gray-300 bg-white/70 px-3 text-gray-600 hover:border-gray-400 hover:bg-white dark:border-gray-600 dark:bg-gray-800/40 dark:text-gray-300 dark:hover:bg-gray-700"
           >

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { flip } from 'svelte/animate';
-  import { dragHandleZone, type DndEvent } from 'svelte-dnd-action';
+  import { dragHandleZone, type DndEvent, TRIGGERS } from 'svelte-dnd-action';
   import Swimlane from '$lib/features/boards/components/Swimlane.svelte';
   import SwimlaneModal from '$lib/features/boards/components/SwimlaneModal.svelte';
   import ListModal from '$lib/features/boards/components/ListModal.svelte';
@@ -326,6 +326,7 @@
 
   setContext('hub', () => hub);
   setContext('board', () => board);
+  setContext('boardState', () => connectionState);
   onMount(async () => {
     hub = new BoardsHub(data.board.id);
 
@@ -542,7 +543,7 @@
   ) {
     board.swimlanes = [...e.detail.items];
     const { info } = e.detail;
-    if (info.trigger === 'droppedIntoZone') {
+    if (info.trigger === TRIGGERS.DROPPED_INTO_ZONE) {
       triggerHaptic('success');
       const id = Number(info.id);
       const index = board.swimlanes.findIndex((s) => s.id === id);
@@ -584,7 +585,7 @@
       {:else if connectionState === 'reconnecting'}
         <Loader2 class="h-4 w-4 animate-spin" /> <span class="flex items-center gap-0.5">Reconnecting<LoadingDots /></span>
       {:else}
-        <div class="h-2.5 w-2.5 rounded-full bg-white bg-red-600"></div> <span>Disconnected</span>
+        <div class="h-2.5 w-2.5 rounded-full bg-red-600"></div> <span>Disconnected</span>
       {/if}
     </div>
   {/if}
@@ -649,7 +650,8 @@
             dropTargetStyle: {},
             useCursorForDetection: true,
             zoneTabIndex: -1,
-            zoneItemTabIndex: 0
+            zoneItemTabIndex: 0,
+            dragDisabled: connectionState !== 'connected'
           }}
           onconsider={handleSwimlaneConsider}
           onfinalize={handleSwimlaneFinalize}
@@ -671,6 +673,7 @@
             variant="outline"
             startIcon={Plus}
             onclick={openCreateSwimlaneModal}
+            disabled={connectionState !== 'connected'}
             aria-label="Add swimlane"
             class="mt-1 h-12 w-full justify-center border-dashed border-gray-300 bg-gray-50/60 px-3 text-gray-600 hover:border-gray-400 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800/40 dark:text-gray-300 dark:hover:bg-gray-800"
           >

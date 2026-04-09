@@ -1,6 +1,6 @@
 <script lang="ts">
   import { flip } from 'svelte/animate';
-  import { dragHandle, dragHandleZone, SHADOW_ITEM_MARKER_PROPERTY_NAME } from 'svelte-dnd-action';
+  import { dragHandle, dragHandleZone, SHADOW_ITEM_MARKER_PROPERTY_NAME, TRIGGERS } from 'svelte-dnd-action';
   import type { DndEvent } from 'svelte-dnd-action';
   import List from './List.svelte';
   import { getContext } from 'svelte';
@@ -17,6 +17,8 @@
   const getHub = getContext<() => BoardsHub | null>('hub');
   const hub = $derived(getHub());
   const getBoard = getContext<() => GetBoardByIdResponse.BoardDto>('board');
+  const getBoardState = getContext<() => string>('boardState');
+  const boardState = $derived(getBoardState());
 
   interface BoardUI {
     openSwimlaneModal: (swimlane?: GetBoardByIdResponse.SwimlaneDto) => void;
@@ -33,7 +35,7 @@
     swimlane.lists = e.detail.items;
     const { info } = e.detail;
     
-    if (info.trigger === 'droppedIntoZone' || info.trigger === 'droppedIntoAnotherZone') {
+    if (info.trigger === TRIGGERS.DROPPED_INTO_ZONE || info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER) {
       triggerHaptic('success');
       const id = Number(info.id);
 
@@ -84,7 +86,7 @@
     <div class="flex flex-1 items-start gap-2">
       <div
         use:dragHandle
-        class="show-on-hover cursor-move touch-none rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-white/70 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-800"
+        class="show-on-hover touch-none rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-white/70 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-800 {boardState === 'connected' ? 'cursor-move' : 'cursor-not-allowed opacity-50'}"
       >
         <GripVertical class="h-5 w-5" />
       </div>
@@ -100,6 +102,7 @@
             type="button"
             variant="ghost"
             size="xs"
+            disabled={boardState !== 'connected'}
             onclick={() => ui.openSwimlaneModal(swimlane)}
             startIcon={Pencil}
             class="show-on-hover h-7 w-7 min-w-0 rounded-md p-0 text-gray-400 hover:bg-white hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
@@ -125,7 +128,8 @@
             type: 'lists',
             dropTargetStyle: {},
             useCursorForDetection: true,
-            zoneTabIndex: -1
+            zoneTabIndex: -1,
+            dragDisabled: boardState !== 'connected'
           }}
           onconsider={handleListConsider}
           onfinalize={handleListFinalize}
@@ -152,6 +156,7 @@
             type="button"
             variant="outline"
             startIcon={Plus}
+            disabled={boardState !== 'connected'}
             onclick={() => ui.openListModal(swimlane.id)}
             aria-label="Add list"
               class="add-list-button h-10 w-12 justify-center border-dashed border-gray-300 bg-white/70 px-0 text-gray-600 hover:border-gray-400 hover:bg-white dark:border-gray-600 dark:bg-gray-800/40 dark:text-gray-300 dark:hover:bg-gray-700"
