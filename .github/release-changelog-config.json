@@ -49,6 +49,10 @@
   ],
   "label_extractor": [
     {
+      "pattern": "^.*\\[skip ci\\]$",
+      "target": "ignore"
+    },
+    {
       "pattern": "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(?:\\((.*)\\))?!?: (.*)$",
       "target": "$1"
     }
