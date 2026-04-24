@@ -14,12 +14,6 @@ internal sealed class MeHandler(
     {
         IUser user = await userContext.GetUserAsync();
         
-        var finalAvatarUrl = user.AvatarType switch
-        {
-            AvatarType.Gravatar => avatarService.GetGravatarUrl(user.Email),
-            _ => avatarService.GenerateAvatarUrl(user.Id)
-        };
-        
-        return new MeResponse(user.Id, user.UserName, user.Email, finalAvatarUrl, user.AvatarType);
+        return new MeResponse(user.Id, user.UserName, user.Email, avatarService.GenerateAvatarUrl(user.Id), user.AvatarType);
     }
 }

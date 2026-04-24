@@ -36,7 +36,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
-    `img-src 'self' data: ${apiBaseUrl} https://ui-avatars.com`,
+    `img-src 'self' data: ${apiBaseUrl}`,
     "object-src 'none'"
   ].join('; ');
 

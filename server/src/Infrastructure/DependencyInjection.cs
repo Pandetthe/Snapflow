@@ -27,7 +27,7 @@ using Snapflow.Infrastructure.Mailing;
 using Snapflow.Infrastructure.Mailing.Templates;
 using Snapflow.Infrastructure.Persistence;
 using Snapflow.Infrastructure.Persistence.Interceptors;
-using Snapflow.Infrastructure.Services;
+using Snapflow.Infrastructure.Avatars;
 using AuthIdentityOptions = Snapflow.Infrastructure.Auth.IdentityOptions;
 
 
@@ -268,8 +268,16 @@ public static class DependencyInjection
 
         private void AddAvatarInternal(IConfiguration configuration)
         {
-            services.Configure<AvatarOptions>(configuration.GetSection("Avatar"));
+            services.AddOptions<AvatarOptions>()
+                .Bind(configuration.GetSection("Avatar"))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
             services.AddScoped<IAvatarService, AvatarService>();
+            services.AddHttpClient("gravatar", client =>
+            {
+                client.BaseAddress = new Uri("https://www.gravatar.com");
+                client.Timeout = TimeSpan.FromSeconds(5);
+            });
         }
     }
 }

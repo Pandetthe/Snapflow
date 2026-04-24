@@ -27,16 +27,7 @@ internal sealed class SearchUsersHandler(
             .ToListAsync(cancellationToken);
 
         var response = users
-            .Select(u =>
-            {
-                var avatarUrl = u.AvatarType switch
-                {
-                    AvatarType.Gravatar => avatarService.GetGravatarUrl(u.Email),
-                    _ => avatarService.GenerateAvatarUrl(u.Id)
-                };
-
-                return new UserDto(u.Id, u.UserName, avatarUrl);
-            })
+            .Select(u => new UserDto(u.Id, u.UserName, avatarService.GenerateAvatarUrl(u.Id)))
             .ToList();
 
         return response;
