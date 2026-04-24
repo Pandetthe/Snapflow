@@ -1,3 +1,4 @@
+using Snapflow.Presentation.Caching;
 ﻿using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Swimlanes.GetById;
 using Snapflow.Common;
@@ -22,6 +23,7 @@ internal sealed class GetById : IEndpoint
             return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Boards.View)
+        .CacheOutput(CachePolicies.Board)
         .WithTags(EndpointTags.Swimlanes)
         .Produces<GetSwimlaneByIdResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);

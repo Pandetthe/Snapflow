@@ -1,3 +1,4 @@
+using Snapflow.Presentation.Caching;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Users.Me;
 using Snapflow.Presentation.Extensions;
@@ -19,6 +20,7 @@ internal sealed class Me : IEndpoint
             return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization()
+        .CacheOutput(CachePolicies.User)
         .WithTags(EndpointTags.Users)
         .Produces<MeResponse>();
     }

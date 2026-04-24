@@ -1,3 +1,4 @@
+using Snapflow.Presentation.Caching;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Boards.GetDetails;
 using Snapflow.Common;
@@ -21,6 +22,7 @@ internal sealed class GetDetails : IEndpoint
             return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Boards.View)
+        .CacheOutput(CachePolicies.Board)
         .WithTags(EndpointTags.Boards)
         .Produces<GetBoardDetailsResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);

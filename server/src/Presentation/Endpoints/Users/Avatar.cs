@@ -1,3 +1,4 @@
+using Snapflow.Presentation.Caching;
 using Microsoft.AspNetCore.Mvc;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Users.Avatar;
@@ -20,6 +21,7 @@ internal sealed class Avatar : IEndpoint
 
                 return result.Match(x => Results.File(x.Data, x.ContentType), Results.Problem);
             })
+            .CacheOutput(CachePolicies.Avatar)
             .WithTags(EndpointTags.Users);
     }
 }

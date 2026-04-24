@@ -1,3 +1,4 @@
+using Snapflow.Presentation.Caching;
 ﻿using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Lists.GetById;
 using Snapflow.Common;
@@ -10,7 +11,7 @@ internal sealed class GetById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("boards/{boardId:int}/kists/{listId:int}", async (
+        app.MapGet("boards/{boardId:int}/lists/{listId:int}", async (
             int boardId, int listId,
             IQueryHandler<GetListByIdQuery, GetListByIdResponse> handler,
             CancellationToken cancellationToken) =>
@@ -22,6 +23,7 @@ internal sealed class GetById : IEndpoint
             return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Boards.View)
+        .CacheOutput(CachePolicies.Board)
         .WithTags(EndpointTags.Lists)
         .Produces<GetListByIdResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);

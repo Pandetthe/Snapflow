@@ -1,3 +1,4 @@
+using Snapflow.Presentation.Caching;
 ﻿using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Cards.GetByBoardId;
 using Snapflow.Common;
@@ -23,6 +24,7 @@ internal sealed class GetByBoardId : IEndpoint
             return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Boards.View)
+        .CacheOutput(CachePolicies.Board)
         .WithTags(EndpointTags.Cards)
         .Produces<GetCardsByBoardIdResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);

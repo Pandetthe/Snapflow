@@ -1,3 +1,4 @@
+using Snapflow.Presentation.Caching;
 ﻿using Microsoft.AspNetCore.Mvc;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Boards.Get;
@@ -21,6 +22,7 @@ internal sealed class Get : IEndpoint
             return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization()
+        .CacheOutput(CachePolicies.User)
         .WithTags(EndpointTags.Boards)
         .Produces<IReadOnlyList<GetBoardsResponse.BoardDto>>(StatusCodes.Status200OK);
     }

@@ -1,3 +1,4 @@
+using Snapflow.Presentation.Caching;
 ﻿using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Lists.GetBySwimlaneId;
 using Snapflow.Common;
@@ -23,6 +24,7 @@ internal sealed class GetBySwimlaneId : IEndpoint
             return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Boards.View)
+        .CacheOutput(CachePolicies.Board)
         .WithTags(EndpointTags.Lists)
         .Produces<IReadOnlyList<ListDto>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);

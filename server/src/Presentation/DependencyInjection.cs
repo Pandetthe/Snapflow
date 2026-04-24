@@ -1,5 +1,6 @@
 ﻿using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi;
 using Snapflow.Common;
 using Snapflow.Infrastructure.Persistence;
+using Snapflow.Presentation.Caching;
 using Snapflow.Presentation.Endpoints;
 using Snapflow.Presentation.Middlewares;
 using StackExchange.Redis;
@@ -32,7 +34,7 @@ public static class DependencyInjection
             options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
         });
 
-        var signalRBuilder = services.AddSignalR(options =>
+        ISignalRServerBuilder signalRBuilder = services.AddSignalR(options =>
         {
             options.AddFilter<GlobalHubExceptionFilter>();
             options.AddFilter<ConnectionIdHubFilter>();
@@ -45,13 +47,19 @@ public static class DependencyInjection
             {
                 options.Configuration.ChannelPrefix = RedisChannel.Literal("Snapflow_SignalR");
             });
+
+            services.AddStackExchangeRedisOutputCache(options =>
+            {
+                options.Configuration = redisConn;
+                options.InstanceName = "Snapflow_OutputCache_";
+            });
         }
 
         services.AddProblemDetails();
 
         services.AddOpenApi(options =>
         {
-            options.AddOperationTransformer((operation, context, cancellationToken) =>
+            options.AddOperationTransformer((operation, _, _) =>
             {
                 operation.Responses ??= new OpenApiResponses();
                 operation.Responses.TryAdd("500", new OpenApiResponse
@@ -59,7 +67,7 @@ public static class DependencyInjection
                     Description = ReasonPhrases.GetReasonPhrase(500),
                     Content = new Dictionary<string, OpenApiMediaType>
                     {
-                        ["application/problem+json"] = new OpenApiMediaType
+                        ["application/problem+json"] = new()
                         {
                             Schema = new OpenApiSchema
                             {
@@ -71,7 +79,7 @@ public static class DependencyInjection
                 });
                 return Task.CompletedTask;
             });
-            options.AddSchemaTransformer((schema, context, cancellationToken) =>
+            options.AddSchemaTransformer((schema, context, _) =>
             {
                 Type type = context.JsonTypeInfo.Type;
 
@@ -92,6 +100,17 @@ public static class DependencyInjection
                 }
                 return Task.CompletedTask;
             });
+        });
+
+        services.AddSingleton<UserOutputCachePolicy>();
+        services.AddSingleton<BoardOutputCachePolicy>();
+
+        services.AddOutputCache(options =>
+        {
+            options.DefaultExpirationTimeSpan = TimeSpan.FromSeconds(60);
+            options.AddPolicy(CachePolicies.User, b => b.AddPolicy<UserOutputCachePolicy>());
+            options.AddPolicy(CachePolicies.Board, b => b.AddPolicy<BoardOutputCachePolicy>());
+            options.AddPolicy(CachePolicies.Avatar, b => b.Expire(TimeSpan.FromMinutes(5)));
         });
 
         services.AddCors(options =>

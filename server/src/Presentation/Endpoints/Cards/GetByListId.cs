@@ -1,3 +1,4 @@
+using Snapflow.Presentation.Caching;
 ﻿using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Cards.GetByListId;
 using Snapflow.Common;
@@ -23,6 +24,7 @@ internal sealed class GetByListId : IEndpoint
             return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Boards.View)
+        .CacheOutput(CachePolicies.Board)
         .WithTags(EndpointTags.Cards)
         .Produces<IReadOnlyList<CardDto>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);

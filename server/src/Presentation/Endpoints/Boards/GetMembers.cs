@@ -1,3 +1,4 @@
+using Snapflow.Presentation.Caching;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Members.Get;
 using Snapflow.Common;
@@ -22,6 +23,7 @@ internal sealed class GetMembers : IEndpoint
             return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Boards.View)
+        .CacheOutput(CachePolicies.Board)
         .WithTags(EndpointTags.Boards)
         .Produces<List<GetMembersResponse>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);
