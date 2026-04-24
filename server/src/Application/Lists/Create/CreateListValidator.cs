@@ -16,6 +16,6 @@ internal sealed class CreateListValidator : AbstractValidator<CreateListCommand>
 
         RuleFor(l => l.Width)
             .GreaterThanOrEqualTo(ListOptions.MinWidth)
-            .WithMessage($"Width must be greater than  or equal to{ListOptions.MinWidth}.");
+            .WithMessage($"Width must be greater than or equal to {ListOptions.MinWidth}.");
     }
 }

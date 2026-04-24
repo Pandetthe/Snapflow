@@ -18,11 +18,10 @@ internal sealed class EmailTemplateRegistry
     public bool TryGet(string name, [NotNullWhen(true)] out Type? htmlComponent)
     {
         htmlComponent = null;
-        if (_map.TryGetValue(name, out var value))
-        {
-            htmlComponent = value;
-            return true;
-        }
-        return false;
+        if (!_map.TryGetValue(name, out Type? value))
+            return false;
+
+        htmlComponent = value;
+        return true;
     }
 }

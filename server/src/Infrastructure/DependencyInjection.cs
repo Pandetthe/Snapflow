@@ -188,18 +188,19 @@ public static class DependencyInjection
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
             
-            var identityOptions = configuration.GetSection(AuthIdentityOptions.SectionName).Get<AuthIdentityOptions>() ?? new AuthIdentityOptions();
+            AuthIdentityOptions identityOptions = configuration.GetSection(AuthIdentityOptions.SectionName).Get<AuthIdentityOptions>() 
+                                                  ?? new AuthIdentityOptions();
 
-            services.AddIdentity<AppUser, AppRole>(options =>
-            {
-                options.User.RequireUniqueEmail = true;
-                options.SignIn.RequireConfirmedEmail = true;
-                options.Password.RequiredLength = Domain.Users.UserOptions.MinPasswordLength;
-                options.Password.RequireLowercase = Domain.Users.UserOptions.RequireLowercaseInPassword;
-                options.Password.RequireUppercase = Domain.Users.UserOptions.RequireUppercaseInPassword;
-                options.Password.RequireDigit = Domain.Users.UserOptions.RequireDigitInPassword;
-                options.Password.RequireNonAlphanumeric = Domain.Users.UserOptions.RequireNonAlphanumericInPassword;
-            }) 
+            services.AddIdentity<AppUser, AppRole>(options => 
+                {
+                    options.User.RequireUniqueEmail = true;
+                    options.SignIn.RequireConfirmedEmail = true;
+                    options.Password.RequiredLength = Domain.Users.UserOptions.MinPasswordLength;
+                    options.Password.RequireLowercase = Domain.Users.UserOptions.RequireLowercaseInPassword;
+                    options.Password.RequireUppercase = Domain.Users.UserOptions.RequireUppercaseInPassword;
+                    options.Password.RequireDigit = Domain.Users.UserOptions.RequireDigitInPassword;
+                    options.Password.RequireNonAlphanumeric = Domain.Users.UserOptions.RequireNonAlphanumericInPassword;
+                })
                 .AddSignInManager() 
                 .AddEntityFrameworkStores<AppDbContext>() 
                 .AddDefaultTokenProviders();
@@ -258,7 +259,10 @@ public static class DependencyInjection
             });
 
             services.AddScoped<EmailTemplateRenderer>();
-            services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
+            services.AddOptions<EmailOptions>()
+                .Bind(configuration.GetSection(EmailOptions.SectionName))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
             services.Configure<ServicesOptions>(configuration.GetSection(ServicesOptions.SectionName));
         }
 

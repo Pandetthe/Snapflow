@@ -101,7 +101,7 @@ public static class DependencyInjection
                 var webUrl = configuration.GetValue<string>("Services:WebUrl");
                 if (!string.IsNullOrEmpty(webUrl))
                 {
-                    policy.SetIsOriginAllowed(_ => true)
+                    policy.WithOrigins(webUrl)
                           .AllowAnyMethod()
                           .AllowAnyHeader()
                           .AllowCredentials();

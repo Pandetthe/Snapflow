@@ -1,10 +1,9 @@
 using FluentValidation;
-using Snapflow.Application.Cards.Update;
 using Snapflow.Domain.Cards;
 
 namespace Snapflow.Application.Cards.Create;
 
-internal sealed class CreateCardValidator : AbstractValidator<UpdateCardCommand>
+internal sealed class CreateCardValidator : AbstractValidator<CreateCardCommand>
 {
     public CreateCardValidator()
     {
