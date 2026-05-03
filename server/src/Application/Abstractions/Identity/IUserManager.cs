@@ -26,4 +26,12 @@ public interface IUserManager
     Task<string> GeneratePasswordResetTokenAsync(IUser user);
 
     Task<Result> ResetPasswordAsync(IUser user, string code, string newPassword);
+
+    Task<Result> UpdateUserNameAsync(IUser user, string userName);
+
+    Task<Result> ChangePasswordAsync(IUser user, string currentPassword, string newPassword);
+
+    Task<Result> UpdateAvatarAsync(IUser user, AvatarType avatarType, byte[]? avatarData, string? contentType);
+
+    Task<Result> SoftDeleteAsync(IUser user, TimeProvider timeProvider);
 }

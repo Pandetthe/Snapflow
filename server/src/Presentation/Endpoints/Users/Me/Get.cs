@@ -1,11 +1,11 @@
 using Snapflow.Presentation.Caching;
 using Snapflow.Application.Abstractions.Messaging;
-using Snapflow.Application.Users.Me;
+using Snapflow.Application.Users.Me.GetMe;
 using Snapflow.Presentation.Extensions;
 
-namespace Snapflow.Presentation.Endpoints.Users;
+namespace Snapflow.Presentation.Endpoints.Users.Me;
 
-internal sealed class Me : IEndpoint
+internal sealed class GetMe : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {

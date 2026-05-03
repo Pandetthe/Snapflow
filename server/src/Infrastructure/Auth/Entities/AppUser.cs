@@ -20,6 +20,10 @@ public sealed class AppUser : IdentityUser<int>, IUser
 
     public AvatarType AvatarType { get; set; } = AvatarType.Generated;
     
+    public bool IsDeleted { get; set; }
+
+    public DateTimeOffset? DeletedAt { get; set; }
+
     public static AppUser Create(string email, string userName)
     {
         var user = new AppUser

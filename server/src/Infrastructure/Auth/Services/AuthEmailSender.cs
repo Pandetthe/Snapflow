@@ -64,6 +64,17 @@ internal sealed class AuthEmailSender : IAuthEmailSender
         await SendMailAsync(user.Email, "Confirm your email", result.Plain, result.Html).ConfigureAwait(false);
     }
 
+    public async Task SendEmailChangeLinkAsync(IUser user, string newEmail, string code)
+    {
+        var model = new EmailConfirmationModel
+        {
+            UserName = user.UserName,
+            ConfirmationLink = _serviceLinkBuilder.BuildEmailChangeConfirmationLink(user.Email, newEmail, code).ToString()
+        };
+        var result = await _templateRenderer.RenderAsync(EmailConfirmationModel.TemplateName, model);
+        await SendMailAsync(newEmail, "Confirm your new email address", result.Plain, result.Html).ConfigureAwait(false);
+    }
+
     public async Task SendPasswordResetLinkAsync(IUser user, string code)
     {
         var model = new PasswordResetModel

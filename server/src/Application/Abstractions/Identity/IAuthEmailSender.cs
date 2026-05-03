@@ -7,4 +7,6 @@ public interface IAuthEmailSender
     Task SendPasswordResetLinkAsync(IUser user, string code);
 
     Task SendConfirmationLinkAsync(IUser user, string code);
+
+    Task SendEmailChangeLinkAsync(IUser user, string newEmail, string code);
 }

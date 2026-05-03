@@ -4,7 +4,7 @@ using Snapflow.Common;
 
 namespace Snapflow.Application.Auth.SignOut;
 
-internal sealed class SignOutCommandHandler(
+internal sealed class SignOutHandler(
     ISignInManager signInManager) : ICommandHandler<SignOutCommand>
 {
     public async Task<Result> Handle(SignOutCommand command, CancellationToken cancellationToken = default)

@@ -1,4 +1,5 @@
 export { default as Button } from './base/Button.svelte';
+export { default as SegmentedControl } from './base/SegmentedControl.svelte';
 export { default as Checkbox } from './base/Checkbox.svelte';
 export { default as Input } from './base/Input.svelte';
 export { default as Progress } from './base/Progress.svelte';

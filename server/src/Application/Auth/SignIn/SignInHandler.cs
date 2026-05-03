@@ -5,7 +5,7 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Auth.SignIn;
 
-internal sealed class SignInCommandHandler(
+internal sealed class SignInHandler(
     ISignInManager signInManager,
     IUserManager userManager)
     : ICommandHandler<SignInCommand>
@@ -15,6 +15,8 @@ internal sealed class SignInCommandHandler(
         IUser? user = await userManager.FindByEmailAsync(command.Email);
         if (user is null)
             return Result.Failure(UserErrors.SignInFailed);
+        if (user.IsDeleted)
+            return Result.Failure(UserErrors.AccountDeleted);
         Result result = await signInManager.PasswordSignInAsync(user, command.Password, command.UseCookies, command.UseSessionCookies, true);
 
         if (!result.IsSuccess && result.Error.Code != UserErrors.SignInTwoFactorRequired.Code)

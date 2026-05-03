@@ -15,17 +15,10 @@ public static class Program
 
         builder.Services
             .AddApplication()
-            .AddInfrastructure(builder.Configuration)
+            .AddInfrastructure(builder.Configuration, builder.Environment)
             .AddPresentation(builder.Configuration);
         
         WebApplication app = builder.Build();
-
-        app.UseCors("AllowWeb");
-
-        app.MapEndpoints();
-        app.MapHub<BoardHub>("/boards/{boardId:int}/hub");
-
-        app.MapDefaultEndpoints();
 
         app.UseExceptionHandler();
 
@@ -41,11 +34,18 @@ public static class Program
             app.UseHsts();
         }
 
+        app.UseCors("AllowWeb");
+
         app.UseAuthentication();
 
         app.UseAuthorization();
 
         app.UseOutputCache();
+
+        app.MapEndpoints();
+        app.MapHub<BoardHub>("/boards/{boardId:int}/hub");
+
+        app.MapDefaultEndpoints();
 
         await app.RunAsync();
     }

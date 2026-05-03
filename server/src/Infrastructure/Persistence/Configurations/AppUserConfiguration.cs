@@ -26,6 +26,12 @@ internal sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
             .HasConversion<int>()
             .HasDefaultValue(AvatarType.Generated);
 
+        builder.Property(u => u.IsDeleted)
+            .HasDefaultValue(false);
+
+        builder.Property(u => u.DeletedAt)
+            .HasColumnName("deleted_at");
+
         builder.ToTable("users");
     }
 }

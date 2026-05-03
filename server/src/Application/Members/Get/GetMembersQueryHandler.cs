@@ -13,8 +13,8 @@ internal sealed class GetMembersQueryHandler(
         CancellationToken cancellationToken = default)
     {
         var members = await dbContext.Members
+            .AsNoTracking()
             .Where(b => b.BoardId == query.BoardId)
-            .Include(b => b.User)
             .Select(b => new GetMembersResponse(b.UserId, b.User.UserName))
             .ToListAsync(cancellationToken);
         if (members.Count == 0)

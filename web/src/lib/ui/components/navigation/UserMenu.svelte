@@ -3,6 +3,7 @@
 	import { DropdownMenu } from 'bits-ui';
 	import { Button, UserAvatar } from '$lib/ui/components';
 	import type { User } from '$lib/features/users/api/users';
+	import { avatarBust } from '$lib/features/users/avatarBust.svelte';
 	import { onMount } from 'svelte';
 
 	interface Props {
@@ -30,10 +31,10 @@
 			<div
 				class="mb-4 flex items-center gap-3 rounded-lg border border-gray-300 bg-gray-50/80 px-3 py-2.5 shadow-sm dark:border-gray-600 dark:bg-gray-800/50"
 			>
-					<UserAvatar 
-						src={user.avatarUrl} 
-						name={user.userName || user.email || 'User'} 
-						size={40} 
+							<UserAvatar
+						src={user.avatarUrl ? `${user.avatarUrl}?v=${avatarBust.count}` : null}
+						name={user.userName || user.email || 'User'}
+						size={40}
 						class="ring-2 ring-white shadow-sm dark:ring-gray-700"
 					/>
 
@@ -86,10 +87,10 @@
 						{...triggerProps}
 						class="group flex cursor-pointer items-center gap-3 rounded-lg p-1 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950 active:scale-95"
 					>
-						<UserAvatar 
-							src={user.avatarUrl} 
-							name={user.userName || user.email || 'User'} 
-							size={40} 
+						<UserAvatar
+							src={user.avatarUrl ? `${user.avatarUrl}?v=${avatarBust.count}` : null}
+							name={user.userName || user.email || 'User'}
+							size={40}
 							class="ring-2 ring-gray-100 transition-all dark:ring-gray-800 group-focus-visible:ring-brand-500"
 						/>
 

@@ -67,6 +67,30 @@ public sealed class ServiceLinkBuilder(
         return uriBuilder.Uri;
     }
 
+    public Uri BuildEmailChangeConfirmationLink(string currentEmail, string newEmail, string code)
+    {
+        UriBuilder uriBuilder;
+        if (string.IsNullOrEmpty(options.Value.ApiUrl))
+        {
+            var httpContext = httpContextAccessor.HttpContext
+                ?? throw new InvalidOperationException("No active HTTP context.");
+            uriBuilder = new UriBuilder
+            {
+                Scheme = httpContext.Request.Scheme,
+                Host = httpContext.Request.Host.Host,
+                Port = httpContext.Request.Host.Port ?? -1,
+                Path = "/auth/confirm-email",
+            };
+        }
+        else
+        {
+            uriBuilder = new UriBuilder(options.Value.ApiUrl);
+            uriBuilder.Path = $"{uriBuilder.Path.TrimEnd('/')}/auth/confirm-email";
+        }
+        uriBuilder.Query = $"email={Uri.EscapeDataString(currentEmail)}&code={Uri.EscapeDataString(code)}&changedEmail={Uri.EscapeDataString(newEmail)}";
+        return uriBuilder.Uri;
+    }
+
     public Uri BuildEmailConfirmationRedirect()
     {
         UriBuilder uriBuilder;

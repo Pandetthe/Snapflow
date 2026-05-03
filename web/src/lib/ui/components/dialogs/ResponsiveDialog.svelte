@@ -67,6 +67,10 @@
   let triggerTop = $state(0);
   let triggerLeft = $state(0);
 
+  let isDragging = $state(false);
+  let dragStartY = $state(0);
+  let dragY = $state(0);
+
   const activeMode = $derived(isMobile ? mobileMode : desktopMode);
   const activePlacement = $derived(isMobile ? mobilePlacement : desktopPlacement);
   const activeAnimation = $derived(isMobile ? mobileAnimation : desktopAnimation);
@@ -95,21 +99,29 @@
         ? useTriggerPosition
           ? 'translate-x-0 translate-y-0 rounded-2xl p-5 sm:p-6'
           : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl p-5 sm:p-6'
-        : cn('w-full max-w-none p-5 sm:p-6', drawerSideClasses),
+        : cn('w-full max-w-none p-6 pb-12 sm:p-8 sm:pb-14', drawerSideClasses),
       contentClass
     )
   );
 
   const positionedStyle = $derived.by(() => {
+    let style = '';
+    
     if (!useTriggerPosition) {
-      return `max-height: ${maxHeight};`;
+      style += `max-height: ${maxHeight};`;
+    } else {
+      style += `
+        top: ${triggerTop}px;
+        left: ${triggerLeft}px;
+        max-height: ${maxHeight};
+      `;
     }
 
-    return `
-      top: ${triggerTop}px;
-      left: ${triggerLeft}px;
-      max-height: ${maxHeight};
-    `;
+    if (dragY > 0) {
+      style += `transform: translateY(${dragY}px) !important; transition: ${isDragging ? 'none' : 'transform 0.2s ease-out'} !important;`;
+    }
+
+    return style;
   });
 
   function getAnimationClasses(animation: DialogAnimation) {
@@ -157,8 +169,66 @@
   }
 
   function handleOpenChange(next: boolean) {
-    open = next;
-    onOpenChange?.(next);
+    if (open !== next) {
+      if (!next && dragY === 0) {
+        // Normal close, do nothing
+      } else if (!next) {
+        // Close with reset delay to allow our override animation to play
+        setTimeout(() => { dragY = 0; }, 300);
+      }
+      open = next;
+      onOpenChange?.(next);
+    }
+  }
+
+  function handleHandleTouchStart(e: TouchEvent) {
+    isDragging = true;
+    dragStartY = e.touches[0].clientY;
+  }
+  function handleHandleTouchMove(e: TouchEvent) {
+    if (!isDragging) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - dragStartY;
+    if (deltaY > 0) {
+      dragY = deltaY;
+    }
+  }
+  function handleHandleTouchEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+    if (dragY > 100) {
+      dragY = window.innerHeight; // Animate off screen naturally
+      handleOpenChange(false);
+    } else {
+      dragY = 0;
+    }
+  }
+  
+  function handleHandleMouseDown(e: MouseEvent) {
+    isDragging = true;
+    dragStartY = e.clientY;
+    window.addEventListener('mousemove', handleWindowMouseMove);
+    window.addEventListener('mouseup', handleWindowMouseUp);
+  }
+  function handleWindowMouseMove(e: MouseEvent) {
+    if (!isDragging) return;
+    const deltaY = e.clientY - dragStartY;
+    if (deltaY > 0) {
+      dragY = deltaY;
+    }
+  }
+  function handleWindowMouseUp() {
+    if (!isDragging) return;
+    isDragging = false;
+    window.removeEventListener('mousemove', handleWindowMouseMove);
+    window.removeEventListener('mouseup', handleWindowMouseUp);
+    
+    if (dragY > 100) {
+      dragY = window.innerHeight; // Animate off screen naturally
+      handleOpenChange(false);
+    } else {
+      dragY = 0;
+    }
   }
 
   onMount(() => {
@@ -199,6 +269,20 @@
       class={baseContentClasses}
       style={positionedStyle}
     >
+      {#if activeMode === 'drawer' && activeDrawerSide === 'bottom'}
+        <div
+          class="flex w-full cursor-grab justify-center pb-6 pt-2 active:cursor-grabbing"
+          ontouchstart={handleHandleTouchStart}
+          ontouchmove={handleHandleTouchMove}
+          ontouchend={handleHandleTouchEnd}
+          onmousedown={handleHandleMouseDown}
+          role="button"
+          tabindex="0"
+          aria-label="Drag down to close"
+        >
+          <div class="h-1.5 w-12 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+      {/if}
       {@render children()}
     </Dialog.Content>
   </Dialog.Portal>

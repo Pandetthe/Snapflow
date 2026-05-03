@@ -22,6 +22,7 @@ internal sealed class DeleteBoardHandler(
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
         Board? board = await dbContext.Boards
+            .Include(b => b.Members)
             .SingleOrDefaultAsync(x => x.Id == command.BoardId && !x.IsDeleted, cancellationToken);
         if (board == null)
             return Result.Failure(BoardErrors.NotFound(command.BoardId));

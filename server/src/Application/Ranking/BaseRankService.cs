@@ -27,17 +27,17 @@ internal abstract class BaseRankService<TEntity>(
     {
         long globalLockKey = GetGlobalLockKey();
         long groupLockKey = GetGroupLockKey(groupId);
-        
+
         var strategy = DbContext.Database.CreateExecutionStrategy();
-        
-        return await strategy.ExecuteAsync(async () => 
+
+        return await strategy.ExecuteAsync(async () =>
         {
             await using var tx = await DbContext.Database.BeginTransactionAsync(cancellationToken);
-            
-            try 
+
+            try
             {
                 await DbContext.Database.ExecuteSqlRawAsync(
-                    "SELECT pg_advisory_xact_lock_shared({0}), pg_advisory_xact_lock({1})", 
+                    "SELECT pg_advisory_xact_lock_shared({0}), pg_advisory_xact_lock({1})",
                     [globalLockKey, groupLockKey], cancellationToken);
 
                 var baseQuery = Entities
@@ -83,7 +83,7 @@ internal abstract class BaseRankService<TEntity>(
                     return between;
                 }
 
-                Result result = await NormalizeLocallyAsync(groupId, leftRank, rightRank, cancellationToken);
+                Result result = await NormalizeLocallyInternalAsync(groupId, leftRank, rightRank, cancellationToken);
 
                 if (result.IsSuccess && RankService.TryGenerateBetween(leftRank, rightRank, out between))
                 {
@@ -91,7 +91,7 @@ internal abstract class BaseRankService<TEntity>(
                     return between;
                 }
 
-                result = await NormalizeGloballyAsync(groupId, cancellationToken);
+                result = await NormalizeGroupInternalAsync(groupId, cancellationToken);
 
                 if (result.IsSuccess && RankService.TryGenerateBetween(leftRank, rightRank, out between))
                 {
@@ -131,61 +131,14 @@ internal abstract class BaseRankService<TEntity>(
                     "SELECT pg_advisory_xact_lock_shared({0}), pg_advisory_xact_lock({1})",
                     [globalLockKey, groupLockKey], cancellationToken);
 
-                List<EntityRankDto> left = [];
-                List<EntityRankDto> right = [];
+                var result = await NormalizeLocallyInternalAsync(groupId, leftRank, rightRank, cancellationToken);
 
-                if (leftRank != null)
-                {
-                    left = await Entities
-                        .AsNoTracking()
-                        .Where(GroupFilter(groupId))
-                        .Where(s => s.Rank.CompareTo(leftRank) < 0 && !s.IsDeleted)
-                        .OrderByDescending(s => s.Rank)
-                        .Select(s => new EntityRankDto(s.Id, s.Rank))
-                        .Take(20)
-                        .ToListAsync(cancellationToken);
-                }
-
-                if (rightRank != null)
-                {
-                    right = await Entities
-                        .AsNoTracking()
-                        .Where(GroupFilter(groupId))
-                        .Where(s => s.Rank.CompareTo(rightRank) > 0 && !s.IsDeleted)
-                        .OrderBy(s => s.Rank)
-                        .Select(s => new EntityRankDto(s.Id, s.Rank))
-                        .Take(20)
-                        .ToListAsync(cancellationToken);
-                }
-
-                List<EntityRankDto> middle = await Entities
-                    .AsNoTracking()
-                    .Where(GroupFilter(groupId))
-                    .Where(s => !s.IsDeleted)
-                    .Where(s => (leftRank == null || s.Rank.CompareTo(leftRank) >= 0) && (rightRank == null || s.Rank.CompareTo(rightRank) <= 0))
-                    .OrderBy(s => s.Rank)
-                    .Select(s => new EntityRankDto(s.Id, s.Rank))
-                    .ToListAsync(cancellationToken);
-
-                var items = left.Concat(middle).Concat(right).OrderBy(s => s.Rank).ToList();
-                if (items.Count < 2)
-                {
+                if (result.IsSuccess)
                     await tx.CommitAsync(cancellationToken);
-                    return Result.Success();
-                }
+                else
+                    await tx.RollbackAsync(cancellationToken);
 
-                var newRanks = RankService.GenerateBalancedBetween(items.Count, items.First().Rank, items.Last().Rank);
-
-                var updateTasks = items.Zip(newRanks).Select(pair =>
-                    Entities
-                        .Where(s => s.Id == pair.First.Id && s.Rank == pair.First.Rank)
-                        .ExecuteUpdateAsync(s => s.SetProperty(i => i.Rank, pair.Second), cancellationToken)
-                );
-
-                await Task.WhenAll(updateTasks);
-
-                await tx.CommitAsync(cancellationToken);
-                return Result.Success();
+                return result;
             }
             catch (Exception ex)
             {
@@ -196,12 +149,62 @@ internal abstract class BaseRankService<TEntity>(
         });
     }
 
+    private async Task<Result> NormalizeLocallyInternalAsync(int groupId, string? leftRank, string? rightRank, CancellationToken cancellationToken)
+    {
+        List<EntityRankDto> left = [];
+        List<EntityRankDto> right = [];
+
+        if (leftRank != null)
+        {
+            left = await Entities
+                .AsNoTracking()
+                .Where(GroupFilter(groupId))
+                .Where(s => s.Rank.CompareTo(leftRank) < 0 && !s.IsDeleted)
+                .OrderByDescending(s => s.Rank)
+                .Select(s => new EntityRankDto(s.Id, s.Rank))
+                .Take(20)
+                .ToListAsync(cancellationToken);
+        }
+
+        if (rightRank != null)
+        {
+            right = await Entities
+                .AsNoTracking()
+                .Where(GroupFilter(groupId))
+                .Where(s => s.Rank.CompareTo(rightRank) > 0 && !s.IsDeleted)
+                .OrderBy(s => s.Rank)
+                .Select(s => new EntityRankDto(s.Id, s.Rank))
+                .Take(20)
+                .ToListAsync(cancellationToken);
+        }
+
+        List<EntityRankDto> middle = await Entities
+            .AsNoTracking()
+            .Where(GroupFilter(groupId))
+            .Where(s => !s.IsDeleted)
+            .Where(s => (leftRank == null || s.Rank.CompareTo(leftRank) >= 0) && (rightRank == null || s.Rank.CompareTo(rightRank) <= 0))
+            .OrderBy(s => s.Rank)
+            .Select(s => new EntityRankDto(s.Id, s.Rank))
+            .ToListAsync(cancellationToken);
+
+        var items = left.Concat(middle).Concat(right).OrderBy(s => s.Rank).ToList();
+        if (items.Count < 2)
+            return Result.Success();
+
+        var newRanks = RankService.GenerateBalancedBetween(items.Count, items.First().Rank, items.Last().Rank);
+
+        var updateTasks = items.Zip(newRanks).Select(pair =>
+            Entities
+                .Where(s => s.Id == pair.First.Id && s.Rank == pair.First.Rank)
+                .ExecuteUpdateAsync(s => s.SetProperty(i => i.Rank, pair.Second), cancellationToken)
+        );
+
+        await Task.WhenAll(updateTasks);
+        return Result.Success();
+    }
+
     public async Task<Result> NormalizeGloballyAsync(int? groupId, CancellationToken cancellationToken = default)
     {
-        var tableName = Entities.EntityType.GetTableName();
-        var schema = Entities.EntityType.GetSchema();
-        var fullTableName = string.IsNullOrEmpty(schema) ? $"\"{tableName}\"" : $"\"{schema}\".\"{tableName}\"";
-
         var strategy = DbContext.Database.CreateExecutionStrategy();
 
         return await strategy.ExecuteAsync(async () =>
@@ -217,29 +220,7 @@ internal abstract class BaseRankService<TEntity>(
                         "SELECT pg_advisory_xact_lock_shared({0}), pg_advisory_xact_lock({1})",
                         [globalLockKey, groupLockKey], cancellationToken);
 
-                    var items = await Entities
-                        .AsNoTracking()
-                        .OrderBy(s => s.Rank)
-                        .Where(GroupFilter(groupId.Value))
-                        .Where(s => !s.IsDeleted)
-                        .Select(s => s.Id)
-                        .ToListAsync(cancellationToken);
-
-                    if (items.Count == 0)
-                    {
-                        await tx.CommitAsync(cancellationToken);
-                        return Result.Success();
-                    }
-
-                    List<string> ranks = RankService.GenerateBalanced(items.Count);
-
-                    var updateTasks = items.Zip(ranks).Select(pair =>
-                        Entities
-                            .Where(s => s.Id == pair.First)
-                            .ExecuteUpdateAsync(s => s.SetProperty(i => i.Rank, pair.Second), cancellationToken)
-                    );
-
-                    await Task.WhenAll(updateTasks);
+                    await NormalizeGroupInternalAsync(groupId.Value, cancellationToken);
                 }
                 else
                 {
@@ -262,15 +243,48 @@ internal abstract class BaseRankService<TEntity>(
         });
     }
 
-    protected abstract Task NormalizeAllGroupsAsync(CancellationToken cancellationToken);
-
-    private static long GetGlobalLockKey()
+    private async Task<Result> NormalizeGroupInternalAsync(int groupId, CancellationToken cancellationToken)
     {
-        return (long)typeof(TEntity).Name.GetHashCode() << 32;
+        var items = await Entities
+            .AsNoTracking()
+            .OrderBy(s => s.Rank)
+            .Where(GroupFilter(groupId))
+            .Where(s => !s.IsDeleted)
+            .Select(s => s.Id)
+            .ToListAsync(cancellationToken);
+
+        if (items.Count == 0)
+            return Result.Success();
+
+        List<string> ranks = RankService.GenerateBalanced(items.Count);
+
+        var updateTasks = items.Zip(ranks).Select(pair =>
+            Entities
+                .Where(s => s.Id == pair.First)
+                .ExecuteUpdateAsync(s => s.SetProperty(i => i.Rank, pair.Second), cancellationToken)
+        );
+
+        await Task.WhenAll(updateTasks);
+        return Result.Success();
     }
 
-    private static long GetGroupLockKey(int groupId)
+    protected abstract Task NormalizeAllGroupsAsync(CancellationToken cancellationToken);
+
+    private static long GetGlobalLockKey() =>
+        (long)StableHash(typeof(TEntity).FullName!) << 32;
+
+    private static long GetGroupLockKey(int groupId) =>
+        ((long)StableHash(typeof(TEntity).FullName!) << 32) | (uint)groupId;
+
+    // FNV-1a 32-bit — deterministic across processes and restarts
+    private static uint StableHash(string s)
     {
-        return ((long)typeof(TEntity).Name.GetHashCode() << 32) | (uint)groupId;
+        uint hash = 2166136261u;
+        foreach (char c in s)
+        {
+            hash ^= (byte)c;
+            hash *= 16777619u;
+        }
+        return hash;
     }
 }

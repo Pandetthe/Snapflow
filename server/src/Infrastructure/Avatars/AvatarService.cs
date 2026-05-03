@@ -24,7 +24,7 @@ internal sealed class AvatarService(
         return user.AvatarType switch
         {
             AvatarType.Uploaded => user.AvatarData is { Length: > 0 }
-                ? Result.Success(new AvatarResponse(user.AvatarData, "image/png"))
+                ? Result.Success(new AvatarResponse(user.AvatarData, user.AvatarContentType ?? "image/png"))
                 : Result.Failure<AvatarResponse>(UserErrors.AvatarDataMissing),
 
             AvatarType.Generated => GetJdenticonResponse(user.Id),

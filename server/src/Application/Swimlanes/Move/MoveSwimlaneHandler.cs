@@ -38,6 +38,6 @@ internal sealed class MoveSwimlaneHandler(
             userContext.ConnectionId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        return Result.Success(swimlane.Rank);
+        return Result.Success(rankResult.Value);
     }
 }

@@ -31,5 +31,11 @@ internal sealed class CardConfiguration : IEntityTypeConfiguration<Card>
         builder.HasIndex(c => new { c.ListId, c.Rank })
             .IsUnique()
             .HasFilter("is_deleted = false");
+
+        builder.HasIndex(c => c.BoardId)
+            .HasFilter("is_deleted = false");
+
+        builder.HasIndex(c => c.ListId)
+            .HasFilter("is_deleted = false");
     }
 }

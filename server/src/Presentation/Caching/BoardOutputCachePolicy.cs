@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Security.Claims;
 using Microsoft.AspNetCore.OutputCaching;
 
 namespace Snapflow.Presentation.Caching;
@@ -15,10 +16,19 @@ internal sealed class BoardOutputCachePolicy : IOutputCachePolicy
             return ValueTask.CompletedTask;
         }
 
+        var userId = context.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is null)
+        {
+            context.AllowCacheLookup = false;
+            context.AllowCacheStorage = false;
+            return ValueTask.CompletedTask;
+        }
+
         context.EnableOutputCaching = true;
         context.AllowCacheLookup = true;
         context.AllowCacheStorage = true;
         context.AllowLocking = true;
+        context.CacheVaryByRules.VaryByValues.Add("uid", userId);
         context.Tags.Add(CacheTags.Board(boardId));
         return ValueTask.CompletedTask;
     }

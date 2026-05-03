@@ -18,6 +18,8 @@ internal sealed class ChangeOwnerCommandHandler(
             .SingleOrDefaultAsync(b => b.BoardId == command.BoardId && b.Role == MemberRole.Owner, cancellationToken);
         if (oldOwner == null)
             return Result.Failure(BoardErrors.NotFound(command.BoardId));
+        if (oldOwner.UserId == command.UserId)
+            return Result.Success();
         var newOwner = await dbContext.Members
             .SingleOrDefaultAsync(b => b.BoardId == command.BoardId && b.UserId == command.UserId, cancellationToken);
         if (newOwner == null)

@@ -11,4 +11,12 @@ public static class MemberErrors
     public static Error OwnerAlreadyExists(int boardId) => Error.Conflict(
         "Members.OwnerAlreadyExists",
         $"The board with Id = '{boardId}' already has an owner.");
+
+    public static readonly Error CannotRemoveOwner = Error.Conflict(
+        "Members.CannotRemoveOwner",
+        "The board owner cannot be removed. Transfer ownership first.");
+
+    public static Error AlreadyMember(int userId, int boardId) => Error.Conflict(
+        "Members.AlreadyMember",
+        $"The user with Id = '{userId}' is already a member of the board with Id = '{boardId}'.");
 }

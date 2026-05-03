@@ -34,5 +34,11 @@ internal sealed class ListConfiguration : IEntityTypeConfiguration<List>
         builder.HasIndex(l => new { l.SwimlaneId, l.Rank })
             .IsUnique()
             .HasFilter("is_deleted = false");
+
+        builder.HasIndex(l => l.BoardId)
+            .HasFilter("is_deleted = false");
+
+        builder.HasIndex(l => l.SwimlaneId)
+            .HasFilter("is_deleted = false");
     }
 }

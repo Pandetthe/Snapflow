@@ -16,6 +16,11 @@ internal sealed class BoardCacheInvalidator(IOutputCacheStore store) :
     public Task Handle(BoardUpdatedDomainEvent e, CancellationToken ct) =>
         store.EvictByTagAsync(CacheTags.Board(e.Id), ct).AsTask();
 
-    public Task Handle(BoardDeletedDomainEvent e, CancellationToken ct) =>
-        store.EvictByTagAsync(CacheTags.Board(e.Id), ct).AsTask();
+    public Task Handle(BoardDeletedDomainEvent e, CancellationToken ct)
+    {
+        var tasks = e.MemberIds
+            .Select(uid => store.EvictByTagAsync(CacheTags.User(uid), ct).AsTask())
+            .Append(store.EvictByTagAsync(CacheTags.Board(e.Id), ct).AsTask());
+        return Task.WhenAll(tasks);
+    }
 }

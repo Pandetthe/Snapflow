@@ -33,5 +33,8 @@ internal sealed class SwimlaneConfiguration : IEntityTypeConfiguration<Swimlane>
         builder.HasIndex(s => new { s.BoardId, s.Rank })
             .IsUnique()
             .HasFilter("is_deleted = false");
+
+        builder.HasIndex(s => s.BoardId)
+            .HasFilter("is_deleted = false");
     }
 }

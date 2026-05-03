@@ -59,4 +59,12 @@ public static class UserErrors
     public static readonly Error AvatarInvalidFileType = Error.Problem(
         "Users.Avatar.InvalidFileType",
         "Avatar file type is not supported. Allowed types: jpg, jpeg, png, gif, webp.");
+
+    public static readonly Error AccountDeleted = Error.Unauthorized(
+        "Users.AccountDeleted",
+        "This account has been deleted.");
+
+    public static readonly Error EmailSameAsCurrent = Error.Problem(
+        "Users.Email.SameAsCurrent",
+        "The new email address must be different from the current one.");
 }

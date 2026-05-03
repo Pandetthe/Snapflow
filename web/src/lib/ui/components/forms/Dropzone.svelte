@@ -254,9 +254,6 @@
       </div>
       <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{title}</p>
       <p class="text-xs text-gray-500 dark:text-gray-400">{description}</p>
-      {#if maxFiles}
-        <p class="text-xs text-gray-500 dark:text-gray-400">Maximum {maxFiles} files</p>
-      {/if}
     </div>
   </div>
 

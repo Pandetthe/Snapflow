@@ -4,7 +4,7 @@ using Snapflow.Application.Abstractions.Services;
 using Snapflow.Common;
 using Snapflow.Domain.Users;
 
-namespace Snapflow.Application.Users.Me;
+namespace Snapflow.Application.Users.Me.GetMe;
 
 internal sealed class MeHandler(
     IUserContext userContext,

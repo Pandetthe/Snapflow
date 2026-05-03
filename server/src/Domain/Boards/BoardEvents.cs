@@ -16,4 +16,5 @@ public sealed record BoardUpdatedDomainEvent(
 
 public sealed record BoardDeletedDomainEvent(
     int Id,
+    IReadOnlyList<int> MemberIds,
     string? ConnectionId) : IDomainEvent;

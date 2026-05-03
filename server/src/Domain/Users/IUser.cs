@@ -9,6 +9,12 @@ public interface IUser : IEntity<int>
     string Email { get; }
 
     AvatarType AvatarType { get; }
-    
+
     byte[]? AvatarData { get; }
+
+    string? AvatarContentType { get; }
+
+    bool IsDeleted { get; }
+
+    DateTimeOffset? DeletedAt { get; }
 }

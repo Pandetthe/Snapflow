@@ -14,7 +14,7 @@ internal sealed class AvatarHandler(
     {
         IUser? user = await userManager.FindByIdAsync(query.UserId);
 
-        if (user is null)
+        if (user is null || user.IsDeleted)
             return Result.Failure<AvatarResponse>(UserErrors.NotFound(query.UserId));
 
         return await avatarService.GetAvatarDataAsync(user, cancellationToken);

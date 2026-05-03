@@ -1,5 +1,5 @@
 import type { ApiClient, Response as ApiResponseType } from '$lib/core/types/api';
-import type { Response as AppResponse } from '$lib/core/types/app';
+import type { Response as AppResponse, ProblemDetails, ValidationProblemDetails } from '$lib/core/types/app';
 import type { RequestEvent, ServerLoadEvent } from '@sveltejs/kit';
 
 export enum AvatarType {
@@ -27,6 +27,52 @@ export class UsersService {
     this.apiClient = apiClient;
   }
 
+  private async handleResponse<T = void>(
+    promise: Promise<globalThis.Response>
+  ): Promise<AppResponse<T>> {
+    try {
+      const response = await promise;
+
+      if (response.ok) {
+        if (response.status === 204) return { ok: true, value: undefined as any };
+        const text = await response.text();
+        const value = text ? (JSON.parse(text) as T) : (undefined as any);
+        return { ok: true, value };
+      }
+
+      let problem: ProblemDetails | undefined;
+      let validationProblem: ValidationProblemDetails | undefined;
+
+      try {
+        const contentType = response.headers.get('content-type') ?? '';
+        const body = await response.text();
+        if (body.trim()) {
+          if (contentType.includes('application/json')) {
+            const data = JSON.parse(body) as ValidationProblemDetails | ProblemDetails;
+            if ('errors' in data && Array.isArray(data.errors)) {
+              validationProblem = data;
+            } else {
+              problem = data;
+            }
+          } else {
+            problem = { status: response.status, title: response.statusText || 'Error', detail: body };
+          }
+        } else {
+          problem = { status: response.status, title: response.statusText || 'Error' };
+        }
+      } catch {
+        problem = { status: response.status, title: response.statusText || 'Error' };
+      }
+
+      return { ok: false, problem, validationProblem };
+    } catch (err) {
+      return {
+        ok: false,
+        problem: { status: 500, title: 'Network Error', detail: err instanceof Error ? err.message : String(err) }
+      };
+    }
+  }
+
   async getMe(event?: RequestEvent | ServerLoadEvent): Promise<ApiResponseType<{ user: User }>> {
     const response = await this.apiClient.fetch('/me', { method: 'GET' }, event);
 
@@ -38,12 +84,11 @@ export class UsersService {
           title: response.statusText || 'Error',
           detail: null
         }
-      } as any;
+      } as ApiResponseType<{ user: User }>;
     }
 
-    const email = (await response.json()) as any; // placeholder for user fetching
-    const user = { ...email } as User;
-    return { ok: true, user } as any;
+    const user = (await response.json()) as User;
+    return { ok: true, user };
   }
 
   async searchUsers(
@@ -75,5 +120,47 @@ export class UsersService {
 
     const users = (await response.json()) as SearchUserDto[];
     return { ok: true, value: users };
+  }
+
+  async requestEmailChange(body: { newEmail: string }): Promise<AppResponse<void>> {
+    return this.handleResponse(
+      this.apiClient.fetch('/me/email', {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+  }
+
+  async updateProfile(body: { userName: string }): Promise<AppResponse<void>> {
+    return this.handleResponse(
+      this.apiClient.fetch('/me', {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+  }
+
+  async changePassword(body: { currentPassword: string; newPassword: string }): Promise<AppResponse<void>> {
+    return this.handleResponse(
+      this.apiClient.fetch('/me/password', {
+        method: 'PUT',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+  }
+
+  async updateAvatar(formData: FormData): Promise<AppResponse<void>> {
+    return this.handleResponse(
+      this.apiClient.fetch('/me/avatar', { method: 'PUT', body: formData })
+    );
+  }
+
+  async deleteAccount(): Promise<AppResponse<void>> {
+    return this.handleResponse(
+      this.apiClient.fetch('/me', { method: 'DELETE' })
+    );
   }
 }

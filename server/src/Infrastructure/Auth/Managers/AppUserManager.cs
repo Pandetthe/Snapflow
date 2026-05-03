@@ -88,4 +88,70 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
         var errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
         return Result.ValidationFailure<IUser>(new ValidationError(errors));
     }
+
+    public async Task<Result> UpdateUserNameAsync(IUser user, string userName)
+    {
+        AppUser appUser = EnsureIsAppUser(user);
+        appUser.UserName = userName;
+        appUser.Raise(u => new UserProfileUpdatedDomainEvent(u.Id));
+
+        IdentityResult result = await userManager.UpdateAsync(appUser);
+        if (result.Succeeded)
+            return Result.Success();
+
+        appUser.ClearDomainEvents();
+        var errors = result.Errors.Select(e => new PropertyValidationError(GetPropertyName(e.Code), e.Code, e.Description)).ToArray();
+        return Result.ValidationFailure<IUser>(new ValidationError(errors));
+    }
+
+    public async Task<Result> ChangePasswordAsync(IUser user, string currentPassword, string newPassword)
+    {
+        AppUser appUser = EnsureIsAppUser(user);
+        IdentityResult result = await userManager.ChangePasswordAsync(appUser, currentPassword, newPassword);
+        if (result.Succeeded)
+            return Result.Success();
+
+        var errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
+        return Result.ValidationFailure<IUser>(new ValidationError(errors));
+    }
+
+    public async Task<Result> UpdateAvatarAsync(IUser user, AvatarType avatarType, byte[]? avatarData, string? contentType)
+    {
+        AppUser appUser = EnsureIsAppUser(user);
+        appUser.AvatarType = avatarType;
+        appUser.AvatarData = avatarData;
+        appUser.AvatarContentType = contentType;
+        appUser.Raise(u => new UserProfileUpdatedDomainEvent(u.Id));
+        IdentityResult result = await userManager.UpdateAsync(appUser);
+        if (result.Succeeded)
+            return Result.Success();
+
+        appUser.ClearDomainEvents();
+        var errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
+        return Result.ValidationFailure<IUser>(new ValidationError(errors));
+    }
+
+    public async Task<Result> SoftDeleteAsync(IUser user, TimeProvider timeProvider)
+    {
+        AppUser appUser = EnsureIsAppUser(user);
+        appUser.IsDeleted = true;
+        appUser.DeletedAt = timeProvider.GetUtcNow();
+        appUser.Raise(u => new UserDeletedDomainEvent(u.Id));
+
+        IdentityResult stampResult = await userManager.UpdateSecurityStampAsync(appUser);
+        if (!stampResult.Succeeded)
+        {
+            appUser.ClearDomainEvents();
+            var stampErrors = stampResult.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
+            return Result.ValidationFailure<IUser>(new ValidationError(stampErrors));
+        }
+
+        IdentityResult result = await userManager.UpdateAsync(appUser);
+        if (result.Succeeded)
+            return Result.Success();
+
+        appUser.ClearDomainEvents();
+        var errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
+        return Result.ValidationFailure<IUser>(new ValidationError(errors));
+    }
 }

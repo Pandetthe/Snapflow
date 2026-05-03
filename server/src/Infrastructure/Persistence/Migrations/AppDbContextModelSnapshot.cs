@@ -18,7 +18,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("public")
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -340,13 +340,18 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .HasName("pk_cards");
 
                     b.HasIndex("BoardId")
-                        .HasDatabaseName("ix_cards_board_id");
+                        .HasDatabaseName("ix_cards_board_id")
+                        .HasFilter("is_deleted = false");
 
                     b.HasIndex("CreatedById")
                         .HasDatabaseName("ix_cards_created_by_id");
 
                     b.HasIndex("DeletedById")
                         .HasDatabaseName("ix_cards_deleted_by_id");
+
+                    b.HasIndex("ListId")
+                        .HasDatabaseName("ix_cards_list_id")
+                        .HasFilter("is_deleted = false");
 
                     b.HasIndex("SwimlaneId")
                         .HasDatabaseName("ix_cards_swimlane_id");
@@ -431,13 +436,18 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .HasName("pk_lists");
 
                     b.HasIndex("BoardId")
-                        .HasDatabaseName("ix_lists_board_id");
+                        .HasDatabaseName("ix_lists_board_id")
+                        .HasFilter("is_deleted = false");
 
                     b.HasIndex("CreatedById")
                         .HasDatabaseName("ix_lists_created_by_id");
 
                     b.HasIndex("DeletedById")
                         .HasDatabaseName("ix_lists_deleted_by_id");
+
+                    b.HasIndex("SwimlaneId")
+                        .HasDatabaseName("ix_lists_swimlane_id")
+                        .HasFilter("is_deleted = false");
 
                     b.HasIndex("UpdatedById")
                         .HasDatabaseName("ix_lists_updated_by_id");
@@ -541,6 +551,10 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_swimlanes");
+
+                    b.HasIndex("BoardId")
+                        .HasDatabaseName("ix_swimlanes_board_id")
+                        .HasFilter("is_deleted = false");
 
                     b.HasIndex("CreatedById")
                         .HasDatabaseName("ix_swimlanes_created_by_id");
@@ -700,6 +714,10 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("concurrency_stamp");
 
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
@@ -708,6 +726,12 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean")
                         .HasColumnName("email_confirmed");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean")

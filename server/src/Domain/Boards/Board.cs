@@ -67,7 +67,8 @@ public class Board : Entity<int, Board>
         DeletedById = deletedById;
         DeletedAt = deletedAt;
 
-        Raise(b => new BoardDeletedDomainEvent(b.Id, connectionId));
+        var memberIds = Members.Select(m => m.UserId).ToList();
+        Raise(b => new BoardDeletedDomainEvent(b.Id, memberIds, connectionId));
     }
 
     public void AddMembers(IReadOnlyList<(int UserId, MemberRole Role)> memberRequests, string? connectionId = null)

@@ -7,11 +7,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi;
 using Snapflow.Common;
+using Snapflow.Domain.Users;
 using Snapflow.Infrastructure.Persistence;
 using Snapflow.Presentation.Caching;
+using Snapflow.Presentation.Common;
 using Snapflow.Presentation.Endpoints;
 using Snapflow.Presentation.Middlewares;
 using StackExchange.Redis;
+using System.ComponentModel;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -31,9 +34,11 @@ public static class DependencyInjection
         
         services.ConfigureHttpJsonOptions(options =>
         {
-            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+            options.SerializerOptions.Converters.Add(
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+            );
         });
-
+        
         ISignalRServerBuilder signalRBuilder = services.AddSignalR(options =>
         {
             options.AddFilter<GlobalHubExceptionFilter>();
@@ -104,13 +109,14 @@ public static class DependencyInjection
 
         services.AddSingleton<UserOutputCachePolicy>();
         services.AddSingleton<BoardOutputCachePolicy>();
+        services.AddSingleton<AvatarOutputCachePolicy>();
 
         services.AddOutputCache(options =>
         {
             options.DefaultExpirationTimeSpan = TimeSpan.FromSeconds(60);
             options.AddPolicy(CachePolicies.User, b => b.AddPolicy<UserOutputCachePolicy>());
             options.AddPolicy(CachePolicies.Board, b => b.AddPolicy<BoardOutputCachePolicy>());
-            options.AddPolicy(CachePolicies.Avatar, b => b.Expire(TimeSpan.FromMinutes(5)));
+            options.AddPolicy(CachePolicies.Avatar, b => b.AddPolicy<AvatarOutputCachePolicy>().Expire(TimeSpan.FromMinutes(5)));
         });
 
         services.AddCors(options =>

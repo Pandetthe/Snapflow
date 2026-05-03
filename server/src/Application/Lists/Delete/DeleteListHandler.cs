@@ -32,7 +32,7 @@ internal sealed class DeleteListHandler(
 
         await strategy.ExecuteAsync(async () =>
         {
-            using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             try
             {

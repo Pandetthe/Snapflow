@@ -20,6 +20,7 @@ internal sealed class SearchUsersHandler(
 
         var users = await dbContext.Users
             .AsNoTracking()
+            .Where(u => !u.IsDeleted)
             .Where(u => EF.Functions.ILike(u.UserName, searchPattern))
             .Where(u => !query.ExcludedIds.Contains(u.Id))
             .OrderBy(u => u.UserName)

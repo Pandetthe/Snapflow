@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
@@ -13,28 +13,35 @@ internal sealed class GetBoardsHandler(
 {
     public async Task<Result<IReadOnlyList<BoardDto>>> Handle(GetBoardsQuery query, CancellationToken cancellationToken = default)
     {
-        var boardsQuery = dbContext.Boards
+        var memberships = dbContext.Members
             .AsNoTracking()
-            .Where(b => !b.IsDeleted && b.Members.Any(x => x.UserId == userContext.UserId));
+            .Where(m => m.UserId == userContext.UserId);
+
+        var boardsQuery = memberships
+            .Join(
+                dbContext.Boards.AsNoTracking().Where(b => !b.IsDeleted),
+                m => m.BoardId,
+                b => b.Id,
+                (m, b) => new { m.Role, Board = b });
 
         if (!string.IsNullOrWhiteSpace(query.Title))
         {
-            boardsQuery = boardsQuery.Where(b =>
-                EF.Functions.ToTsVector("english", b.Title)
+            boardsQuery = boardsQuery.Where(x =>
+                EF.Functions.ToTsVector("english", x.Board.Title)
                 .Matches(EF.Functions.PhraseToTsQuery("english", query.Title)));
         }
 
         return await boardsQuery
-            .OrderBy(b => b.Title)
-            .Select(b => new BoardDto(
-                b.Id,
-                b.Title,
-                b.Description,
-                b.Members.Where(m => m.UserId == userContext.UserId).Select(m => m.Role).Single(),
-                b.CreatedAt,
-                UserDto.From(b.CreatedBy),
-                b.UpdatedAt,
-                UserDto.From(b.UpdatedBy)))
+            .OrderBy(x => x.Board.Title)
+            .Select(x => new BoardDto(
+                x.Board.Id,
+                x.Board.Title,
+                x.Board.Description,
+                x.Role,
+                x.Board.CreatedAt,
+                UserDto.From(x.Board.CreatedBy),
+                x.Board.UpdatedAt,
+                UserDto.From(x.Board.UpdatedBy)))
             .ToListAsync(cancellationToken);
     }
 }

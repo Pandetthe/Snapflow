@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using OpenTelemetry;
@@ -46,7 +47,7 @@ public static class DependencyInjection
     }
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddInfrastructure(IConfiguration configuration)
+        public IServiceCollection AddInfrastructure(IConfiguration configuration, IHostEnvironment environment)
         {
             services.AddServiceDiscovery();
             services.AddHttpContextAccessor();
@@ -60,7 +61,7 @@ public static class DependencyInjection
             services.AddRedisCacheInternal(configuration);
             services.AddHealthChecksInternal(configuration);
             services.AddOpenTelemetryInternal(configuration);
-            services.AddAuthInternal(configuration);
+            services.AddAuthInternal(configuration, environment);
             services.AddMailingInternal(configuration);
             services.AddAvatarInternal(configuration);
 
@@ -181,7 +182,7 @@ public static class DependencyInjection
                 });
         }
     
-        private void AddAuthInternal(IConfiguration configuration)
+        private void AddAuthInternal(IConfiguration configuration, IHostEnvironment environment)
         {
             services.AddOptions<AuthIdentityOptions>()
                 .Bind(configuration.GetSection(AuthIdentityOptions.SectionName))
@@ -191,7 +192,7 @@ public static class DependencyInjection
             AuthIdentityOptions identityOptions = configuration.GetSection(AuthIdentityOptions.SectionName).Get<AuthIdentityOptions>() 
                                                   ?? new AuthIdentityOptions();
 
-            services.AddIdentity<AppUser, AppRole>(options => 
+            services.AddIdentity<AppUser, AppRole>(options =>
                 {
                     options.User.RequireUniqueEmail = true;
                     options.SignIn.RequireConfirmedEmail = true;
@@ -201,9 +202,12 @@ public static class DependencyInjection
                     options.Password.RequireDigit = Domain.Users.UserOptions.RequireDigitInPassword;
                     options.Password.RequireNonAlphanumeric = Domain.Users.UserOptions.RequireNonAlphanumericInPassword;
                 })
-                .AddSignInManager() 
-                .AddEntityFrameworkStores<AppDbContext>() 
+                .AddSignInManager()
+                .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
+
+            services.Configure<SecurityStampValidatorOptions>(options =>
+                options.ValidationInterval = TimeSpan.FromMinutes(2));
 
             services.ConfigureApplicationCookie(options =>
             {
@@ -212,7 +216,9 @@ public static class DependencyInjection
 
                 options.Cookie.Name = "Snapflow.Auth.Cookie";
                 options.Cookie.HttpOnly = true;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                options.Cookie.SecurePolicy = environment.IsProduction()
+                    ? CookieSecurePolicy.Always
+                    : CookieSecurePolicy.SameAsRequest;
 
                 if (!string.IsNullOrEmpty(cookieDomain))
                 {
