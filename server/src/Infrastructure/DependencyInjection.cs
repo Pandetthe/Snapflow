@@ -219,6 +219,9 @@ public static class DependencyInjection
                 options.Cookie.SecurePolicy = environment.IsProduction()
                     ? CookieSecurePolicy.Always
                     : CookieSecurePolicy.SameAsRequest;
+                options.Cookie.SameSite = environment.IsProduction()
+                    ? SameSiteMode.None
+                    : SameSiteMode.Lax;
 
                 if (!string.IsNullOrEmpty(cookieDomain))
                 {
