@@ -129,7 +129,7 @@
 
 @layer base {
   html {
-    scrollbar-gutter: auto;
+    scrollbar-gutter: stable;
   }
   html,
   body {

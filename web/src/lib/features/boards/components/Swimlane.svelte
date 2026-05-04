@@ -6,7 +6,7 @@
   import { getContext } from 'svelte';
   import { BoardsHub } from '$lib/features/boards/hub/boards.hub';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
-  import { errorStore } from '$lib/ui/stores/error';
+  import { errorStore } from '$lib/ui/stores/error.svelte';
   import { Button } from '$lib/ui/components';
   import { ScrollArea } from 'bits-ui';
   import { triggerHaptic } from '$lib/ui/utils';

@@ -3,14 +3,13 @@
   import '../app.css';
   import favicon from '$lib/assets/favicon.svg';
   import { AppHeader, ErrorModal } from '$lib/ui/components';
-  import { errorStore } from '$lib/ui/stores/error';
+  import { errorStore } from '$lib/ui/stores/error.svelte';
   import type { AppError } from '$lib/core/types/app.js';
   import { theme } from '$lib/ui/stores/theme';
-  import { onDestroy, onMount } from 'svelte';
+  import { onMount } from 'svelte';
   import { pwaInfo } from 'virtual:pwa-info';
   let { children, data } = $props();
 
-  onDestroy(() => {});
   onMount(async () => {
     if (pwaInfo) {
       const { registerSW } = await import('virtual:pwa-register');
@@ -41,20 +40,15 @@
   let showErrorModal = $state(false);
   let modalErrors = $state([] as AppError[]);
 
-  let unsubscribe: () => void;
-  onMount(() => {
-    unsubscribe = errorStore.subscribe((errors) => {
-      if (errors && errors.length > 0) {
-        modalErrors = [...modalErrors, ...errors];
-        showErrorModal = true;
-        errorStore.reset();
-      }
-    });
+  $effect(() => {
+    if (errorStore.errors.length > 0) {
+      modalErrors = [...modalErrors, ...errorStore.errors];
+      showErrorModal = true;
+      errorStore.reset();
+    }
   });
 
   let isSidebarOpen = $state(false);
-
-  onDestroy(() => unsubscribe?.());
 </script>
 
 <svelte:head>

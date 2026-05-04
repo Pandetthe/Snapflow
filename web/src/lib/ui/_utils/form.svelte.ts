@@ -1,5 +1,5 @@
 import { triggerHaptic } from './haptics';
-import { errorStore } from '$lib/ui/stores/error';
+import { errorStore } from '$lib/ui/stores/error.svelte';
 import type {
   Response as ApiResponse,
   ProblemDetails as ApiProblemDetails

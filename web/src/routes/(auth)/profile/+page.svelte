@@ -16,7 +16,7 @@
   import PasswordStrength from '$lib/features/auth/components/PasswordStrength.svelte';
   import { validateEmail, validateUsername, validatePassword } from '$lib/features/auth/validation';
   import { createForm } from '$lib/ui/utils';
-  import { errorStore } from '$lib/ui/stores/error';
+  import { errorStore } from '$lib/ui/stores/error.svelte';
   import {
     Check,
     Upload,
@@ -206,7 +206,7 @@
 </svelte:head>
 
 <FullLayout>
-  <div class="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 space-y-8 pb-12" in:fade={{ duration: 400 }}>
+  <div class="mx-auto w-full max-w-5xl space-y-8 pb-12" in:fade={{ duration: 400 }}>
     <header class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
         <GoBackButton href={backHref} />

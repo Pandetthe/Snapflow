@@ -2,7 +2,7 @@
   import { BoardsService } from '$lib/features/boards/api/boards.api';
   import { UsersService, type SearchUserDto } from '$lib/features/users/api/users';
   import { apiClient } from '$lib/core/api.client';
-  import { errorStore } from '$lib/ui/stores/error';
+  import { errorStore } from '$lib/ui/stores/error.svelte';
   import {
     Button,
     FullLayout,

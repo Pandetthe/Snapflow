@@ -7,7 +7,7 @@
   import CardModal from '$lib/features/boards/components/CardModal.svelte';
   import { onDestroy, onMount, setContext } from 'svelte';
   import { BoardsHub } from '$lib/features/boards/hub/boards.hub';
-  import { errorStore } from '$lib/ui/stores/error';
+  import { errorStore } from '$lib/ui/stores/error.svelte';
   import { recentBoards } from '$lib/features/boards/stores/recent';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import { Button, FullBleedLayout, GoBackButton, LoadingDots } from '$lib/ui/components';
