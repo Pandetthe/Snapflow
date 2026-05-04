@@ -3,7 +3,7 @@
   import { ThemeToggle, UserMenu, GithubButton, Button } from '$lib/ui/components';
   import { AuthService } from '$lib/features/auth/api/auth';
   import { apiClient } from '$lib/core/api.client';
-  import { errorStore } from '$lib/ui/stores/error';
+  import { errorStore } from '$lib/ui/stores/error.svelte';
   import type { User } from '$lib/features/users/api/users';
   import { Dialog } from 'bits-ui';
 

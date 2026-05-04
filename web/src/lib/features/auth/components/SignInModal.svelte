@@ -4,7 +4,7 @@
   import { cn } from '$lib/ui/utils';
   import { AuthService } from '../api/auth';
   import { apiClient } from '$lib/core/api.client';
-  import { errorStore } from '$lib/ui/stores/error';
+  import { errorStore } from '$lib/ui/stores/error.svelte';
   import { ShieldAlert, KeyRound, CircleX, MailQuestionMark, UserX } from 'lucide-svelte';
   import { fade, scale } from 'svelte/transition';
   import { quintOut } from 'svelte/easing';

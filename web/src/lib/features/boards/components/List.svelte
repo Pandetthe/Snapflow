@@ -6,7 +6,7 @@
   import type { BoardsHub } from '$lib/features/boards/hub/boards.hub';
   import Card from './Card.svelte';
   import { ScrollArea } from 'bits-ui';
-  import { errorStore } from '$lib/ui/stores/error';
+  import { errorStore } from '$lib/ui/stores/error.svelte';
   import { triggerHaptic } from '$lib/ui/utils';
   import { Button } from '$lib/ui/components';
   import { GripVertical, Pencil, Plus } from 'lucide-svelte';
