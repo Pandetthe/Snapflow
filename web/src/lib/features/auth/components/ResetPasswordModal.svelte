@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Dialog } from 'bits-ui';
   import { Button, ResponsiveDialog } from '$lib/ui/components';
-  import { Check, CircleX } from 'lucide-svelte';
+  import { Check, CircleX, UserX } from 'lucide-svelte';
   import { cn } from '$lib/ui/utils';
 
   let {
@@ -17,7 +17,7 @@
     triggerElement = undefined
   } = $props<{
     open: boolean;
-    variant: 'success' | 'error';
+    variant: 'success' | 'error' | 'accountDeleted';
     desktopMode?: 'modal' | 'drawer';
     mobileMode?: 'modal' | 'drawer';
     desktopPlacement?: 'center' | 'trigger';
@@ -45,6 +45,13 @@
       title: 'Reset password failed',
       message: 'The reset password attempt failed. Please try again later.',
       icon: CircleX,
+      color: 'text-rose-600 dark:text-rose-400',
+      bgColor: 'bg-rose-50 dark:bg-rose-500/10'
+    },
+    accountDeleted: {
+      title: 'Account deleted',
+      message: 'This account has been deleted and can no longer be used to reset a password.',
+      icon: UserX,
       color: 'text-rose-600 dark:text-rose-400',
       bgColor: 'bg-rose-50 dark:bg-rose-500/10'
     }

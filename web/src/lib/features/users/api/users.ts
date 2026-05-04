@@ -47,7 +47,7 @@ export class UsersService {
         const contentType = response.headers.get('content-type') ?? '';
         const body = await response.text();
         if (body.trim()) {
-          if (contentType.includes('application/json')) {
+          if (contentType.includes('json')) {
             const data = JSON.parse(body) as ValidationProblemDetails | ProblemDetails;
             if ('errors' in data && Array.isArray(data.errors)) {
               validationProblem = data;

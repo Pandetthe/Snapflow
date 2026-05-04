@@ -21,6 +21,7 @@ export interface FormConfig<TValues extends Record<string, unknown>, TResponse =
   onSubmit: (values: TValues) => Promise<FormResponse<TResponse>>;
   onSuccess?: (response: TResponse) => void;
   onError?: (problem: ApiProblemDetails) => boolean | void;
+  mapValidationError?: (err: ValidationErrorShape) => ValidationErrorShape;
 }
 
 function getSuccessPayload<TResponse>(response: FormResponse<TResponse>): TResponse {
@@ -157,6 +158,9 @@ export function createForm<TValues extends Record<string, unknown>, TResponse = 
 
   function handleValidationErrors(validationErrors: ValidationErrorShape[]) {
     resetErrors();
+    if (config.mapValidationError) {
+      validationErrors = validationErrors.map(config.mapValidationError);
+    }
     const generalErrors: AppError[] = [];
 
     validationErrors.forEach((err) => {

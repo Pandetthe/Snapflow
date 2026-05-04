@@ -13,7 +13,7 @@ internal sealed class ForgotPasswordHandler(
     {
         IUser? user = await userManager.FindByEmailAsync(command.Email);
 
-        if (user is null || !await userManager.IsEmailConfirmedAsync(user))
+        if (user is null || user.IsDeleted || !await userManager.IsEmailConfirmedAsync(user))
             return Result.Success();
 
         var code = await userManager.GeneratePasswordResetTokenAsync(user);

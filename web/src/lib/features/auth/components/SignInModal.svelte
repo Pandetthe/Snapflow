@@ -5,7 +5,7 @@
   import { AuthService } from '../api/auth';
   import { apiClient } from '$lib/core/api.client';
   import { errorStore } from '$lib/ui/stores/error';
-  import { ShieldAlert, KeyRound, CircleX, MailQuestionMark } from 'lucide-svelte';
+  import { ShieldAlert, KeyRound, CircleX, MailQuestionMark, UserX } from 'lucide-svelte';
   import { fade, scale } from 'svelte/transition';
   import { quintOut } from 'svelte/easing';
 
@@ -71,6 +71,13 @@
       icon: KeyRound,
       color: 'text-brand-600 dark:text-brand-400',
       bgColor: 'bg-brand-100 dark:bg-brand-900/30'
+    },
+    'Users.AccountDeleted': {
+      title: 'Account deleted',
+      message: 'This account has been deleted and can no longer be used to sign in.',
+      icon: UserX,
+      color: 'text-rose-600 dark:text-rose-400',
+      bgColor: 'bg-rose-50 dark:bg-rose-500/10'
     }
   };
 

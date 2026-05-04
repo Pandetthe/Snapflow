@@ -75,7 +75,7 @@
 
   const overlayClasses = $derived(
     cn(
-      'fixed inset-0 z-50 bg-black/40 backdrop-blur-md',
+      'fixed inset-0 z-[60] bg-black/40 backdrop-blur-md',
       'data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
       'data-[state=open]:animate-in data-[state=open]:fade-in-0',
       overlayClass
@@ -87,7 +87,7 @@
 
   const baseContentClasses = $derived(
     cn(
-      'fixed z-50 w-[calc(100%-1.25rem)] overflow-y-auto border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900',
+      'fixed z-[60] w-[calc(100%-1.25rem)] overflow-y-auto border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900',
       SIZE_CLASS[size],
       sizeClass,
       animationClasses,

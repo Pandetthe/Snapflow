@@ -22,18 +22,18 @@
     validate: (values) => {
       const errors: Record<string, string> = {};
       if (!values.email) {
-        errors.email = 'Email is required';
+        errors.email = 'Email is required.';
       } else if (values.email.length > authConfig.email.maxLength) {
-        errors.email = `Email must be less than ${authConfig.email.maxLength} characters`;
+        errors.email = `Email must be less than ${authConfig.email.maxLength} characters.`;
       } else {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(values.email)) {
-          errors.email = 'Please enter a valid email address';
+          errors.email = 'Please enter a valid email address.';
         }
       }
 
       if (!values.password) {
-        errors.password = 'Password is required';
+        errors.password = 'Password is required.';
       }
       return errors;
     },
@@ -50,7 +50,8 @@
         'Users.SignIn.Failed',
         'Users.SignIn.LockedOut',
         'Users.SignIn.NotAllowed',
-        'Users.SignIn.TwoFactorRequired'
+        'Users.SignIn.TwoFactorRequired',
+        'Users.AccountDeleted'
       ];
 
       if (problem.title && handledCodes.includes(problem.title)) {

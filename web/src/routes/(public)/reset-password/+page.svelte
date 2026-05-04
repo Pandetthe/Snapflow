@@ -8,13 +8,14 @@
   import type { ProblemDetails } from '$lib/core/types/api';
   import ResetPasswordModal from '$lib/features/auth/components/ResetPasswordModal.svelte';
   import PasswordStrength from '$lib/features/auth/components/PasswordStrength.svelte';
+  import { validatePassword, validatePasswordConfirm } from '$lib/features/auth/validation';
 
   let { data } = $props();
 
   const authService = new AuthService(apiClient);
 
   let showModal = $state(false);
-  let modalVariant = $state<'success' | 'error'>('success');
+  let modalVariant = $state<'success' | 'error' | 'accountDeleted'>('success');
 
   const resetPasswordInfoByCode: Record<string, { title: string; message: string }> = {
     'Users.ResetPassword.InvalidCode': {
@@ -30,32 +31,10 @@
     },
     validate: (values) => {
       const errors: Partial<Record<keyof typeof values, string>> = {};
-
-      if (!values.password) {
-        errors.password = 'Password is required';
-      } else if (values.password.length < authConfig.password.minLength) {
-        errors.password = `Password must be at least ${authConfig.password.minLength} characters`;
-      } else if (values.password.length > authConfig.password.maxLength) {
-        errors.password = `Password must be less than ${authConfig.password.maxLength} characters`;
-      } else {
-        if (authConfig.password.requireLowercase && !/[a-z]/.test(values.password)) {
-          errors.password = 'Password must contain at least one lowercase letter';
-        } else if (authConfig.password.requireUppercase && !/[A-Z]/.test(values.password)) {
-          errors.password = 'Password must contain at least one uppercase letter';
-        } else if (authConfig.password.requireDigit && !/\d/.test(values.password)) {
-          errors.password = 'Password must contain at least one digit';
-        } else if (
-          authConfig.password.requireNonAlphanumeric &&
-          !/[^a-zA-Z0-9]/.test(values.password)
-        ) {
-          errors.password = 'Password must contain at least one special character';
-        }
-      }
-
-      if (values.repeatPassword && values.password !== values.repeatPassword) {
-        errors.repeatPassword = 'Passwords do not match';
-      }
-
+      const passwordError = validatePassword(values.password);
+      if (passwordError) errors.password = passwordError;
+      const confirmError = validatePasswordConfirm(values.password, values.repeatPassword);
+      if (confirmError) errors.repeatPassword = confirmError;
       return errors;
     },
     onSubmit: async (values) => {
@@ -70,6 +49,11 @@
       showModal = true;
     },
     onError: (problem: ProblemDetails) => {
+      if (problem.title === 'Users.AccountDeleted') {
+        modalVariant = 'accountDeleted';
+        showModal = true;
+        return true;
+      }
       if (problem.title && resetPasswordInfoByCode[problem.title]) {
         modalVariant = 'error';
         showModal = true;

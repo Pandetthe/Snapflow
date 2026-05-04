@@ -14,6 +14,7 @@
     ResponsiveDialog
   } from '$lib/ui/components';
   import PasswordStrength from '$lib/features/auth/components/PasswordStrength.svelte';
+  import { validateEmail, validateUsername, validatePassword } from '$lib/features/auth/validation';
   import { createForm } from '$lib/ui/utils';
   import { errorStore } from '$lib/ui/stores/error';
   import {
@@ -79,9 +80,8 @@
     initialValues: { userName: data.user?.userName ?? '' },
     validate: (values) => {
       const errors: Record<string, string> = {};
-      if (!values.userName.trim()) errors.userName = 'Username is required';
-      else if (values.userName.trim().length < 3) errors.userName = 'Min 3 characters';
-      else if (values.userName.trim().length > 20) errors.userName = 'Max 20 characters';
+      const usernameError = validateUsername(values.userName);
+      if (usernameError) errors.userName = usernameError;
       return errors;
     },
     onSubmit: (values) => usersService.updateProfile({ userName: values.userName.trim() }),
@@ -95,8 +95,8 @@
     initialValues: { newEmail: '' },
     validate: (values) => {
       const errors: Record<string, string> = {};
-      if (!values.newEmail.trim()) errors.newEmail = 'Required';
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.newEmail.trim())) errors.newEmail = 'Invalid email address';
+      const emailError = validateEmail(values.newEmail);
+      if (emailError) errors.newEmail = emailError;
       return errors;
     },
     onSubmit: (values) => usersService.requestEmailChange({ newEmail: values.newEmail.trim() }),
@@ -107,10 +107,9 @@
     initialValues: { currentPassword: '', newPassword: '' },
     validate: (values) => {
       const errors: Record<string, string> = {};
-      if (!values.currentPassword) errors.currentPassword = 'Required';
-      if (!values.newPassword) errors.newPassword = 'Required';
-      else if (values.newPassword.length < 8) errors.newPassword = 'Min 8 characters';
-      else if (values.newPassword.length > 64) errors.newPassword = 'Max 64 characters';
+      if (!values.currentPassword) errors.currentPassword = 'Current password is required.';
+      const passwordError = validatePassword(values.newPassword);
+      if (passwordError) errors.newPassword = passwordError;
       return errors;
     },
     onSubmit: (values) =>
@@ -118,6 +117,8 @@
         currentPassword: values.currentPassword,
         newPassword: values.newPassword
       }),
+    mapValidationError: (err) =>
+      err.code === 'PasswordMismatch' ? { ...err, propertyName: 'currentPassword' } : err,
     onSuccess: () => { 
       passwordChangeSuccess = true; 
       passwordForm.reset(); 
@@ -539,9 +540,7 @@
                       bind:value={passwordForm.values.newPassword}
                       error={passwordForm.errors.newPassword}
                     />
-                    {#if passwordForm.values.newPassword}
-                      <PasswordStrength password={passwordForm.values.newPassword} />
-                    {/if}
+                    <PasswordStrength password={passwordForm.values.newPassword} />
                     <div class="flex justify-end gap-2">
                       <Button variant="ghost" size="sm" onclick={toggleEditPassword}>Cancel</Button>
                       <Button

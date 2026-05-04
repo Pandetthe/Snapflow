@@ -7,6 +7,7 @@
   import { createForm } from '$lib/ui/_utils/form.svelte';
   import SignUpModal from '$lib/features/auth/components/SignUpModal.svelte';
   import PasswordStrength from '$lib/features/auth/components/PasswordStrength.svelte';
+  import { validateEmail, validateUsername, validatePassword, validatePasswordConfirm } from '$lib/features/auth/validation';
 
   const authService = new AuthService(apiClient);
 
@@ -21,51 +22,14 @@
     },
     validate: (values) => {
       const errors: Partial<Record<keyof typeof values, string>> = {};
-
-      if (!values.email) {
-        errors.email = 'Email is required';
-      } else if (values.email.length > authConfig.email.maxLength) {
-        errors.email = `Email must be less than ${authConfig.email.maxLength} characters`;
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-        errors.email = 'Please enter a valid email address';
-      }
-
-      if (!values.userName) {
-        errors.userName = 'User name is required';
-      } else if (
-        values.userName.length < authConfig.userName.minLength ||
-        values.userName.length > authConfig.userName.maxLength
-      ) {
-        errors.userName = `User name must be between ${authConfig.userName.minLength} and ${authConfig.userName.maxLength} characters`;
-      } else if (!/^[a-zA-Z0-9_]+$/.test(values.userName)) {
-        errors.userName = 'User name can only contain letters, numbers, and underscores';
-      }
-
-      if (!values.password) {
-        errors.password = 'Password is required';
-      } else if (values.password.length < authConfig.password.minLength) {
-        errors.password = `Password must be at least ${authConfig.password.minLength} characters`;
-      } else if (values.password.length > authConfig.password.maxLength) {
-        errors.password = `Password must be less than ${authConfig.password.maxLength} characters`;
-      } else {
-        if (authConfig.password.requireLowercase && !/[a-z]/.test(values.password)) {
-          errors.password = 'Password must contain at least one lowercase letter';
-        } else if (authConfig.password.requireUppercase && !/[A-Z]/.test(values.password)) {
-          errors.password = 'Password must contain at least one uppercase letter';
-        } else if (authConfig.password.requireDigit && !/\d/.test(values.password)) {
-          errors.password = 'Password must contain at least one digit';
-        } else if (
-          authConfig.password.requireNonAlphanumeric &&
-          !/[^a-zA-Z0-9]/.test(values.password)
-        ) {
-          errors.password = 'Password must contain at least one special character';
-        }
-      }
-
-      if (values.repeatPassword && values.password !== values.repeatPassword) {
-        errors.repeatPassword = 'Passwords do not match';
-      }
-
+      const emailError = validateEmail(values.email);
+      if (emailError) errors.email = emailError;
+      const usernameError = validateUsername(values.userName);
+      if (usernameError) errors.userName = usernameError;
+      const passwordError = validatePassword(values.password);
+      if (passwordError) errors.password = passwordError;
+      const confirmError = validatePasswordConfirm(values.password, values.repeatPassword);
+      if (confirmError) errors.repeatPassword = confirmError;
       return errors;
     },
     onSubmit: async (values) => {
