@@ -20,6 +20,7 @@ This project includes automated setup scripts to spin up the entire environment 
 Open your terminal and run:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
+```
 
 **Linux / macOS (Bash):**
 Open your terminal and run:
@@ -27,6 +28,7 @@ Open your terminal and run:
 ```Bash
 chmod +x scripts/setup.sh
 ./scripts/setup.sh
+```
 
 Management
 View Logs: docker-compose -f deployment/docker-compose.yml logs -f
