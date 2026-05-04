@@ -1,4 +1,5 @@
 import type { Handle, HandleServerError } from '@sveltejs/kit';
+import { env as privateEnv } from '$env/dynamic/private';
 import { env } from '$env/dynamic/public';
 import { UsersService } from '$lib/features/users/api/users';
 import { apiClient } from '$lib/server/api.server.ts';
@@ -18,7 +19,8 @@ export const handle: Handle = async ({ event, resolve }) => {
         event.locals.user = result.user;
       } else if ('status' in result && result.status === 401) {
         event.locals.session = null;
-        event.cookies.delete('Snapflow.Auth.Cookie', { path: '/' });
+        const cookieDomain = privateEnv.COOKIE_DOMAIN || undefined;
+        event.cookies.delete('Snapflow.Auth.Cookie', { path: '/', domain: cookieDomain });
       }
     } catch (err) {
       logger.error({ err }, 'Failed to fetch user data');

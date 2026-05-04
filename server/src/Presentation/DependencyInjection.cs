@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi;
 using Snapflow.Common;
 using Snapflow.Domain.Users;
+using Snapflow.Infrastructure.Common;
 using Snapflow.Infrastructure.Persistence;
 using Snapflow.Presentation.Caching;
 using Snapflow.Presentation.Common;
@@ -119,14 +120,14 @@ public static class DependencyInjection
             options.AddPolicy(CachePolicies.Avatar, b => b.AddPolicy<AvatarOutputCachePolicy>().Expire(TimeSpan.FromMinutes(5)));
         });
 
+        var servicesOptions = configuration.GetSection(ServicesOptions.SectionName).Get<ServicesOptions>() ?? new ServicesOptions();
         services.AddCors(options =>
         {
             options.AddPolicy("AllowWeb", policy =>
             {
-                var webUrl = configuration.GetValue<string>("Services:WebUrl");
-                if (!string.IsNullOrEmpty(webUrl))
+                if (servicesOptions.AllowedOrigins is { Length: > 0 })
                 {
-                    policy.WithOrigins(webUrl)
+                    policy.WithOrigins(servicesOptions.AllowedOrigins)
                           .AllowAnyMethod()
                           .AllowAnyHeader()
                           .AllowCredentials();
