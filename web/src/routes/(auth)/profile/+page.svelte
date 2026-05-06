@@ -43,7 +43,6 @@
     backHref = from?.url.pathname ?? '/boards';
   });
 
-  // --- Edit states (declared before forms so closures can reference them) ---
   let isEditingUsername = $state(false);
   let usernameChangeSuccess = $state(false);
   let isEditingEmail = $state(false);
@@ -75,7 +74,6 @@
     }
   }
 
-  // --- Forms ---
   const usernameForm = createForm({
     initialValues: { userName: data.user?.userName ?? '' },
     validate: (values) => {
@@ -125,7 +123,6 @@
     }
   });
 
-  // --- Avatar ---
   let selectedAvatarType = $state<AvatarType>(data.user?.avatarType ?? AvatarType.Generated);
   let avatarFiles = $state<File[]>([]);
   let avatarPreview = $state<string | null>(null);
@@ -184,7 +181,6 @@
     }
   }
 
-  // --- Delete account ---
   let isConfirmingDelete = $state(false);
   let isDeletingAccount = $state(false);
 

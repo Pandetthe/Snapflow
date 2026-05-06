@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Snapflow.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using Snapflow.Infrastructure.Persistence;
 namespace Snapflow.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260505113154_AddCardDescription")]
+    partial class AddCardDescription
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -365,44 +368,6 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .HasFilter("is_deleted = false");
 
                     b.ToTable("cards", "public");
-                });
-
-            modelBuilder.Entity("Snapflow.Domain.Cards.CardComment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CardId")
-                        .HasColumnType("integer")
-                        .HasColumnName("card_id");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_card_comments");
-
-                    b.HasIndex("CardId")
-                        .HasDatabaseName("ix_card_comments_card_id");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_card_comments_user_id");
-
-                    b.ToTable("CardComments", "public");
                 });
 
             modelBuilder.Entity("Snapflow.Domain.Lists.List", b =>
@@ -988,25 +953,6 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.Navigation("UpdatedBy");
                 });
 
-            modelBuilder.Entity("Snapflow.Domain.Cards.CardComment", b =>
-                {
-                    b.HasOne("Snapflow.Domain.Cards.Card", null)
-                        .WithMany("Comments")
-                        .HasForeignKey("CardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_card_comments_cards_card_id");
-
-                    b.HasOne("Snapflow.Infrastructure.Auth.Entities.AppUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("fk_card_comments_users_user_id");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Snapflow.Domain.Lists.List", b =>
                 {
                     b.HasOne("Snapflow.Domain.Boards.Board", "Board")
@@ -1159,11 +1105,6 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.Navigation("Swimlanes");
 
                     b.Navigation("Tags");
-                });
-
-            modelBuilder.Entity("Snapflow.Domain.Cards.Card", b =>
-                {
-                    b.Navigation("Comments");
                 });
 
             modelBuilder.Entity("Snapflow.Domain.Lists.List", b =>

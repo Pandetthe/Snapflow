@@ -1,10 +1,11 @@
-﻿using Snapflow.Domain.Members;
-
+﻿using Snapflow.Application.Boards.GetById;
+using Snapflow.Application.Cards.AddComment;
+using Snapflow.Domain.Members;
 namespace Snapflow.Presentation.Hubs.Board;
 
 public interface IBoardHubClient
 {
-    public sealed record BoardUpdatedPayload(string Title, string Description);
+    public sealed record BoardUpdatedPayload(string Title, string? Description);
 
     Task BoardUpdated(BoardUpdatedPayload payload, CancellationToken cancellationToken = default);
 
@@ -46,11 +47,11 @@ public interface IBoardHubClient
 
     Task CardUnlocked();
 
-    public sealed record CardCreatedPayload(int Id, int ListId, string Title, string Description, string Rank);
+    public sealed record CardCreatedPayload(int Id, int ListId, string Title, string? Description, string Rank);
 
     Task CardCreated(CardCreatedPayload payload, CancellationToken cancellationToken = default);
-
-    public sealed record CardUpdatedPayload(int Id, string Title, string Description);
+    Task CommentAdded(int cardId, GetBoardByIdResponse.CardCommentDto comment);
+    public sealed record CardUpdatedPayload(int Id, string Title, string? Description);
 
     Task CardUpdated(CardUpdatedPayload payload, CancellationToken cancellationToken = default);
 

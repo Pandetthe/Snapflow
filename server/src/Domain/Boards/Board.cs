@@ -13,7 +13,7 @@ public class Board : Entity<int, Board>
     public Board() { }
     
     public string Title { get; private set; } = null!;
-    public string Description { get; private set; } = "";
+    public string? Description { get; private set; } = "";
 
     public DateTimeOffset CreatedAt { get; private set; }
     public int CreatedById { get; private set; }
@@ -34,7 +34,7 @@ public class Board : Entity<int, Board>
     public virtual ICollection<Card> Cards { get; private set; } = [];
     public virtual ICollection<Tag> Tags { get; private set; } = [];
 
-    public static Board Create(string title, string description, int createdById, DateTimeOffset createdAt, string? connectionId = null)
+    public static Board Create(string title, string? description, int createdById, DateTimeOffset createdAt, string? connectionId = null)
     {
         var board = new Board
         {
@@ -51,7 +51,7 @@ public class Board : Entity<int, Board>
         return board;
     }
 
-    public void Update(string title, string description, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
+    public void Update(string title, string? description, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
     {
         Title = title;
         Description = description;
