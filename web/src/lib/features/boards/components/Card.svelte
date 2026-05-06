@@ -44,8 +44,7 @@
       {/if}
     </div>
 
-    <!-- Uchwyt do przeciągania (pojawia się na hover po prawej stronie) -->
-    <div class="ml-auto shrink-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100" onclick={(e) => e.stopPropagation()}>
+    <button type="button" class="ml-auto shrink-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100" onclick={(e) => e.stopPropagation()}>
       <div
         use:dragHandle
         class="flex items-center justify-center rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300 {boardState === 'connected' ? 'cursor-grab active:cursor-grabbing' : 'cursor-not-allowed opacity-50'}"
@@ -53,7 +52,7 @@
       >
         <GripVertical class="h-4 w-4" />
       </div>
-    </div>
+    </button>
   </div>
 
   <!-- Stopka: Metadane karty -->

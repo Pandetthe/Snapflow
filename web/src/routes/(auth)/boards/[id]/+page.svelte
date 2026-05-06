@@ -224,7 +224,8 @@
               createdAt: res.value.createdAt,
               createdBy: res.value.createdBy as any,
               updatedAt: null,
-              updatedBy: null
+              updatedBy: null,
+              comments: []
             });
             sortCards(list);
             break;
@@ -445,7 +446,8 @@
                 avatarUrl: null
               },
               updatedAt: null,
-              updatedBy: null
+              updatedBy: null,
+              comments: []
             });
             sortCards(list);
             break;

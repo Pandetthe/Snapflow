@@ -37,22 +37,25 @@
       triggerHaptic('success');
       const id = Number(info.id);
       const index = swimlane.lists.findIndex((l) => l.id === id);
+      
       if (index === -1) return;
 
       const nextItem = swimlane.lists[index + 1];
       const beforeId = nextItem ? nextItem.id : null;
 
-      let res = await hub?.moveCard({ id, listId: list.id, beforeId });
+      let res = await hub?.moveList({ id, swimlaneId: swimlane.id, beforeId });
+      
       if (res && res.ok) {
-        const movedItem = list.cards.find((c) => c.id === id);
-        if (movedItem) movedItem.rank = res.value.rank;
-        list.cards.sort((a, b) => a.rank.localeCompare(b.rank));
-        list.cards = [...list.cards];
-      } 
-      else if (boardState === 'connected') {
-        errorStore.addError('Web.MoveCardFailed', 'Failed to move card');
-        list.cards.sort((a, b) => a.rank.localeCompare(b.rank));
-        list.cards = [...list.cards];
+        const movedItem = swimlane.lists.find((l) => l.id === id);
+        if (movedItem && res.value?.rank) {
+          movedItem.rank = res.value.rank;
+        }
+        swimlane.lists.sort((a, b) => a.rank.localeCompare(b.rank));
+        swimlane.lists = [...swimlane.lists];
+      } else if (boardState === 'connected') { 
+        errorStore.addError('Web.MoveListFailed', 'Failed to move list');
+        swimlane.lists.sort((a, b) => a.rank.localeCompare(b.rank));
+        swimlane.lists = [...swimlane.lists];
       }
     }
   }
