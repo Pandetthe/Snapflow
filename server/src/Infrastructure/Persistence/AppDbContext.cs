@@ -47,12 +47,12 @@ public sealed class AppDbContext(
         }
         builder.Entity<CardComment>(entity =>
         {
-            entity.HasOne(x => (AppUser)x.User)
+            entity.HasOne<AppUser>()
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            entity.ToTable("CardComments"); 
+            entity.ToTable("card_comments"); 
         });
     }
 }

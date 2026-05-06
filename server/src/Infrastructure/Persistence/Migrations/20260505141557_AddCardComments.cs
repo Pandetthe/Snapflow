@@ -13,7 +13,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "cardcomments",
+                name: "card_comments",
                 schema: "public",
                 columns: table => new
                 {
@@ -45,7 +45,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
             migrationBuilder.CreateIndex(
                 name: "ix_card_comments_card_id",
                 schema: "public",
-                table: "CardComments",
+                table: "card_comments",
                 column: "card_id");
 
             migrationBuilder.CreateIndex(
@@ -59,7 +59,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "CardComments",
+                name: "card_comments",
                 schema: "public");
         }
     }
