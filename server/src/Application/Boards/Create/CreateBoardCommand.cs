@@ -7,5 +7,5 @@ public sealed record CreateBoardMemberRequest(int UserId, MemberRole Role);
 
 public sealed record CreateBoardCommand(
     string Title,
-    string Description,
+    string? Description,
     IReadOnlyList<CreateBoardMemberRequest>? Members = null) : ICommand<int>;

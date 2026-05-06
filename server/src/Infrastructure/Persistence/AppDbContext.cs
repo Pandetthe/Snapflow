@@ -14,6 +14,7 @@ using Snapflow.Infrastructure.Auth.Entities;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Snapflow.Domain.Roles;
 
+
 namespace Snapflow.Infrastructure.Persistence;
 
 public sealed class AppDbContext(
@@ -28,7 +29,7 @@ public sealed class AppDbContext(
     public DbSet<Member> Members { get; private set; }
     public DbSet<Tag> Tags { get; private set; }
     public DbSet<Card> Cards { get; private set; }
-    
+    public DbSet<CardComment> CardComments => Set<CardComment>();
     public DbSet<DataProtectionKey> DataProtectionKeys { get; private set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -44,5 +45,14 @@ public sealed class AppDbContext(
         {
             builder.Entity(entityType.ClrType).Ignore(nameof(IEntity.DomainEvents));
         }
+        builder.Entity<CardComment>(entity =>
+        {
+            entity.HasOne(x => (AppUser)x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.ToTable("CardComments"); 
+        });
     }
 }

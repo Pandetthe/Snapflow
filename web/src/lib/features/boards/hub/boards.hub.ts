@@ -131,7 +131,6 @@ export class BoardsHub {
     }
   }
 
-  // Commands
   createSwimlane(request: CreateSwimlaneRequest): Promise<Response<CreateSwimlaneResponse>> {
     return this.handleResponse<CreateSwimlaneResponse>(
       'CreateSwimlane',
@@ -206,5 +205,17 @@ export class BoardsHub {
 
   deleteCard(request: DeleteCardRequest): Promise<Response> {
     return this.handleResponse('DeleteCard', this.connection.invoke('DeleteCard', request));
+  }
+
+  addComment(cardId: number, content: string): Promise<Response<any>> {
+    return this.handleResponse(
+      'AddComment',
+      this.connection.invoke('AddComment', cardId, content)
+    );
+  }
+
+  onCommentAdded(callback: (cardId: number, comment: any) => void) {
+    this.connection.on('CommentAdded', callback);
+    return () => this.connection.off('CommentAdded', callback);
   }
 }

@@ -9,7 +9,7 @@ public sealed record GetCardByIdResponse(
     int SwimlaneId,
     int BoardId,
     string Title,
-    string Description,
+    string? Description,
     string Rank,
     DateTimeOffset CreatedAt,
     UserDto CreatedBy,

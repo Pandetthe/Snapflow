@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Snapflow.Application.Cards.AddComment;
 using static Snapflow.Application.Boards.GetById.GetBoardByIdResponse;
 
 namespace Snapflow.Application.Boards.GetById;
@@ -6,7 +7,7 @@ namespace Snapflow.Application.Boards.GetById;
 public sealed record GetBoardByIdResponse(
         int Id,
         string Title,
-        string Description,
+        string? Description,
         IReadOnlyList<SwimlaneDto> Swimlanes)
 {
     public sealed record UserDto(int Id, string UserName)
@@ -34,10 +35,17 @@ public sealed record GetBoardByIdResponse(
     public sealed record CardDto(
         int Id,
         string Title,
-        string Description,
+        string? Description,
         string Rank,
         DateTimeOffset CreatedAt,
         UserDto CreatedBy,
         DateTimeOffset? UpdatedAt,
-        UserDto? UpdatedBy);
+        UserDto? UpdatedBy,
+        List<CardCommentDto> Comments);
+    public sealed record CardCommentDto(
+        int Id,
+        int UserId,
+        string UserName,
+        string Content,
+        DateTimeOffset CreatedAt);
 }

@@ -8,7 +8,7 @@ public sealed record CardCreatedDomainEvent(
     int SwimlaneId,
     int ListId,
     string Title,
-    string Description,
+    string? Description,
     string Rank,
     string? ConnectionId) : IDomainEvent;
 
@@ -16,7 +16,7 @@ public sealed record CardUpdatedDomainEvent(
     int Id,
     int BoardId,
     string Title,
-    string Description,
+    string? Description,
     string? ConnectionId) : IDomainEvent;
 
 public sealed record CardMovedDomainEvent(
