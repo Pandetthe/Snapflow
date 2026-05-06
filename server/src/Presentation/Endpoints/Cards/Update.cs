@@ -8,7 +8,7 @@ namespace Snapflow.Presentation.Endpoints.Cards;
 
 internal sealed class Update : IEndpoint
 {
-    public sealed record UpdateCardRequest(string Title, string Description);
+    public sealed record UpdateCardRequest(string Title, string? Description);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {

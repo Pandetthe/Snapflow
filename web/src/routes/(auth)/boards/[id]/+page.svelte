@@ -201,7 +201,6 @@
       if (res?.ok) {
         editingCard.title = title;
         editingCard.description = description;
-        // Update audit info if available in the response
         if (res.value.updatedAt) editingCard.updatedAt = res.value.updatedAt;
         if (res.value.updatedBy) editingCard.updatedBy = res.value.updatedBy as any;
       }
@@ -439,7 +438,6 @@
             }
             list.cards.push({
               ...payload,
-              // temp
               createdAt: new Date().toISOString(),
               createdBy: {
                 id: 1,
@@ -488,6 +486,24 @@
             if (card) {
               card.title = payload.title;
               card.description = payload.description;
+              return;
+            }
+          }
+        }
+      });
+
+      hub.onCommentAdded((cardId, comment) => {
+        for (const s of board.swimlanes) {
+          for (const l of s.lists) {
+            const card = l.cards.find((c) => c.id === cardId);
+            if (card) {
+              if (!card.comments) {
+                card.comments = [];
+              }
+              
+              if (!card.comments.some(c => c.id === comment.id)) {
+                card.comments = [...card.comments, comment];
+              }
               return;
             }
           }
@@ -704,6 +720,11 @@
   card={editingCard}
   onConfirm={handleCardConfirm}
   onDelete={handleCardDelete}
+  onAddComment={async (content) => {
+    if (editingCard && hub) {
+      await hub.addComment(editingCard.id, content);
+    }
+  }}
 />
 
 <style>

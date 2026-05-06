@@ -46,7 +46,16 @@ internal sealed class GetBoardByIdHandler(
                                         c.CreatedAt,
                                         UserDto.From(c.CreatedBy),
                                         c.UpdatedAt,
-                                        UserDto.From(c.UpdatedBy)))
+                                        UserDto.From(c.UpdatedBy),
+                                        c.Comments
+                                            .OrderBy(comm => comm.CreatedAt)
+                                            .Select(comm => new CardCommentDto(
+                                                comm.Id,
+                                                comm.UserId,
+                                                comm.User.UserName ?? "Unknown",
+                                                comm.Content,
+                                                comm.CreatedAt))
+                                            .ToList()))
                                     .ToList()))
                             .ToList()))
                     .ToList()))

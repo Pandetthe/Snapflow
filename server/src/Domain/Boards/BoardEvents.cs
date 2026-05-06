@@ -11,7 +11,7 @@ public sealed record BoardCreatedDomainEvent(
 public sealed record BoardUpdatedDomainEvent(
     int Id,
     string Title,
-    string Description,
+    string? Description,
     string? ConnectionId) : IDomainEvent;
 
 public sealed record BoardDeletedDomainEvent(

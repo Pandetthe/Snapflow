@@ -15,7 +15,13 @@ export namespace GetBoardsResponse {
     yourRole?: string;
   }
 }
-
+export interface CardCommentDto {
+  id: number;
+  userId: number;
+  userName: string;
+  content: string;
+  createdAt: string;
+}
 export namespace GetBoardByIdResponse {
   export interface BoardDto {
     id: number;
@@ -60,6 +66,7 @@ export namespace GetBoardByIdResponse {
     createdBy: UserDto;
     updatedAt: string | null;
     updatedBy: UserDto | null;
+    comments: CardCommentDto[];
   }
 }
 
