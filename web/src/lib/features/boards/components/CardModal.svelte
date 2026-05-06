@@ -44,7 +44,7 @@
 
     isSendingComment = true;
     try {
-      await onAddComment(newComment); 
+      await onAddComment(newComment.trim());
       
       newComment = ''; 
     } catch (error) {

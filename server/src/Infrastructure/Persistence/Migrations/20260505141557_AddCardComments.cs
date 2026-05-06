@@ -13,7 +13,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "CardComments",
+                name: "cardcomments",
                 schema: "public",
                 columns: table => new
                 {

@@ -93,4 +93,3 @@ public sealed partial class BoardHub(
         }
     }
 } 
-public sealed record AddCardCommentRequest(int CardId, string Content);

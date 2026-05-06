@@ -723,10 +723,13 @@
   onConfirm={handleCardConfirm}
   onDelete={handleCardDelete}
   onAddComment={async (content) => {
-    if (editingCard && hub) {
-      await hub.addComment(editingCard.id, content);
+  if (editingCard && hub) {
+    const res = await hub.addComment(editingCard.id, content);
+    if (!res || !res.ok) {
+      errorStore.addError('Web.AddCommentFailed', 'Failed to add comment');
     }
-  }}
+  }
+}}
 />
 
 <style>
