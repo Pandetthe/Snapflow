@@ -15,7 +15,7 @@ internal sealed class Delete : IEndpoint
             ICommandHandler<DeleteSwimlaneCommand> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new DeleteSwimlaneCommand(swimlaneId);
+            var command = new DeleteSwimlaneCommand(boardId, swimlaneId);
 
             Result result = await handler.Handle(command, cancellationToken);
 

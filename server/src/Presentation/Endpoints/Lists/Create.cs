@@ -19,7 +19,7 @@ internal sealed class Create : IEndpoint
             ICommandHandler<CreateListCommand, CreateListResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new CreateListCommand(swimlaneId, request.Title, request.Width, request.BeforeId);
+            var command = new CreateListCommand(boardId, swimlaneId, request.Title, request.Width, request.BeforeId);
 
             Result<CreateListResponse> result = await handler.Handle(command, cancellationToken);
 

@@ -21,7 +21,7 @@ internal sealed class DeleteListHandler(
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
         var list = await dbContext.Lists
-            .SingleOrDefaultAsync(l => l.Id == command.Id && !l.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(l => l.Id == command.Id && l.BoardId == command.BoardId && !l.IsDeleted, cancellationToken);
         if (list == null)
             return Result.Failure(ListErrors.NotFound(command.Id));
 

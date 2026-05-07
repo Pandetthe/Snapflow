@@ -21,7 +21,7 @@ internal sealed class DeleteCardHandler(
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
         var card = await dbContext.Cards
-            .SingleOrDefaultAsync(c => c.Id == command.Id && !c.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(c => c.Id == command.Id && c.BoardId == command.BoardId && !c.IsDeleted, cancellationToken);
         if (card == null)
             return Result.Failure(CardErrors.NotFound(command.Id));
 

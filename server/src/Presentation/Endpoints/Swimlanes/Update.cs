@@ -18,7 +18,7 @@ internal sealed class Update : IEndpoint
             ICommandHandler<UpdateSwimlaneCommand, UpdateSwimlaneResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new UpdateSwimlaneCommand(swimlaneId, request.Title, request.Height);
+            var command = new UpdateSwimlaneCommand(boardId, swimlaneId, request.Title, request.Height);
 
             Result<UpdateSwimlaneResponse> result = await handler.Handle(command, cancellationToken);
 

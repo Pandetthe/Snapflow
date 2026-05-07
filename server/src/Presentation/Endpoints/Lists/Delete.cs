@@ -15,7 +15,7 @@ internal sealed class Delete : IEndpoint
             ICommandHandler<DeleteListCommand> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new DeleteListCommand(listId);
+            var command = new DeleteListCommand(boardId, listId);
 
             Result result = await handler.Handle(command, cancellationToken);
 

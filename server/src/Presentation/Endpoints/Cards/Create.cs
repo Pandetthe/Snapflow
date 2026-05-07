@@ -19,7 +19,7 @@ internal sealed class Create : IEndpoint
             ICommandHandler<CreateCardCommand, CreateCardResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new CreateCardCommand(listId, request.Title, request.Description, request.BeforeId);
+            var command = new CreateCardCommand(boardId, listId, request.Title, request.Description, request.BeforeId);
 
             Result<CreateCardResponse> result = await handler.Handle(command, cancellationToken);
 

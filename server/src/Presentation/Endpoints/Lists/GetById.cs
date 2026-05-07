@@ -16,7 +16,7 @@ internal sealed class GetById : IEndpoint
             IQueryHandler<GetListByIdQuery, GetListByIdResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var query = new GetListByIdQuery(listId);
+            var query = new GetListByIdQuery(boardId, listId);
 
             Result<GetListByIdResponse> result = await handler.Handle(query, cancellationToken);
 

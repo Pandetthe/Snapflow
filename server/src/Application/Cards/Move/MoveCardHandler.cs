@@ -25,12 +25,14 @@ internal sealed class MoveCardHandler(
 
         var list = await dbContext.Lists
             .AsNoTracking()
-            .SingleOrDefaultAsync(l => l.Id == command.ListId && !l.IsDeleted, cancellationToken);
+            .Where(l => l.Id == command.ListId && l.BoardId == command.BoardId && !l.IsDeleted)
+            .Select(l => new { l.SwimlaneId })
+            .SingleOrDefaultAsync(cancellationToken);
         if (list == null)
             return Result.Failure<string>(ListErrors.NotFound(command.ListId));
 
         var card = await dbContext.Cards
-            .SingleOrDefaultAsync(s => s.Id == command.Id && !s.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
         if (card == null)
             return Result.Failure<string>(CardErrors.NotFound(command.Id));
 

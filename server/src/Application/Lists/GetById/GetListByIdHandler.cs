@@ -14,7 +14,7 @@ internal sealed class GetListByIdHandler(
     {
         var list = await dbContext.Lists
             .AsNoTracking()
-            .Where(l => l.Id == query.Id && !l.IsDeleted)
+            .Where(l => l.Id == query.Id && l.BoardId == query.BoardId && !l.IsDeleted)
             .Select(l => new GetListByIdResponse(
                 l.Id,
                 l.BoardId,

@@ -23,7 +23,7 @@ internal sealed class UpdateListHandler(
             return Result.Failure<UpdateListResponse>(UserErrors.NotFound(userContext.UserId));
 
         var list = await dbContext.Lists
-            .SingleOrDefaultAsync(l => l.Id == command.Id && !l.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(l => l.Id == command.Id && l.BoardId == command.BoardId && !l.IsDeleted, cancellationToken);
         if (list == null)
             return Result.Failure<UpdateListResponse>(ListErrors.NotFound(command.Id));
 

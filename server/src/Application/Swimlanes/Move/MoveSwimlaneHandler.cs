@@ -23,7 +23,7 @@ internal sealed class MoveSwimlaneHandler(
             return Result.Failure<string>(UserErrors.NotFound(userContext.UserId));
 
         var swimlane = await dbContext.Swimlanes
-            .SingleOrDefaultAsync(s => s.Id == command.Id && !s.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
         if (swimlane == null)
             return Result.Failure<string>(SwimlaneErrors.NotFound(command.Id));
         Result<string> rankResult = await rankService.GenerateRankAsync(

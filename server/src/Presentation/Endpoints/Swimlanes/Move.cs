@@ -18,7 +18,7 @@ internal sealed class Move : IEndpoint
             ICommandHandler<MoveSwimlaneCommand, string> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new MoveSwimlaneCommand(swimlaneId, request.BeforeId);
+            var command = new MoveSwimlaneCommand(boardId, swimlaneId, request.BeforeId);
 
             Result result = await handler.Handle(command, cancellationToken);
 

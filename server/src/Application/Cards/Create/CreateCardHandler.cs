@@ -27,7 +27,7 @@ internal sealed class CreateCardHandler(
 
         var list = await dbContext.Lists
             .AsNoTracking()
-            .Where(x => x.Id == command.ListId && !x.IsDeleted)
+            .Where(x => x.Id == command.ListId && x.BoardId == command.BoardId && !x.IsDeleted)
             .Select(x => new { x.BoardId, x.SwimlaneId })
             .SingleOrDefaultAsync(cancellationToken);
         if (list == null)

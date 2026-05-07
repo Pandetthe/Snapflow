@@ -3,4 +3,4 @@ using static Snapflow.Application.Lists.GetBySwimlaneId.GetListsBySwimlaneIdResp
 
 namespace Snapflow.Application.Lists.GetBySwimlaneId;
 
-public sealed record GetListsBySwimlaneIdQuery(int Id) : IQuery<IReadOnlyList<ListDto>>;
+public sealed record GetListsBySwimlaneIdQuery(int BoardId, int Id) : IQuery<IReadOnlyList<ListDto>>;

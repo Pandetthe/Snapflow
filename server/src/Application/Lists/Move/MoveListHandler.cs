@@ -25,12 +25,12 @@ internal sealed class MoveListHandler(
 
         var swimlane = await dbContext.Swimlanes
             .AsNoTracking()
-            .SingleOrDefaultAsync(s => s.Id == command.SwimlaneId && !s.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(s => s.Id == command.SwimlaneId && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
         if (swimlane == null)
-            return Result.Failure<string>(SwimlaneErrors.NotFound(command.Id));
+            return Result.Failure<string>(SwimlaneErrors.NotFound(command.SwimlaneId));
 
         var list = await dbContext.Lists
-            .SingleOrDefaultAsync(s => s.Id == command.Id && !s.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
         if (list == null)
             return Result.Failure<string>(ListErrors.NotFound(command.Id));
 

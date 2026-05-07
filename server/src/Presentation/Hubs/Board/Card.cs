@@ -23,6 +23,7 @@ public sealed partial class BoardHub
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Card create requested by connection {ConnectionId}.", Context.ConnectionId);
         var command = new CreateCardCommand(
+            Context.GetBoardId(),
             request.ListId,
             request.Title,
             request.Description,
@@ -41,6 +42,7 @@ public sealed partial class BoardHub
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Card update requested by connection {ConnectionId}.", Context.ConnectionId);
         var command = new UpdateCardCommand(
+            Context.GetBoardId(),
             request.Id,
             request.Title,
             request.Description);
@@ -57,7 +59,7 @@ public sealed partial class BoardHub
     {
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Card move requested by connection {ConnectionId}.", Context.ConnectionId);
-        var command = new MoveCardCommand(request.Id, request.ListId, request.BeforeId);
+        var command = new MoveCardCommand(Context.GetBoardId(), request.Id, request.ListId, request.BeforeId);
         Result<string> result = await handler.Handle(command, Context.ConnectionAborted);
         return result.Match(Results.OkWithRank, Results.Problem);
     }
@@ -71,7 +73,7 @@ public sealed partial class BoardHub
     {
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Card delete requested by connection {ConnectionId}.", Context.ConnectionId);
-        var command = new DeleteCardCommand(request.Id);
+        var command = new DeleteCardCommand(Context.GetBoardId(), request.Id);
         Result result = await handler.Handle(command, Context.ConnectionAborted);
         return result.Match(Results.NoContent, Results.Problem);
     }

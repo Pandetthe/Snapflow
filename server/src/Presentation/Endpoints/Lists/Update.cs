@@ -18,7 +18,7 @@ internal sealed class Update : IEndpoint
             ICommandHandler<UpdateListCommand, UpdateListResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new UpdateListCommand(listId, request.Title, request.Width);
+            var command = new UpdateListCommand(boardId, listId, request.Title, request.Width);
 
             Result<UpdateListResponse> result = await handler.Handle(command, cancellationToken);
 

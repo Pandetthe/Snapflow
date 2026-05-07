@@ -18,7 +18,7 @@ internal sealed class Update : IEndpoint
             ICommandHandler<UpdateCardCommand, UpdateCardResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new UpdateCardCommand(cardId, request.Title, request.Description);
+            var command = new UpdateCardCommand(boardId, cardId, request.Title, request.Description);
 
             Result<UpdateCardResponse> result = await handler.Handle(command, cancellationToken);
 

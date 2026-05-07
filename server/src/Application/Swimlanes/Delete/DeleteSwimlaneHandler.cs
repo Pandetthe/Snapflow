@@ -21,7 +21,7 @@ internal sealed class DeleteSwimlaneHandler(
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
         var swimlane = await dbContext.Swimlanes
-            .SingleOrDefaultAsync(s => s.Id == command.Id && !s.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
         if (swimlane == null)
             return Result.Failure(SwimlaneErrors.NotFound(command.Id));
 

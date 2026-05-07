@@ -23,7 +23,7 @@ internal sealed class UpdateCardHandler(
             return Result.Failure<UpdateCardResponse>(UserErrors.NotFound(userContext.UserId));
 
         var card = await dbContext.Cards
-            .SingleOrDefaultAsync(c => c.Id == command.Id && !c.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(c => c.Id == command.Id && c.BoardId == command.BoardId && !c.IsDeleted, cancellationToken);
         if (card == null)
             return Result.Failure<UpdateCardResponse>(CardErrors.NotFound(command.Id));
 

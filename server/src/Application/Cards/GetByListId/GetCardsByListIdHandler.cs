@@ -15,7 +15,7 @@ internal sealed class GetCardsByListIdHandler(
     {
         var list = await dbContext.Lists
             .AsNoTracking()
-            .Where(b => b.Id == query.Id && !b.IsDeleted)
+            .Where(b => b.Id == query.Id && b.BoardId == query.BoardId && !b.IsDeleted)
             .Select(b => new
             {
                 b.Id,

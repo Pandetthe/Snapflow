@@ -3,4 +3,4 @@ using static Snapflow.Application.Cards.GetByListId.GetCardsByListIdResponse;
 
 namespace Snapflow.Application.Cards.GetByListId;
 
-public sealed record GetCardsByListIdQuery(int Id) : IQuery<IReadOnlyList<CardDto>>;
+public sealed record GetCardsByListIdQuery(int BoardId, int Id) : IQuery<IReadOnlyList<CardDto>>;

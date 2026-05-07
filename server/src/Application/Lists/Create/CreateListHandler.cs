@@ -27,7 +27,7 @@ internal sealed class CreateListHandler(
 
         var swimlaneBoardId = await dbContext.Swimlanes
             .AsNoTracking()
-            .Where(x => x.Id == command.SwimlaneId && !x.IsDeleted)
+            .Where(x => x.Id == command.SwimlaneId && x.BoardId == command.BoardId && !x.IsDeleted)
             .Select(x => new { x.BoardId })
             .SingleOrDefaultAsync(cancellationToken);
         if (swimlaneBoardId == null)

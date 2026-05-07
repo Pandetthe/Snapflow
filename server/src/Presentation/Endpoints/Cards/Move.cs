@@ -18,7 +18,7 @@ internal sealed class Move : IEndpoint
             ICommandHandler<MoveCardCommand, string> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new MoveCardCommand(cardId, request.ListId, request.BeforeId);
+            var command = new MoveCardCommand(boardId, cardId, request.ListId, request.BeforeId);
 
             Result<string> result = await handler.Handle(command, cancellationToken);
 
