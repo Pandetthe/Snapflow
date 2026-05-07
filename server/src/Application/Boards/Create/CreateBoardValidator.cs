@@ -22,9 +22,6 @@ internal sealed class CreateBoardValidator : AbstractValidator<CreateBoardComman
         RuleForEach(b => b.Members)
             .ChildRules(member =>
             {
-                member.RuleFor(m => m.UserId)
-                    .GreaterThan(0).WithMessage("User ID must be greater than 0.");
-
                 member.RuleFor(m => m.Role)
                     .IsInEnum().WithMessage("Role must be a valid role.")
                     .NotEqual(MemberRole.Owner).WithMessage("Role cannot be set to Owner.");
