@@ -18,20 +18,19 @@
 
 <div
   class={cn(
-    "group relative flex h-36 w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10 dark:border-gray-800 dark:bg-gray-900",
+    "group relative flex h-36 w-full flex-col rounded-2xl border border-gray-200/70 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10 dark:border-gray-800 dark:bg-gray-900",
     className
   )}
 >
   <a
     {href}
-    class="flex flex-col flex-1 active:scale-[0.98] transition-transform duration-200"
+    class="relative flex flex-col flex-1 overflow-hidden rounded-2xl active:scale-[0.98] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900"
   >
     <div
-      class="pattern-layer flex-1 w-full opacity-80 transition-all duration-500 group-hover:opacity-100 will-change-[background-position,transform]"
+      class="pattern-layer absolute inset-0 z-0 opacity-80 transition-all duration-500 group-hover:opacity-100 will-change-[background-position,transform]"
       style="background-image: {pattern.toDataUrl()};"
     ></div>
     
-    <!-- Rozmyte szkło (Glassmorphism) na dolnym pasku -->
     <div class="absolute bottom-0 left-0 right-0 p-4 backdrop-blur-md bg-white/90 border-t border-white/20 dark:bg-gray-900/90 dark:border-gray-700/50 z-10 transition-colors">
       <h3 class="text-gray-900 dark:text-white font-bold tracking-tight text-sm truncate transition-colors group-hover:text-brand-600 dark:group-hover:text-brand-400">
         {title}

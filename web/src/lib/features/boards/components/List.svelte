@@ -127,7 +127,7 @@
             startIcon={Plus}
             onclick={() => ui.openCardModal(list.id)}
             disabled={boardState !== 'connected'}
-            class="h-8 w-full justify-start rounded-lg px-2 text-sm font-medium text-gray-500 hover:bg-gray-200/60 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-gray-100"
+            class="h-8 w-full justify-start rounded-lg px-2 text-sm font-medium text-gray-500 hover:bg-gray-200/60 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900"
           >
             Add a card...
           </Button>

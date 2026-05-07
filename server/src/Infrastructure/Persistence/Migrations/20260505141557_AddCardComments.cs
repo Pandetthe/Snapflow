@@ -51,7 +51,7 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
             migrationBuilder.CreateIndex(
                 name: "ix_card_comments_user_id",
                 schema: "public",
-                table: "CardComments",
+                table: "card_comments",
                 column: "user_id");
         }
 

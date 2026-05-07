@@ -123,13 +123,12 @@
           {/each}
         </section>
 
-        <!-- Elegancki przycisk "Add List" -->
-        <div class="ml-4 shrink-0 self-start">
+        <div class="shrink-0 self-start {swimlane.lists.length > 0 ? 'ml-4' : ''}">
           <button
             type="button"
             disabled={boardState !== 'connected'}
             onclick={() => ui.openListModal(swimlane.id)}
-            class="flex h-[120px] w-[280px] items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200/80 bg-gray-50/50 text-sm font-medium text-gray-500 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700/60 dark:bg-gray-800/20 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+            class="flex h-[120px] w-[280px] items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200/80 bg-gray-50/50 text-sm font-medium text-gray-500 transition-all hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700/60 dark:bg-gray-800/20 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900"
           >
             <Plus class="h-5 w-5" />
             Add new list
