@@ -32,6 +32,7 @@ public static class Program
         else
         {
             app.UseHsts();
+            app.UseHttpsRedirection();
         }
 
         app.UseCors("AllowWeb");
