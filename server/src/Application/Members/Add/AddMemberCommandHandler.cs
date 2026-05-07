@@ -3,6 +3,7 @@ using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Members;
+using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Members.Add;
 
@@ -11,6 +12,12 @@ internal sealed class AddMemberCommandHandler(
 {
     public async Task<Result> Handle(AddMemberCommand command, CancellationToken cancellationToken = default)
     {
+        var userExists = await dbContext.Users
+            .AsNoTracking()
+            .AnyAsync(u => u.Id == command.UserId, cancellationToken);
+        if (!userExists)
+            return Result.Failure(UserErrors.NotFound(command.UserId));
+
         var existingOwner = await dbContext.Members
             .AsNoTracking()
             .AnyAsync(m => m.BoardId == command.BoardId && m.Role == MemberRole.Owner, cancellationToken);
@@ -18,17 +25,16 @@ internal sealed class AddMemberCommandHandler(
         if (existingOwner && command.Role == MemberRole.Owner)
             return Result.Failure(MemberErrors.OwnerAlreadyExists(command.BoardId));
 
+        var alreadyMember = await dbContext.Members
+            .AsNoTracking()
+            .AnyAsync(m => m.BoardId == command.BoardId && m.UserId == command.UserId, cancellationToken);
+        if (alreadyMember)
+            return Result.Failure(MemberErrors.AlreadyMember(command.UserId, command.BoardId));
+
         var member = Member.Create(command.BoardId, command.UserId, command.Role);
 
-        try
-        {
-            await dbContext.Members.AddAsync(member, cancellationToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
-        }
-        catch (DbUpdateException)
-        {
-            return Result.Failure(MemberErrors.AlreadyMember(command.UserId, command.BoardId));
-        }
+        await dbContext.Members.AddAsync(member, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
