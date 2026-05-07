@@ -16,6 +16,9 @@ internal sealed class SearchUsersHandler(
         SearchUsersQuery query,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(query.Name))
+            return Array.Empty<UserDto>();
+
         var searchPattern = $"%{query.Name.Trim()}%";
 
         var users = await dbContext.Users
