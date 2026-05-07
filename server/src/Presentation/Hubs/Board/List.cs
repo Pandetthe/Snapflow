@@ -41,7 +41,7 @@ public sealed partial class BoardHub
             logger.LogInformation("List update requested by connection {ConnectionId}.", Context.ConnectionId);
         }
         var command = new UpdateListCommand(Context.GetBoardId(), request.Id, request.Title, request.Width);
-        Result<UpdateListResponse> result = await handler.Handle(command);
+        Result<UpdateListResponse> result = await handler.Handle(command, Context.ConnectionAborted);
         return result.Match(Results.Ok, Results.Problem);
     }
 
@@ -55,7 +55,7 @@ public sealed partial class BoardHub
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("List move requested by connection {ConnectionId}.", Context.ConnectionId);
         var command = new MoveListCommand(Context.GetBoardId(), request.Id, request.SwimlaneId, request.BeforeId);
-        Result<string> result = await handler.Handle(command);
+        Result<string> result = await handler.Handle(command, Context.ConnectionAborted);
         return result.Match(Results.OkWithRank, Results.Problem);
     }
 

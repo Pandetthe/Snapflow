@@ -23,7 +23,7 @@ public sealed partial class BoardHub
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Swimlane create requested by connection {ConnectionId}.", Context.ConnectionId);
         var command = new CreateSwimlaneCommand(Context.GetBoardId(), request.Title, request.Height, request.BeforeId);
-        var result = await handler.Handle(command);
+        var result = await handler.Handle(command, Context.ConnectionAborted);
         return result.Match(Results.Ok, Results.Problem);
     }
 
@@ -37,7 +37,7 @@ public sealed partial class BoardHub
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Swimlane update requested by connection {ConnectionId}.", Context.ConnectionId);
         var command = new UpdateSwimlaneCommand(Context.GetBoardId(), request.Id, request.Title, request.Height);
-        var result = await handler.Handle(command);
+        var result = await handler.Handle(command, Context.ConnectionAborted);
         return result.Match(Results.Ok, Results.Problem);
     }
 
@@ -51,7 +51,7 @@ public sealed partial class BoardHub
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Swimlane move requested by connection {ConnectionId}.", Context.ConnectionId);
         var command = new MoveSwimlaneCommand(Context.GetBoardId(), request.Id, request.BeforeId);
-        var result = await handler.Handle(command);
+        var result = await handler.Handle(command, Context.ConnectionAborted);
         return result.Match(Results.OkWithRank, Results.Problem);
     }
 
