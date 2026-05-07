@@ -134,6 +134,11 @@ public static class DependencyInjection
                 }
             });
         });
+
+        if (servicesOptions.AllowedOrigins is not { Length: > 0 })
+        {
+            services.AddSingleton<IStartupFilter, CorsWarningStartupFilter>();
+        }
         return services;
     }
 
