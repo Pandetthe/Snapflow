@@ -20,13 +20,13 @@ internal sealed class DeleteCardHandler(
         if (!userExists)
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
-        var card = await dbContext.Cards
+        Card? card = await dbContext.Cards
             .SingleOrDefaultAsync(c => c.Id == command.Id && c.BoardId == command.BoardId && !c.IsDeleted, cancellationToken);
         if (card == null)
             return Result.Failure(CardErrors.NotFound(command.Id));
 
         DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
-        int userId = userContext.UserId;
+        var userId = userContext.UserId;
 
         card.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
 

@@ -22,11 +22,11 @@ internal sealed class MoveSwimlaneHandler(
         if (!userExists)
             return Result.Failure<string>(UserErrors.NotFound(userContext.UserId));
 
-        var swimlane = await dbContext.Swimlanes
+        Swimlane? swimlane = await dbContext.Swimlanes
             .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
         if (swimlane == null)
             return Result.Failure<string>(SwimlaneErrors.NotFound(command.Id));
-        Result<string> rankResult = await rankService.GenerateRankAsync(
+        var rankResult = await rankService.GenerateRankAsync(
             swimlane.BoardId, command.Id, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
             return Result.Failure<string>(rankResult.Error);

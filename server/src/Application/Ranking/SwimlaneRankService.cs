@@ -42,7 +42,7 @@ internal sealed class SwimlaneRankService(
             if (swimlanes.Count == 0)
                 continue;
                 
-            List<string> ranks = RankService.GenerateBalanced(swimlanes.Count);
+            var ranks = RankService.GenerateBalanced(swimlanes.Count);
 
             foreach (var (swimlaneId, rank) in swimlanes.Zip(ranks))
                 await DbContext.Swimlanes

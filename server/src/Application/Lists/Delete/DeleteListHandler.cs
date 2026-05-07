@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
@@ -20,19 +21,19 @@ internal sealed class DeleteListHandler(
         if (!userExists)
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
-        var list = await dbContext.Lists
+        List? list = await dbContext.Lists
             .SingleOrDefaultAsync(l => l.Id == command.Id && l.BoardId == command.BoardId && !l.IsDeleted, cancellationToken);
         if (list == null)
             return Result.Failure(ListErrors.NotFound(command.Id));
 
         DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
-        int userId = userContext.UserId;
+        var userId = userContext.UserId;
 
-        var strategy = dbContext.Database.CreateExecutionStrategy();
+        IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
 
         await strategy.ExecuteAsync(async () =>
         {
-            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             try
             {

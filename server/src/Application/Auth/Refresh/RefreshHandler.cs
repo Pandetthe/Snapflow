@@ -1,7 +1,6 @@
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Common;
-using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Auth.Refresh;
 

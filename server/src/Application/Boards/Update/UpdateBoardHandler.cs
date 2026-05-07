@@ -20,7 +20,7 @@ internal sealed class UpdateBoardHandler(
         if (!userExists)
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
-        var board = await dbContext.Boards
+        Board? board = await dbContext.Boards
             .Include(x => x.Members)
             .SingleOrDefaultAsync(x => x.Id == command.Id && !x.IsDeleted, cancellationToken);
         if (board == null)

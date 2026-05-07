@@ -16,18 +16,18 @@ internal sealed class UpdateCardHandler(
 {
     public async Task<Result<UpdateCardResponse>> Handle(UpdateCardCommand command, CancellationToken cancellationToken = default)
     {
-        var user = await dbContext.Users
+        IUser? user = await dbContext.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
             return Result.Failure<UpdateCardResponse>(UserErrors.NotFound(userContext.UserId));
 
-        var card = await dbContext.Cards
+        Card? card = await dbContext.Cards
             .SingleOrDefaultAsync(c => c.Id == command.Id && c.BoardId == command.BoardId && !c.IsDeleted, cancellationToken);
         if (card == null)
             return Result.Failure<UpdateCardResponse>(CardErrors.NotFound(command.Id));
 
-        var updatedAt = timeProvider.GetUtcNow();
+        DateTimeOffset updatedAt = timeProvider.GetUtcNow();
 
         card.Update(
             command.Title,

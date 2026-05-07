@@ -12,7 +12,7 @@ internal sealed class GetListByIdHandler(
 {
     public async Task<Result<GetListByIdResponse>> Handle(GetListByIdQuery query, CancellationToken cancellationToken = default)
     {
-        var list = await dbContext.Lists
+        GetListByIdResponse? list = await dbContext.Lists
             .AsNoTracking()
             .Where(l => l.Id == query.Id && l.BoardId == query.BoardId && !l.IsDeleted)
             .Select(l => new GetListByIdResponse(

@@ -31,12 +31,12 @@ internal sealed class MoveCardHandler(
         if (list == null)
             return Result.Failure<string>(ListErrors.NotFound(command.ListId));
 
-        var card = await dbContext.Cards
+        Card? card = await dbContext.Cards
             .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
         if (card == null)
             return Result.Failure<string>(CardErrors.NotFound(command.Id));
 
-        Result<string> rankResult = await rankService.GenerateRankAsync(
+        var rankResult = await rankService.GenerateRankAsync(
             command.ListId, command.Id, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
             return Result.Failure<string>(rankResult.Error);

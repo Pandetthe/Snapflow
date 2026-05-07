@@ -13,7 +13,7 @@ internal sealed class GetCardByIdHandler(
     public async Task<Result<GetCardByIdResponse>> Handle(GetCardByIdQuery query,
         CancellationToken cancellationToken = default)
     {
-        var card = await dbContext.Cards
+        GetCardByIdResponse? card = await dbContext.Cards
             .AsNoTracking()
             .Where(c => c.Id == query.Id && c.BoardId == query.BoardId && !c.IsDeleted)
             .Select(c => new GetCardByIdResponse(

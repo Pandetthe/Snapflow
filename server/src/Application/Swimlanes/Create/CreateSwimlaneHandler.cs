@@ -19,7 +19,7 @@ internal sealed class CreateSwimlaneHandler(
 {
     public async Task<Result<CreateSwimlaneResponse>> Handle(CreateSwimlaneCommand command, CancellationToken cancellationToken = default)
     {
-        var user = await dbContext.Users
+        IUser? user = await dbContext.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
@@ -29,12 +29,12 @@ internal sealed class CreateSwimlaneHandler(
             .AnyAsync(b => b.Id == command.BoardId && !b.IsDeleted, cancellationToken);
         if (!boardExists)
             return Result.Failure<CreateSwimlaneResponse>(BoardErrors.NotFound(command.BoardId));
-        Result<string> rankResult = await rankService.GenerateRankAsync(
+        var rankResult = await rankService.GenerateRankAsync(
             command.BoardId, null, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
             return Result.Failure<CreateSwimlaneResponse>(rankResult.Error);
 
-        var createdAt = timeProvider.GetUtcNow();
+        DateTimeOffset createdAt = timeProvider.GetUtcNow();
 
         var swimlane = Swimlane.Create(
             command.BoardId,

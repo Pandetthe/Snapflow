@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
@@ -20,19 +21,19 @@ internal sealed class DeleteSwimlaneHandler(
         if (!userExists)
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
-        var swimlane = await dbContext.Swimlanes
+        Swimlane? swimlane = await dbContext.Swimlanes
             .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
         if (swimlane == null)
             return Result.Failure(SwimlaneErrors.NotFound(command.Id));
 
         DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
-        int userId = userContext.UserId;
+        var userId = userContext.UserId;
 
-        var strategy = dbContext.Database.CreateExecutionStrategy();
+        IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
 
         await strategy.ExecuteAsync(async () =>
         {
-            using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             try
             {

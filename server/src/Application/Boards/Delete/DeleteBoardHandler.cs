@@ -30,7 +30,7 @@ internal sealed class DeleteBoardHandler(
         DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
         var userId = userContext.UserId;
 
-        var strategy = dbContext.Database.CreateExecutionStrategy();
+        IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
 
         await strategy.ExecuteAsync(async () =>
         {

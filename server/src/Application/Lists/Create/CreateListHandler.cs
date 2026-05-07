@@ -19,7 +19,7 @@ internal sealed class CreateListHandler(
 {
     public async Task<Result<CreateListResponse>> Handle(CreateListCommand command, CancellationToken cancellationToken = default)
     {
-        var user = await dbContext.Users
+        IUser? user = await dbContext.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
@@ -32,12 +32,12 @@ internal sealed class CreateListHandler(
             .SingleOrDefaultAsync(cancellationToken);
         if (swimlaneBoardId == null)
             return Result.Failure<CreateListResponse>(SwimlaneErrors.NotFound(command.SwimlaneId));
-        Result<string> rankResult = await rankService.GenerateRankAsync(
+        var rankResult = await rankService.GenerateRankAsync(
             command.SwimlaneId, null, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
             return Result.Failure<CreateListResponse>(rankResult.Error);
 
-        var createdAt = timeProvider.GetUtcNow();
+        DateTimeOffset createdAt = timeProvider.GetUtcNow();
 
         var list = List.Create(
             swimlaneBoardId.BoardId,

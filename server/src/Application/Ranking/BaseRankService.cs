@@ -5,6 +5,7 @@ using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Ranking;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Snapflow.Application.Ranking;
 
@@ -25,14 +26,14 @@ internal abstract class BaseRankService<TEntity>(
     public async Task<Result<string>> GenerateRankAsync(int groupId, int? movingId, int? beforeId,
         CancellationToken cancellationToken = default)
     {
-        long globalLockKey = GetGlobalLockKey();
-        long groupLockKey = GetGroupLockKey(groupId);
+        var globalLockKey = GetGlobalLockKey();
+        var groupLockKey = GetGroupLockKey(groupId);
 
-        var strategy = DbContext.Database.CreateExecutionStrategy();
+        IExecutionStrategy strategy = DbContext.Database.CreateExecutionStrategy();
 
         return await strategy.ExecuteAsync(async () =>
         {
-            await using var tx = await DbContext.Database.BeginTransactionAsync(cancellationToken);
+            await using IDbContextTransaction tx = await DbContext.Database.BeginTransactionAsync(cancellationToken);
 
             try
             {
@@ -118,20 +119,20 @@ internal abstract class BaseRankService<TEntity>(
         if (leftRank == null && rightRank == null)
             return Result.Failure(RankingErrors.InvalidNormalizationRange);
 
-        var strategy = DbContext.Database.CreateExecutionStrategy();
+        IExecutionStrategy strategy = DbContext.Database.CreateExecutionStrategy();
 
         return await strategy.ExecuteAsync(async () =>
         {
             await using var tx = await DbContext.Database.BeginTransactionAsync(cancellationToken);
             try
             {
-                long globalLockKey = GetGlobalLockKey();
-                long groupLockKey = GetGroupLockKey(groupId);
+                var globalLockKey = GetGlobalLockKey();
+                var groupLockKey = GetGroupLockKey(groupId);
                 await DbContext.Database.ExecuteSqlRawAsync(
                     "SELECT pg_advisory_xact_lock_shared({0}), pg_advisory_xact_lock({1})",
                     [globalLockKey, groupLockKey], cancellationToken);
 
-                var result = await NormalizeLocallyInternalAsync(groupId, leftRank, rightRank, cancellationToken);
+                Result result = await NormalizeLocallyInternalAsync(groupId, leftRank, rightRank, cancellationToken);
 
                 if (result.IsSuccess)
                     await tx.CommitAsync(cancellationToken);
@@ -178,7 +179,7 @@ internal abstract class BaseRankService<TEntity>(
                 .ToListAsync(cancellationToken);
         }
 
-        List<EntityRankDto> middle = await Entities
+        var middle = await Entities
             .AsNoTracking()
             .Where(GroupFilter(groupId))
             .Where(s => !s.IsDeleted)
@@ -205,7 +206,7 @@ internal abstract class BaseRankService<TEntity>(
 
     public async Task<Result> NormalizeGloballyAsync(int? groupId, CancellationToken cancellationToken = default)
     {
-        var strategy = DbContext.Database.CreateExecutionStrategy();
+        IExecutionStrategy strategy = DbContext.Database.CreateExecutionStrategy();
 
         return await strategy.ExecuteAsync(async () =>
         {
@@ -214,8 +215,8 @@ internal abstract class BaseRankService<TEntity>(
             {
                 if (groupId.HasValue)
                 {
-                    long globalLockKey = GetGlobalLockKey();
-                    long groupLockKey = GetGroupLockKey(groupId.Value);
+                    var globalLockKey = GetGlobalLockKey();
+                    var groupLockKey = GetGroupLockKey(groupId.Value);
                     await DbContext.Database.ExecuteSqlRawAsync(
                         "SELECT pg_advisory_xact_lock_shared({0}), pg_advisory_xact_lock({1})",
                         [globalLockKey, groupLockKey], cancellationToken);
@@ -224,7 +225,7 @@ internal abstract class BaseRankService<TEntity>(
                 }
                 else
                 {
-                    long globalLockKey = GetGlobalLockKey();
+                    var globalLockKey = GetGlobalLockKey();
                     await DbContext.Database.ExecuteSqlRawAsync(
                         "SELECT pg_advisory_xact_lock({0})", [globalLockKey], cancellationToken);
 
@@ -256,7 +257,7 @@ internal abstract class BaseRankService<TEntity>(
         if (items.Count == 0)
             return Result.Success();
 
-        List<string> ranks = RankService.GenerateBalanced(items.Count);
+        var ranks = RankService.GenerateBalanced(items.Count);
 
         var updateTasks = items.Zip(ranks).Select(pair =>
             Entities
@@ -275,12 +276,11 @@ internal abstract class BaseRankService<TEntity>(
 
     private static long GetGroupLockKey(int groupId) =>
         ((long)StableHash(typeof(TEntity).FullName!) << 32) | (uint)groupId;
-
-    // FNV-1a 32-bit — deterministic across processes and restarts
+    
     private static uint StableHash(string s)
     {
-        uint hash = 2166136261u;
-        foreach (char c in s)
+        var hash = 2166136261u;
+        foreach (var c in s)
         {
             hash ^= (byte)c;
             hash *= 16777619u;

@@ -13,7 +13,7 @@ internal sealed class RemoveMemberCommandHandler(
 {
     public async Task<Result> Handle(RemoveMemberCommand command, CancellationToken cancellationToken = default)
     {
-        var member = await dbContext.Members
+        Member? member = await dbContext.Members
             .SingleOrDefaultAsync(b => b.BoardId == command.BoardId
             && b.UserId == command.UserId, cancellationToken);
         if (member == null)

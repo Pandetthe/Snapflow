@@ -16,18 +16,18 @@ internal sealed class UpdateListHandler(
 {
     public async Task<Result<UpdateListResponse>> Handle(UpdateListCommand command, CancellationToken cancellationToken = default)
     {
-        var user = await dbContext.Users
+        IUser? user = await dbContext.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
             return Result.Failure<UpdateListResponse>(UserErrors.NotFound(userContext.UserId));
 
-        var list = await dbContext.Lists
+        List? list = await dbContext.Lists
             .SingleOrDefaultAsync(l => l.Id == command.Id && l.BoardId == command.BoardId && !l.IsDeleted, cancellationToken);
         if (list == null)
             return Result.Failure<UpdateListResponse>(ListErrors.NotFound(command.Id));
 
-        var updatedAt = timeProvider.GetUtcNow();
+        DateTimeOffset updatedAt = timeProvider.GetUtcNow();
 
         list.Update(
             command.Title,

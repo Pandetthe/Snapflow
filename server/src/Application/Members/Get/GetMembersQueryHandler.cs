@@ -17,8 +17,8 @@ internal sealed class GetMembersQueryHandler(
             .Where(b => b.BoardId == query.BoardId)
             .Select(b => new GetMembersResponse(b.UserId, b.User.UserName))
             .ToListAsync(cancellationToken);
-        if (members.Count == 0)
-            return Result.Failure<List<GetMembersResponse>>(BoardErrors.NotFound(query.BoardId));
-        return Result.Success(members);
+        return members.Count == 0 
+            ? Result.Failure<List<GetMembersResponse>>(BoardErrors.NotFound(query.BoardId))
+            : Result.Success(members);
     }
 }

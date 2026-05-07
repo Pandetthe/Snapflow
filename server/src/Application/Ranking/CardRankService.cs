@@ -42,7 +42,7 @@ internal sealed class CardRankService(
             if (cards.Count == 0)
                 continue;
                 
-            List<string> ranks = RankService.GenerateBalanced(cards.Count);
+            var ranks = RankService.GenerateBalanced(cards.Count);
 
             foreach (var (cardId, rank) in cards.Zip(ranks))
                 await DbContext.Cards

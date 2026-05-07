@@ -13,7 +13,7 @@ internal sealed class GetSwimlaneByIdHandler(
     public async Task<Result<GetSwimlaneByIdResponse>> Handle(GetSwimlaneByIdQuery query,
         CancellationToken cancellationToken = default)
     {
-        var swimlane = await dbContext.Swimlanes
+        GetSwimlaneByIdResponse? swimlane = await dbContext.Swimlanes
             .AsNoTracking()
             .Where(s => !s.IsDeleted && s.Id == query.Id && s.BoardId == query.BoardId)
             .Select(s => new GetSwimlaneByIdResponse(

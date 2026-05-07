@@ -42,7 +42,7 @@ internal sealed class ListRankService(
             if (lists.Count == 0)
                 continue;
                 
-            List<string> ranks = RankService.GenerateBalanced(lists.Count);
+            var ranks = RankService.GenerateBalanced(lists.Count);
 
             foreach (var (listId, rank) in lists.Zip(ranks))
                 await DbContext.Lists

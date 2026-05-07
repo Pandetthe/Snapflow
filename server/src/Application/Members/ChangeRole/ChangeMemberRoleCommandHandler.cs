@@ -13,7 +13,7 @@ internal sealed class ChangeMemberRoleCommandHandler(
 {
     public async Task<Result> Handle(ChangeMemberRoleCommand command, CancellationToken cancellationToken = default)
     {
-        var member = await dbContext.Members.SingleOrDefaultAsync(
+        Member? member = await dbContext.Members.SingleOrDefaultAsync(
             x => x.BoardId == command.BoardId && x.UserId == command.UserId, cancellationToken);
         if (member == null)
             return Result.Failure(MemberErrors.NotFound(command.UserId, command.BoardId));

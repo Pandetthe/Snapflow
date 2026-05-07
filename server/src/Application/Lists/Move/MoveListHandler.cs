@@ -23,18 +23,18 @@ internal sealed class MoveListHandler(
         if (!userExists)
             return Result.Failure<string>(UserErrors.NotFound(userContext.UserId));
 
-        var swimlane = await dbContext.Swimlanes
+        Swimlane? swimlane = await dbContext.Swimlanes
             .AsNoTracking()
             .SingleOrDefaultAsync(s => s.Id == command.SwimlaneId && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
         if (swimlane == null)
             return Result.Failure<string>(SwimlaneErrors.NotFound(command.SwimlaneId));
 
-        var list = await dbContext.Lists
+        List? list = await dbContext.Lists
             .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
         if (list == null)
             return Result.Failure<string>(ListErrors.NotFound(command.Id));
 
-        Result<string> rankResult = await rankService.GenerateRankAsync(
+        var rankResult = await rankService.GenerateRankAsync(
             command.SwimlaneId, command.Id, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
             return Result.Failure<string>(rankResult.Error);
