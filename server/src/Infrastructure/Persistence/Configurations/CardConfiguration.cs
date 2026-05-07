@@ -37,5 +37,8 @@ internal sealed class CardConfiguration : IEntityTypeConfiguration<Card>
 
         builder.HasIndex(c => c.ListId)
             .HasFilter("is_deleted = false");
+        builder.Property(card => card.Description)
+            .HasMaxLength(2000)
+            .IsRequired(false);
     }
 }

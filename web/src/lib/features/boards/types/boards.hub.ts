@@ -154,7 +154,7 @@ export interface CreateCardRequest {
 export interface UpdateCardRequest {
   id: number;
   title: string;
-  description: string;
+  description?: string;
 }
 
 export interface MoveCardRequest {

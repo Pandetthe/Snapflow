@@ -20,9 +20,8 @@ public class Card : Entity<int, Card>, IRankable
     public virtual List List { get; private set; } = null!;
 
     public string Title { get; private set; } = null!;
-    public string Description { get; private set; } = "";
+    public string? Description { get; private set; } = "";
     public string Rank { get; set; } = null!;
-
     public DateTimeOffset CreatedAt { get; private set; }
     public int CreatedById { get; private set; }
     public virtual IUser CreatedBy { get; private set; } = null!;
@@ -38,8 +37,10 @@ public class Card : Entity<int, Card>, IRankable
     public bool DeletedByCascade { get; private set; }
 
     public virtual ICollection<Tag> Tags { get; private set; } = [];
-
-    public static Card Create(int boardId, int swimlaneId, int listId, string title, string description, string rank, int createdById, DateTimeOffset createdAt, string? connectionId = null)
+    
+    private readonly List<CardComment> _comments = [];
+    public virtual IReadOnlyCollection<CardComment> Comments => _comments.AsReadOnly();
+    public static Card Create(int boardId, int swimlaneId, int listId, string title, string? description, string rank, int createdById, DateTimeOffset createdAt, string? connectionId = null)
     {
         var card = new Card
         {
@@ -58,7 +59,7 @@ public class Card : Entity<int, Card>, IRankable
         return card;
     }
 
-    public void Update(string title, string description, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
+    public void Update(string title, string? description, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
     {
         Title = title;
         Description = description;
@@ -87,5 +88,9 @@ public class Card : Entity<int, Card>, IRankable
         DeletedByCascade = false;
 
         Raise(c => new CardDeletedDomainEvent(Id, BoardId, connectionId));
+    }
+    public void AddComment(int userId, string content)
+    {
+        _comments.Add(CardComment.Create(Id, userId, content));
     }
 }

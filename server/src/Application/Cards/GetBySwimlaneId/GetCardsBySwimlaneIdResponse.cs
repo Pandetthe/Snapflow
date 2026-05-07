@@ -8,6 +8,6 @@ public sealed class GetCardsBySwimlaneIdResponse
         int SwimlaneId,
         int BoardId,
         string Title,
-        string Description,
+        string? Description,
         string Rank);
 }

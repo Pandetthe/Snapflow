@@ -2,8 +2,7 @@
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import { dragHandle } from 'svelte-dnd-action';
   import { getContext } from 'svelte';
-  import { Button } from '$lib/ui/components';
-  import { CalendarDays, GripVertical, Pencil } from 'lucide-svelte';
+  import { CalendarDays, GripVertical, MessageSquare } from 'lucide-svelte';
 
   let { card, listId }: { card: GetBoardByIdResponse.CardDto; listId: number } = $props();
 
@@ -15,62 +14,78 @@
     openCardModal: (listId: number, card?: GetBoardByIdResponse.CardDto) => void;
   }
   const ui = getContext<BoardUI>('ui');
+
+  function handleOpenCard() {
+    if (boardState === 'connected') {
+      ui.openCardModal(listId, card);
+    }
+  }
 </script>
 
 <div
   data-id={card.id}
-  class="group flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-[transform,background-color,border-color,box-shadow,opacity] duration-200 hover:-translate-y-0.5 hover:border-brand-500/40 hover:shadow-md focus-within:ring-2 focus-within:ring-brand-500/60 focus-within:ring-offset-2 focus-within:ring-offset-white dark:border-gray-700 dark:bg-gray-800/95 dark:hover:border-brand-500/40 dark:focus-within:ring-offset-gray-900"
+  role="button"
+  tabindex="0"
+  onclick={handleOpenCard}
+  onkeydown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleOpenCard();
+    }
+  }}
+  class="group relative flex w-full flex-col text-left gap-3 rounded-xl border border-gray-200/80 bg-white p-3.5 shadow-sm transition-all duration-200 hover:border-brand-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:border-gray-700/80 dark:bg-gray-800 dark:hover:border-brand-600/50 cursor-pointer dark:focus-visible:ring-offset-gray-900"
 >
-  <div class="flex items-start justify-between gap-2">
-    <div class="flex min-w-0 flex-1 items-start gap-2">
-      <div class="show-on-hover flex items-center gap-1">
-        <div
-          use:dragHandle
-          class="card-drag-handle rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-800 {boardState === 'connected' ? 'cursor-move' : 'cursor-not-allowed opacity-50'}"
-        >
-          <GripVertical class="h-3.5 w-3.5" />
-        </div>
-      </div>
-      <h4
-        class="mt-0.5 min-w-0 flex-1 text-sm font-medium wrap-break-word text-gray-900 dark:text-white"
-      >
+  <div class="flex items-start justify-between gap-3">
+    <div class="flex min-w-0 flex-1 flex-col">
+      <h4 class="min-w-0 text-sm font-semibold leading-snug text-gray-800 wrap-break-word dark:text-gray-100">
         {card.title}
       </h4>
+
+      {#if card.description}
+        <p class="mt-1.5 text-xs leading-relaxed text-gray-500 line-clamp-2 dark:text-gray-400">
+          {card.description}
+        </p>
+      {/if}
     </div>
 
-    <div class="show-on-hover">
-      <Button
-        type="button"
-        variant="ghost"
-        size="xs"
-        onclick={() => ui.openCardModal(listId, card)}
-        disabled={boardState !== 'connected'}
-        startIcon={Pencil}
-        class="h-6 w-6 min-w-0 rounded-md p-0 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-        title="Edit card"
+    <button
+      type="button"
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
+      class="ml-auto shrink-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-md"
+    >
+      <div
+        use:dragHandle
+        class="flex items-center justify-center rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300 {boardState === 'connected' ? 'cursor-grab active:cursor-grabbing' : 'cursor-not-allowed opacity-50'}"
+        aria-label="Drag card"
       >
-        <span class="sr-only">Edit card</span>
-      </Button>
-    </div>
+        <GripVertical class="h-4 w-4" />
+      </div>
+    </button>
   </div>
 
-  {#if card.description}
-    <p class="line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
-      {card.description}
-    </p>
-  {/if}
-
-  <div class="mt-1 flex items-center justify-between">
-    <div class="flex items-center gap-1.5">
+  <div class="mt-auto flex items-center justify-between pt-1">
+    <div class="flex items-center gap-3">
       <div
-        class="flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-[10px] font-bold text-brand-700 dark:bg-brand-500/25 dark:text-brand-300"
+        title={card.createdBy.userName}
+        class="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-brand-100 to-brand-200 ring-2 ring-white text-[10px] font-bold text-brand-700 shadow-sm dark:from-brand-500/30 dark:to-brand-500/10 dark:ring-gray-800 dark:text-brand-300"
       >
         {card.createdBy.userName.charAt(0).toUpperCase()}
       </div>
+      
+      {#if card.comments && card.comments.length > 0}
+        <div class="flex items-center gap-1 text-gray-400 transition-colors group-hover:text-brand-500 dark:text-gray-500 dark:group-hover:text-brand-400" title="{card.comments.length} comments">
+          <MessageSquare class="h-3.5 w-3.5" />
+          <span class="text-[10px] font-semibold">{card.comments.length}</span>
+        </div>
+      {/if}
     </div>
-    <div class="flex items-center gap-2 text-gray-400">
-      <CalendarDays class="h-3.5 w-3.5" />
-      <span class="text-[10px]">{new Date(card.createdAt).toLocaleDateString()}</span>
+
+    <div class="flex items-center gap-1.5 rounded-md bg-gray-50 px-2 py-1 text-gray-400 dark:bg-gray-800/50 dark:text-gray-500" title="Created on {new Date(card.createdAt).toLocaleDateString()}">
+      <CalendarDays class="h-3 w-3" />
+      <span class="text-[10px] font-medium tracking-wide">
+        {new Date(card.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+      </span>
     </div>
   </div>
 </div>

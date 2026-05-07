@@ -9,7 +9,7 @@
   import { errorStore } from '$lib/ui/stores/error.svelte';
   import { triggerHaptic } from '$lib/ui/utils';
   import { Button } from '$lib/ui/components';
-  import { GripVertical, Pencil, Plus } from 'lucide-svelte';
+  import { GripVertical, MoreHorizontal, Plus } from 'lucide-svelte';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
 
   let { list = $bindable(), swimlaneId }: { list: GetBoardByIdResponse.ListDto; swimlaneId: number } = $props();
@@ -36,6 +36,9 @@
       triggerHaptic('success');
       const id = Number(info.id);
       const index = list.cards.findIndex((c) => c.id === id);
+      
+      if (index === -1) return;
+
       const nextItem = list.cards[index + 1];
       const beforeId = nextItem ? nextItem.id : null;
 
@@ -45,7 +48,8 @@
         if (movedItem) movedItem.rank = res.value.rank;
         list.cards.sort((a, b) => a.rank.localeCompare(b.rank));
         list.cards = [...list.cards];
-      } else {
+      } 
+      else if (boardState === 'connected') {
         errorStore.addError('Web.MoveCardFailed', 'Failed to move card');
         list.cards.sort((a, b) => a.rank.localeCompare(b.rank));
         list.cards = [...list.cards];
@@ -56,25 +60,24 @@
 
 <div
   role="group"
-  style:width={list.width ? `${list.width}px` : 'auto'}
-  class="flex h-full max-h-full min-h-0 min-w-[220px] shrink-0 flex-col overflow-hidden rounded-lg bg-transparent px-1 transition-all duration-200 focus-within:shadow-sm"
+  style:width={list.width ? `${list.width}px` : '280px'}
+  class="flex h-fit max-h-full min-h-0 shrink-0 flex-col overflow-hidden rounded-2xl bg-gray-100/60 pb-2 transition-all duration-200 dark:bg-gray-800/40"
 >
-  <div class="group mb-2 flex items-start justify-between gap-2 rounded-lg border border-gray-200/80 bg-gray-50/95 px-3 py-1.5 dark:border-gray-700/70 dark:bg-gray-700/45">
-    <div class="min-w-0 flex-1">
-      <div class="flex items-center gap-2">
-        <div
-          use:dragHandle
-          class="list-drag-handle show-on-hover touch-none rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-white/70 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-800 {boardState === 'connected' ? 'cursor-move' : 'cursor-not-allowed opacity-50'}"
-        >
-          <GripVertical class="h-4 w-4" />
-        </div>
-        <h3 class="min-w-0 flex-1 text-sm font-bold wrap-break-word text-gray-900 dark:text-white">
-          {list.title}
-        </h3>
+  <!-- Minimalistyczny nagłówek -->
+  <div class="group flex items-center justify-between gap-2 px-3 py-3">
+    <div class="flex flex-1 items-center gap-1.5 min-w-0">
+      <div
+        use:dragHandle
+        class="list-drag-handle rounded text-gray-400 opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-300 {boardState === 'connected' ? 'cursor-grab active:cursor-grabbing' : 'cursor-not-allowed opacity-50'}"
+      >
+        <GripVertical class="h-4 w-4" />
       </div>
-      <p class="mt-0.5 pl-8 text-xs text-gray-500 dark:text-gray-400">
-        {list.cards.length} card{list.cards.length !== 1 ? 's' : ''}
-      </p>
+      <h3 class="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight text-gray-900 dark:text-gray-100">
+        {list.title}
+      </h3>
+      <span class="ml-1 rounded-full bg-gray-200/70 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-gray-700/50 dark:text-gray-400">
+        {list.cards.length}
+      </span>
     </div>
 
     <Button
@@ -83,18 +86,16 @@
       size="xs"
       onclick={() => ui.openListModal(swimlaneId, list)}
       disabled={boardState !== 'connected'}
-      aria-label="Edit list"
-      startIcon={Pencil}
-      class="show-on-hover h-7 w-7 min-w-0 rounded-md p-0 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-      title="Edit list"
+      class="h-6 w-6 rounded-md p-0 text-gray-400 opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"
     >
-      <span class="sr-only">Edit list</span>
+      <MoreHorizontal class="h-4 w-4" />
     </Button>
   </div>
 
-  <ScrollArea.Root class="list-scroll-area relative flex-1 overflow-hidden" type="auto">
-    <ScrollArea.Viewport class="h-full w-full rounded-[inherit]">
-      <div class="flex h-full min-h-0 flex-col pb-3">
+  <!-- Ukryty Scrollbar dzięki bits-ui (brak komponentu ScrollArea.Scrollbar) -->
+  <ScrollArea.Root class="relative flex-1 overflow-hidden px-2" type="auto">
+    <ScrollArea.Viewport class="h-full w-full rounded-[inherit] hide-scrollbar">
+      <div class="flex h-full min-h-0 flex-col">
         <section
           use:dragHandleZone={{
             items: list.cards,
@@ -107,78 +108,56 @@
           }}
           onconsider={handleCardConsider}
           onfinalize={handleCardFinalize}
-          class="flex flex-col gap-2 min-h-[50px] flex-1"
+          class="flex flex-col gap-2.5 min-h-[50px] flex-1 pb-2 p-1"
         >
           {#each list.cards as card (card.id)}
             <div
               animate:flip={{ duration: 150 }}
-              class="relative z-20 rounded-lg transition-shadow duration-200 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-900"
+              class="relative z-20 rounded-xl outline-none"
             >
               <Card {card} listId={list.id} />
             </div>
           {/each}
         </section>
 
-        <div class="relative z-10 mt-2 mb-2">
+        <div class="mt-1 pb-2">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             startIcon={Plus}
             onclick={() => ui.openCardModal(list.id)}
             disabled={boardState !== 'connected'}
-            aria-label="Add card"
-            class="add-card-button h-9 w-full justify-center border-dashed border-gray-300 bg-white/70 px-3 text-gray-600 hover:border-gray-400 hover:bg-white dark:border-gray-600 dark:bg-gray-800/40 dark:text-gray-300 dark:hover:bg-gray-700"
+            class="h-8 w-full justify-start rounded-lg px-2 text-sm font-medium text-gray-500 hover:bg-gray-200/60 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900"
           >
-            <span class="sr-only">Add card</span>
+            Add a card...
           </Button>
         </div>
       </div>
     </ScrollArea.Viewport>
-    <ScrollArea.Scrollbar
-      orientation="vertical"
-      class="z-20 flex w-2 touch-none bg-transparent p-px transition-colors duration-200 select-none hover:bg-black/5 dark:hover:bg-white/5"
-    >
-      <ScrollArea.Thumb
-        class="relative flex-1 rounded-full bg-gray-300 transition-colors duration-200 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500"
-      />
-    </ScrollArea.Scrollbar>
   </ScrollArea.Root>
 </div>
 
 <style>
-  :global(.list-scroll-area [data-scroll-area-viewport] > [data-scroll-area-content]) {
-    height: 100%;
-  }
   :global(.card-ghost) {
-    opacity: 0.5;
-    background: var(--color-blue-50) !important;
-    border: 1px dashed var(--color-blue-400) !important;
+    opacity: 0.4;
+    background: var(--color-brand-50) !important;
+    border: 1px dashed var(--color-brand-400) !important;
+    border-radius: 0.75rem !important;
   }
-
   :global(.dark .card-ghost) {
-    background: var(--color-blue-900/20) !important;
-    border-color: var(--color-blue-500) !important;
+    background: var(--color-brand-900/20) !important;
+    border-color: var(--color-brand-500/50) !important;
   }
-
   :global(.card-chosen) {
     cursor: grabbing !important;
   }
-
   :global(.card-drag) {
-    box-shadow:
-      0 10px 15px -3px rgba(0, 0, 0, 0.1),
-      0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-    opacity: 0.95 !important;
-    transform: rotate(0.5deg);
-    background: var(--color-white) !important;
-    border: 1px solid var(--color-gray-200) !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    opacity: 1 !important;
+    transform: rotate(2deg) scale(1.02);
+    border-radius: 0.75rem !important;
   }
-
   :global(.dark .card-drag) {
-    background: var(--color-gray-800) !important;
-    border-color: var(--color-gray-700) !important;
-    box-shadow:
-      0 10px 15px -3px rgba(0, 0, 0, 0.3),
-      0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4) !important;
   }
 </style>

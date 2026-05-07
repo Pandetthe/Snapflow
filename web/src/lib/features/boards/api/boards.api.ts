@@ -136,4 +136,13 @@ export class BoardsService {
       })
     );
   }
+  addComment(cardId: number, content: string): Promise<Response<number>> {
+    return this.handleResponse(
+      this.apiClient.fetch(`cards/${cardId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+      })
+    );
+  }
 }

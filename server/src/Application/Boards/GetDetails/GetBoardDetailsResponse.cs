@@ -5,7 +5,7 @@ namespace Snapflow.Application.Boards.GetDetails;
 public sealed record GetBoardDetailsResponse(
     int Id,
     string Title,
-    string Description,
+    string? Description,
     IReadOnlyList<GetBoardDetailsMemberResponse> Members);
 
 public sealed record GetBoardDetailsMemberResponse(

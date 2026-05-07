@@ -15,7 +15,7 @@ public sealed class GetBoardsResponse
     public sealed record BoardDto(
         int Id,
         string Title,
-        string Description,
+        string? Description,
         MemberRole YourRole,
         DateTimeOffset CreatedAt,
         UserDto CreatedBy,

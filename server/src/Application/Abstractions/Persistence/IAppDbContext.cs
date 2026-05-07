@@ -28,6 +28,6 @@ public interface IAppDbContext
     DbSet<Tag> Tags { get; }
 
     DbSet<Card> Cards { get; }
-
+    DbSet<CardComment> CardComments { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -18,31 +18,33 @@
 
 <div
   class={cn(
-    "group relative flex h-32 w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm sm:h-40 dark:border-gray-800 dark:bg-gray-900",
-    "transition-all duration-200 hover:shadow-md hover:border-brand-500/30",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950",
+    "group relative flex h-36 w-full flex-col rounded-2xl border border-gray-200/70 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10 dark:border-gray-800 dark:bg-gray-900",
     className
   )}
 >
   <a
     {href}
-    class="flex flex-col flex-1 hover:-translate-y-1 active:scale-[0.98] transition-all duration-200"
+    class="relative flex flex-col flex-1 overflow-hidden rounded-2xl active:scale-[0.98] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900"
   >
     <div
-      class="pattern-layer flex-1 w-full opacity-80 transition-all duration-300 group-hover:opacity-100 will-change-[background-position,transform]"
+      class="pattern-layer absolute inset-0 z-0 opacity-80 transition-all duration-500 group-hover:opacity-100 will-change-[background-position,transform]"
       style="background-image: {pattern.toDataUrl()};"
     ></div>
-    <div class="p-3.5 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 z-10 relative">
-      <h3 class="text-gray-900 dark:text-white/90 font-semibold text-sm truncate transition-colors group-hover:text-brand-500 dark:group-hover:text-brand-400">{title}</h3>
+    
+    <div class="absolute bottom-0 left-0 right-0 p-4 backdrop-blur-md bg-white/90 border-t border-white/20 dark:bg-gray-900/90 dark:border-gray-700/50 z-10 transition-colors">
+      <h3 class="text-gray-900 dark:text-white font-bold tracking-tight text-sm truncate transition-colors group-hover:text-brand-600 dark:group-hover:text-brand-400">
+        {title}
+      </h3>
     </div>
   </a>
+  
   {#if editHref && yourRole?.toLowerCase() === 'owner'}
-    <div class="absolute top-3 right-3 z-20">
+    <div class="absolute top-3 right-3 z-20 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
       <Button
         variant="ghost"
         size="xs"
         startIcon={Pencil}
-        class="shrink-0 bg-white/50 backdrop-blur-md border border-white/20 shadow-sm hover:bg-white/70 dark:bg-gray-900/50 dark:border-white/10 dark:hover:bg-gray-900/80"
+        class="h-8 w-8 shrink-0 rounded-full bg-white/70 backdrop-blur-md border border-white/40 shadow-sm hover:bg-white dark:bg-gray-900/70 dark:border-gray-700 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
         aria-label="Edit board"
         href={editHref}
       />
@@ -52,21 +54,17 @@
 
 <style>
   .pattern-layer {
-    background-size: 110%;
+    background-size: 120%;
     background-position: 50% 50%;
-    transition: transform 360ms ease, opacity 300ms ease;
   }
-
   .group:hover .pattern-layer {
-    transform: scale(1.05);
-    animation: pattern-drift 15s ease-in-out infinite;
+    transform: scale(1.08);
+    animation: pattern-drift 20s ease-in-out infinite;
   }
-
   @keyframes pattern-drift {
     0% { background-position: 50% 50%; }
-    25% { background-position: 55% 45%; }
-    50% { background-position: 50% 60%; }
-    75% { background-position: 45% 55%; }
+    33% { background-position: 60% 40%; }
+    66% { background-position: 40% 60%; }
     100% { background-position: 50% 50%; }
   }
 </style>
