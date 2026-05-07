@@ -18,28 +18,22 @@ internal static class LoggingDecorator
             var commandName = typeof(TCommand).Name;
 
             if (logger.IsEnabled(LogLevel.Information))
-            {
                 logger.LogInformation("Processing command {Command}", commandName);
-            }
 
             var result = await innerHandler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)
             {
                 if (logger.IsEnabled(LogLevel.Information))
-                {
                     logger.LogInformation("Completed command {Command}", commandName);
-                }
             }
             else
             {
-                if (!logger.IsEnabled(LogLevel.Error))
+                if (!logger.IsEnabled(LogLevel.Information))
                     return result;
 
                 using (LogContext.PushProperty("Error", result.Error, true))
-                {
-                    logger.LogError("Completed command {Query} with error", commandName);
-                }
+                    logger.LogInformation("Completed command {Command} with error", commandName);
             }
 
             return result;
@@ -57,28 +51,22 @@ internal static class LoggingDecorator
             var commandName = typeof(TCommand).Name;
 
             if (logger.IsEnabled(LogLevel.Information))
-            {
                 logger.LogInformation("Processing command {Command}", commandName);
-            }
 
             Result result = await innerHandler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)
             {
                 if (logger.IsEnabled(LogLevel.Information))
-                {
                     logger.LogInformation("Completed command {Command}", commandName);
-                }
             }
             else
             {
-                if (!logger.IsEnabled(LogLevel.Error))
+                if (!logger.IsEnabled(LogLevel.Information))
                     return result;
 
                 using (LogContext.PushProperty("Error", result.Error, true))
-                {
-                    logger.LogError("Completed command {Query} with error", commandName);
-                }
+                    logger.LogInformation("Completed command {Command} with error", commandName);
             }
 
             return result;
@@ -96,28 +84,22 @@ internal static class LoggingDecorator
             var queryName = typeof(TQuery).Name;
 
             if (logger.IsEnabled(LogLevel.Information))
-            {
                 logger.LogInformation("Processing query {Query}", queryName);
-            }
 
             var result = await innerHandler.Handle(query, cancellationToken);
 
             if (result.IsSuccess)
             {
                 if (logger.IsEnabled(LogLevel.Information))
-                {
                     logger.LogInformation("Completed query {Query}", queryName);
-                }
             }
             else
             {
-                if (!logger.IsEnabled(LogLevel.Error))
+                if (!logger.IsEnabled(LogLevel.Information))
                     return result;
 
                 using (LogContext.PushProperty("Error", result.Error, true))
-                {
-                    logger.LogError("Completed query {Query} with error", queryName);
-                }
+                    logger.LogInformation("Completed query {Query} with error", queryName);
             }
 
             return result;
