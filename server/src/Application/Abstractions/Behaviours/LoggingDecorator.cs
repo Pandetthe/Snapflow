@@ -7,37 +7,38 @@ namespace Snapflow.Application.Abstractions.Behaviours;
 
 internal static class LoggingDecorator
 {
+    private static async Task<TResult> HandleWithLogging<TResult>(
+        string kind,
+        string name,
+        ILogger logger,
+        Func<Task<TResult>> innerHandle)
+        where TResult : Result
+    {
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation("Processing {Kind} {Name}", kind, name);
+
+        TResult result = await innerHandle();
+
+        if (!logger.IsEnabled(LogLevel.Information)) return result;
+        if (result.IsSuccess)
+            logger.LogInformation("Completed {Kind} {Name}", kind, name);
+        else
+        {
+            using (LogContext.PushProperty("Error", result.Error, true))
+                logger.LogInformation("Completed {Kind} {Name} with error", kind, name);
+        }
+        return result;
+    }
+
     internal sealed class CommandHandler<TCommand, TResponse>(
         ICommandHandler<TCommand, TResponse> innerHandler,
         ILogger<CommandHandler<TCommand, TResponse>> logger)
         : ICommandHandler<TCommand, TResponse>
         where TCommand : ICommand<TResponse>
     {
-        public async Task<Result<TResponse>> Handle(TCommand command, CancellationToken cancellationToken)
-        {
-            var commandName = typeof(TCommand).Name;
-
-            if (logger.IsEnabled(LogLevel.Information))
-                logger.LogInformation("Processing command {Command}", commandName);
-
-            var result = await innerHandler.Handle(command, cancellationToken);
-
-            if (result.IsSuccess)
-            {
-                if (logger.IsEnabled(LogLevel.Information))
-                    logger.LogInformation("Completed command {Command}", commandName);
-            }
-            else
-            {
-                if (!logger.IsEnabled(LogLevel.Information))
-                    return result;
-
-                using (LogContext.PushProperty("Error", result.Error, true))
-                    logger.LogInformation("Completed command {Command} with error", commandName);
-            }
-
-            return result;
-        }
+        public Task<Result<TResponse>> Handle(TCommand command, CancellationToken cancellationToken) =>
+            HandleWithLogging("command", typeof(TCommand).Name, logger,
+                () => innerHandler.Handle(command, cancellationToken));
     }
 
     internal sealed class CommandBaseHandler<TCommand>(
@@ -46,31 +47,9 @@ internal static class LoggingDecorator
         : ICommandHandler<TCommand>
         where TCommand : ICommand
     {
-        public async Task<Result> Handle(TCommand command, CancellationToken cancellationToken)
-        {
-            var commandName = typeof(TCommand).Name;
-
-            if (logger.IsEnabled(LogLevel.Information))
-                logger.LogInformation("Processing command {Command}", commandName);
-
-            Result result = await innerHandler.Handle(command, cancellationToken);
-
-            if (result.IsSuccess)
-            {
-                if (logger.IsEnabled(LogLevel.Information))
-                    logger.LogInformation("Completed command {Command}", commandName);
-            }
-            else
-            {
-                if (!logger.IsEnabled(LogLevel.Information))
-                    return result;
-
-                using (LogContext.PushProperty("Error", result.Error, true))
-                    logger.LogInformation("Completed command {Command} with error", commandName);
-            }
-
-            return result;
-        }
+        public Task<Result> Handle(TCommand command, CancellationToken cancellationToken) =>
+            HandleWithLogging("command", typeof(TCommand).Name, logger,
+                () => innerHandler.Handle(command, cancellationToken));
     }
 
     internal sealed class QueryHandler<TQuery, TResponse>(
@@ -79,30 +58,8 @@ internal static class LoggingDecorator
         : IQueryHandler<TQuery, TResponse>
         where TQuery : IQuery<TResponse>
     {
-        public async Task<Result<TResponse>> Handle(TQuery query, CancellationToken cancellationToken)
-        {
-            var queryName = typeof(TQuery).Name;
-
-            if (logger.IsEnabled(LogLevel.Information))
-                logger.LogInformation("Processing query {Query}", queryName);
-
-            var result = await innerHandler.Handle(query, cancellationToken);
-
-            if (result.IsSuccess)
-            {
-                if (logger.IsEnabled(LogLevel.Information))
-                    logger.LogInformation("Completed query {Query}", queryName);
-            }
-            else
-            {
-                if (!logger.IsEnabled(LogLevel.Information))
-                    return result;
-
-                using (LogContext.PushProperty("Error", result.Error, true))
-                    logger.LogInformation("Completed query {Query} with error", queryName);
-            }
-
-            return result;
-        }
+        public Task<Result<TResponse>> Handle(TQuery query, CancellationToken cancellationToken) =>
+            HandleWithLogging("query", typeof(TQuery).Name, logger,
+                () => innerHandler.Handle(query, cancellationToken));
     }
 }
