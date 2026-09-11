@@ -4,6 +4,8 @@
   import { fade } from 'svelte/transition';
 
   let { data } = $props();
+
+  const version = __APP_VERSION__;
 </script>
 
 <svelte:head>
@@ -152,6 +154,10 @@
         </p>
       </div>
     </div>
+
+    <p class="mt-12 font-mono text-sm text-gray-400 dark:text-gray-500">
+      v{version}
+    </p>
   </div>
 </div>
 </FullLayout>

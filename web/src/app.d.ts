@@ -7,6 +7,8 @@ import type { User } from '$lib/features/users/api/users';
 declare module '*.svelte';
 
 declare global {
+  const __APP_VERSION__: string;
+
   namespace App {
     interface Locals {
       session: string | null;
