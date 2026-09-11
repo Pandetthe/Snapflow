@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Image tag to deploy (e.g. main, main-<sha>, v2026.3.0)"
+        description: "Image tag to deploy (latest, or a release tag like v2026.5.3)"
         required: true
-        default: "main"
+        default: "latest"
         type: string
 
 concurrency:
