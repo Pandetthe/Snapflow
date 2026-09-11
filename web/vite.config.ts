@@ -5,6 +5,9 @@ import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit'
 import pino from 'pino';
+import { readFileSync } from 'node:fs';
+
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
 const stripAnsi = (str: string) =>
   str.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-?]*[ -/]*[@-~]/g, '');
@@ -57,6 +60,9 @@ export default defineConfig(({ command }) => {
 
   return {
     customLogger: createCustomLogger(),
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version)
+    },
     build: {
       target: 'esnext',
       sourcemap: false,

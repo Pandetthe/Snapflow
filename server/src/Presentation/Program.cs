@@ -20,6 +20,8 @@ public static class Program
         
         WebApplication app = builder.Build();
 
+        app.UseForwardedHeaders();
+
         app.UseExceptionHandler();
 
         if (app.Environment.IsDevelopment())

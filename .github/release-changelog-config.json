@@ -2,38 +2,31 @@
   "categories": [
     {
       "title": "## 🚀 Features",
-      "labels": ["feature", "feat"],
-      "prefix": "feat:"
+      "labels": ["feature", "feat"]
     },
     {
-      "title": "🐛 Bug Fixes",
-      "labels": ["bug", "fix"],
-      "prefix": "fix:"
+      "title": "## 🐛 Bug Fixes",
+      "labels": ["bug", "fix"]
     },
     {
       "title": "## 🧱 Structural Changes",
-      "labels": ["refactor", "build", "ci"],
-      "prefix": "refactor:"
+      "labels": ["refactor", "build", "ci"]
     },
     {
       "title": "## 🧪 Tests",
-      "labels": ["test"],
-      "prefix": "test:"
+      "labels": ["test"]
     },
     {
       "title": "## 📝 Documentation",
-      "labels": ["documentation", "docs"],
-      "prefix": "docs:"
+      "labels": ["documentation", "docs"]
     },
     {
       "title": "## 🧹 Chores",
-      "labels": ["chore"],
-      "prefix": "chore:"
+      "labels": ["chore"]
     },
     {
       "title": "## ⚡ Performance",
-      "labels": ["performance", "perf"],
-      "prefix": "perf:"
+      "labels": ["performance", "perf"]
     }
   ],
   "ignore_labels": ["ignore"],
@@ -43,8 +36,8 @@
   "commit_template": "- #{{TITLE}}",
   "transformers": [
     {
-      "pattern": "^- (?:feat|fix|docs|style|refactor|perf|test|build|ci|chore)(?:\\([^)]+\\))?!?:\\s*(.+)$",
-      "target": "- $1"
+      "pattern": "- (?:feat|fix|docs|style|refactor|perf|test|build|ci|chore)(?:\\([^)]*\\))?!?:\\s*",
+      "target": "- "
     }
   ],
   "label_extractor": [
