@@ -87,16 +87,31 @@ jobs:
 
       - name: Smoke test
         env:
-          PUBLIC_URL: ${{ vars.DEV_PUBLIC_URL }}
+          TUNNEL_SERVICE_TOKEN_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          TUNNEL_SERVICE_TOKEN_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
         run: |
-          for i in $(seq 1 10); do
-            code=$(curl -sS -o /dev/null -w '%{http_code}' "$PUBLIC_URL/" || true)
-            echo "attempt $i -> $code"
-            [ "$code" = "200" ] && exit 0
+          ssh snapflow-dev 'for i in 1 2 3 4 5 6 7 8 9 10; do
+            if docker exec snapflow-proxy wget -q --spider http://127.0.0.1/; then
+              echo "proxy served the app on attempt $i"
+              exit 0
+            fi
+            echo "attempt $i: no answer yet"
             sleep 6
           done
-          echo "dev site did not return 200" >&2
-          exit 1
+          echo "proxy never served the app" >&2
+          docker compose -f /opt/snapflow/docker-compose.yml logs --tail=40 web >&2
+          exit 1'
+
+      - name: Public reachability
+        continue-on-error: true
+        env:
+          PUBLIC_URL: ${{ vars.DEV_PUBLIC_URL }}
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$PUBLIC_URL/" || true)
+          echo "$PUBLIC_URL -> $code"
+          if [ "$code" != "200" ]; then
+            echo "::warning::Cloudflare answered $code to this runner. GitHub runners sit in Azure ranges that bot protection often blocks, so this says nothing about the deploy - the smoke test above is the real gate."
+          fi
 
       - name: Mark Deployment Success
         if: success()
