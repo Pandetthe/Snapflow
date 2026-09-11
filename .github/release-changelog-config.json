@@ -6,7 +6,7 @@
       "prefix": "feat:"
     },
     {
-      "title": "🐛 Bug Fixes",
+      "title": "## 🐛 Bug Fixes",
       "labels": ["bug", "fix"],
       "prefix": "fix:"
     },
@@ -43,8 +43,8 @@
   "commit_template": "- #{{TITLE}}",
   "transformers": [
     {
-      "pattern": "^- (?:feat|fix|docs|style|refactor|perf|test|build|ci|chore)(?:\\([^)]+\\))?!?:\\s*(.+)$",
-      "target": "- $1"
+      "pattern": "- (?:feat|fix|docs|style|refactor|perf|test|build|ci|chore)(?:\\([^)]*\\))?!?:\\s*",
+      "target": "- "
     }
   ],
   "label_extractor": [
