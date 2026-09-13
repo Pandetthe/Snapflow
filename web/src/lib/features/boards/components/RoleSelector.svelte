@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Select } from 'bits-ui';
   import { Check, ChevronDown, ArrowRightLeft } from 'lucide-svelte';
-  import { cn } from '$lib/ui/utils';
+  import { cn, floatingMotionClass } from '$lib/ui/utils';
   import type { MemberRole } from '$lib/features/boards/types/boards.api';
 
   interface Props {
@@ -93,7 +93,10 @@
 
   <Select.Portal>
     <Select.Content
-      class="z-50 min-w-[130px] origin-top overflow-hidden rounded-xl border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-800 dark:bg-gray-950"
+      class={cn(
+        'z-50 min-w-[130px] overflow-hidden rounded-xl border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-800 dark:bg-gray-950',
+        floatingMotionClass
+      )}
       sideOffset={4}
     >
       <Select.Viewport class="p-1">

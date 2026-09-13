@@ -3,7 +3,7 @@
   import { Button } from '$lib/ui/components';
   import { theme } from '$lib/ui/stores/theme';
   import { Sun, Moon, Monitor, ChevronDown, Check } from 'lucide-svelte';
-  import { cn } from '$lib/ui/utils';
+  import { cn, floatingMotionClass } from '$lib/ui/utils';
 
   interface Props {
     showLabel?: boolean;
@@ -49,7 +49,8 @@
 
   <DropdownMenu.Content
     class={cn(
-      "z-50 mt-1 origin-top overflow-hidden rounded-lg border border-gray-300 bg-white p-1 shadow-theme-lg will-change-[opacity,transform] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 dark:border-gray-700 dark:bg-gray-900",
+      "z-50 mt-1 overflow-hidden rounded-lg border border-gray-300 bg-white p-1 shadow-theme-lg dark:border-gray-700 dark:bg-gray-900",
+      floatingMotionClass,
       showLabel ? "w-(--bits-dropdown-menu-anchor-width) min-w-(--bits-dropdown-menu-anchor-width)" : "w-40"
     )}
     align="end"

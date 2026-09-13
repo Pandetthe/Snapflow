@@ -108,11 +108,11 @@
   </div>
 
   <Dialog.Overlay
-    class="absolute top-full left-0 z-30 h-screen w-full bg-gray-900/40 backdrop-blur-sm md:hidden dark:bg-gray-900/60 duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
+    class="absolute top-full left-0 z-30 h-screen w-full bg-gray-900/40 backdrop-blur-sm md:hidden dark:bg-gray-900/60 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:duration-300 data-[state=open]:ease-flow data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:duration-200 data-[state=closed]:ease-in"
   />
 
   <Dialog.Content
-    class="absolute top-full left-0 z-40 w-full border-b border-gray-200 bg-white px-5 pt-3 pb-5 shadow-xl md:hidden dark:border-gray-800 dark:bg-gray-900 sm:px-6 duration-250 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-4 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-4"
+    class="absolute top-full left-0 z-40 w-full border-b border-gray-200 bg-white px-5 pt-3 pb-5 shadow-xl md:hidden dark:border-gray-800 dark:bg-gray-900 sm:px-6 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-2 data-[state=open]:duration-300 data-[state=open]:ease-flow data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=closed]:duration-200 data-[state=closed]:ease-in"
   >
     <Dialog.Title class="sr-only">Mobile menu</Dialog.Title>
     <div

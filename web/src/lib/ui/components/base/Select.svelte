@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Label, Select } from 'bits-ui';
   import { Check, ChevronDown, ChevronsDown, ChevronsUp } from 'lucide-svelte';
-  import { cn } from '$lib/ui/utils';
+  import { cn, floatingMotionClass } from '$lib/ui/utils';
   import { slide } from 'svelte/transition';
 
   interface Option {
@@ -189,8 +189,10 @@
       ? 'shrink-0 text-error-500 dark:text-error-400'
       : 'shrink-0 text-brand-500 dark:text-brand-400'
   );
-  const contentClass =
-    'z-50 mt-1 min-w-(--bits-select-anchor-width) max-h-[var(--bits-select-content-available-height)] origin-top overflow-hidden rounded-lg border border-gray-300 bg-white p-1 shadow-theme-lg will-change-[opacity,transform] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 dark:border-gray-700 dark:bg-gray-900';
+  const contentClass = cn(
+    'z-50 mt-1 min-w-(--bits-select-anchor-width) max-h-[var(--bits-select-content-available-height)] overflow-hidden rounded-lg border border-gray-300 bg-white p-1 shadow-theme-lg dark:border-gray-700 dark:bg-gray-900',
+    floatingMotionClass
+  );
   const viewportClass =
     'max-h-[min(20rem,var(--bits-select-content-available-height))] overflow-y-auto p-1';
   const scrollButtonSlotClass = 'h-6';

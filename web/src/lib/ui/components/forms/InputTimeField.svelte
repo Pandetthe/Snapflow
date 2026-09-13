@@ -2,7 +2,7 @@
   import { TimeField, Popover } from 'bits-ui';
   import { parseTime } from '@internationalized/date';
   import { Clock3, X, type Icon as IconType } from 'lucide-svelte';
-  import { cn } from '$lib/ui/utils';
+  import { cn, floatingMotionClass } from '$lib/ui/utils';
   import { ClockPicker } from '$lib/ui/components';
   import { slide } from 'svelte/transition';
 
@@ -326,7 +326,10 @@
             <Popover.Content
               sideOffset={8}
               align="end"
-              class="z-50 origin-top-right rounded-xl border border-gray-200 bg-white p-0 shadow-theme-lg data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 dark:border-gray-800 dark:bg-gray-900"
+              class={cn(
+                'z-50 rounded-xl border border-gray-200 bg-white p-0 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900',
+                floatingMotionClass
+              )}
             >
               <ClockPicker
                 {hourCycle}

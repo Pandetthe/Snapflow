@@ -2,6 +2,7 @@
 	import { ChevronDown, User as UserIcon, LogOut } from 'lucide-svelte';
 	import { DropdownMenu } from 'bits-ui';
 	import { Button, UserAvatar } from '$lib/ui/components';
+	import { floatingMotionClass } from '$lib/ui/utils';
 	import type { User } from '$lib/features/users/api/users';
 	import { avatarBust } from '$lib/features/users/avatarBust.svelte';
 	import { onMount } from 'svelte';
@@ -108,7 +109,7 @@
 			</DropdownMenu.Trigger>
 
 			<DropdownMenu.Content
-				class="z-50 mt-1 min-w-56 origin-top overflow-hidden rounded-lg border border-gray-300 bg-white p-1 shadow-theme-lg will-change-[opacity,transform] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 dark:border-gray-700 dark:bg-gray-900"
+				class="z-50 mt-1 min-w-56 overflow-hidden rounded-lg border border-gray-300 bg-white p-1 shadow-theme-lg dark:border-gray-700 dark:bg-gray-900 {floatingMotionClass}"
 				align="end"
 				sideOffset={4}
 			>
