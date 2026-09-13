@@ -6,7 +6,7 @@
   import { recentBoards } from '$lib/features/boards/stores/recent';
   import { Button, FullLayout, Input, Skeleton } from '$lib/ui/components';
   import { Clock3, History, Folders, Plus } from 'lucide-svelte';
-  import { slide, fade } from 'svelte/transition';
+  import { slide } from 'svelte/transition';
 
   let { data } = $props();
   let intervalId: NodeJS.Timeout;
@@ -47,7 +47,7 @@
 <FullLayout>
   <div class="relative w-full flex-1 pb-20 sm:pb-6">
     {#if isMounted}
-      <div in:fade={{ duration: 400 }}>
+      <div>
         <div class="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
           <div class="space-y-1">
             <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl dark:text-white">

@@ -154,7 +154,7 @@
 </svelte:head>
 
 <FullLayout>
-  <div class="mx-auto w-full max-w-5xl space-y-8 pb-12" in:fade={{ duration: 400 }}>
+  <div class="mx-auto w-full max-w-5xl space-y-8 pb-12">
     <header class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
         <GoBackButton

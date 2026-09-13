@@ -62,7 +62,7 @@
 </script>
 
 <header
-  class="sticky top-0 z-40 flex w-full flex-col border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
+  class="sticky top-0 z-40 flex w-full flex-col border-b border-gray-200 bg-white [view-transition-name:app-header] dark:border-gray-800 dark:bg-gray-900"
 >
   <Dialog.Root open={isMobileMenuOpen()} onOpenChange={handleMenuToggle}>
     <div class="flex w-full items-center justify-between gap-2 px-5 py-3 sm:px-6 sm:py-4 lg:px-8">

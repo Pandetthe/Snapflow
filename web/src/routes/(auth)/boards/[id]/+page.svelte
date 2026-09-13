@@ -15,7 +15,6 @@
   import { Button, FullBleedLayout, GoBackButton, LoadingDots } from '$lib/ui/components';
   import { triggerHaptic } from '$lib/ui/utils';
   import { Folders, Pencil, Plus, Loader2 } from 'lucide-svelte';
-  import { fade } from 'svelte/transition';
   import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
   import '$lib/features/boards/styles/board-dnd.css';
 
@@ -149,7 +148,7 @@
       {/if}
     </div>
   {/if}
-  <div class="w-full overflow-x-clip pb-12" in:fade={{ duration: 300 }}>
+  <div class="w-full overflow-x-clip pb-12">
     <!-- Board header -->
     <div class="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen border-b border-gray-200/80 bg-white/95 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/95">
       <div class="flex w-full items-center gap-4 px-4 py-2.5 sm:px-6 lg:px-8">
