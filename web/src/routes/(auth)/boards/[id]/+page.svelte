@@ -206,6 +206,8 @@
             type: 'swimlanes',
             dropTargetStyle: {},
             dropTargetClasses: ['board-drop-target'],
+            // Swimlanes keep their own size while dragged.
+            morphDisabled: true,
             useCursorForDetection: true,
             zoneTabIndex: -1,
             zoneItemTabIndex: 0,

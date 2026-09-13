@@ -150,9 +150,10 @@
   </div>
 
   <!-- Content area — hidden when this swimlane is being dragged -->
-  <ScrollArea.Root class="swimlane-content swimlane-scroll-area relative flex-1 overflow-hidden bg-white/60 dark:bg-gray-900/40" type="auto">
-    <ScrollArea.Viewport class="h-full w-full rounded-[inherit]">
-      <div class="flex h-full px-3 py-3">
+  <!-- Flex column so the viewport gets a definite height and an empty list zone can fill the swimlane -->
+  <ScrollArea.Root class="swimlane-content swimlane-scroll-area relative flex flex-1 flex-col overflow-hidden bg-white/60 dark:bg-gray-900/40" type="auto">
+    <ScrollArea.Viewport class="min-h-0 w-full flex-1 rounded-[inherit]">
+      <div class="flex flex-1 px-3 py-3">
         <!--
           The drop area reaches under "Add list" via padding cancelled by a negative margin, so dropping
           right after the last list (or into an empty swimlane) is easy to hit without changing the layout.
@@ -164,6 +165,8 @@
             type: 'lists',
             dropTargetStyle: {},
             dropTargetClasses: ['board-drop-target'],
+            // Lists keep their own size; morphing the clone to the growing drop slot made it shrink and grow back.
+            morphDisabled: true,
             useCursorForDetection: true,
             zoneTabIndex: -1,
             dragDisabled: boardState !== 'connected'
@@ -173,7 +176,7 @@
           data-board-zone="lists"
           data-empty={swimlane.lists.length === 0 || undefined}
           data-receiving={receivingList || undefined}
-          class="flex min-h-9 items-stretch gap-3 self-stretch {swimlane.lists.length === 0 ? 'w-58 -mr-58' : 'pr-28 -mr-28'}"
+          class="flex min-h-9 items-stretch gap-3 self-stretch {swimlane.lists.length === 0 ? 'w-full -mr-[100%]' : 'pr-28 -mr-28'}"
         >
           {#each swimlane.lists as list, index (list.id)}
             <div
@@ -216,7 +219,9 @@
 </div>
 
 <style>
+  /* A flex column instead of height: 100%, which cannot resolve against the viewport's flexed height */
   :global(.swimlane-scroll-area [data-scroll-area-viewport] > [data-scroll-area-content]) {
-    height: 100%;
+    display: flex;
+    flex-direction: column;
   }
 </style>
