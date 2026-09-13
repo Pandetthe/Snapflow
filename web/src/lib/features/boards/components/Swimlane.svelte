@@ -1,6 +1,6 @@
 <script lang="ts">
   import { flip } from 'svelte/animate';
-  import { dragHandle, dragHandleZone, SHADOW_ITEM_MARKER_PROPERTY_NAME, TRIGGERS } from 'svelte-dnd-action';
+  import { dragHandle, dragHandleZone, SOURCES, TRIGGERS } from 'svelte-dnd-action';
   import type { DndEvent } from 'svelte-dnd-action';
   import List from './List.svelte';
   import { getContext } from 'svelte';
@@ -12,27 +12,38 @@
   import { ScrollArea } from 'bits-ui';
   import { triggerHaptic } from '$lib/ui/utils';
   import { GripVertical, Pencil, Plus } from 'lucide-svelte';
+  import type { GetRecentMove, IsInFlight } from '$lib/features/boards/composables/boardState.svelte';
+  import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
+  import MovedByIndicator from './MovedByIndicator.svelte';
 
   let { swimlane = $bindable() }: { swimlane: GetBoardByIdResponse.SwimlaneDto } = $props();
 
   const getHub = getContext<() => BoardsHub | null>('hub');
   const hub = $derived(getHub());
-  const getBoard = getContext<() => GetBoardByIdResponse.BoardDto>('board');
   const getBoardState = getContext<() => string>('boardState');
   const boardState = $derived(getBoardState());
   const getCanManageSwimlanes = getContext<() => boolean>('canManageSwimlanes');
   const canManageSwimlanes = $derived(getCanManageSwimlanes());
   const getCanManageLists = getContext<() => boolean>('canManageLists');
   const canManageLists = $derived(getCanManageLists());
+  const getRecentMove = getContext<GetRecentMove | undefined>('recentMove');
+  const recentMove = $derived(getRecentMove?.('swimlane', swimlane.id));
+  const getIsInFlight = getContext<IsInFlight | undefined>('isInFlight');
+  const inFlight = $derived(getIsInFlight?.('swimlane', swimlane.id) ?? false);
 
   const ui = getBoardUI();
 
+  // List picked up with the keyboard, shown as selected until it is dropped.
+  let keyboardMovedListId = $state<number | null>(null);
+
   function handleListConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
     swimlane.lists = e.detail.items;
+    if (e.detail.info.source === SOURCES.KEYBOARD) keyboardMovedListId = Number(e.detail.info.id);
   }
 
   async function handleListFinalize(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
     swimlane.lists = e.detail.items;
+    keyboardMovedListId = null;
     const { info } = e.detail;
 
     if (info.trigger === TRIGGERS.DROPPED_INTO_ZONE || info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER) {
@@ -67,18 +78,24 @@
 
 <div
   data-id={swimlane.id}
+  data-swimlane-id={swimlane.id}
+  data-board-item="swimlane"
   role="group"
+  class:flight-hidden={inFlight}
+  class:flight-settle={recentMove?.pop && !inFlight}
   style:height={swimlane.height ? `${swimlane.height}px` : undefined}
-  class="group/swimlane flex flex-col border-b border-gray-200 dark:border-gray-700/60 {swimlane.height
+  class="group/swimlane relative flex flex-col border-b border-gray-200 dark:border-gray-700/60 {swimlane.height
     ? ''
     : 'flex-1 min-h-[180px]'}"
 >
+  <MovedByIndicator move={recentMove} placement="inside" rounded="rounded-none" />
+
   <!-- Header band — always visible, even when collapsed during drag -->
   <div class="swimlane-header flex h-11 shrink-0 items-center gap-2 bg-gray-50 px-3 dark:bg-gray-800/70">
     {#if canManageSwimlanes}
       <div
         use:dragHandle
-        class="touch-none rounded p-1 text-gray-400 transition-colors duration-150 hover:bg-gray-200 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 {boardState === 'connected' ? 'cursor-grab' : 'cursor-not-allowed opacity-40'}"
+        class="touch-none rounded p-1 text-gray-400 transition-colors duration-150 hover:bg-gray-200 hover:text-gray-600 focus-visible:outline-none dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 {boardState === 'connected' ? 'cursor-grab' : 'cursor-not-allowed opacity-40'}"
         aria-label="Drag swimlane"
       >
         <GripVertical class="h-4 w-4" />
@@ -101,7 +118,7 @@
         disabled={boardState !== 'connected'}
         onclick={() => ui.openSwimlaneModal(swimlane)}
         startIcon={Pencil}
-        class="h-7 w-7 min-w-0 shrink-0 rounded p-0 text-gray-400 opacity-0 transition-opacity duration-150 hover:bg-gray-200 hover:text-gray-600 group-hover/swimlane:opacity-100 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+        class="h-7 w-7 min-w-0 shrink-0 rounded p-0 text-gray-400 opacity-0 transition-[opacity,outline-color] duration-150 hover:bg-gray-200 hover:text-gray-600 group-hover/swimlane:opacity-100 group-focus-within/swimlane:opacity-100 dark:hover:bg-gray-700 dark:hover:text-gray-300"
         title="Edit swimlane"
       >
         <span class="sr-only">Edit swimlane</span>
@@ -113,24 +130,33 @@
   <ScrollArea.Root class="swimlane-content swimlane-scroll-area relative flex-1 overflow-hidden bg-white/60 dark:bg-gray-900/40" type="auto">
     <ScrollArea.Viewport class="h-full w-full rounded-[inherit]">
       <div class="flex h-full px-3 py-3">
+        <!--
+          The drop area reaches under "Add list" via padding cancelled by a negative margin, so dropping
+          right after the last list (or into an empty swimlane) is easy to hit without changing the layout.
+        -->
         <section
           use:dragHandleZone={{
             items: swimlane.lists,
-            flipDurationMs: 150,
+            flipDurationMs: LAYOUT_FLIP_MS,
             type: 'lists',
             dropTargetStyle: {},
+            dropTargetClasses: ['board-drop-target'],
             useCursorForDetection: true,
             zoneTabIndex: -1,
             dragDisabled: boardState !== 'connected'
           }}
           onconsider={handleListConsider}
           onfinalize={handleListFinalize}
-          class="flex h-full items-stretch gap-3"
+          data-board-zone="lists"
+          data-empty={swimlane.lists.length === 0 || undefined}
+          class="flex min-h-9 items-stretch gap-3 self-stretch {swimlane.lists.length === 0 ? 'w-58 -mr-58' : 'pr-28 -mr-28'}"
         >
           {#each swimlane.lists as list, index (list.id)}
             <div
-              class="relative z-20 flex min-h-0 self-stretch rounded-xl transition-shadow duration-200 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-900"
-              animate:flip={{ duration: 150 }}
+              class="relative z-20 flex min-h-0 self-stretch rounded-xl outline-none"
+              data-board-slot="list"
+              data-selected={keyboardMovedListId === list.id || undefined}
+              animate:flip={layoutFlip}
             >
               <List bind:list={swimlane.lists[index]} swimlaneId={swimlane.id} />
             </div>
@@ -168,49 +194,5 @@
 <style>
   :global(.swimlane-scroll-area [data-scroll-area-viewport] > [data-scroll-area-content]) {
     height: 100%;
-  }
-
-  /* Collapse swimlane to header-only band while dragging */
-  :global(.swimlane-drag .swimlane-content),
-  :global(.swimlane-ghost .swimlane-content) {
-    display: none !important;
-  }
-
-  :global(.swimlane-drag),
-  :global(.swimlane-ghost) {
-    height: auto !important;
-    flex: none !important;
-    min-height: 0 !important;
-  }
-
-  :global(.list-ghost) {
-    opacity: 0.45;
-    background: var(--color-brand-50) !important;
-    border: 2px dashed var(--color-brand-300) !important;
-    border-radius: 0.75rem !important;
-  }
-
-  :global(.dark .list-ghost) {
-    background: color-mix(in srgb, var(--color-brand-500) 12%, transparent) !important;
-    border-color: var(--color-brand-600) !important;
-  }
-
-  :global(.list-chosen) {
-    cursor: grabbing !important;
-  }
-
-  :global(.list-drag) {
-    box-shadow:
-      0 20px 30px -8px rgba(70, 95, 255, 0.15),
-      0 8px 12px -4px rgba(0, 0, 0, 0.08) !important;
-    opacity: 0.97 !important;
-    transform: rotate(0.8deg) scale(1.01);
-    border-radius: 0.75rem !important;
-  }
-
-  :global(.dark .list-drag) {
-    box-shadow:
-      0 20px 30px -8px rgba(0, 0, 0, 0.4),
-      0 8px 12px -4px rgba(0, 0, 0, 0.3) !important;
   }
 </style>

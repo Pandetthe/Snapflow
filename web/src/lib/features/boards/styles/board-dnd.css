@@ -1,0 +1,172 @@
+/*
+  Board item states and drag & drop, shared by swimlanes, lists and cards.
+
+  - item roots:     [data-board-item="swimlane|list|card"]
+  - zone children:  [data-board-slot="swimlane|list|card"] wrappers, [data-selected] while moved with the keyboard
+  - zones:          section[data-board-zone], [data-empty] when it has no items,
+                    .board-drop-target while an item of its type is being dragged (dropTargetClasses)
+  - svelte-dnd-action: #dnd-action-dragged-el is the floating clone,
+                       [data-is-dnd-shadow-item-internal] is the slot the item would drop into
+*/
+
+[data-board-item] {
+  --board-accent: var(--color-brand-500);
+  /* Always present but transparent, so the focus/selected ring fades like on other controls (app.css) */
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    outline-color 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Swimlanes span the whole page width, an outer ring would be clipped */
+[data-board-item='swimlane'] {
+  outline-offset: -2px;
+}
+
+[data-board-slot='card'] {
+  --board-radius: 0.5rem;
+}
+
+[data-board-slot='list'] {
+  --board-radius: 0.75rem;
+}
+
+[data-board-slot='swimlane'] {
+  --board-radius: 0;
+}
+
+/* Hover */
+@media (hover: hover) {
+  [data-board-item='card']:hover,
+  [data-board-item='list']:hover {
+    border-color: color-mix(in srgb, var(--board-accent) 35%, transparent);
+  }
+
+  [data-board-item='card']:hover {
+    box-shadow: 0 4px 12px -4px rgb(16 24 40 / 0.12);
+  }
+
+  [data-board-item='swimlane']:hover > .swimlane-header {
+    box-shadow: inset 3px 0 0 color-mix(in srgb, var(--board-accent) 45%, transparent);
+  }
+}
+
+/*
+  Focus: the same brand ring as other controls (ring-2 + ring-offset-2), around the innermost item
+  that holds keyboard focus. An outline keeps the item's own shadow.
+*/
+[data-board-item]:has(:focus-visible):not(:has([data-board-item] :focus-visible)),
+[data-board-slot]:focus-visible > [data-board-item],
+[data-selected] > [data-board-item] {
+  outline-color: var(--board-accent);
+}
+
+/* Selected: picked up with the keyboard and being moved */
+[data-selected] > [data-board-item] {
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--board-accent) 7%, transparent),
+    color-mix(in srgb, var(--board-accent) 7%, transparent)
+  );
+}
+
+/* Being dragged: lifted like the ghost of a remote move (animations/elementFlight.ts) */
+#dnd-action-dragged-el {
+  cursor: grabbing;
+}
+
+#dnd-action-dragged-el > [data-board-item] {
+  border-color: color-mix(in srgb, var(--board-accent) 45%, transparent);
+  box-shadow:
+    0 14px 26px -10px rgb(70 95 255 / 0.3),
+    0 4px 10px -4px rgb(16 24 40 / 0.12);
+  animation: board-lift 200ms cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+:where(.dark) #dnd-action-dragged-el > [data-board-item] {
+  box-shadow:
+    0 14px 26px -10px rgb(0 0 0 / 0.55),
+    0 4px 10px -4px rgb(0 0 0 / 0.35);
+}
+
+/* rotate/scale are separate properties, so they do not fight the library's translate3d transform */
+#dnd-action-dragged-el > [data-board-item='card'] {
+  rotate: 0.8deg;
+  scale: 1.03;
+}
+
+#dnd-action-dragged-el > [data-board-item='list'] {
+  rotate: 0.3deg;
+  scale: 1.012;
+}
+
+@keyframes board-lift {
+  from {
+    rotate: 0deg;
+    scale: 1;
+  }
+}
+
+/* Drop slot: the library hides it with visibility, a visible pseudo-element still shows */
+[data-board-slot][data-is-dnd-shadow-item-internal]::after {
+  content: '';
+  visibility: visible;
+  position: absolute;
+  inset: 0;
+  border: 2px dashed color-mix(in srgb, var(--color-brand-500) 45%, transparent);
+  border-radius: var(--board-radius);
+  background-color: color-mix(in srgb, var(--color-brand-500) 6%, transparent);
+  pointer-events: none;
+  animation: board-fade-in 200ms ease-out both;
+}
+
+/* Empty zone while an item of its type is dragged */
+section[data-board-zone] {
+  position: relative;
+}
+
+section[data-board-zone].board-drop-target[data-empty]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px dashed color-mix(in srgb, var(--color-brand-500) 30%, transparent);
+  border-radius: 0.5rem;
+  background-color: color-mix(in srgb, var(--color-brand-500) 4%, transparent);
+  pointer-events: none;
+  animation: board-fade-in 200ms ease-out both;
+}
+
+section[data-board-zone='lists'].board-drop-target[data-empty]::before {
+  border-radius: 0.75rem;
+}
+
+section[data-board-zone='swimlanes'].board-drop-target[data-empty]::before {
+  inset: 0.5rem 1.25rem;
+}
+
+/* The "Add …" button next to an empty zone would cover its placeholder while dragging */
+section[data-board-zone].board-drop-target[data-empty] + * {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes board-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #dnd-action-dragged-el > [data-board-item],
+  [data-board-slot][data-is-dnd-shadow-item-internal]::after,
+  section[data-board-zone]::before {
+    animation: none;
+  }
+
+  #dnd-action-dragged-el > [data-board-item='card'],
+  #dnd-action-dragged-el > [data-board-item='list'] {
+    rotate: none;
+    scale: none;
+  }
+}

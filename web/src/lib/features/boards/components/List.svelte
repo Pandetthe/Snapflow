@@ -1,6 +1,6 @@
 <script lang="ts">
   import { flip } from 'svelte/animate';
-  import { dragHandleZone, dragHandle, TRIGGERS } from 'svelte-dnd-action';
+  import { dragHandleZone, dragHandle, SOURCES, TRIGGERS } from 'svelte-dnd-action';
   import type { DndEvent } from 'svelte-dnd-action';
   import { getContext } from 'svelte';
   import { getBoardUI } from '$lib/features/boards/context/board.context';
@@ -12,6 +12,9 @@
   import { Button } from '$lib/ui/components';
   import { GripVertical, Pencil, Plus } from 'lucide-svelte';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
+  import type { GetRecentMove, IsInFlight } from '$lib/features/boards/composables/boardState.svelte';
+  import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
+  import MovedByIndicator from './MovedByIndicator.svelte';
 
   let { list = $bindable(), swimlaneId }: { list: GetBoardByIdResponse.ListDto; swimlaneId: number } = $props();
 
@@ -23,20 +26,32 @@
   const canManageLists = $derived(getCanManageLists());
   const getCanManageCards = getContext<() => boolean>('canManageCards');
   const canManageCards = $derived(getCanManageCards());
+  const getRecentMove = getContext<GetRecentMove | undefined>('recentMove');
+  const recentMove = $derived(getRecentMove?.('list', list.id));
+  const getIsInFlight = getContext<IsInFlight | undefined>('isInFlight');
+  const inFlight = $derived(getIsInFlight?.('list', list.id) ?? false);
 
   const ui = getBoardUI();
 
+  // Card picked up with the keyboard, shown as selected until it is dropped.
+  let keyboardMovedCardId = $state<number | null>(null);
+
   function handleCardConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.CardDto>>) {
     list.cards = e.detail.items;
+    if (e.detail.info.source === SOURCES.KEYBOARD) keyboardMovedCardId = Number(e.detail.info.id);
   }
 
   async function handleCardFinalize(e: CustomEvent<DndEvent<GetBoardByIdResponse.CardDto>>) {
     list.cards = e.detail.items;
+    keyboardMovedCardId = null;
     const { info } = e.detail;
     if (info.trigger === TRIGGERS.DROPPED_INTO_ZONE || info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER) {
-      triggerHaptic('success');
       const id = Number(info.id);
       const index = list.cards.findIndex((c) => c.id === id);
+      // Finalize also fires in the source list when a card leaves it; only the list holding the card sends the move.
+      if (index === -1) return;
+
+      triggerHaptic('success');
       const nextItem = list.cards[index + 1];
       const beforeId = nextItem ? nextItem.id : null;
 
@@ -57,15 +72,21 @@
 
 <div
   role="group"
+  data-list-id={list.id}
+  data-board-item="list"
+  class:flight-hidden={inFlight}
+  class:flight-settle={recentMove?.pop && !inFlight}
   style:width={list.width ? `${list.width}px` : 'auto'}
-  class="group/list flex h-full max-h-full min-h-0 min-w-[220px] shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200/80 bg-gray-50 shadow-sm transition-shadow duration-200 dark:border-gray-700/50 dark:bg-gray-900/40 dark:shadow-black/20"
+  class="group/list relative flex h-full max-h-full min-h-0 min-w-[220px] shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200/80 bg-gray-50 shadow-sm dark:border-gray-700/50 dark:bg-gray-900/40 dark:shadow-black/20"
 >
+  <MovedByIndicator move={recentMove} placement="inside" rounded="rounded-xl" />
+
   <!-- List header -->
   <div class="flex shrink-0 items-center gap-1.5 border-b border-gray-200 bg-gray-100/80 px-2.5 py-2 dark:border-gray-700/60 dark:bg-gray-800/90">
     {#if canManageLists}
       <div
         use:dragHandle
-        class="list-drag-handle touch-none rounded p-1 text-gray-400 opacity-0 transition-all duration-150 hover:bg-gray-200 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none group-hover/list:opacity-100 dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 {boardState === 'connected' ? 'cursor-grab' : 'cursor-not-allowed opacity-30'}"
+        class="list-drag-handle touch-none rounded p-1 text-gray-400 opacity-0 transition-all duration-150 hover:bg-gray-200 hover:text-gray-600 focus-visible:outline-none group-hover/list:opacity-100 group-focus-within/list:opacity-100 dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 {boardState === 'connected' ? 'cursor-grab' : 'cursor-not-allowed opacity-30'}"
       >
         <GripVertical class="h-3.5 w-3.5" />
       </div>
@@ -88,7 +109,7 @@
         disabled={boardState !== 'connected'}
         aria-label="Edit list"
         startIcon={Pencil}
-        class="h-6 w-6 min-w-0 shrink-0 rounded p-0 text-gray-400 opacity-0 transition-opacity duration-150 hover:bg-gray-200 hover:text-gray-600 group-hover/list:opacity-100 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+        class="h-6 w-6 min-w-0 shrink-0 rounded p-0 text-gray-400 opacity-0 transition-[opacity,outline-color] duration-150 hover:bg-gray-200 hover:text-gray-600 group-hover/list:opacity-100 group-focus-within/list:opacity-100 dark:hover:bg-gray-700 dark:hover:text-gray-300"
         title="Edit list"
       >
         <span class="sr-only">Edit list</span>
@@ -100,24 +121,30 @@
   <ScrollArea.Root class="list-scroll-area relative flex-1 overflow-hidden" type="auto">
     <ScrollArea.Viewport class="h-full w-full rounded-[inherit]">
       <div class="flex h-full min-h-0 flex-col p-2">
+        <!-- The drop area reaches under "Add card" via padding cancelled by a negative margin -->
         <section
           use:dragHandleZone={{
             items: list.cards,
-            flipDurationMs: 150,
+            flipDurationMs: LAYOUT_FLIP_MS,
             type: 'cards',
             dropTargetStyle: {},
+            dropTargetClasses: ['board-drop-target'],
             useCursorForDetection: true,
             zoneTabIndex: -1,
             dragDisabled: boardState !== 'connected'
           }}
           onconsider={handleCardConsider}
           onfinalize={handleCardFinalize}
-          class="flex min-h-[40px] flex-1 flex-col gap-1.5"
+          data-board-zone="cards"
+          data-empty={list.cards.length === 0 || undefined}
+          class="flex min-h-10 flex-1 flex-col gap-1.5 {canManageCards ? 'pb-12 -mb-12' : ''}"
         >
           {#each list.cards as card (card.id)}
             <div
-              animate:flip={{ duration: 150 }}
-              class="relative z-20 rounded-lg transition-shadow duration-200 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-900"
+              animate:flip={layoutFlip}
+              class="relative z-20 rounded-lg outline-none"
+              data-board-slot="card"
+              data-selected={keyboardMovedCardId === card.id || undefined}
             >
               <Card {card} listId={list.id} />
             </div>
@@ -155,37 +182,5 @@
 <style>
   :global(.list-scroll-area [data-scroll-area-viewport] > [data-scroll-area-content]) {
     height: 100%;
-  }
-
-  :global(.card-ghost) {
-    opacity: 0.4;
-    background: var(--color-brand-50) !important;
-    border: 1.5px dashed var(--color-brand-300) !important;
-    border-radius: 0.5rem !important;
-    box-shadow: none !important;
-  }
-
-  :global(.dark .card-ghost) {
-    background: color-mix(in srgb, var(--color-brand-500) 10%, transparent) !important;
-    border-color: var(--color-brand-600) !important;
-  }
-
-  :global(.card-chosen) {
-    cursor: grabbing !important;
-  }
-
-  :global(.card-drag) {
-    box-shadow:
-      0 12px 20px -4px rgba(70, 95, 255, 0.12),
-      0 4px 8px -2px rgba(0, 0, 0, 0.08) !important;
-    opacity: 0.97 !important;
-    transform: rotate(1deg) scale(1.02);
-    border-radius: 0.5rem !important;
-  }
-
-  :global(.dark .card-drag) {
-    box-shadow:
-      0 12px 20px -4px rgba(0, 0, 0, 0.4),
-      0 4px 8px -2px rgba(0, 0, 0, 0.3) !important;
   }
 </style>

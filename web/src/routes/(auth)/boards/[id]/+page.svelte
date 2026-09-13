@@ -1,6 +1,6 @@
 <script lang="ts">
   import { flip } from 'svelte/animate';
-  import { dragHandleZone, type DndEvent, TRIGGERS } from 'svelte-dnd-action';
+  import { dragHandleZone, type DndEvent, SOURCES, TRIGGERS } from 'svelte-dnd-action';
   import Swimlane from '$lib/features/boards/components/Swimlane.svelte';
   import SwimlaneModal from '$lib/features/boards/components/SwimlaneModal.svelte';
   import ListModal from '$lib/features/boards/components/ListModal.svelte';
@@ -16,6 +16,8 @@
   import { triggerHaptic } from '$lib/ui/utils';
   import { Folders, Pencil, Plus, Loader2 } from 'lucide-svelte';
   import { fade } from 'svelte/transition';
+  import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
+  import '$lib/features/boards/styles/board-dnd.css';
 
   let { data } = $props();
 
@@ -70,6 +72,8 @@
   setContext('canManageSwimlanes', () => bs.canManageSwimlanes);
   setContext('canManageLists', () => bs.canManageLists);
   setContext('canManageCards', () => bs.canManageCards);
+  setContext('recentMove', bs.getRecentMove);
+  setContext('isInFlight', bs.isInFlight);
 
   onMount(async () => {
     hub = new BoardsHub(data.board.id);
@@ -88,12 +92,17 @@
     }
   });
 
+  // Swimlane picked up with the keyboard, shown as selected until it is dropped.
+  let keyboardMovedSwimlaneId = $state<number | null>(null);
+
   function handleSwimlaneConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.SwimlaneDto>>) {
     bs.board.swimlanes = [...e.detail.items];
+    if (e.detail.info.source === SOURCES.KEYBOARD) keyboardMovedSwimlaneId = Number(e.detail.info.id);
   }
 
   async function handleSwimlaneFinalize(e: CustomEvent<DndEvent<GetBoardByIdResponse.SwimlaneDto>>) {
     bs.board.swimlanes = [...e.detail.items];
+    keyboardMovedSwimlaneId = null;
     const { info } = e.detail;
     if (info.trigger === TRIGGERS.DROPPED_INTO_ZONE) {
       triggerHaptic('success');
@@ -190,12 +199,14 @@
       {/if}
 
       <div class="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
+        <!-- The drop area reaches under "Add swimlane" via padding cancelled by a negative margin -->
         <section
           use:dragHandleZone={{
             items: bs.board.swimlanes,
-            flipDurationMs: 150,
+            flipDurationMs: LAYOUT_FLIP_MS,
             type: 'swimlanes',
             dropTargetStyle: {},
+            dropTargetClasses: ['board-drop-target'],
             useCursorForDetection: true,
             zoneTabIndex: -1,
             zoneItemTabIndex: 0,
@@ -203,12 +214,16 @@
           }}
           onconsider={handleSwimlaneConsider}
           onfinalize={handleSwimlaneFinalize}
-          class="flex flex-col"
+          data-board-zone="swimlanes"
+          data-empty={bs.board.swimlanes.length === 0 || undefined}
+          class="flex flex-col {bs.canManageSwimlanes ? 'pb-14 -mb-14' : ''}"
         >
           {#each bs.board.swimlanes as swimlane, index (swimlane.id)}
             <div
-              animate:flip={{ duration: 150 }}
-              class="relative z-20 w-full focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-900"
+              animate:flip={layoutFlip}
+              class="relative z-20 w-full outline-none"
+              data-board-slot="swimlane"
+              data-selected={keyboardMovedSwimlaneId === swimlane.id || undefined}
             >
               <Swimlane bind:swimlane={bs.board.swimlanes[index]} />
             </div>
@@ -216,7 +231,7 @@
         </section>
 
         {#if bs.canManageSwimlanes}
-          <div class="px-5 py-2">
+          <div class="relative z-10 px-5 py-2">
             <Button
               type="button"
               variant="ghost"
@@ -255,38 +270,3 @@
   onConfirm={(title, description) => bs.handleCardConfirm(editingCard, targetListId, title, description)}
   onDelete={(id) => bs.handleCardDelete(id)}
 />
-
-<style>
-  :global(.swimlane-chosen) {
-    cursor: grabbing !important;
-  }
-
-  /* Ghost (placeholder) — collapsed band showing where the swimlane will land */
-  :global(.swimlane-ghost) {
-    opacity: 0.6;
-    background: var(--color-brand-50) !important;
-    border-top: 2px dashed var(--color-brand-300) !important;
-    border-bottom: 2px dashed var(--color-brand-300) !important;
-  }
-
-  :global(.dark .swimlane-ghost) {
-    background: color-mix(in srgb, var(--color-brand-500) 8%, transparent) !important;
-    border-color: var(--color-brand-700) !important;
-  }
-
-  /* Dragged swimlane — lifted card look */
-  :global(.swimlane-drag) {
-    box-shadow:
-      0 24px 32px -8px rgba(70, 95, 255, 0.18),
-      0 8px 16px -4px rgba(0, 0, 0, 0.1) !important;
-    opacity: 0.98 !important;
-    border-left: 3px solid var(--color-brand-400) !important;
-  }
-
-  :global(.dark .swimlane-drag) {
-    box-shadow:
-      0 24px 32px -8px rgba(0, 0, 0, 0.5),
-      0 8px 16px -4px rgba(0, 0, 0, 0.3) !important;
-    border-left-color: var(--color-brand-500) !important;
-  }
-</style>

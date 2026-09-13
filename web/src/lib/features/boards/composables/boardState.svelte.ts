@@ -3,6 +3,26 @@ import type { Response } from '$lib/core/types/app';
 import { BoardsHub } from '../hub/boards.hub';
 import { errorStore } from '$lib/ui/stores/error.svelte';
 import { triggerHaptic } from '$lib/ui/utils';
+import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+import { tick } from 'svelte';
+import type { CardMovedEventPayload } from '../types/boards.hub';
+import { startElementFlight, type ElementFlight } from '../animations/elementFlight';
+
+export type MovableKind = 'card' | 'list' | 'swimlane';
+
+export interface RecentMove {
+  user: GetBoardByIdResponse.UserDto;
+  isCurrentUser: boolean;
+  key: number;
+  /** Whether the element has reached its new place and may play its arrival animation. */
+  pop: boolean;
+}
+
+export type GetRecentMove = (kind: MovableKind, id: number) => RecentMove | undefined;
+
+export type IsInFlight = (kind: MovableKind, id: number) => boolean;
+
+const RECENT_MOVE_DURATION_MS = 2500;
 
 export function createBoardState(
   initialBoard: GetBoardByIdResponse.BoardDto,
@@ -13,6 +33,88 @@ export function createBoardState(
   let members = $state(initialMembers);
   let connectionState = $state<'connecting' | 'connected' | 'reconnecting' | 'disconnected'>('connecting');
   let hub: BoardsHub | null = null;
+
+  // Items recently moved from other connections (the moving connection never receives the event).
+  const recentMoves = new SvelteMap<string, RecentMove>();
+  let recentMoveKey = 0;
+
+  function markMoved(kind: MovableKind, id: number, user: GetBoardByIdResponse.UserDto, pop = true) {
+    const mapKey = `${kind}:${id}`;
+    const key = ++recentMoveKey;
+    recentMoves.set(mapKey, { user, isCurrentUser: user.id === currentUserId, key, pop });
+    setTimeout(() => {
+      if (recentMoves.get(mapKey)?.key === key) recentMoves.delete(mapKey);
+    }, RECENT_MOVE_DURATION_MS);
+  }
+
+  const getRecentMove: GetRecentMove = (kind, id) => recentMoves.get(`${kind}:${id}`);
+
+  // Same key keeps the label as is; only the arrival animation is enabled.
+  function markArrived(kind: MovableKind, id: number) {
+    const mapKey = `${kind}:${id}`;
+    const move = recentMoves.get(mapKey);
+    if (move && !move.pop) recentMoves.set(mapKey, { ...move, pop: true });
+  }
+
+  // Items whose ghost is still travelling to their new place after a remote move; hidden until it lands.
+  const inFlight = new SvelteSet<string>();
+  const activeFlights = new SvelteMap<string, ElementFlight>();
+
+  const isInFlight: IsInFlight = (kind, id) => inFlight.has(`${kind}:${id}`);
+
+  /**
+   * Shows a move made on another connection: the label appears right away, a ghost flies from the old
+   * place to the new one, and the real element settles in when the ghost lands.
+   * `apply` changes the state and returns whether the element was moved.
+   */
+  async function animateRemoteMove(
+    kind: MovableKind,
+    id: number,
+    user: GetBoardByIdResponse.UserDto,
+    apply: () => boolean
+  ) {
+    const key = `${kind}:${id}`;
+
+    // A newer move replaces a flight that has not landed yet.
+    activeFlights.get(key)?.cancel();
+    activeFlights.delete(key);
+    inFlight.delete(key);
+
+    // The ghost captures the label and carries it along; the arrival animation waits for the landing,
+    // so the captured size is not mid-animation.
+    markMoved(kind, id, user, false);
+    await tick();
+
+    // Capture the old position before the state (and DOM) change.
+    const flight = startElementFlight(kind, id);
+    if (!apply()) {
+      flight?.cancel();
+      return;
+    }
+    if (!flight) {
+      markArrived(kind, id);
+      return;
+    }
+
+    activeFlights.set(key, flight);
+    inFlight.add(key);
+    await tick();
+    await flight.land();
+    if (activeFlights.get(key) !== flight) return;
+
+    activeFlights.delete(key);
+    inFlight.delete(key);
+    markArrived(kind, id);
+
+    // Swap only after the real element has rendered in the landing pose, so no frame shows neither or both.
+    // Background tabs get no animation frames, so the timeout makes sure the ghost is removed anyway.
+    await tick();
+    await new Promise((resolve) => {
+      requestAnimationFrame(resolve);
+      setTimeout(resolve, 100);
+    });
+    flight.release();
+  }
 
   const role = $derived<MemberRole>(
     members.find((m) => m.id === currentUserId)?.role ?? 'viewer'
@@ -76,10 +178,15 @@ export function createBoardState(
 
     hub.on('SwimlaneMoved', (payload) => {
       const index = board.swimlanes.findIndex((s) => s.id === payload.id);
-      if (index !== -1 && payload.rank !== board.swimlanes[index].rank) {
-        board.swimlanes[index].rank = payload.rank;
+      if (index === -1 || payload.rank === board.swimlanes[index].rank) return;
+
+      animateRemoteMove('swimlane', payload.id, payload.movedBy, () => {
+        const swimlane = board.swimlanes.find((s) => s.id === payload.id);
+        if (!swimlane) return false;
+        swimlane.rank = payload.rank;
         sortSwimlanes();
-      }
+        return true;
+      });
     });
 
     hub.on('SwimlaneDeleted', (payload) => {
@@ -115,21 +222,24 @@ export function createBoardState(
     });
 
     hub.on('ListMoved', (payload) => {
-      let movedList: GetBoardByIdResponse.ListDto | null = null;
-      for (const s of board.swimlanes) {
-        const index = s.lists.findIndex((l) => l.id === payload.id);
-        if (index !== -1) {
-          [movedList] = s.lists.splice(index, 1);
-          s.lists = [...s.lists];
-          break;
+      animateRemoteMove('list', payload.id, payload.movedBy, () => {
+        let movedList: GetBoardByIdResponse.ListDto | null = null;
+        for (const s of board.swimlanes) {
+          const index = s.lists.findIndex((l) => l.id === payload.id);
+          if (index !== -1) {
+            [movedList] = s.lists.splice(index, 1);
+            s.lists = [...s.lists];
+            break;
+          }
         }
-      }
-      const targetSwimlane = board.swimlanes.find((s) => s.id === payload.swimlaneId);
-      if (movedList && targetSwimlane) {
+        const targetSwimlane = board.swimlanes.find((s) => s.id === payload.swimlaneId);
+        if (!movedList || !targetSwimlane) return false;
+
         movedList.rank = payload.rank;
         targetSwimlane.lists.push(movedList);
         sortLists(targetSwimlane);
-      }
+        return true;
+      });
     });
 
     hub.on('ListDeleted', (payload) => {
@@ -160,7 +270,7 @@ export function createBoardState(
       }
     });
 
-    hub.on('CardMoved', (payload) => {
+    const applyCardMove = (payload: CardMovedEventPayload): boolean => {
       let movedCard: GetBoardByIdResponse.CardDto | null = null;
       for (const s of board.swimlanes) {
         for (const l of s.lists) {
@@ -180,10 +290,15 @@ export function createBoardState(
             movedCard.rank = payload.rank;
             targetList.cards.push(movedCard);
             sortCards(targetList);
-            break;
+            return true;
           }
         }
       }
+      return false;
+    };
+
+    hub.on('CardMoved', (payload) => {
+      animateRemoteMove('card', payload.id, payload.movedBy, () => applyCardMove(payload));
     });
 
     hub.on('CardUpdated', (payload) => {
@@ -407,6 +522,8 @@ export function createBoardState(
     get canManageSwimlanes() { return canManageSwimlanes; },
     get canManageLists() { return canManageLists; },
     get canManageCards() { return canManageCards; },
+    getRecentMove,
+    isInFlight,
     sortAll,
     sortSwimlanes,
     registerHubEvents,

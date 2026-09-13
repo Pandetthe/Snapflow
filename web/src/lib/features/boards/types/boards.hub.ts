@@ -1,4 +1,4 @@
-import type { MemberRole } from './boards.api';
+import type { GetBoardByIdResponse, MemberRole } from './boards.api';
 
 export interface BoardsHubEvents {
   BoardUpdated: (payload: BoardUpdatedEventPayload) => void;
@@ -41,6 +41,7 @@ export interface SwimlaneUpdatedEventPayload {
 export interface SwimlaneMovedEventPayload {
   id: number;
   rank: string;
+  movedBy: GetBoardByIdResponse.UserDto;
 }
 
 export interface SwimlaneDeletedEventPayload {
@@ -65,6 +66,7 @@ export interface ListMovedEventPayload {
   id: number;
   swimlaneId: number;
   rank: string;
+  movedBy: GetBoardByIdResponse.UserDto;
 }
 
 export interface ListDeletedEventPayload {
@@ -91,6 +93,7 @@ export interface CardMovedEventPayload {
   id: number;
   listId: number;
   rank: string;
+  movedBy: GetBoardByIdResponse.UserDto;
 }
 
 export interface CardLockedEventPayload {
