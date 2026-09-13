@@ -1,8 +1,9 @@
 import { json } from '@sveltejs/kit';
 import { apiClient } from '$lib/server/api.server';
 import logger from '$lib/logger';
+import type { RequestEvent } from './$types';
 
-export async function GET(event) {
+export async function GET(event: RequestEvent) {
   const start = performance.now();
   let apiStatus: 'Healthy' | 'Unhealthy' = 'Unhealthy';
   let apiDuration = '00:00:00.000';
