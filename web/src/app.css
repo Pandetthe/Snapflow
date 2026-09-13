@@ -125,6 +125,15 @@
     0px 4px 6px -2px rgba(16, 24, 40, 0.05), -8px 0px 20px 8px rgba(16, 24, 40, 0.05);
 
   --drop-shadow-4xl: 0 35px 35px rgba(0, 0, 0, 0.25), 0 45px 65px rgba(0, 0, 0, 0.15);
+
+  /*
+    Motion: one pace for the whole app. Transition and tailwindcss-animate utilities without their own
+    duration or ease classes use these defaults; the curve matches the board's settle animations.
+  */
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-flow: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-flow-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 @layer base {
@@ -256,8 +265,8 @@
     outline: 2px solid transparent;
     outline-offset: 2px;
     transition-property: outline-color;
-    transition-duration: 180ms;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: var(--default-transition-duration);
+    transition-timing-function: var(--default-transition-timing-function);
   }
 
   :where(
