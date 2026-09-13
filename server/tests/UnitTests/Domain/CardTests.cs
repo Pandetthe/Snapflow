@@ -64,6 +64,26 @@ public sealed class CardTests
     }
 
     [Fact]
+    public void Move_Should_UpdatePosition_And_RaiseEventWithMover()
+    {
+        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
+        var movedBy = CreateUser(5, "bob");
+        var now = DateTimeOffset.UtcNow;
+
+        card.Move(4, 6, "rank2", movedBy, now, "move-conn");
+
+        card.ListId.Should().Be(4);
+        card.SwimlaneId.Should().Be(6);
+        card.Rank.Should().Be("rank2");
+        card.UpdatedById.Should().Be(5);
+        card.UpdatedAt.Should().Be(now);
+
+        card.DomainEvents.Select(e => e(card)).OfType<CardMovedDomainEvent>().Should().ContainSingle()
+            .Which.Should().Match<CardMovedDomainEvent>(e =>
+                e.ListId == 4 && e.Rank == "rank2" && e.MovedById == 5 && e.MovedByUserName == "bob" && e.ConnectionId == "move-conn");
+    }
+
+    [Fact]
     public void SoftDelete_Should_SetIsDeletedTrue_And_RaiseEvent()
     {
         var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);

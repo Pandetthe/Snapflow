@@ -27,6 +27,8 @@ public sealed record CardMovedDomainEvent(
     int BoardId,
     int ListId,
     string Rank,
+    int MovedById,
+    string MovedByUserName,
     string? ConnectionId) : IDomainEvent;
 
 public sealed record CardDeletedDomainEvent(

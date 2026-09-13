@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
+using Snapflow.Application.Abstractions.Services;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
 using static Snapflow.Application.Boards.GetById.GetBoardByIdResponse;
@@ -8,7 +9,8 @@ using static Snapflow.Application.Boards.GetById.GetBoardByIdResponse;
 namespace Snapflow.Application.Boards.GetById;
 
 internal sealed class GetBoardByIdHandler(
-    IAppDbContext context) : IQueryHandler<GetBoardByIdQuery, GetBoardByIdResponse>
+    IAppDbContext context,
+    IAvatarService avatarService) : IQueryHandler<GetBoardByIdQuery, GetBoardByIdResponse>
 {
     public async Task<Result<GetBoardByIdResponse>> Handle(GetBoardByIdQuery query, CancellationToken cancellationToken = default)
     {
@@ -52,6 +54,16 @@ internal sealed class GetBoardByIdHandler(
                     .ToList()))
             .SingleOrDefaultAsync(cancellationToken);
 
-        return board ?? Result.Failure<GetBoardByIdResponse>(BoardErrors.NotFound(query.Id));
+        if (board == null)
+            return Result.Failure<GetBoardByIdResponse>(BoardErrors.NotFound(query.Id));
+
+        foreach (CardDto card in board.Swimlanes.SelectMany(s => s.Lists).SelectMany(l => l.Cards))
+        {
+            card.CreatedBy.AvatarUrl = avatarService.GenerateAvatarUrl(card.CreatedBy.Id);
+            if (card.UpdatedBy != null)
+                card.UpdatedBy.AvatarUrl = avatarService.GenerateAvatarUrl(card.UpdatedBy.Id);
+        }
+
+        return board;
     }
 }

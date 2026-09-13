@@ -11,6 +11,9 @@ public sealed record GetBoardByIdResponse(
 {
     public sealed record UserDto(int Id, string UserName)
     {
+        // Filled in after the query, avatar URLs are not part of the database projection.
+        public string? AvatarUrl { get; set; }
+
         [return: NotNullIfNotNull(nameof(user))]
         public static UserDto? From(Domain.Users.IUser? user) =>
             user == null ? null : new UserDto(user.Id, user.UserName);

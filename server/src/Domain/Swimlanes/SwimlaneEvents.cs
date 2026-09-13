@@ -21,6 +21,8 @@ public sealed record SwimlaneMovedDomainEvent(
     int Id,
     int BoardId,
     string Rank,
+    int MovedById,
+    string MovedByUserName,
     string? ConnectionId) : IDomainEvent;
 
 public sealed record SwimlaneDeletedDomainEvent(

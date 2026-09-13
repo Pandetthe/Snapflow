@@ -1,5 +1,7 @@
 using FluentAssertions;
+using NSubstitute;
 using Snapflow.Domain.Swimlanes;
+using Snapflow.Domain.Users;
 
 namespace Snapflow.UnitTests.Domain;
 
@@ -44,6 +46,26 @@ public sealed class SwimlaneTests
         swimlane.UpdatedAt.Should().Be(now);
         
         swimlane.DomainEvents.Select(e => e(swimlane)).Should().Contain(e => e is SwimlaneUpdatedDomainEvent);
+    }
+
+    [Fact]
+    public void Move_Should_UpdateRank_And_RaiseEventWithMover()
+    {
+        var swimlane = Swimlane.Create(1, "Title", 100, "rank", 1, DateTimeOffset.UtcNow);
+        var movedBy = Substitute.For<IUser>();
+        movedBy.Id.Returns(5);
+        movedBy.UserName.Returns("bob");
+        var now = DateTimeOffset.UtcNow;
+
+        swimlane.Move("rank2", movedBy, now, "move-conn");
+
+        swimlane.Rank.Should().Be("rank2");
+        swimlane.UpdatedById.Should().Be(5);
+        swimlane.UpdatedAt.Should().Be(now);
+
+        swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneMovedDomainEvent>().Should().ContainSingle()
+            .Which.Should().Match<SwimlaneMovedDomainEvent>(e =>
+                e.Rank == "rank2" && e.MovedById == 5 && e.MovedByUserName == "bob" && e.ConnectionId == "move-conn");
     }
 
     [Fact]

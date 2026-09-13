@@ -66,14 +66,14 @@ public class List : Entity<int, List>, IRankable
         Raise(l => new ListUpdatedDomainEvent(l.Id, l.BoardId, l.Title, l.Width, connectionId));
     }
 
-    public void Move(int swimlaneId, string rank, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
+    public void Move(int swimlaneId, string rank, IUser movedBy, DateTimeOffset updatedAt, string? connectionId = null)
     {
         SwimlaneId = swimlaneId;
         Rank = rank;
-        UpdatedById = updatedById;
+        UpdatedById = movedBy.Id;
         UpdatedAt = updatedAt;
 
-        Raise(l => new ListMovedDomainEvent(Id, BoardId, SwimlaneId, Rank, connectionId));
+        Raise(l => new ListMovedDomainEvent(Id, BoardId, SwimlaneId, Rank, movedBy.Id, movedBy.UserName, connectionId));
     }
 
     public void SoftDelete(int deletedById, DateTimeOffset deletedAt, string? connectionId = null)

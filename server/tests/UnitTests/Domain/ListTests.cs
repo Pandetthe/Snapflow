@@ -1,5 +1,7 @@
 using FluentAssertions;
+using NSubstitute;
 using Snapflow.Domain.Lists;
+using Snapflow.Domain.Users;
 
 namespace Snapflow.UnitTests.Domain;
 
@@ -46,6 +48,27 @@ public sealed class ListTests
         list.UpdatedAt.Should().Be(now);
         
         list.DomainEvents.Select(e => e(list)).Should().Contain(e => e is ListUpdatedDomainEvent);
+    }
+
+    [Fact]
+    public void Move_Should_UpdatePosition_And_RaiseEventWithMover()
+    {
+        var list = List.Create(1, 2, "Title", 300, "rank", 1, DateTimeOffset.UtcNow);
+        var movedBy = Substitute.For<IUser>();
+        movedBy.Id.Returns(5);
+        movedBy.UserName.Returns("bob");
+        var now = DateTimeOffset.UtcNow;
+
+        list.Move(3, "rank2", movedBy, now, "move-conn");
+
+        list.SwimlaneId.Should().Be(3);
+        list.Rank.Should().Be("rank2");
+        list.UpdatedById.Should().Be(5);
+        list.UpdatedAt.Should().Be(now);
+
+        list.DomainEvents.Select(e => e(list)).OfType<ListMovedDomainEvent>().Should().ContainSingle()
+            .Which.Should().Match<ListMovedDomainEvent>(e =>
+                e.SwimlaneId == 3 && e.Rank == "rank2" && e.MovedById == 5 && e.MovedByUserName == "bob" && e.ConnectionId == "move-conn");
     }
 
     [Fact]

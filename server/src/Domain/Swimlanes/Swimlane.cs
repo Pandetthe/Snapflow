@@ -63,13 +63,13 @@ public class Swimlane : Entity<int, Swimlane>, IRankable
         Raise(s => new SwimlaneUpdatedDomainEvent(s.Id, s.BoardId, s.Title, s.Height, connectionId));
     }
 
-    public void Move(string rank, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
+    public void Move(string rank, IUser movedBy, DateTimeOffset updatedAt, string? connectionId = null)
     {
         Rank = rank;
-        UpdatedById = updatedById;
+        UpdatedById = movedBy.Id;
         UpdatedAt = updatedAt;
 
-        Raise(s => new SwimlaneMovedDomainEvent(Id, BoardId, Rank, connectionId));
+        Raise(s => new SwimlaneMovedDomainEvent(Id, BoardId, Rank, movedBy.Id, movedBy.UserName, connectionId));
     }
 
     public void SoftDelete(int deletedById, DateTimeOffset deletedAt, string? connectionId = null)

@@ -18,7 +18,7 @@ public interface IBoardHubClient
 
     Task SwimlaneUpdated(SwimlaneUpdatedPayload payload, CancellationToken cancellationToken = default);
 
-    public sealed record SwimlaneMovedPayload(int Id, string Rank);
+    public sealed record SwimlaneMovedPayload(int Id, string Rank, UserDto MovedBy);
 
     Task SwimlaneMoved(SwimlaneMovedPayload payload, CancellationToken cancellationToken = default);
 
@@ -34,7 +34,7 @@ public interface IBoardHubClient
 
     Task ListUpdated(ListUpdatedPayload payload, CancellationToken cancellationToken = default);
 
-    public sealed record ListMovedPayload(int Id, int SwimlaneId, string Rank);
+    public sealed record ListMovedPayload(int Id, int SwimlaneId, string Rank, UserDto MovedBy);
 
     Task ListMoved(ListMovedPayload payload, CancellationToken cancellationToken = default);
 
@@ -46,7 +46,7 @@ public interface IBoardHubClient
 
     Task CardUnlocked();
 
-    public sealed record UserDto(int Id, string UserName);
+    public sealed record UserDto(int Id, string UserName, string AvatarUrl);
 
     public sealed record CardCreatedPayload(int Id, int ListId, string Title, string Description, string Rank,
         DateTimeOffset CreatedAt, UserDto CreatedBy);
@@ -61,7 +61,7 @@ public interface IBoardHubClient
 
     Task CardDeleted(CardDeletedPayload payload, CancellationToken cancellationToken = default);
 
-    public sealed record CardMovedPayload(int Id, int ListId, string Rank);
+    public sealed record CardMovedPayload(int Id, int ListId, string Rank, UserDto MovedBy);
 
     Task CardMoved(CardMovedPayload payload, CancellationToken cancellationToken = default);
 

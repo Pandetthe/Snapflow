@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
+using Snapflow.Application.Abstractions.Services;
 using Snapflow.Application.Ranking;
 using Snapflow.Common;
 using Snapflow.Domain.Cards;
@@ -15,7 +16,8 @@ internal sealed class CreateCardHandler(
     IAppDbContext dbContext,
     IUserContext userContext,
     TimeProvider timeProvider,
-    IEntityRankService<Card> rankService) : ICommandHandler<CreateCardCommand, CreateCardResponse>
+    IEntityRankService<Card> rankService,
+    IAvatarService avatarService) : ICommandHandler<CreateCardCommand, CreateCardResponse>
 {
     public async Task<Result<CreateCardResponse>> Handle(CreateCardCommand command, CancellationToken cancellationToken = default)
     {
@@ -57,6 +59,6 @@ internal sealed class CreateCardHandler(
             card.Id,
             card.Rank,
             createdAt,
-            UserDto.From(user));
+            new UserDto(user.Id, user.UserName, avatarService.GenerateAvatarUrl(user.Id)));
     }
 }

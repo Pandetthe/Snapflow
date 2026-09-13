@@ -69,15 +69,15 @@ public class Card : Entity<int, Card>, IRankable
         Raise(c => new CardUpdatedDomainEvent(Id, BoardId, Title, Description, connectionId));
     }
 
-    public void Move(int listId, int swimlaneId, string rank, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
+    public void Move(int listId, int swimlaneId, string rank, IUser movedBy, DateTimeOffset updatedAt, string? connectionId = null)
     {
         ListId = listId;
         SwimlaneId = swimlaneId;
         Rank = rank;
-        UpdatedById = updatedById;
+        UpdatedById = movedBy.Id;
         UpdatedAt = updatedAt;
 
-        Raise(c => new CardMovedDomainEvent(Id, BoardId, ListId, Rank, connectionId));
+        Raise(c => new CardMovedDomainEvent(Id, BoardId, ListId, Rank, movedBy.Id, movedBy.UserName, connectionId));
     }
 
     public void SoftDelete(int deletedById, DateTimeOffset deletedAt, string? connectionId = null)

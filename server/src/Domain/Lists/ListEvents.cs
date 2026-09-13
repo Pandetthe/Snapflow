@@ -23,6 +23,8 @@ public sealed record ListMovedDomainEvent(
     int BoardId,
     int SwimlaneId,
     string Rank,
+    int MovedById,
+    string MovedByUserName,
     string? ConnectionId) : IDomainEvent;
 
 public sealed record ListDeletedDomainEvent(

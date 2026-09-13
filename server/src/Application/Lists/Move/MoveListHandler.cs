@@ -18,9 +18,10 @@ internal sealed class MoveListHandler(
 {
     public async Task<Result<string>> Handle(MoveListCommand command, CancellationToken cancellationToken = default)
     {
-        var userExists = await dbContext.Users.AsNoTracking()
-            .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (!userExists)
+        IUser? user = await dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
+        if (user == null)
             return Result.Failure<string>(UserErrors.NotFound(userContext.UserId));
 
         Swimlane? swimlane = await dbContext.Swimlanes
@@ -42,7 +43,7 @@ internal sealed class MoveListHandler(
         list.Move(
             command.SwimlaneId,
             rankResult.Value,
-            userContext.UserId,
+            user,
             timeProvider.GetUtcNow(),
             userContext.ConnectionId);
 
