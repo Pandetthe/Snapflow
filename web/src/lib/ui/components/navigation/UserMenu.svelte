@@ -85,7 +85,7 @@
 				{#snippet child({ props: triggerProps })}
 					<button
 						{...triggerProps}
-						class="group flex cursor-pointer items-center gap-3 rounded-lg p-1 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950 active:scale-95"
+						class="group flex cursor-pointer items-center gap-3 rounded-lg p-1 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 active:scale-95"
 					>
 						<UserAvatar
 							src={user.avatarUrl ? `${user.avatarUrl}?v=${avatarBust.count}` : null}

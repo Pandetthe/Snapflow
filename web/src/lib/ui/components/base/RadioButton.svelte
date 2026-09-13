@@ -53,7 +53,7 @@
       onclick={preventReadonlyInteraction}
       onkeydown={preventReadonlyInteraction}
       class={cn(
-        'grid h-5 w-5 shrink-0 place-items-center rounded-full border-[1.25px] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-950',
+        'grid h-5 w-5 shrink-0 place-items-center rounded-full border-[1.25px] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2',
         'border-gray-300 bg-transparent p-0 hover:border-brand-500 hover:bg-black/3 dark:border-gray-700 dark:hover:border-brand-500 dark:hover:bg-white/6',
         'data-[state=checked]:border-brand-500 data-[state=checked]:bg-brand-500 data-[state=checked]:hover:bg-brand-500 dark:data-[state=checked]:hover:bg-brand-500',
         isReadonly && !isDisabled && 'cursor-default',

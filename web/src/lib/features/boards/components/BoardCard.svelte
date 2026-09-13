@@ -20,7 +20,7 @@
   class={cn(
     "group relative flex h-32 w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm sm:h-40 dark:border-gray-800 dark:bg-gray-900",
     "transition-all duration-200 hover:shadow-md hover:border-brand-500/30",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950",
+    "focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2",
     className
   )}
 >

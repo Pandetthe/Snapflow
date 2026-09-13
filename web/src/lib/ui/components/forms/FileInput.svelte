@@ -149,8 +149,8 @@
 				? 'border-error-500 text-gray-800 hover:border-error-500 hover:bg-error-50/30 dark:border-error-500 dark:text-white/90 dark:hover:border-error-500 dark:hover:bg-error-500/10'
 				: 'border-gray-300 text-gray-800 hover:border-brand-500 hover:bg-black/3 dark:border-gray-700 dark:text-white/90 dark:hover:border-brand-500 dark:hover:bg-white/6',
 			hasError
-				? 'focus-visible:border-error-500 focus-visible:ring-2 focus-visible:ring-error-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-950'
-				: 'focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-950',
+				? 'focus-visible:border-transparent dark:focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-error-500 focus-visible:outline-offset-2'
+				: 'focus-visible:border-transparent dark:focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2',
 			isReadonly && !isDisabled && (hasError
 				? 'cursor-default hover:border-error-500 hover:bg-transparent dark:hover:border-error-500 dark:hover:bg-transparent'
 				: 'cursor-default hover:border-gray-300 hover:bg-transparent dark:hover:border-gray-700 dark:hover:bg-transparent'),

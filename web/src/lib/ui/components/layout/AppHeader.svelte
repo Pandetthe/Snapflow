@@ -68,7 +68,7 @@
     <div class="flex w-full items-center justify-between gap-2 px-5 py-3 sm:px-6 sm:py-4 lg:px-8">
       <a
       href="/"
-      class="flex shrink-0 items-center gap-2 rounded-md outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
+      class="flex shrink-0 items-center gap-2 rounded-md outline-none transition-all duration-200 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2"
     >
       <span class="text-2xl font-bold text-gray-900 dark:text-white">Snapflow</span>
     </a>

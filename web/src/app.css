@@ -228,6 +228,66 @@
   background-color: #344054;
 }
 
+/*
+  Focus ring for every control. The outline is always there but transparent and keyboard focus only
+  changes its color, so the ring fades in and out instead of popping (outline-style cannot animate).
+  Components may set the same ring explicitly (focus-visible:outline-2 outline-offset-2 outline-brand-500)
+  or opt out with outline-none.
+*/
+@layer base {
+  :where(
+      a[href],
+      button,
+      input,
+      select,
+      textarea,
+      summary,
+      [tabindex]:not([tabindex='-1']),
+      [role='button'],
+      [role='checkbox'],
+      [role='radio'],
+      [role='switch'],
+      [role='tab'],
+      [role='menuitem'],
+      [role='option'],
+      [role='combobox'],
+      [role='slider']
+    ) {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    transition-property: outline-color;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  :where(
+      a[href],
+      button,
+      input,
+      select,
+      textarea,
+      summary,
+      [tabindex]:not([tabindex='-1']),
+      [role='button'],
+      [role='checkbox'],
+      [role='radio'],
+      [role='switch'],
+      [role='tab'],
+      [role='menuitem'],
+      [role='option'],
+      [role='combobox'],
+      [role='slider']
+    ):focus-visible {
+    outline-color: var(--color-brand-500);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where(a[href], button, input, select, textarea, summary, [tabindex], [role]) {
+      transition-duration: 0ms;
+    }
+  }
+}
+
 @layer utilities {
   /* For Remove Date Icon */
   input[type='date']::-webkit-inner-spin-button,

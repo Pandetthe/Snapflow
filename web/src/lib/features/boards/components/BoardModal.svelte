@@ -116,7 +116,7 @@
         <button
           type="button"
           aria-label="Close modal"
-          class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100 dark:focus-visible:ring-offset-gray-950"
+          class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
           onclick={() => (open = false)}
         >
           <X size={18} />

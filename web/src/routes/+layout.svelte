@@ -60,7 +60,7 @@
   {#if !isPublicRoute}
     <a
       href="#main-content"
-      class="pointer-events-none absolute top-4 left-1/2 z-50 -translate-x-1/2 -translate-y-[150%] rounded-full border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-brand-600 opacity-0 shadow-xl transition-all duration-300 focus:pointer-events-auto focus:translate-y-0 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-800 dark:bg-gray-900 dark:text-brand-400 dark:focus:ring-offset-gray-950"
+      class="pointer-events-none absolute top-4 left-1/2 z-50 -translate-x-1/2 -translate-y-[150%] rounded-full border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-brand-600 opacity-0 shadow-xl transition-all duration-300 focus:pointer-events-auto focus:translate-y-0 focus:opacity-100 focus:outline-2 focus:outline-brand-500 focus:outline-offset-2 dark:border-gray-800 dark:bg-gray-900 dark:text-brand-400"
     >
       Skip to main content
     </a>

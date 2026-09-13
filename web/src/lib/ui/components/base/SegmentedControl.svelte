@@ -50,7 +50,7 @@
       type="button"
       onclick={() => select(opt.value)}
       class={cn(
-        'relative inline-flex w-full cursor-pointer items-center justify-center font-medium whitespace-nowrap transition focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950 active:scale-95',
+        'relative inline-flex w-full cursor-pointer items-center justify-center font-medium whitespace-nowrap transition focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 active:scale-95',
         sizeClasses[size].button,
         isFirst && 'rounded-l-lg',
         isLast && 'rounded-r-lg',

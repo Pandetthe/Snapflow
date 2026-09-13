@@ -424,7 +424,7 @@
                 {#each searchResults as user (user.id)}
                   <button
                     type="button"
-                    class="group flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2 transition-all duration-200 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98] dark:hover:bg-white/5 dark:focus-visible:ring-offset-gray-900"
+                    class="group flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2 transition-all duration-200 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 active:scale-[0.98] dark:hover:bg-white/5"
                     onclick={() => addMember(user)}
                   >
                     <div class="flex items-center gap-3">

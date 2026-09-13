@@ -137,7 +137,7 @@
                 onclick={() => (form.values.width = null)}
                 class="rounded-md px-3 py-1 text-xs font-medium transition-all {form.values.width === null
                   ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
-                  : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-400'} focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-900"
+                  : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-400'} focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2"
               >
                 Auto
               </button>
@@ -146,7 +146,7 @@
                 onclick={() => (form.values.width = form.values.width || 300)}
                 class="rounded-md px-3 py-1 text-xs font-medium transition-all {form.values.width !== null
                   ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
-                  : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-400'} focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-900"
+                  : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-400'} focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2"
               >
                 Custom
               </button>
@@ -163,7 +163,7 @@
                   min="100"
                   max="600"
                   step="10"
-                  class="h-1.5 flex-1 cursor-pointer appearance-none rounded-lg bg-gray-200 accent-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:bg-gray-700 dark:accent-gray-50 dark:focus-visible:ring-offset-gray-900"
+                  class="h-1.5 flex-1 cursor-pointer appearance-none rounded-lg bg-gray-200 accent-gray-900 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 dark:bg-gray-700 dark:accent-gray-50"
                 />
                 <div
                   class="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 dark:border-gray-600 dark:bg-gray-700"
@@ -172,7 +172,7 @@
                     type="number"
                     bind:value={form.values.width}
                     min="100"
-                    class="w-12 border-none bg-transparent p-0 text-right text-sm font-medium focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:text-white dark:focus-visible:ring-offset-gray-900"
+                    class="w-12 border-none bg-transparent p-0 text-right text-sm font-medium focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 dark:text-white"
                   />
                   <span class="text-xs text-gray-400">px</span>
                 </div>

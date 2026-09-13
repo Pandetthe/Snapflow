@@ -53,7 +53,7 @@
     primary:
       'bg-brand-500 text-white shadow-sm hover:bg-brand-600 active:bg-brand-700 disabled:bg-brand-300',
     outline:
-      'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 active:bg-gray-100 focus-visible:border-brand-500 disabled:bg-gray-50/50 dark:bg-gray-800/60 dark:text-gray-200 dark:border-gray-700 dark:focus-visible:border-brand-500 dark:hover:bg-gray-700/70 dark:active:bg-gray-700 dark:hover:text-white dark:disabled:bg-gray-800/30',
+      'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 active:bg-gray-100 focus-visible:border-transparent dark:focus-visible:border-transparent disabled:bg-gray-50/50 dark:bg-gray-800/60 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700/70 dark:active:bg-gray-700 dark:hover:text-white dark:disabled:bg-gray-800/30',
     ghost:
       'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white',
     danger:
@@ -122,7 +122,7 @@
     {id}
     href={isDisabled ? undefined : href}
     class={cn(
-      'inline-flex cursor-pointer items-center justify-center rounded-lg font-medium whitespace-nowrap transition focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:focus-visible:ring-offset-gray-950',
+      'inline-flex cursor-pointer items-center justify-center rounded-lg font-medium whitespace-nowrap transition focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2',
       sizeClasses[size],
       resolvedVariantClass,
       !isDisabled && 'active:scale-95',
@@ -161,7 +161,7 @@
     {type}
     disabled={isDisabled}
     class={cn(
-      'inline-flex cursor-pointer items-center justify-center rounded-lg font-medium whitespace-nowrap transition focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-offset-gray-950',
+      'inline-flex cursor-pointer items-center justify-center rounded-lg font-medium whitespace-nowrap transition focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
       sizeClasses[size],
       resolvedVariantClass,
       !isDisabled && 'active:scale-95',
