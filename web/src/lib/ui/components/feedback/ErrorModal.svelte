@@ -55,7 +55,7 @@
 >
       <div class="text-center">
         <div
-          class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full shadow-inner bg-rose-50 dark:bg-rose-900/20 transition-all duration-500"
+          class="animate-fade-in mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full shadow-inner bg-rose-50 motion-reduce:animate-none dark:bg-rose-900/20"
         >
           <svg
             class="h-8 w-8 text-red-600 dark:text-red-400"
@@ -74,19 +74,20 @@
         </div>
 
         <AlertDialog.Title
-          class="animate-fade-in mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white"
+          class="animate-fade-in mb-2 text-xl font-bold tracking-tight text-gray-900 motion-reduce:animate-none dark:text-white"
+          style="animation-delay: 100ms"
         >
           Something went wrong
         </AlertDialog.Title>
         <AlertDialog.Description
-          class="animate-fade-in mb-6 text-base leading-relaxed text-gray-500 dark:text-gray-400"
-          style="animation-delay: 100ms"
+          class="animate-fade-in mb-6 text-base leading-relaxed text-gray-500 motion-reduce:animate-none dark:text-gray-400"
+          style="animation-delay: 200ms"
         >
           We apologize for the inconvenience. Please try again in a moment.
         </AlertDialog.Description>
 
         {#if errors && errors.length > 0}
-          <div class="animate-fade-in space-y-3" style="animation-delay: 200ms">
+          <div class="animate-fade-in space-y-3 motion-reduce:animate-none" style="animation-delay: 300ms">
             {#each errors as err, i (i)}
               <div class="rounded-lg bg-gray-50 p-3 text-left dark:bg-gray-700/50">
                 {#if hasValue(err.code) || hasValue(err.description)}
