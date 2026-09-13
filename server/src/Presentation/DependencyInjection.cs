@@ -54,6 +54,11 @@ public static class DependencyInjection
         {
             options.AddFilter<GlobalHubExceptionFilter>();
             options.AddFilter<ConnectionIdHubFilter>();
+        }).AddJsonProtocol(options =>
+        {
+            options.PayloadSerializerOptions.Converters.Add(
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+            );
         });
 
         var redisConn = configuration.GetConnectionString("Redis");
