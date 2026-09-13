@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Switch } from 'bits-ui';
-  import { cn } from '$lib/ui/utils';
+  import { cn, slideReveal } from '$lib/ui/utils';
   import { slide } from 'svelte/transition';
 
   interface Props {
@@ -146,13 +146,13 @@
   </label>
 
   {#if helperText && !hasError}
-    <div transition:slide={{ axis: 'y', duration: 200 }}>
+    <div transition:slide={slideReveal}>
       <span id={helperTextId} class="text-xs text-gray-500 dark:text-gray-400">{helperText}</span>
     </div>
   {/if}
 
   {#if hasError && errorText}
-    <div transition:slide={{ axis: 'y', duration: 200 }}>
+    <div transition:slide={slideReveal}>
       <span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
     </div>
   {/if}

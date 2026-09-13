@@ -12,7 +12,7 @@
     UserAvatar
   } from '$lib/ui/components';
   import RoleSelector from '$lib/features/boards/components/RoleSelector.svelte';
-  import { createForm } from '$lib/ui/utils';
+  import { createForm, itemIn, itemOut, slideReveal } from '$lib/ui/utils';
   import { FolderPlus, Plus, Users, X, Search, UserPlus } from 'lucide-svelte';
   import type { MemberRole } from '$lib/features/boards/types/boards.api';
   import { fade, slide, fly } from 'svelte/transition';
@@ -254,8 +254,8 @@
             {#if searchResults.length > 0}
               <div
                 class="absolute top-full right-0 left-0 z-50 mt-2 max-h-60 overflow-y-auto rounded-2xl border border-gray-300 bg-white p-1.5 shadow-xl transition-all duration-200 will-change-[opacity,transform] dark:border-gray-700 dark:bg-gray-900/90 dark:backdrop-blur-xl"
-                in:fly={{ y: 8, duration: 250 }}
-                out:fade={{ duration: 150 }}
+                in:fly={itemIn}
+                out:fade={itemOut}
               >
                 {#each searchResults as user (user.id)}
                   <button
@@ -303,7 +303,7 @@
             {#each selectedMembers as member (member.id)}
               <div
                 class="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50/50 p-3 transition-all duration-200 dark:border-gray-800 dark:bg-white/2"
-                transition:slide={{ duration: 300 }}
+                transition:slide={slideReveal}
               >
                 <div class="flex items-center gap-3">
                   <UserAvatar src={member.avatarUrl} name={member.userName} size={36} />

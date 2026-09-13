@@ -4,7 +4,7 @@
   import { slide } from 'svelte/transition';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import type { Response } from '$lib/core/types/app';
-  import { createForm } from '$lib/ui/utils';
+  import { createForm, slideReveal } from '$lib/ui/utils';
 
   let {
     open = $bindable(false),
@@ -153,7 +153,7 @@
           </div>
 
           {#if form.values.height !== null}
-            <div transition:slide={{ duration: 200 }} class="space-y-4">
+            <div transition:slide={slideReveal} class="space-y-4">
               <div class="flex items-center gap-4">
                 <input
                   id="height"

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { authConfig } from '$lib/config/auth';
   import { slide } from 'svelte/transition';
+  import { slideReveal } from '$lib/ui/utils';
 
   let { password = '' } = $props<{ password?: string }>();
 
@@ -25,7 +26,7 @@
 </script>
 
 {#if password}
-  <div transition:slide={{ axis: 'y', duration: 200 }} class="mt-2 animate-in fade-in duration-200">
+  <div transition:slide={slideReveal} class="mt-2 animate-in fade-in duration-200">
     <div class="mb-1.5">
       <div class="mb-1 flex items-center justify-between">
         <span class="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-bold">Strength</span>

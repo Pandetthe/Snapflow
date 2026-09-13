@@ -7,6 +7,7 @@
   import { Button, FullLayout, Input, Skeleton } from '$lib/ui/components';
   import { Clock3, History, Folders, Plus } from 'lucide-svelte';
   import { slide } from 'svelte/transition';
+  import { slideReveal } from '$lib/ui/utils';
 
   let { data } = $props();
   let intervalId: NodeJS.Timeout;
@@ -80,7 +81,7 @@
         </div>
 
         {#if $recentBoards.length > 0}
-          <div class="mb-8 lg:mb-10" transition:slide={{ duration: 400 }}>
+          <div class="mb-8 lg:mb-10" transition:slide={slideReveal}>
             <h2
               class="mb-4 flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-400"
             >

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { HTMLInputAttributes } from 'svelte/elements';
   import { Label } from 'bits-ui';
-  import { cn } from '$lib/ui/utils';
+  import { cn, slideReveal } from '$lib/ui/utils';
   import { Eye, EyeOff, Search, Loader2, type Icon as IconType } from 'lucide-svelte';
   import { slide } from 'svelte/transition';
 
@@ -179,7 +179,7 @@
   </div>
 
   {#if helperText && !hasError}
-    <div transition:slide={{ axis: 'y', duration: 200 }}>
+    <div transition:slide={slideReveal}>
       <span id={helperTextId} class={cn("text-xs text-gray-600 dark:text-gray-400", helperTextClass)}>
         {helperText}
       </span>
@@ -187,7 +187,7 @@
   {/if}
 
   {#if hasError}
-    <div transition:slide={{ axis: 'y', duration: 200 }}>
+    <div transition:slide={slideReveal}>
       <span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
     </div>
   {/if}

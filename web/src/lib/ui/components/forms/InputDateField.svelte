@@ -2,7 +2,7 @@
   import { DatePicker } from 'bits-ui';
   import { parseDate, today, getLocalTimeZone } from '@internationalized/date';
   import { CalendarDays, ChevronLeft, ChevronRight, X, type Icon as IconType } from 'lucide-svelte';
-  import { cn } from '$lib/ui/utils';
+  import { cn, slideReveal } from '$lib/ui/utils';
   import { slide } from 'svelte/transition';
 
   interface Props {
@@ -510,14 +510,14 @@
   </DatePicker.Root>
 
   {#if helperText && !hasError}
-    <div transition:slide={{ axis: 'y', duration: 200 }}>
+    <div transition:slide={slideReveal}>
       <span id={helperTextId} class={cn("text-xs text-gray-500 dark:text-gray-400", helperTextClass)}>
         {helperText}
       </span>
     </div>  {/if}
 
   {#if hasError}
-    <div transition:slide={{ axis: 'y', duration: 200 }}>
+    <div transition:slide={slideReveal}>
       <span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
     </div>  {/if}
 </div>

@@ -2,7 +2,7 @@
   import { TimeField, Popover } from 'bits-ui';
   import { parseTime } from '@internationalized/date';
   import { Clock3, X, type Icon as IconType } from 'lucide-svelte';
-  import { cn, floatingMotionClass } from '$lib/ui/utils';
+  import { cn, floatingMotionClass, slideReveal } from '$lib/ui/utils';
   import { ClockPicker } from '$lib/ui/components';
   import { slide } from 'svelte/transition';
 
@@ -350,7 +350,7 @@
   </TimeField.Root>
 
   {#if helperText && !hasError}
-    <div transition:slide={{ axis: 'y', duration: 200 }}>
+    <div transition:slide={slideReveal}>
       <span id={helperTextId} class={cn("text-xs text-gray-500 dark:text-gray-400", helperTextClass)}>
         {helperText}
       </span>
@@ -358,7 +358,7 @@
   {/if}
 
   {#if hasError}
-    <div transition:slide={{ axis: 'y', duration: 200 }}>
+    <div transition:slide={slideReveal}>
       <span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
     </div>
   {/if}

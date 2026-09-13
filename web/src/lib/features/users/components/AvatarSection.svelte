@@ -6,6 +6,7 @@
   import { Check, Upload, Sparkles, User as UserIcon, Camera } from 'lucide-svelte';
   import { invalidateAll } from '$app/navigation';
   import { slide } from 'svelte/transition';
+  import { slideReveal } from '$lib/ui/utils';
   import { untrack } from 'svelte';
 
   let {
@@ -103,7 +104,7 @@
   />
 
   {#if selectedAvatarType === AvatarType.Uploaded}
-    <div class="mt-3" transition:slide={{ duration: 150 }}>
+    <div class="mt-3" transition:slide={slideReveal}>
       <Dropzone
         bind:files={avatarFiles}
         onFilesChange={onAvatarFilesChange}

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { RadioGroup } from 'bits-ui';
-  import { cn } from '$lib/ui/utils';
+  import { cn, slideReveal } from '$lib/ui/utils';
   import { slide } from 'svelte/transition';
 
   interface Props {
@@ -96,7 +96,7 @@
         </label>
       {/if}
       {#if helperText}
-        <div transition:slide={{ axis: 'y', duration: 200 }}>
+        <div transition:slide={slideReveal}>
           <span id={helperTextId} class="text-xs text-gray-500 dark:text-gray-400">{helperText}</span>
         </div>
       {/if}
