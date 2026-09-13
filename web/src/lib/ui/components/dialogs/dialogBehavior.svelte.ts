@@ -6,6 +6,9 @@ export type DialogSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 export type DrawerSide = 'top' | 'right' | 'bottom' | 'left';
 export type DialogAnimation = 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
 
+/** Drawer snapping back or sliding away after a drag, with the app's ease-flow curve. */
+const DRAG_SETTLE_MS = 280;
+
 export const DIALOG_SIZE_CLASS: Record<DialogSize, string> = {
   sm: 'max-w-sm',
   md: 'max-w-md',
@@ -36,21 +39,42 @@ export interface DialogBehaviorOptions {
   zIndex?: string;
 }
 
-function getAnimationClasses(animation: DialogAnimation): string {
+// Open slower with the soft ease-out of the app's motion tokens, close quicker with an ease-in.
+const ENTER =
+  'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:duration-300 data-[state=open]:ease-flow';
+const EXIT =
+  'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:duration-200 data-[state=closed]:ease-in';
+
+function getAnimationClasses(animation: DialogAnimation, mode: DialogMode, drawerSide: DrawerSide): string {
+  if (animation === 'none') return '';
+
+  // A drawer travels in from its edge, whatever animation was picked for the modal form.
+  if (mode === 'drawer') {
+    switch (drawerSide) {
+      case 'top':
+        return `${ENTER} data-[state=open]:slide-in-from-top-full ${EXIT} data-[state=closed]:slide-out-to-top-full`;
+      case 'right':
+        return `${ENTER} data-[state=open]:slide-in-from-right-full ${EXIT} data-[state=closed]:slide-out-to-right-full`;
+      case 'left':
+        return `${ENTER} data-[state=open]:slide-in-from-left-full ${EXIT} data-[state=closed]:slide-out-to-left-full`;
+      case 'bottom':
+      default:
+        return `${ENTER} data-[state=open]:slide-in-from-bottom-full ${EXIT} data-[state=closed]:slide-out-to-bottom-full`;
+    }
+  }
+
   switch (animation) {
     case 'slide-up':
-      return 'duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-bottom-4 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-4';
+      return `${ENTER} data-[state=open]:slide-in-from-bottom-4 ${EXIT} data-[state=closed]:slide-out-to-bottom-4`;
     case 'slide-down':
-      return 'duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-4 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-4';
+      return `${ENTER} data-[state=open]:slide-in-from-top-4 ${EXIT} data-[state=closed]:slide-out-to-top-4`;
     case 'slide-left':
-      return 'duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-right-4 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-right-4';
+      return `${ENTER} data-[state=open]:slide-in-from-right-4 ${EXIT} data-[state=closed]:slide-out-to-right-4`;
     case 'slide-right':
-      return 'duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-left-4 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-left-4';
-    case 'none':
-      return '';
+      return `${ENTER} data-[state=open]:slide-in-from-left-4 ${EXIT} data-[state=closed]:slide-out-to-left-4`;
     case 'fade-zoom':
     default:
-      return 'duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95';
+      return `${ENTER} data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-2 ${EXIT} data-[state=closed]:zoom-out-95`;
   }
 }
 
@@ -143,8 +167,8 @@ export class DialogBehavior {
   get overlayClasses(): string {
     return cn(
       `fixed inset-0 ${this.zIndex} bg-black/40 backdrop-blur-md`,
-      'data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
-      'data-[state=open]:animate-in data-[state=open]:fade-in-0',
+      ENTER,
+      EXIT,
       this.overlayClass
     );
   }
@@ -154,7 +178,7 @@ export class DialogBehavior {
       `fixed ${this.zIndex} w-[calc(100%-1.25rem)] overflow-y-auto border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900`,
       DIALOG_SIZE_CLASS[this.size],
       this.sizeClass,
-      getAnimationClasses(this.activeAnimation),
+      getAnimationClasses(this.activeAnimation, this.activeMode, this.activeDrawerSide),
       this.activeMode === 'modal'
         ? this.useTriggerPosition
           ? 'translate-x-0 translate-y-0 rounded-2xl p-5 sm:p-6'
@@ -172,7 +196,7 @@ export class DialogBehavior {
       style += `top: ${this.triggerTop}px; left: ${this.triggerLeft}px; max-height: ${this.maxHeight};`;
     }
     if (this.dragY > 0) {
-      style += ` transform: translateY(${this.dragY}px) !important; transition: ${this.isDragging ? 'none' : 'transform 0.2s ease-out'} !important;`;
+      style += ` transform: translateY(${this.dragY}px) !important; transition: ${this.isDragging ? 'none' : `transform ${DRAG_SETTLE_MS}ms var(--ease-flow)`} !important;`;
     }
     return style;
   }
@@ -241,13 +265,14 @@ export class DialogBehavior {
   #dismissWithDrag(close: () => void) {
     this.#isDragDismissing = true;
     this.dragY = window.innerHeight;
+    // Close once the drawer has slid out, then reset after the closing animation.
     setTimeout(() => {
       close();
       setTimeout(() => {
         this.dragY = 0;
         this.#isDragDismissing = false;
       }, 250);
-    }, 220);
+    }, DRAG_SETTLE_MS);
   }
 
   mount(): () => void {
