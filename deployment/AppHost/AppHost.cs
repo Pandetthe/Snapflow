@@ -18,8 +18,7 @@ var mailpit = builder.AddMailPit("mailserver");
 
 var gateway = builder.AddYarp("gateway");
 
-var isHttps = builder.Configuration["DOTNET_LAUNCH_PROFILE"] == "https";
-var gatewayUrl = isHttps ? gateway.GetEndpoint("https") : gateway.GetEndpoint("http");
+EndpointReference gatewayUrl = gateway.GetEndpoint("https");
 
 var api = builder.AddProject<Projects.Presentation>("api-server")
                  .WithReference(redis, "Redis")
@@ -35,12 +34,17 @@ var api = builder.AddProject<Projects.Presentation>("api-server")
                  .WithEnvironment("Email__RequireAuthentication", "False")
                  .WithReplicas(1);
 
-var apiUrl = api.GetEndpoint("http");
+EndpointReference apiUrl = api.GetEndpoint("http");
 
 var web = builder.AddViteApp("web-client", "../../web")
                  .WithReference(api)
                  .WithEnvironment("API_BASE_URL", apiUrl)
                  .WithEnvironment("PUBLIC_API_BASE_URL", $"{gatewayUrl}/api");
+
+// CORS: allow requests from the gateway origin and the Vite dev server origin.
+EndpointReference webEndpoint = web.GetEndpoint("http");
+api.WithEnvironment("Services__AllowedOrigins__0", gatewayUrl)
+   .WithEnvironment("Services__AllowedOrigins__1", webEndpoint);
 
 var otlpHttpEndpoint = builder.Configuration["ASPIRE_DASHBOARD_OTLP_HTTP_ENDPOINT_URL"];
 if (!string.IsNullOrEmpty(otlpHttpEndpoint))
