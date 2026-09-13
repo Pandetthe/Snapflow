@@ -126,6 +126,19 @@ section[data-board-zone] {
   position: relative;
 }
 
+/*
+  Room for a dragged list: every list zone of the board is a drop target while a list is dragged and grows to
+  the dragged list's height (set by Swimlane.svelte), then shrinks back after the drop. A swimlane's height
+  follows its content and cannot transition itself, so the zone's min-height carries the animation.
+*/
+section[data-board-zone='lists'] {
+  transition: min-height 280ms var(--ease-flow);
+}
+
+section[data-board-zone='lists'].board-drop-target {
+  min-height: var(--board-dragged-list-height, 0px);
+}
+
 section[data-board-zone].board-drop-target[data-empty]::before {
   content: '';
   position: absolute;
@@ -162,6 +175,10 @@ section[data-board-zone].board-drop-target[data-empty] + * {
   [data-board-slot][data-is-dnd-shadow-item-internal]::after,
   section[data-board-zone]::before {
     animation: none;
+  }
+
+  section[data-board-zone='lists'] {
+    transition: none;
   }
 
   #dnd-action-dragged-el > [data-board-item='card'],

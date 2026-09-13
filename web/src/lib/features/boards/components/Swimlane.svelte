@@ -36,14 +36,24 @@
   // List picked up with the keyboard, shown as selected until it is dropped.
   let keyboardMovedListId = $state<number | null>(null);
 
+  // While a list is dragged, list zones shorter than it grow to its height (board-dnd.css), so a lower swimlane
+  // already has room when the list enters it instead of jumping to the new height.
+  const DRAGGED_LIST_HEIGHT_VAR = '--board-dragged-list-height';
+
   function handleListConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
     swimlane.lists = e.detail.items;
-    if (e.detail.info.source === SOURCES.KEYBOARD) keyboardMovedListId = Number(e.detail.info.id);
+    const { info } = e.detail;
+    if (info.source === SOURCES.KEYBOARD) keyboardMovedListId = Number(info.id);
+    if (info.trigger === TRIGGERS.DRAG_STARTED) {
+      const height = document.querySelector(`[data-list-id="${info.id}"]`)?.getBoundingClientRect().height;
+      if (height) document.documentElement.style.setProperty(DRAGGED_LIST_HEIGHT_VAR, `${Math.round(height)}px`);
+    }
   }
 
   async function handleListFinalize(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
     swimlane.lists = e.detail.items;
     keyboardMovedListId = null;
+    document.documentElement.style.removeProperty(DRAGGED_LIST_HEIGHT_VAR);
     const { info } = e.detail;
 
     if (info.trigger === TRIGGERS.DROPPED_INTO_ZONE || info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER) {
