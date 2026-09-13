@@ -1,5 +1,6 @@
-import type { ApiClient, Response as ApiResponseType } from '$lib/core/types/api';
-import type { Response as AppResponse, ProblemDetails, ValidationProblemDetails } from '$lib/core/types/app';
+import type { Response as ApiResponseType } from '$lib/core/types/api';
+import type { Response as AppResponse } from '$lib/core/types/app';
+import { BaseService } from '$lib/core/base.service';
 import type { RequestEvent, ServerLoadEvent } from '@sveltejs/kit';
 
 export enum AvatarType {
@@ -22,56 +23,7 @@ export interface SearchUserDto {
   avatarUrl: string | null;
 }
 
-export class UsersService {
-  constructor(private apiClient: ApiClient) {
-    this.apiClient = apiClient;
-  }
-
-  private async handleResponse<T = void>(
-    promise: Promise<globalThis.Response>
-  ): Promise<AppResponse<T>> {
-    try {
-      const response = await promise;
-
-      if (response.ok) {
-        if (response.status === 204) return { ok: true, value: undefined as any };
-        const text = await response.text();
-        const value = text ? (JSON.parse(text) as T) : (undefined as any);
-        return { ok: true, value };
-      }
-
-      let problem: ProblemDetails | undefined;
-      let validationProblem: ValidationProblemDetails | undefined;
-
-      try {
-        const contentType = response.headers.get('content-type') ?? '';
-        const body = await response.text();
-        if (body.trim()) {
-          if (contentType.includes('json')) {
-            const data = JSON.parse(body) as ValidationProblemDetails | ProblemDetails;
-            if ('errors' in data && Array.isArray(data.errors)) {
-              validationProblem = data;
-            } else {
-              problem = data;
-            }
-          } else {
-            problem = { status: response.status, title: response.statusText || 'Error', detail: body };
-          }
-        } else {
-          problem = { status: response.status, title: response.statusText || 'Error' };
-        }
-      } catch {
-        problem = { status: response.status, title: response.statusText || 'Error' };
-      }
-
-      return { ok: false, problem, validationProblem };
-    } catch (err) {
-      return {
-        ok: false,
-        problem: { status: 500, title: 'Network Error', detail: err instanceof Error ? err.message : String(err) }
-      };
-    }
-  }
+export class UsersService extends BaseService {
 
   async getMe(event?: RequestEvent | ServerLoadEvent): Promise<ApiResponseType<{ user: User }>> {
     const response = await this.apiClient.fetch('/me', { method: 'GET' }, event);

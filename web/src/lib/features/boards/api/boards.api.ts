@@ -1,5 +1,6 @@
-import type { ApiClient, ApiEvent } from '$lib/core/types/api';
-import type { Response, ProblemDetails, ValidationProblemDetails } from '$lib/core/types/app';
+import type { ApiEvent } from '$lib/core/types/api';
+import type { Response } from '$lib/core/types/app';
+import { BaseService } from '$lib/core/base.service';
 import type {
   CreateBoardRequest,
   GetBoardByIdResponse,
@@ -9,77 +10,7 @@ import type {
   UpdateBoardRequest
 } from '$lib/features/boards/types/boards.api';
 
-export class BoardsService {
-  constructor(private apiClient: ApiClient) {
-    this.apiClient = apiClient;
-  }
-
-  private buildProblem(status: number, statusText: string, detail?: string | null): ProblemDetails {
-    return {
-      status,
-      title: statusText || 'Error',
-      detail: detail?.trim() || null
-    };
-  }
-
-  private async handleResponse<T = void>(
-    promise: Promise<globalThis.Response>
-  ): Promise<Response<T>> {
-    try {
-      const response = await promise;
-      const ok = response.ok;
-
-      if (ok) {
-        if (response.status === 204) {
-          return { ok: true, value: undefined as any };
-        }
-
-        const text = await response.text();
-        const value = text ? (JSON.parse(text) as T) : (undefined as any);
-        return { ok: true, value };
-      }
-
-      let problem: ProblemDetails | undefined;
-      let validationProblem: ValidationProblemDetails | undefined;
-
-      try {
-        const contentType = response.headers.get('content-type') ?? '';
-        const body = await response.text();
-
-        if (body.trim().length > 0) {
-          if (contentType.includes('json')) {
-            const data = JSON.parse(body) as ValidationProblemDetails | ProblemDetails;
-            if ('errors' in data && Array.isArray(data.errors)) {
-              validationProblem = data;
-            } else {
-              problem = data;
-            }
-          } else {
-            problem = this.buildProblem(response.status, response.statusText, body);
-          }
-        } else {
-          problem = this.buildProblem(response.status, response.statusText);
-        }
-      } catch (err) {
-        problem = this.buildProblem(response.status, response.statusText, 'Failed to parse error response');
-      }
-
-      return {
-        ok: false,
-        problem,
-        validationProblem
-      };
-    } catch (err) {
-      return {
-        ok: false,
-        problem: {
-          status: 500,
-          title: 'Network Error',
-          detail: err instanceof Error ? err.message : String(err)
-        }
-      };
-    }
-  }
+export class BoardsService extends BaseService {
 
   getBoards(event?: ApiEvent): Promise<Response<GetBoardsResponse.BoardDto[]>> {
     return this.handleResponse(this.apiClient.fetch('boards', { method: 'GET' }, event));
