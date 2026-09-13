@@ -72,26 +72,7 @@
   ].filter(Boolean) as number[]);
 
   afterNavigate(({ from }) => {
-    if (!from) {
-      backHref = '/boards';
-      return;
-    }
-
-    const path = from.url.pathname;
-
-    if (path === '/boards') {
-      backHref = '/boards';
-    } else if (path.startsWith('/boards/')) {
-      const parts = path.split('/');
-      const id = parts[2];
-      if (id && id !== 'new' && id !== 'edit') {
-        backHref = `/boards/${id}`;
-      } else {
-        backHref = '/boards';
-      }
-    } else {
-      backHref = '/boards';
-    }
+    backHref = from?.url.pathname.replace(/\/edit$/, '') ?? '/boards';
   });
 
   const form = createForm({
