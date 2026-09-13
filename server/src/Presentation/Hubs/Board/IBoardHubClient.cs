@@ -46,7 +46,10 @@ public interface IBoardHubClient
 
     Task CardUnlocked();
 
-    public sealed record CardCreatedPayload(int Id, int ListId, string Title, string Description, string Rank);
+    public sealed record UserDto(int Id, string UserName);
+
+    public sealed record CardCreatedPayload(int Id, int ListId, string Title, string Description, string Rank,
+        DateTimeOffset CreatedAt, UserDto CreatedBy);
 
     Task CardCreated(CardCreatedPayload payload, CancellationToken cancellationToken = default);
 

@@ -46,7 +46,7 @@ internal sealed class CreateCardHandler(
             command.Title,
             command.Description,
             rankResult.Value,
-            userContext.UserId,
+            user,
             createdAt,
             userContext.ConnectionId);
 

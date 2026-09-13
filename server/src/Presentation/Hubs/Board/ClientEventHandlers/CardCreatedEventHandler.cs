@@ -11,5 +11,6 @@ public sealed class CardCreatedEventHandler(
         hubContext.Clients
             .GroupExcept(domainEvent.BoardId, domainEvent.ConnectionId)
             .CardCreated(new(domainEvent.Id, domainEvent.ListId, domainEvent.Title,
-                domainEvent.Description, domainEvent.Rank), cancellationToken);
+                domainEvent.Description, domainEvent.Rank, domainEvent.CreatedAt,
+                new(domainEvent.CreatedById, domainEvent.CreatedByUserName)), cancellationToken);
 }

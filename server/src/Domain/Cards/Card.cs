@@ -39,7 +39,7 @@ public class Card : Entity<int, Card>, IRankable
 
     public virtual ICollection<Tag> Tags { get; private set; } = [];
 
-    public static Card Create(int boardId, int swimlaneId, int listId, string title, string description, string rank, int createdById, DateTimeOffset createdAt, string? connectionId = null)
+    public static Card Create(int boardId, int swimlaneId, int listId, string title, string description, string rank, IUser createdBy, DateTimeOffset createdAt, string? connectionId = null)
     {
         var card = new Card
         {
@@ -49,11 +49,12 @@ public class Card : Entity<int, Card>, IRankable
             Title = title,
             Description = description,
             Rank = rank,
-            CreatedById = createdById,
+            CreatedById = createdBy.Id,
             CreatedAt = createdAt
         };
 
-        card.Raise(c => new CardCreatedDomainEvent(c.Id, c.BoardId, c.SwimlaneId, c.ListId, c.Title, c.Description, c.Rank, connectionId));
+        card.Raise(c => new CardCreatedDomainEvent(c.Id, c.BoardId, c.SwimlaneId, c.ListId, c.Title, c.Description, c.Rank,
+            c.CreatedAt, c.CreatedById, createdBy.UserName, connectionId));
 
         return card;
     }

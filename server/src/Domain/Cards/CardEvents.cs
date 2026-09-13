@@ -10,6 +10,9 @@ public sealed record CardCreatedDomainEvent(
     string Title,
     string Description,
     string Rank,
+    DateTimeOffset CreatedAt,
+    int CreatedById,
+    string CreatedByUserName,
     string? ConnectionId) : IDomainEvent;
 
 public sealed record CardUpdatedDomainEvent(

@@ -1,10 +1,20 @@
 using FluentAssertions;
+using NSubstitute;
 using Snapflow.Domain.Cards;
+using Snapflow.Domain.Users;
 
 namespace Snapflow.UnitTests.Domain;
 
 public sealed class CardTests
 {
+    private static IUser CreateUser(int id = 1, string userName = "john")
+    {
+        var user = Substitute.For<IUser>();
+        user.Id.Returns(id);
+        user.UserName.Returns(userName);
+        return user;
+    }
+
     [Fact]
     public void Create_Should_InitializeCard_And_RaiseEvent()
     {
@@ -14,10 +24,10 @@ public sealed class CardTests
         var title = "Test Card";
         var description = "Test Desc";
         var rank = "000000000001";
-        var createdById = 1;
+        var createdBy = CreateUser(7, "alice");
         var now = DateTimeOffset.UtcNow;
 
-        var card = Card.Create(boardId, swimlaneId, listId, title, description, rank, createdById, now, "conn-id");
+        var card = Card.Create(boardId, swimlaneId, listId, title, description, rank, createdBy, now, "conn-id");
 
         card.BoardId.Should().Be(boardId);
         card.SwimlaneId.Should().Be(swimlaneId);
@@ -25,16 +35,19 @@ public sealed class CardTests
         card.Title.Should().Be(title);
         card.Description.Should().Be(description);
         card.Rank.Should().Be(rank);
-        card.CreatedById.Should().Be(createdById);
+        card.CreatedById.Should().Be(createdBy.Id);
         card.CreatedAt.Should().Be(now);
 
-        card.DomainEvents.Select(e => e(card)).Should().ContainSingle(e => e is CardCreatedDomainEvent);
+        card.DomainEvents.Select(e => e(card)).Should().ContainSingle()
+            .Which.Should().BeOfType<CardCreatedDomainEvent>()
+            .Which.Should().Match<CardCreatedDomainEvent>(e =>
+                e.CreatedAt == now && e.CreatedById == 7 && e.CreatedByUserName == "alice" && e.ConnectionId == "conn-id");
     }
 
     [Fact]
     public void Update_Should_UpdateProperties_And_RaiseEvent()
     {
-        var card = Card.Create(1, 2, 3, "Old", "Old Desc", "rank", 1, DateTimeOffset.UtcNow);
+        var card = Card.Create(1, 2, 3, "Old", "Old Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
         var newTitle = "New Title";
         var newDesc = "New Desc";
         var updaterId = 2;
@@ -53,7 +66,7 @@ public sealed class CardTests
     [Fact]
     public void SoftDelete_Should_SetIsDeletedTrue_And_RaiseEvent()
     {
-        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", 1, DateTimeOffset.UtcNow);
+        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
         var deleterId = 1;
         var now = DateTimeOffset.UtcNow;
 
