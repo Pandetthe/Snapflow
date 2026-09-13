@@ -31,14 +31,18 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   const apiBaseUrl = env.PUBLIC_API_BASE_URL || '';
   const wsBaseUrl = apiBaseUrl.replace(/^http/, 'ws');
+  // CSP path matching: a path without a trailing slash is an exact match only.
+  // Adding '/' makes it a prefix match, covering all subpaths (e.g. /api/auth/sign-in).
+  const apiCspUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl : `${apiBaseUrl}/`;
+  const wsCspUrl = wsBaseUrl.endsWith('/') ? wsBaseUrl : `${wsBaseUrl}/`;
 
   const csp = [
     "default-src 'self'",
-    `connect-src 'self' ${apiBaseUrl} ${wsBaseUrl} https://cloudflareinsights.com`,
+    `connect-src 'self' ${apiCspUrl} ${wsCspUrl} https://cloudflareinsights.com`,
     "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
-    `img-src 'self' data: ${apiBaseUrl}`,
+    `img-src 'self' data: ${apiCspUrl}`,
     "object-src 'none'"
   ].join('; ');
 
