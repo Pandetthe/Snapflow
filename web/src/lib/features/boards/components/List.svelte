@@ -3,6 +3,7 @@
   import { dragHandleZone, dragHandle, TRIGGERS } from 'svelte-dnd-action';
   import type { DndEvent } from 'svelte-dnd-action';
   import { getContext } from 'svelte';
+  import { getBoardUI } from '$lib/features/boards/context/board.context';
   import type { BoardsHub } from '$lib/features/boards/hub/boards.hub';
   import Card from './Card.svelte';
   import { ScrollArea } from 'bits-ui';
@@ -18,12 +19,12 @@
   const hub = $derived(getHub());
   const getBoardState = getContext<() => string>('boardState');
   const boardState = $derived(getBoardState());
+  const getCanManageLists = getContext<() => boolean>('canManageLists');
+  const canManageLists = $derived(getCanManageLists());
+  const getCanManageCards = getContext<() => boolean>('canManageCards');
+  const canManageCards = $derived(getCanManageCards());
 
-  interface BoardUI {
-    openListModal: (swimlaneId: number, list?: GetBoardByIdResponse.ListDto) => void;
-    openCardModal: (listId: number, card?: GetBoardByIdResponse.CardDto) => void;
-  }
-  const ui = getContext<BoardUI>('ui');
+  const ui = getBoardUI();
 
   function handleCardConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.CardDto>>) {
     list.cards = e.detail.items;
@@ -57,44 +58,48 @@
 <div
   role="group"
   style:width={list.width ? `${list.width}px` : 'auto'}
-  class="flex h-full max-h-full min-h-0 min-w-[220px] shrink-0 flex-col overflow-hidden rounded-lg bg-transparent px-1 transition-all duration-200 focus-within:shadow-sm"
+  class="group/list flex h-full max-h-full min-h-0 min-w-[220px] shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200/80 bg-gray-50 shadow-sm transition-shadow duration-200 dark:border-gray-700/50 dark:bg-gray-900/40 dark:shadow-black/20"
 >
-  <div class="group mb-2 flex items-start justify-between gap-2 rounded-lg border border-gray-200/80 bg-gray-50/95 px-3 py-1.5 dark:border-gray-700/70 dark:bg-gray-700/45">
-    <div class="min-w-0 flex-1">
-      <div class="flex items-center gap-2">
-        <div
-          use:dragHandle
-          class="list-drag-handle show-on-hover touch-none rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-white/70 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-800 {boardState === 'connected' ? 'cursor-move' : 'cursor-not-allowed opacity-50'}"
-        >
-          <GripVertical class="h-4 w-4" />
-        </div>
-        <h3 class="min-w-0 flex-1 text-sm font-bold wrap-break-word text-gray-900 dark:text-white">
-          {list.title}
-        </h3>
+  <!-- List header -->
+  <div class="flex shrink-0 items-center gap-1.5 border-b border-gray-200 bg-gray-100/80 px-2.5 py-2 dark:border-gray-700/60 dark:bg-gray-800/90">
+    {#if canManageLists}
+      <div
+        use:dragHandle
+        class="list-drag-handle touch-none rounded p-1 text-gray-400 opacity-0 transition-all duration-150 hover:bg-gray-200 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none group-hover/list:opacity-100 dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 {boardState === 'connected' ? 'cursor-grab' : 'cursor-not-allowed opacity-30'}"
+      >
+        <GripVertical class="h-3.5 w-3.5" />
       </div>
-      <p class="mt-0.5 pl-8 text-xs text-gray-500 dark:text-gray-400">
-        {list.cards.length} card{list.cards.length !== 1 ? 's' : ''}
-      </p>
-    </div>
+    {/if}
 
-    <Button
-      type="button"
-      variant="ghost"
-      size="xs"
-      onclick={() => ui.openListModal(swimlaneId, list)}
-      disabled={boardState !== 'connected'}
-      aria-label="Edit list"
-      startIcon={Pencil}
-      class="show-on-hover h-7 w-7 min-w-0 rounded-md p-0 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-      title="Edit list"
-    >
-      <span class="sr-only">Edit list</span>
-    </Button>
+    <h3 class="min-w-0 flex-1 truncate text-xs font-semibold text-gray-700 dark:text-gray-200">
+      {list.title}
+    </h3>
+
+    <span class="shrink-0 rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-gray-500 dark:bg-gray-700/80 dark:text-gray-400">
+      {list.cards.length}
+    </span>
+
+    {#if canManageLists}
+      <Button
+        type="button"
+        variant="ghost"
+        size="xs"
+        onclick={() => ui.openListModal(swimlaneId, list)}
+        disabled={boardState !== 'connected'}
+        aria-label="Edit list"
+        startIcon={Pencil}
+        class="h-6 w-6 min-w-0 shrink-0 rounded p-0 text-gray-400 opacity-0 transition-opacity duration-150 hover:bg-gray-200 hover:text-gray-600 group-hover/list:opacity-100 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+        title="Edit list"
+      >
+        <span class="sr-only">Edit list</span>
+      </Button>
+    {/if}
   </div>
 
+  <!-- Cards area -->
   <ScrollArea.Root class="list-scroll-area relative flex-1 overflow-hidden" type="auto">
     <ScrollArea.Viewport class="h-full w-full rounded-[inherit]">
-      <div class="flex h-full min-h-0 flex-col pb-3">
+      <div class="flex h-full min-h-0 flex-col p-2">
         <section
           use:dragHandleZone={{
             items: list.cards,
@@ -107,7 +112,7 @@
           }}
           onconsider={handleCardConsider}
           onfinalize={handleCardFinalize}
-          class="flex flex-col gap-2 min-h-[50px] flex-1"
+          class="flex min-h-[40px] flex-1 flex-col gap-1.5"
         >
           {#each list.cards as card (card.id)}
             <div
@@ -119,24 +124,26 @@
           {/each}
         </section>
 
-        <div class="relative z-10 mt-2 mb-2">
-          <Button
-            type="button"
-            variant="outline"
-            startIcon={Plus}
-            onclick={() => ui.openCardModal(list.id)}
-            disabled={boardState !== 'connected'}
-            aria-label="Add card"
-            class="add-card-button h-9 w-full justify-center border-dashed border-gray-300 bg-white/70 px-3 text-gray-600 hover:border-gray-400 hover:bg-white dark:border-gray-600 dark:bg-gray-800/40 dark:text-gray-300 dark:hover:bg-gray-700"
-          >
-            <span class="sr-only">Add card</span>
-          </Button>
-        </div>
+        {#if canManageCards}
+          <div class="relative z-10 mt-1.5">
+            <Button
+              type="button"
+              variant="ghost"
+              startIcon={Plus}
+              onclick={() => ui.openCardModal(list.id)}
+              disabled={boardState !== 'connected'}
+              aria-label="Add card"
+              class="add-card-button h-9 justify-start gap-1.5 rounded-lg px-3 text-xs font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-700/60 dark:hover:text-gray-300"
+            >
+              Add card
+            </Button>
+          </div>
+        {/if}
       </div>
     </ScrollArea.Viewport>
     <ScrollArea.Scrollbar
       orientation="vertical"
-      class="z-20 flex w-2 touch-none bg-transparent p-px transition-colors duration-200 select-none hover:bg-black/5 dark:hover:bg-white/5"
+      class="z-20 flex w-1.5 touch-none bg-transparent p-px transition-colors duration-200 select-none hover:bg-black/5 dark:hover:bg-white/5"
     >
       <ScrollArea.Thumb
         class="relative flex-1 rounded-full bg-gray-300 transition-colors duration-200 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500"
@@ -149,15 +156,18 @@
   :global(.list-scroll-area [data-scroll-area-viewport] > [data-scroll-area-content]) {
     height: 100%;
   }
+
   :global(.card-ghost) {
-    opacity: 0.5;
-    background: var(--color-blue-50) !important;
-    border: 1px dashed var(--color-blue-400) !important;
+    opacity: 0.4;
+    background: var(--color-brand-50) !important;
+    border: 1.5px dashed var(--color-brand-300) !important;
+    border-radius: 0.5rem !important;
+    box-shadow: none !important;
   }
 
   :global(.dark .card-ghost) {
-    background: var(--color-blue-900/20) !important;
-    border-color: var(--color-blue-500) !important;
+    background: color-mix(in srgb, var(--color-brand-500) 10%, transparent) !important;
+    border-color: var(--color-brand-600) !important;
   }
 
   :global(.card-chosen) {
@@ -166,19 +176,16 @@
 
   :global(.card-drag) {
     box-shadow:
-      0 10px 15px -3px rgba(0, 0, 0, 0.1),
-      0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-    opacity: 0.95 !important;
-    transform: rotate(0.5deg);
-    background: var(--color-white) !important;
-    border: 1px solid var(--color-gray-200) !important;
+      0 12px 20px -4px rgba(70, 95, 255, 0.12),
+      0 4px 8px -2px rgba(0, 0, 0, 0.08) !important;
+    opacity: 0.97 !important;
+    transform: rotate(1deg) scale(1.02);
+    border-radius: 0.5rem !important;
   }
 
   :global(.dark .card-drag) {
-    background: var(--color-gray-800) !important;
-    border-color: var(--color-gray-700) !important;
     box-shadow:
-      0 10px 15px -3px rgba(0, 0, 0, 0.3),
-      0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
+      0 12px 20px -4px rgba(0, 0, 0, 0.4),
+      0 4px 8px -2px rgba(0, 0, 0, 0.3) !important;
   }
 </style>

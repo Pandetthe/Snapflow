@@ -5,7 +5,11 @@ import { apiClient } from '$lib/server/api.server';
 
 export const load: PageServerLoad = async (event) => {
   const boardId = parseInt(event.params.id);
-  const result = await new BoardsService(apiClient).getBoard(boardId, event);
+  const boardsService = new BoardsService(apiClient);
+  const [result, detailsResult] = await Promise.all([
+    boardsService.getBoard(boardId, event),
+    boardsService.getBoardDetails(boardId, event)
+  ]);
 
   function formatErrorMessage(title: string, detail?: string | null) {
     return detail?.trim() ? `${title}\n${detail}` : title;
@@ -29,7 +33,22 @@ export const load: PageServerLoad = async (event) => {
     );
   }
 
+  if (!detailsResult.ok) {
+    if (isHiddenBoardStatus(detailsResult.problem?.status)) {
+      throw error(
+        404,
+        formatErrorMessage('Board not found', detailsResult.problem?.detail)
+      );
+    }
+
+    throw error(
+      detailsResult.problem?.status ?? 500,
+      formatErrorMessage(detailsResult.problem?.title ?? 'Failed to load board members', detailsResult.problem?.detail)
+    );
+  }
+
   return {
-    board: result.value
+    board: result.value,
+    members: detailsResult.value.members
   };
 };

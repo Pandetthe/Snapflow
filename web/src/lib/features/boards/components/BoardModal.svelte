@@ -31,8 +31,21 @@
     mobileDrawerSide?: 'top' | 'right' | 'bottom' | 'left';
     triggerElement?: HTMLElement | null;
     onConfirm: (title: string, description: string) => Promise<Response<unknown>>;
-    onDelete?: (id: number) => void;
+    onDelete?: (id: number) => Promise<boolean>;
   } = $props();
+
+  let isDeleting = $state(false);
+
+  async function handleDelete() {
+    if (!board || !onDelete || isDeleting) return;
+    isDeleting = true;
+    try {
+      const deleted = await onDelete(board.id);
+      if (deleted) open = false;
+    } finally {
+      isDeleting = false;
+    }
+  }
 
   const form = createForm({
     initialValues: {
@@ -141,10 +154,10 @@
               type="button"
               variant="danger"
               class="sm:mr-auto"
-              onclick={() => {
-                onDelete(board.id);
-                open = false;
-              }}
+              disabled={isDeleting}
+              isLoading={isDeleting}
+              loadingText="Deleting"
+              onclick={handleDelete}
             >
               Delete
             </Button>

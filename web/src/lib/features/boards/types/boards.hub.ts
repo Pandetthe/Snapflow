@@ -1,6 +1,9 @@
+import type { MemberRole } from './boards.api';
+
 export interface BoardsHubEvents {
   BoardUpdated: (payload: BoardUpdatedEventPayload) => void;
   BoardDeleted: () => void;
+  YourRoleChanged: (oldRole: MemberRole, newRole: MemberRole) => void;
   SwimlaneCreated: (payload: SwimlaneCreatedEventPayload) => void;
   SwimlaneUpdated: (payload: SwimlaneUpdatedEventPayload) => void;
   SwimlaneMoved: (payload: SwimlaneMovedEventPayload) => void;
@@ -74,6 +77,8 @@ export interface CardCreatedEventPayload {
   title: string;
   description: string;
   rank: string;
+  createdAt: string;
+  createdBy: { id: number; userName: string; avatarUrl: string | null };
 }
 
 export interface CardUpdatedEventPayload {

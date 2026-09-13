@@ -22,7 +22,6 @@ export namespace GetBoardByIdResponse {
     title: string;
     description: string;
     swimlanes: SwimlaneDto[];
-    members: BoardMemberDto[];
   }
 
   export interface UserDto {
