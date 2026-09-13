@@ -1,6 +1,6 @@
 <script lang="ts">
   import { flip } from 'svelte/animate';
-  import { dragHandle, dragHandleZone, SOURCES, TRIGGERS } from 'svelte-dnd-action';
+  import { dragHandle, dragHandleZone, SHADOW_ITEM_MARKER_PROPERTY_NAME, SOURCES, TRIGGERS } from 'svelte-dnd-action';
   import type { DndEvent } from 'svelte-dnd-action';
   import List from './List.svelte';
   import { getContext } from 'svelte';
@@ -36,9 +36,16 @@
   // List picked up with the keyboard, shown as selected until it is dropped.
   let keyboardMovedListId = $state<number | null>(null);
 
-  // While a list is dragged, list zones shorter than it grow to its height (board-dnd.css), so a lower swimlane
-  // already has room when the list enters it instead of jumping to the new height.
+  // While a list is dragged, every list zone holds its height and the zone the list hovers grows to fit it
+  // (board-dnd.css). A swimlane's height follows its content and cannot transition by itself, so the zone
+  // carries the animation: the swimlane grows smoothly when the list enters, shrinks when it leaves or drops.
   const DRAGGED_LIST_HEIGHT_VAR = '--board-dragged-list-height';
+  const ZONE_REST_HEIGHT_VAR = '--board-zone-rest-height';
+
+  // The drop slot of the dragged list is in this swimlane.
+  const receivingList = $derived(
+    swimlane.lists.some((l) => (l as unknown as Record<string, unknown>)[SHADOW_ITEM_MARKER_PROPERTY_NAME])
+  );
 
   function handleListConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
     swimlane.lists = e.detail.items;
@@ -47,6 +54,9 @@
     if (info.trigger === TRIGGERS.DRAG_STARTED) {
       const height = document.querySelector(`[data-list-id="${info.id}"]`)?.getBoundingClientRect().height;
       if (height) document.documentElement.style.setProperty(DRAGGED_LIST_HEIGHT_VAR, `${Math.round(height)}px`);
+      for (const zone of document.querySelectorAll<HTMLElement>('section[data-board-zone="lists"]')) {
+        zone.style.setProperty(ZONE_REST_HEIGHT_VAR, `${Math.round(zone.getBoundingClientRect().height)}px`);
+      }
     }
   }
 
@@ -54,6 +64,9 @@
     swimlane.lists = e.detail.items;
     keyboardMovedListId = null;
     document.documentElement.style.removeProperty(DRAGGED_LIST_HEIGHT_VAR);
+    for (const zone of document.querySelectorAll<HTMLElement>('section[data-board-zone="lists"]')) {
+      zone.style.removeProperty(ZONE_REST_HEIGHT_VAR);
+    }
     const { info } = e.detail;
 
     if (info.trigger === TRIGGERS.DROPPED_INTO_ZONE || info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER) {
@@ -159,6 +172,7 @@
           onfinalize={handleListFinalize}
           data-board-zone="lists"
           data-empty={swimlane.lists.length === 0 || undefined}
+          data-receiving={receivingList || undefined}
           class="flex min-h-9 items-stretch gap-3 self-stretch {swimlane.lists.length === 0 ? 'w-58 -mr-58' : 'pr-28 -mr-28'}"
         >
           {#each swimlane.lists as list, index (list.id)}
