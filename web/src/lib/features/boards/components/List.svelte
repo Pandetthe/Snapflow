@@ -77,12 +77,12 @@
   class:flight-hidden={inFlight}
   class:flight-settle={recentMove?.pop && !inFlight}
   style:width={list.width ? `${list.width}px` : 'auto'}
-  class="group/list relative flex h-full max-h-full min-h-0 min-w-[220px] shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200/80 bg-gray-50 shadow-sm dark:border-gray-700/50 dark:bg-gray-900/40 dark:shadow-black/20"
+  class="group/list relative flex h-full max-h-full min-h-0 min-w-[220px] shrink-0 flex-col rounded-xl border border-gray-200/80 bg-gray-50 shadow-sm dark:border-gray-700/50 dark:bg-gray-900/40 dark:shadow-black/20"
 >
-  <MovedByIndicator move={recentMove} placement="inside" rounded="rounded-xl" />
+  <MovedByIndicator move={recentMove} rounded="rounded-xl" />
 
-  <!-- List header -->
-  <div class="flex shrink-0 items-center gap-1.5 border-b border-gray-200 bg-gray-100/80 px-2.5 py-2 dark:border-gray-700/60 dark:bg-gray-800/90">
+  <!-- List header; the list does not clip its overflow (the moved-by label sits on its edge), so the parts round their own corners -->
+  <div class="flex shrink-0 items-center gap-1.5 rounded-t-[11px] border-b border-gray-200 bg-gray-100/80 px-2.5 py-2 dark:border-gray-700/60 dark:bg-gray-800/90">
     {#if canManageLists}
       <div
         use:dragHandle
@@ -118,7 +118,7 @@
   </div>
 
   <!-- Cards area -->
-  <ScrollArea.Root class="list-scroll-area relative flex-1 overflow-hidden" type="auto">
+  <ScrollArea.Root class="list-scroll-area relative flex-1 overflow-hidden rounded-b-[11px]" type="auto">
     <ScrollArea.Viewport class="h-full w-full rounded-[inherit]">
       <div class="flex h-full min-h-0 flex-col p-2">
         <!-- The drop area reaches under "Add card" via padding cancelled by a negative margin -->

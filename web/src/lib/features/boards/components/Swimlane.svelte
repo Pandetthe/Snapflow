@@ -117,7 +117,7 @@
     ? ''
     : 'flex-1 min-h-[180px]'}"
 >
-  <MovedByIndicator move={recentMove} placement="inside" rounded="rounded-none" />
+  <MovedByIndicator move={recentMove} rounded="rounded-none" />
 
   <!-- Header band — always visible, even when collapsed during drag -->
   <div class="swimlane-header flex h-11 shrink-0 items-center gap-2 bg-gray-50 px-3 dark:bg-gray-800/70">

@@ -4,25 +4,25 @@
   import type { TransitionConfig } from 'svelte/transition';
   import { UserAvatar } from '$lib/ui/components';
 
+  /**
+   * The label sits on the element's top edge near its right corner, the same for cards, lists and swimlanes,
+   * so the host element must not clip its overflow.
+   */
   let {
     move,
-    placement = 'outside',
     rounded = 'rounded-lg'
   }: {
     move: RecentMove | undefined;
-    /** outside: label sits above the element's top edge; inside: within the top-right corner (for clipped containers) */
-    placement?: 'outside' | 'inside';
     rounded?: string;
   } = $props();
 
-  /** Grows out of the corner it is anchored to; the outro plays the same motion in reverse, a bit faster. */
+  /** Rises onto the edge it is anchored to; the outro plays the same motion in reverse, a bit faster. */
   function pill(_node: Element, { duration, easing }: { duration: number; easing: (t: number) => number }): TransitionConfig {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const lift = placement === 'outside' ? 3 : -3;
     return {
       duration: reduceMotion ? 0 : duration,
       easing,
-      css: (t, u) => `opacity: ${t}; transform: translateY(${u * lift}px) scale(${0.92 + 0.08 * t});`
+      css: (t, u) => `opacity: ${t}; transform: translateY(${u * 3}px) scale(${0.92 + 0.08 * t});`
     };
   }
 </script>
@@ -35,7 +35,7 @@
 {#each move ? [move] : [] as m (m.key)}
   <span aria-hidden="true" class="moved-by-ring pointer-events-none absolute inset-0 {rounded}"></span>
   <div
-    class="pointer-events-none absolute z-30 flex items-center {placement === 'outside' ? '-top-2 right-2 origin-bottom-right' : 'top-1.5 right-1.5 origin-top-right'}"
+    class="pointer-events-none absolute -top-2 right-3 z-30 flex origin-bottom-right items-center"
     in:pill={{ duration: 280, easing: cubicOut }}
     out:pill={{ duration: 220, easing: cubicInOut }}
   >
