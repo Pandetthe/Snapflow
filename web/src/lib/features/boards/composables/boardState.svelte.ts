@@ -6,7 +6,7 @@ import { triggerHaptic } from '$lib/ui/utils';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import { tick } from 'svelte';
 import type { CardMovedEventPayload } from '../types/boards.hub';
-import { startElementExit, startElementFlight, type ElementFlight } from '../animations/elementFlight';
+import { startElementFlight, type ElementFlight } from '../animations/elementFlight';
 
 export type MovableKind = 'card' | 'list' | 'swimlane';
 
@@ -28,10 +28,15 @@ export type IsInFlight = (kind: MovableKind, id: number) => boolean;
 
 export type IsNew = (kind: MovableKind, id: number) => boolean;
 
+export type IsLeaving = (kind: MovableKind, id: number) => boolean;
+
 const RECENT_MOVE_DURATION_MS = 2500;
 
 /** Longer than the enter animation in board-dnd.css, so the class never cuts it short. */
 const NEW_ITEM_DURATION_MS = 700;
+
+/** Covers the whole leave animation in board-dnd.css: label shown, fade-out, then the slot closing. */
+const LEAVING_ITEM_DURATION_MS = 1250;
 
 export function createBoardState(
   initialBoard: GetBoardByIdResponse.BoardDto,
@@ -82,6 +87,11 @@ export function createBoardState(
   }
 
   const isNew: IsNew = (kind, id) => newItems.has(`${kind}:${id}`);
+
+  // Items deleted on another connection, still shown in place while they play their leave animation.
+  const leavingItems = new SvelteSet<string>();
+
+  const isLeaving: IsLeaving = (kind, id) => leavingItems.has(`${kind}:${id}`);
 
   /**
    * Shows a move made on another connection: the label appears right away, a ghost flies from the old
@@ -138,8 +148,8 @@ export function createBoardState(
   }
 
   /**
-   * Shows a deletion made on another connection: the item is labelled with who deleted it, and a copy keeps the
-   * label in place for a moment and fades out while the board closes the gap.
+   * Shows a deletion made on another connection: the item stays in its place labelled with who deleted it,
+   * fades out and closes its slot (board-dnd.css), and only then is removed, so nothing moves underneath it.
    * `apply` removes the item from the state.
    */
   async function animateRemoteDelete(kind: MovableKind, id: number, user: GetBoardByIdResponse.UserDto, apply: () => void) {
@@ -148,13 +158,12 @@ export function createBoardState(
     activeFlights.delete(key);
     inFlight.delete(key);
 
-    // The copy captures the label, so it must be rendered first.
     markChanged(kind, id, user, 'deleted');
-    await tick();
-
-    const exit = startElementExit(kind, id);
+    leavingItems.add(key);
+    // A timer rather than animationend: it also runs out in background tabs and with reduced motion.
+    await new Promise((resolve) => setTimeout(resolve, LEAVING_ITEM_DURATION_MS));
+    leavingItems.delete(key);
     apply();
-    await exit?.play();
   }
 
   const role = $derived<MemberRole>(
@@ -590,6 +599,7 @@ export function createBoardState(
     getRecentMove,
     isInFlight,
     isNew,
+    isLeaving,
     sortAll,
     sortSwimlanes,
     registerHubEvents,

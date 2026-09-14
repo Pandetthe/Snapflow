@@ -42,7 +42,7 @@
   import { Button } from '$lib/ui/components';
   import { GripVertical, Pencil, Plus } from 'lucide-svelte';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
-  import type { GetRecentMove, IsInFlight, IsNew } from '$lib/features/boards/composables/boardState.svelte';
+  import type { GetRecentMove, IsInFlight, IsLeaving, IsNew } from '$lib/features/boards/composables/boardState.svelte';
   import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
   import { holdListZoneHeights, releaseListZoneHeights } from '$lib/features/boards/animations/zoneHeights';
   import MovedByIndicator from './MovedByIndicator.svelte';
@@ -62,6 +62,7 @@
   const getIsInFlight = getContext<IsInFlight | undefined>('isInFlight');
   const inFlight = $derived(getIsInFlight?.('list', list.id) ?? false);
   const isNew = getContext<IsNew | undefined>('isNew');
+  const isLeaving = getContext<IsLeaving | undefined>('isLeaving');
 
   const ui = getBoardUI();
 
@@ -208,6 +209,7 @@
               animate:flip={layoutFlip}
               class="relative z-20 rounded-lg outline-none"
               class:board-enter={isNew?.('card', card.id)}
+              class:board-leave={isLeaving?.('card', card.id)}
               data-board-slot="card"
               data-selected={keyboardMovedCardId === card.id || undefined}
             >

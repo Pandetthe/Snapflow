@@ -74,6 +74,7 @@
   setContext('recentMove', bs.getRecentMove);
   setContext('isInFlight', bs.isInFlight);
   setContext('isNew', bs.isNew);
+  setContext('isLeaving', bs.isLeaving);
 
   onMount(async () => {
     hub = new BoardsHub(data.board.id);
@@ -225,6 +226,7 @@
               animate:flip={layoutFlip}
               class="relative z-20 w-full outline-none"
               class:board-enter={bs.isNew('swimlane', swimlane.id)}
+              class:board-leave={bs.isLeaving('swimlane', swimlane.id)}
               data-board-slot="swimlane"
               data-selected={keyboardMovedSwimlaneId === swimlane.id || undefined}
             >

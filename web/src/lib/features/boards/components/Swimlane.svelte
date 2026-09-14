@@ -12,7 +12,7 @@
   import { ScrollArea } from 'bits-ui';
   import { triggerHaptic } from '$lib/ui/utils';
   import { GripVertical, Pencil, Plus } from 'lucide-svelte';
-  import type { GetRecentMove, IsInFlight, IsNew } from '$lib/features/boards/composables/boardState.svelte';
+  import type { GetRecentMove, IsInFlight, IsLeaving, IsNew } from '$lib/features/boards/composables/boardState.svelte';
   import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
   import { holdListZoneHeights, releaseListZoneHeights } from '$lib/features/boards/animations/zoneHeights';
   import MovedByIndicator from './MovedByIndicator.svelte';
@@ -32,6 +32,7 @@
   const getIsInFlight = getContext<IsInFlight | undefined>('isInFlight');
   const inFlight = $derived(getIsInFlight?.('swimlane', swimlane.id) ?? false);
   const isNew = getContext<IsNew | undefined>('isNew');
+  const isLeaving = getContext<IsLeaving | undefined>('isLeaving');
 
   const ui = getBoardUI();
 
@@ -184,6 +185,7 @@
             <div
               class="relative z-20 flex min-h-0 self-stretch rounded-xl outline-none"
               class:board-enter={isNew?.('list', list.id)}
+              class:board-leave={isLeaving?.('list', list.id)}
               data-board-slot="list"
               data-selected={keyboardMovedListId === list.id || undefined}
               animate:flip={layoutFlip}

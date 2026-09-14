@@ -265,6 +265,48 @@ html:has(section[data-board-zone='swimlanes']) {
   }
 }
 
+/*
+  Item deleted on another connection (boardState.svelte.ts isLeaving), the enter animation in reverse: it stays
+  in place long enough to read the "deleted by" label, fades out, then its slot closes so the rest of the board
+  moves in only once it is gone. The delays and durations add up to LEAVING_ITEM_DURATION_MS.
+*/
+[data-board-slot].board-leave {
+  interpolate-size: allow-keywords;
+  clip-path: inset(-1rem -1rem 0 -1rem);
+  min-height: 0;
+  pointer-events: none;
+  animation: board-leave-block 280ms var(--ease-flow) 900ms both;
+}
+
+[data-board-slot='list'].board-leave {
+  clip-path: inset(-1rem 0 -1rem -1rem);
+  min-width: 0;
+  animation-name: board-leave-inline;
+}
+
+[data-board-slot].board-leave > [data-board-item] {
+  animation: board-leave-item 220ms cubic-bezier(0.4, 0, 1, 1) 700ms both;
+}
+
+@keyframes board-leave-block {
+  to {
+    height: 0;
+  }
+}
+
+@keyframes board-leave-inline {
+  to {
+    width: 0;
+  }
+}
+
+@keyframes board-leave-item {
+  to {
+    opacity: 0;
+    scale: 0.97;
+  }
+}
+
 /* Empty zone while an item of its type is dragged */
 section[data-board-zone] {
   position: relative;
@@ -338,6 +380,8 @@ section[data-board-zone].board-drop-target[data-fill] + * {
   #dnd-action-dragged-el > [data-board-item],
   [data-board-slot].board-enter,
   [data-board-slot].board-enter > [data-board-item],
+  [data-board-slot].board-leave,
+  [data-board-slot].board-leave > [data-board-item],
   [data-board-slot][data-is-dnd-shadow-item-internal]::after,
   section[data-board-zone]::before {
     animation: none;
