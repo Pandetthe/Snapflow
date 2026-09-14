@@ -9,6 +9,14 @@
                        [data-is-dnd-shadow-item-internal] is the slot the item would drop into
 */
 
+/*
+  Swimlanes span the page edge to edge, so the scrollbar space other pages keep reserved (app.css) would show
+  as an empty strip on the right while the board does not scroll.
+*/
+html:has(section[data-board-zone='swimlanes']) {
+  scrollbar-gutter: auto;
+}
+
 [data-board-item] {
   --board-accent: var(--color-brand-500);
   /* Always present but transparent, so the focus/selected ring fades like on other controls (app.css) */
