@@ -3,6 +3,7 @@
   import type { GetRecentMove, IsInFlight } from '$lib/features/boards/composables/boardState.svelte';
   import { dragHandle } from 'svelte-dnd-action';
   import { getContext } from 'svelte';
+  import { getBoardUI } from '$lib/features/boards/context/board.context';
   import { Button, UserAvatar } from '$lib/ui/components';
   import { CalendarDays, GripVertical, Pencil } from 'lucide-svelte';
   import MovedByIndicator from './MovedByIndicator.svelte';
@@ -18,11 +19,7 @@
   const getIsInFlight = getContext<IsInFlight | undefined>('isInFlight');
   const inFlight = $derived(getIsInFlight?.('card', card.id) ?? false);
 
-  interface BoardUI {
-    openListModal: (swimlaneId: number, list?: GetBoardByIdResponse.ListDto) => void;
-    openCardModal: (listId: number, card?: GetBoardByIdResponse.CardDto) => void;
-  }
-  const ui = getContext<BoardUI>('ui');
+  const ui = getBoardUI();
 </script>
 
 <!-- --flight-landing-scale must match the card motion in animations/elementFlight.ts -->
