@@ -82,11 +82,12 @@
   <MovedByIndicator move={recentMove} rounded="rounded-xl" />
 
   <!-- List header; the list does not clip its overflow (the moved-by label sits on its edge), so the parts round their own corners -->
-  <div class="flex shrink-0 items-center gap-1.5 rounded-t-[11px] border-b border-gray-200 bg-gray-100/80 px-2.5 py-2 dark:border-gray-700/60 dark:bg-gray-800/90">
+  <div class="board-item-bar flex h-10 shrink-0 items-center gap-1.5 rounded-t-[11px] border-b border-gray-200 bg-gray-100/80 px-2 dark:border-gray-700/60 dark:bg-gray-800/90">
     {#if canManageLists}
       <div
         use:dragHandle
-        class="list-drag-handle touch-none rounded p-1 text-gray-400 opacity-0 transition-all duration-150 hover:bg-gray-200 hover:text-gray-600 focus-visible:outline-none group-hover/list:opacity-100 group-focus-within/list:opacity-100 dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 {boardState === 'connected' ? 'cursor-grab' : 'cursor-not-allowed opacity-30'}"
+        class="list-drag-handle board-control touch-none focus-visible:outline-none {boardState === 'connected' ? 'cursor-grab' : 'cursor-not-allowed opacity-40'}"
+        aria-label="Drag list"
       >
         <GripVertical class="h-3.5 w-3.5" />
       </div>
@@ -96,9 +97,7 @@
       {list.title}
     </h3>
 
-    <span class="shrink-0 rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-gray-500 dark:bg-gray-700/80 dark:text-gray-400">
-      {list.cards.length}
-    </span>
+    <span class="board-count" title="Cards">{list.cards.length}</span>
 
     {#if canManageLists}
       <Button
@@ -109,7 +108,7 @@
         disabled={boardState !== 'connected'}
         aria-label="Edit list"
         startIcon={Pencil}
-        class="h-6 w-6 min-w-0 shrink-0 rounded p-0 text-gray-400 opacity-0 transition-[opacity,outline-color] duration-150 hover:bg-gray-200 hover:text-gray-600 group-hover/list:opacity-100 group-focus-within/list:opacity-100 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+        class="board-control"
         title="Edit list"
       >
         <span class="sr-only">Edit list</span>

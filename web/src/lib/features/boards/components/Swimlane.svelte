@@ -120,14 +120,14 @@
   <MovedByIndicator move={recentMove} rounded="rounded-none" />
 
   <!-- Header band — always visible, even when collapsed during drag -->
-  <div class="swimlane-header flex h-11 shrink-0 items-center gap-2 bg-gray-50 px-3 dark:bg-gray-800/70">
+  <div class="swimlane-header board-item-bar flex h-11 shrink-0 items-center gap-1.5 bg-gray-50 px-3 dark:bg-gray-800/70">
     {#if canManageSwimlanes}
       <div
         use:dragHandle
-        class="touch-none rounded p-1 text-gray-400 transition-colors duration-150 hover:bg-gray-200 hover:text-gray-600 focus-visible:outline-none dark:hover:bg-gray-700 dark:text-gray-500 dark:hover:text-gray-300 {boardState === 'connected' ? 'cursor-grab' : 'cursor-not-allowed opacity-40'}"
+        class="board-control touch-none focus-visible:outline-none {boardState === 'connected' ? 'cursor-grab' : 'cursor-not-allowed opacity-40'}"
         aria-label="Drag swimlane"
       >
-        <GripVertical class="h-4 w-4" />
+        <GripVertical class="h-3.5 w-3.5" />
       </div>
     {/if}
 
@@ -135,9 +135,7 @@
       {swimlane.title}
     </h2>
 
-    <span class="shrink-0 rounded-full bg-gray-200 px-2 py-0.5 text-[11px] font-medium tabular-nums text-gray-500 dark:bg-gray-700 dark:text-gray-400">
-      {swimlane.lists.length}
-    </span>
+    <span class="board-count" title="Lists">{swimlane.lists.length}</span>
 
     {#if canManageSwimlanes}
       <Button
@@ -147,7 +145,7 @@
         disabled={boardState !== 'connected'}
         onclick={() => ui.openSwimlaneModal(swimlane)}
         startIcon={Pencil}
-        class="h-7 w-7 min-w-0 shrink-0 rounded p-0 text-gray-400 opacity-0 transition-[opacity,outline-color] duration-150 hover:bg-gray-200 hover:text-gray-600 group-hover/swimlane:opacity-100 group-focus-within/swimlane:opacity-100 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+        class="board-control"
         title="Edit swimlane"
       >
         <span class="sr-only">Edit swimlane</span>

@@ -45,6 +45,79 @@ html:has(section[data-board-zone='swimlanes']) {
   --board-radius: 0;
 }
 
+/*
+  Item controls, identical on swimlanes, lists and cards: the drag handle and edit button (.board-control) and
+  the child count (.board-count) in the item's bar (.board-item-bar). They are always in place, so nothing
+  shifts and touch screens can reach them; the controls stay muted until their own item is hovered or focused
+  (not while a nested item is).
+*/
+.board-control {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border-radius: 0.375rem;
+  background-color: transparent;
+  color: var(--color-gray-300);
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    outline-color 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:where(.dark) .board-control {
+  color: var(--color-gray-600);
+}
+
+[data-board-item]:is(:hover, :focus-within):not(:has([data-board-item]:is(:hover, :focus-within)))
+  > .board-item-bar
+  .board-control {
+  color: var(--color-gray-500);
+}
+
+:where(.dark)
+  [data-board-item]:is(:hover, :focus-within):not(:has([data-board-item]:is(:hover, :focus-within)))
+  > .board-item-bar
+  .board-control {
+  color: var(--color-gray-400);
+}
+
+.board-control:is(:hover, :focus-visible):not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-gray-500) 12%, transparent);
+  color: var(--color-gray-700);
+}
+
+:where(.dark) .board-control:is(:hover, :focus-visible):not(:disabled) {
+  background-color: rgb(255 255 255 / 0.1);
+  color: var(--color-gray-200);
+}
+
+.board-count {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding-inline: 0.375rem;
+  border-radius: 9999px;
+  background-color: color-mix(in srgb, var(--color-gray-500) 12%, transparent);
+  color: var(--color-gray-500);
+  font-size: 10px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+:where(.dark) .board-count {
+  background-color: rgb(255 255 255 / 0.08);
+  color: var(--color-gray-400);
+}
+
 /* Hover */
 @media (hover: hover) {
   [data-board-item='card']:hover,

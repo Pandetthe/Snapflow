@@ -30,24 +30,26 @@
   data-id={card.id}
   data-card-id={card.id}
   data-board-item="card"
-  class="group/card relative flex flex-col gap-1.5 rounded-lg border border-gray-200/90 bg-white p-2.5 shadow-sm dark:border-gray-700/60 dark:bg-gray-800"
+  class="group/card relative flex flex-col gap-1.5 rounded-lg border border-gray-200/90 bg-white p-2 shadow-sm dark:border-gray-700/60 dark:bg-gray-800"
   class:flight-hidden={inFlight}
   class:flight-settle={recentMove?.pop && !inFlight}
   style:--flight-landing-scale="1.015"
 >
   <MovedByIndicator move={recentMove} />
 
-  <div class="flex items-start gap-1.5">
+  <div class="board-item-bar flex items-start gap-1.5">
     {#if canManageCards}
       <div
         use:dragHandle
-        class="card-drag-handle mt-0.5 shrink-0 rounded p-0.5 text-gray-300 opacity-0 transition-[opacity,outline-color] duration-150 hover:bg-gray-100 hover:text-gray-500 focus-visible:outline-none group-hover/card:opacity-100 group-focus-within/card:opacity-100 dark:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-400 {boardState === 'connected' ? 'cursor-grab' : 'cursor-not-allowed'}"
+        class="card-drag-handle board-control touch-none focus-visible:outline-none {boardState === 'connected' ? 'cursor-grab' : 'cursor-not-allowed opacity-40'}"
+        aria-label="Drag card"
       >
-        <GripVertical class="h-3 w-3" />
+        <GripVertical class="h-3.5 w-3.5" />
       </div>
     {/if}
 
-    <h4 class="min-w-0 flex-1 text-xs font-medium leading-relaxed wrap-break-word text-gray-800 dark:text-gray-100">
+    <!-- py-0.5 centres the first line on the 24px controls -->
+    <h4 class="min-w-0 flex-1 py-0.5 text-xs font-medium leading-relaxed wrap-break-word text-gray-800 dark:text-gray-100">
       {card.title}
     </h4>
 
@@ -59,7 +61,7 @@
         onclick={() => ui.openCardModal(listId, card)}
         disabled={boardState !== 'connected'}
         startIcon={Pencil}
-        class="h-5 w-5 min-w-0 shrink-0 rounded p-0 text-gray-300 opacity-0 transition-[opacity,outline-color] duration-150 hover:bg-gray-100 hover:text-gray-500 group-hover/card:opacity-100 group-focus-within/card:opacity-100 dark:hover:bg-gray-700 dark:hover:text-gray-400"
+        class="board-control"
         title="Edit card"
       >
         <span class="sr-only">Edit card</span>
@@ -67,13 +69,14 @@
     {/if}
   </div>
 
+  <!-- Body lines up with the title: control width (24px) + gap (6px) -->
   {#if card.description}
-    <p class="line-clamp-2 pl-5 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
+    <p class="line-clamp-2 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400 {canManageCards ? 'pl-[30px]' : ''}">
       {card.description}
     </p>
   {/if}
 
-  <div class="flex items-center justify-between pl-5">
+  <div class="flex items-center justify-between {canManageCards ? 'pl-[30px]' : ''}">
     <span title={card.createdBy.userName}>
       <UserAvatar src={card.createdBy.avatarUrl} name={card.createdBy.userName} size={18} />
     </span>
