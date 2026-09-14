@@ -182,8 +182,24 @@ html:has(section[data-board-zone='swimlanes']) {
   scale: 1.012;
 }
 
+/*
+  Swimlanes span the page, so a few tenths of a percent is already many pixels (same motion as
+  animations/elementFlight.ts). They have no background of their own and would show the page through the clone.
+*/
+#dnd-action-dragged-el > [data-board-item='swimlane'] {
+  translate: 0 -3px;
+  rotate: 0.12deg;
+  scale: 1.006;
+  background-color: var(--color-white);
+}
+
+:where(.dark) #dnd-action-dragged-el > [data-board-item='swimlane'] {
+  background-color: var(--color-gray-900);
+}
+
 @keyframes board-lift {
   from {
+    translate: 0 0;
     rotate: 0deg;
     scale: 1;
   }
@@ -202,16 +218,63 @@ html:has(section[data-board-zone='swimlanes']) {
   animation: board-fade-in 200ms ease-out both;
 }
 
+/*
+  Newly added item (boardState.svelte.ts isNew): its slot opens to the item's size so the rest of the board
+  makes room smoothly, then the item fades and rises in. Opening from 0 relies on interpolate-size; browsers
+  without it show the full slot at once and only the fade plays. Flex items would not shrink below their
+  content without min-height/min-width 0.
+*/
+/*
+  Only the side the slot grows towards is clipped: overflow would also cut the "added by" label
+  (MovedByIndicator) sitting on the item's top edge, half hidden until the animation ends.
+*/
+[data-board-slot].board-enter {
+  interpolate-size: allow-keywords;
+  clip-path: inset(-1rem -1rem 0 -1rem);
+  min-height: 0;
+  animation: board-enter-block 280ms var(--ease-flow) both;
+}
+
+[data-board-slot='list'].board-enter {
+  clip-path: inset(-1rem 0 -1rem -1rem);
+  min-width: 0;
+  animation-name: board-enter-inline;
+}
+
+[data-board-slot].board-enter > [data-board-item] {
+  animation: board-enter-item 320ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
+}
+
+@keyframes board-enter-block {
+  from {
+    height: 0;
+  }
+}
+
+@keyframes board-enter-inline {
+  from {
+    width: 0;
+  }
+}
+
+@keyframes board-enter-item {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+    scale: 0.97;
+  }
+}
+
 /* Empty zone while an item of its type is dragged */
 section[data-board-zone] {
   position: relative;
 }
 
 /*
-  Swimlanes resizing for a dragged list (heights measured by Swimlane.svelte at drag start). A swimlane's
-  height follows its content and cannot transition, so the list zone carries it: while a list is dragged every
-  zone holds its height, the zone holding the drop slot grows to fit the list, and after the drop the zones
-  ease back to their content height (interpolate-size; browsers without it snap there instead).
+  Swimlanes resizing for a dragged list or card (heights measured at drag start, animations/zoneHeights.ts).
+  A swimlane's height follows its content and cannot transition, so the list zone carries it: while an item is
+  dragged every zone holds its height, the zone receiving it grows to fit, and after the drop the zones ease
+  back to their content height (interpolate-size; browsers without it snap there instead).
 */
 section[data-board-zone='lists'] {
   interpolate-size: allow-keywords;
@@ -226,6 +289,17 @@ section[data-board-zone='lists'].board-drop-target {
 
 section[data-board-zone='lists'].board-drop-target[data-receiving] {
   height: max(var(--board-zone-rest-height, 0px), var(--board-dragged-list-height, 0px));
+}
+
+/* A card is dragged: its zones are drop targets. The receiving list sets its height with the card (List.svelte). */
+section[data-board-zone='lists']:has(section[data-board-zone='cards'].board-drop-target) {
+  height: var(--board-zone-rest-height, auto);
+}
+
+section[data-board-zone='lists'][data-card-receiver]:has(
+    section[data-board-zone='cards'].board-drop-target
+  ) {
+  height: max(var(--board-zone-rest-height, 0px), var(--board-receiving-list-height, 0px));
 }
 
 section[data-board-zone].board-drop-target[data-empty]::before {
@@ -262,6 +336,8 @@ section[data-board-zone].board-drop-target[data-fill] + * {
 
 @media (prefers-reduced-motion: reduce) {
   #dnd-action-dragged-el > [data-board-item],
+  [data-board-slot].board-enter,
+  [data-board-slot].board-enter > [data-board-item],
   [data-board-slot][data-is-dnd-shadow-item-internal]::after,
   section[data-board-zone]::before {
     animation: none;
@@ -272,7 +348,9 @@ section[data-board-zone].board-drop-target[data-fill] + * {
   }
 
   #dnd-action-dragged-el > [data-board-item='card'],
-  #dnd-action-dragged-el > [data-board-item='list'] {
+  #dnd-action-dragged-el > [data-board-item='list'],
+  #dnd-action-dragged-el > [data-board-item='swimlane'] {
+    translate: none;
     rotate: none;
     scale: none;
   }

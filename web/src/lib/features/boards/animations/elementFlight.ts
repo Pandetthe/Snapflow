@@ -23,7 +23,8 @@ interface FlightMotion {
 const MOTION: Record<MovableKind, FlightMotion> = {
   card: { lift: 4, liftScale: 1.03, rotate: 0.8, landingScale: 1.015 },
   list: { lift: 4, liftScale: 1.012, rotate: 0.3, landingScale: 1 },
-  swimlane: { lift: 3, liftScale: 1, rotate: 0, landingScale: 1 }
+  // Same pose as a swimlane dragged by hand (board-dnd.css)
+  swimlane: { lift: 3, liftScale: 1.006, rotate: 0.12, landingScale: 1 }
 };
 
 /** Landing pose the real element settles from (flight-settle in MovedByIndicator.svelte). */
@@ -57,20 +58,8 @@ function layoutRect(el: HTMLElement): DOMRect {
   return new DOMRect(rect.left - offsetX, rect.top - offsetY, rect.width, rect.height);
 }
 
-/**
- * Captures a card, list or swimlane at its current position as a floating ghost, so a remote move
- * can be shown as the element travelling from its old place to the new one. Call before the move is applied.
- */
-export function startElementFlight(kind: MovableKind, id: number): ElementFlight | null {
-  if (typeof document === 'undefined') return null;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
-
-  const source = findElements(kind, id)[0];
-  if (!source) return null;
-  const from = source.getBoundingClientRect();
-  if (from.width === 0 || from.height === 0) return null;
-
-  const motion = MOTION[kind];
+/** A floating copy of an element at its current position, detached from the board's state. */
+function createGhost(source: HTMLElement, from: DOMRect): HTMLElement {
   const ghost = source.cloneNode(true) as HTMLElement;
   ghost.classList.remove('flight-hidden', 'flight-settle');
   // Nested cards/lists in the clone must not be found as the real ones.
@@ -78,8 +67,6 @@ export function startElementFlight(kind: MovableKind, id: number): ElementFlight
     ghost.removeAttribute(attribute);
     ghost.querySelectorAll(`[${attribute}]`).forEach((el) => el.removeAttribute(attribute));
   }
-  // The highlight ring plays once, on the landed element.
-  ghost.querySelectorAll('.moved-by-ring').forEach((el) => el.remove());
   ghost.setAttribute('aria-hidden', 'true');
   Object.assign(ghost.style, {
     position: 'fixed',
@@ -94,6 +81,34 @@ export function startElementFlight(kind: MovableKind, id: number): ElementFlight
     boxSizing: 'border-box'
   });
   document.body.appendChild(ghost);
+  return ghost;
+}
+
+/** The element to capture, or null when it is not rendered or has no size. */
+function captureSource(kind: MovableKind, id: number): { source: HTMLElement; from: DOMRect } | null {
+  if (typeof document === 'undefined') return null;
+  const source = findElements(kind, id)[0];
+  if (!source) return null;
+  const from = source.getBoundingClientRect();
+  if (from.width === 0 || from.height === 0) return null;
+  return { source, from };
+}
+
+/**
+ * Captures a card, list or swimlane at its current position as a floating ghost, so a remote move
+ * can be shown as the element travelling from its old place to the new one. Call before the move is applied.
+ */
+export function startElementFlight(kind: MovableKind, id: number): ElementFlight | null {
+  if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
+
+  const captured = captureSource(kind, id);
+  if (!captured) return null;
+  const { source, from } = captured;
+
+  const motion = MOTION[kind];
+  const ghost = createGhost(source, from);
+  // The highlight ring plays once, on the landed element.
+  ghost.querySelectorAll('.moved-by-ring').forEach((el) => el.remove());
 
   let animation: Animation | null = null;
 
@@ -155,6 +170,46 @@ export function startElementFlight(kind: MovableKind, id: number): ElementFlight
     },
     cancel() {
       animation?.cancel();
+      ghost.remove();
+    }
+  };
+}
+
+/** How long a deleted item's copy stays, including its fade-out; long enough to read the label. */
+const EXIT_DURATION_MS = 1600;
+
+export interface ElementExit {
+  /** Holds the copy in place with its label, fades it out and removes it. */
+  play: () => Promise<void>;
+}
+
+/**
+ * Captures a card, list or swimlane that another connection deleted, with its "deleted by" label, so it can
+ * fade out in place instead of vanishing. Call before the item is removed from the state, then play.
+ */
+export function startElementExit(kind: MovableKind, id: number): ElementExit | null {
+  const captured = captureSource(kind, id);
+  if (!captured) return null;
+
+  const ghost = createGhost(captured.source, captured.from);
+  ghost.style.transformOrigin = 'center';
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Without motion the label still has to be readable, so the copy only fades.
+  const shrink = reduceMotion ? 'none' : 'scale(0.97)';
+
+  return {
+    async play() {
+      const animation = ghost.animate(
+        [
+          { offset: 0, opacity: 1, transform: 'none' },
+          { offset: 0.7, opacity: 1, transform: 'none', easing: 'cubic-bezier(0.4, 0, 0.2, 1)' },
+          { offset: 1, opacity: 0, transform: shrink }
+        ],
+        { duration: EXIT_DURATION_MS, fill: 'forwards' }
+      );
+      // Browsers may pause animations in background tabs; never leave the copy on the board.
+      const timeout = new Promise((resolve) => setTimeout(resolve, EXIT_DURATION_MS + 150));
+      await Promise.race([animation.finished.catch(() => {}), timeout]);
       ghost.remove();
     }
   };

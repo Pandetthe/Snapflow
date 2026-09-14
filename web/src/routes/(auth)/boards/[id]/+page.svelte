@@ -73,6 +73,7 @@
   setContext('canManageCards', () => bs.canManageCards);
   setContext('recentMove', bs.getRecentMove);
   setContext('isInFlight', bs.isInFlight);
+  setContext('isNew', bs.isNew);
 
   onMount(async () => {
     hub = new BoardsHub(data.board.id);
@@ -223,6 +224,7 @@
             <div
               animate:flip={layoutFlip}
               class="relative z-20 w-full outline-none"
+              class:board-enter={bs.isNew('swimlane', swimlane.id)}
               data-board-slot="swimlane"
               data-selected={keyboardMovedSwimlaneId === swimlane.id || undefined}
             >

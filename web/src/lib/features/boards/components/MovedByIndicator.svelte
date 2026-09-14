@@ -1,10 +1,12 @@
 <script lang="ts">
-  import type { RecentMove } from '$lib/features/boards/composables/boardState.svelte';
+  import type { BoardAction, RecentMove } from '$lib/features/boards/composables/boardState.svelte';
   import { cubicInOut, cubicOut } from 'svelte/easing';
   import type { TransitionConfig } from 'svelte/transition';
   import { UserAvatar } from '$lib/ui/components';
+  import { Move, Pencil, Plus, Trash2 } from 'lucide-svelte';
 
   /**
+   * Who added, edited, moved or deleted the element, with an icon for what they did.
    * The label sits on the element's top edge near its right corner, the same for cards, lists and swimlanes,
    * so the host element must not clip its overflow.
    */
@@ -15,6 +17,13 @@
     move: RecentMove | undefined;
     rounded?: string;
   } = $props();
+
+  const ACTIONS: Record<BoardAction, { icon: typeof Move; label: string }> = {
+    added: { icon: Plus, label: 'added this' },
+    edited: { icon: Pencil, label: 'edited this' },
+    moved: { icon: Move, label: 'moved this' },
+    deleted: { icon: Trash2, label: 'deleted this' }
+  };
 
   /** Rises onto the edge it is anchored to; the outro plays the same motion in reverse, a bit faster. */
   function pill(_node: Element, { duration, easing }: { duration: number; easing: (t: number) => number }): TransitionConfig {
@@ -33,6 +42,7 @@
   (e.g. a card moved to another list) in the DOM until the fade finishes.
 -->
 {#each move ? [move] : [] as m (m.key)}
+  {@const action = ACTIONS[m.action]}
   <span aria-hidden="true" class="moved-by-ring pointer-events-none absolute inset-0 {rounded}"></span>
   <div
     class="pointer-events-none absolute -top-2 right-3 z-30 flex origin-bottom-right items-center"
@@ -45,7 +55,8 @@
     >
       <UserAvatar src={m.user.avatarUrl} name={m.user.userName} size={14} class="ring-white/70" />
       <span class="max-w-24 truncate">{m.isCurrentUser ? 'You' : m.user.userName}</span>
-      <span class="sr-only">moved this</span>
+      <action.icon class="h-2.5 w-2.5 shrink-0 opacity-80" aria-hidden="true" />
+      <span class="sr-only">{action.label}</span>
     </span>
   </div>
 {/each}

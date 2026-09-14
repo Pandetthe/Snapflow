@@ -6,12 +6,16 @@ import { triggerHaptic } from '$lib/ui/utils';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import { tick } from 'svelte';
 import type { CardMovedEventPayload } from '../types/boards.hub';
-import { startElementFlight, type ElementFlight } from '../animations/elementFlight';
+import { startElementExit, startElementFlight, type ElementFlight } from '../animations/elementFlight';
 
 export type MovableKind = 'card' | 'list' | 'swimlane';
 
+export type BoardAction = 'moved' | 'added' | 'edited' | 'deleted';
+
+/** A recent change made on another connection, labelled on the item with who made it. */
 export interface RecentMove {
   user: GetBoardByIdResponse.UserDto;
+  action: BoardAction;
   isCurrentUser: boolean;
   key: number;
   /** Whether the element has reached its new place and may play its arrival animation. */
@@ -22,7 +26,12 @@ export type GetRecentMove = (kind: MovableKind, id: number) => RecentMove | unde
 
 export type IsInFlight = (kind: MovableKind, id: number) => boolean;
 
+export type IsNew = (kind: MovableKind, id: number) => boolean;
+
 const RECENT_MOVE_DURATION_MS = 2500;
+
+/** Longer than the enter animation in board-dnd.css, so the class never cuts it short. */
+const NEW_ITEM_DURATION_MS = 700;
 
 export function createBoardState(
   initialBoard: GetBoardByIdResponse.BoardDto,
@@ -34,14 +43,15 @@ export function createBoardState(
   let connectionState = $state<'connecting' | 'connected' | 'reconnecting' | 'disconnected'>('connecting');
   let hub: BoardsHub | null = null;
 
-  // Items recently moved from other connections (the moving connection never receives the event).
+  // Items recently added, edited, moved or deleted on other connections (the acting connection never receives the event).
   const recentMoves = new SvelteMap<string, RecentMove>();
   let recentMoveKey = 0;
 
-  function markMoved(kind: MovableKind, id: number, user: GetBoardByIdResponse.UserDto, pop = true) {
+  // Only a move has an arrival animation; it enables it with markArrived once the item has landed.
+  function markChanged(kind: MovableKind, id: number, user: GetBoardByIdResponse.UserDto, action: BoardAction) {
     const mapKey = `${kind}:${id}`;
     const key = ++recentMoveKey;
-    recentMoves.set(mapKey, { user, isCurrentUser: user.id === currentUserId, key, pop });
+    recentMoves.set(mapKey, { user, action, isCurrentUser: user.id === currentUserId, key, pop: false });
     setTimeout(() => {
       if (recentMoves.get(mapKey)?.key === key) recentMoves.delete(mapKey);
     }, RECENT_MOVE_DURATION_MS);
@@ -61,6 +71,17 @@ export function createBoardState(
   const activeFlights = new SvelteMap<string, ElementFlight>();
 
   const isInFlight: IsInFlight = (kind, id) => inFlight.has(`${kind}:${id}`);
+
+  // Items just added here or on another connection; they play their enter animation (board-dnd.css) once.
+  const newItems = new SvelteSet<string>();
+
+  function markNew(kind: MovableKind, id: number) {
+    const key = `${kind}:${id}`;
+    newItems.add(key);
+    setTimeout(() => newItems.delete(key), NEW_ITEM_DURATION_MS);
+  }
+
+  const isNew: IsNew = (kind, id) => newItems.has(`${kind}:${id}`);
 
   /**
    * Shows a move made on another connection: the label appears right away, a ghost flies from the old
@@ -82,7 +103,7 @@ export function createBoardState(
 
     // The ghost captures the label and carries it along; the arrival animation waits for the landing,
     // so the captured size is not mid-animation.
-    markMoved(kind, id, user, false);
+    markChanged(kind, id, user, 'moved');
     await tick();
 
     // Capture the old position before the state (and DOM) change.
@@ -114,6 +135,26 @@ export function createBoardState(
       setTimeout(resolve, 100);
     });
     flight.release();
+  }
+
+  /**
+   * Shows a deletion made on another connection: the item is labelled with who deleted it, and a copy keeps the
+   * label in place for a moment and fades out while the board closes the gap.
+   * `apply` removes the item from the state.
+   */
+  async function animateRemoteDelete(kind: MovableKind, id: number, user: GetBoardByIdResponse.UserDto, apply: () => void) {
+    const key = `${kind}:${id}`;
+    activeFlights.get(key)?.cancel();
+    activeFlights.delete(key);
+    inFlight.delete(key);
+
+    // The copy captures the label, so it must be rendered first.
+    markChanged(kind, id, user, 'deleted');
+    await tick();
+
+    const exit = startElementExit(kind, id);
+    apply();
+    await exit?.play();
   }
 
   const role = $derived<MemberRole>(
@@ -164,6 +205,8 @@ export function createBoardState(
         sortSwimlanes();
         return;
       }
+      markNew('swimlane', payload.id);
+      markChanged('swimlane', payload.id, payload.createdBy, 'added');
       board.swimlanes.push({ ...payload, lists: [] });
       sortSwimlanes();
     });
@@ -173,6 +216,7 @@ export function createBoardState(
       if (index !== -1) {
         board.swimlanes[index].title = payload.title;
         board.swimlanes[index].height = payload.height;
+        markChanged('swimlane', payload.id, payload.updatedBy, 'edited');
       }
     });
 
@@ -190,11 +234,15 @@ export function createBoardState(
     });
 
     hub.on('SwimlaneDeleted', (payload) => {
-      const index = board.swimlanes.findIndex((s) => s.id === payload.id);
-      if (index !== -1) {
-        board.swimlanes.splice(index, 1);
-        board.swimlanes = [...board.swimlanes];
-      }
+      if (!board.swimlanes.some((s) => s.id === payload.id)) return;
+
+      animateRemoteDelete('swimlane', payload.id, payload.deletedBy, () => {
+        const index = board.swimlanes.findIndex((s) => s.id === payload.id);
+        if (index !== -1) {
+          board.swimlanes.splice(index, 1);
+          board.swimlanes = [...board.swimlanes];
+        }
+      });
     });
 
     hub.on('ListCreated', (payload) => {
@@ -206,6 +254,8 @@ export function createBoardState(
           sortLists(swimlane);
           return;
         }
+        markNew('list', payload.id);
+        markChanged('list', payload.id, payload.createdBy, 'added');
         swimlane.lists.push({ ...payload, cards: [] });
         sortLists(swimlane);
       }
@@ -216,6 +266,7 @@ export function createBoardState(
         const list = s.lists.find((l) => l.id === payload.id);
         if (list) {
           list.title = payload.title;
+          markChanged('list', payload.id, payload.updatedBy, 'edited');
           break;
         }
       }
@@ -243,14 +294,18 @@ export function createBoardState(
     });
 
     hub.on('ListDeleted', (payload) => {
-      for (const s of board.swimlanes) {
-        const index = s.lists.findIndex((l) => l.id === payload.id);
-        if (index !== -1) {
-          s.lists.splice(index, 1);
-          s.lists = [...s.lists];
-          break;
+      if (!board.swimlanes.some((s) => s.lists.some((l) => l.id === payload.id))) return;
+
+      animateRemoteDelete('list', payload.id, payload.deletedBy, () => {
+        for (const s of board.swimlanes) {
+          const index = s.lists.findIndex((l) => l.id === payload.id);
+          if (index !== -1) {
+            s.lists.splice(index, 1);
+            s.lists = [...s.lists];
+            break;
+          }
         }
-      }
+      });
     });
 
     hub.on('CardCreated', (payload) => {
@@ -263,6 +318,8 @@ export function createBoardState(
             sortCards(list);
             return;
           }
+          markNew('card', payload.id);
+          markChanged('card', payload.id, payload.createdBy, 'added');
           list.cards.push({ ...payload, updatedAt: null, updatedBy: null });
           sortCards(list);
           break;
@@ -308,6 +365,7 @@ export function createBoardState(
           if (card) {
             card.title = payload.title;
             card.description = payload.description;
+            markChanged('card', payload.id, payload.updatedBy, 'edited');
             return;
           }
         }
@@ -315,16 +373,20 @@ export function createBoardState(
     });
 
     hub.on('CardDeleted', (payload) => {
-      for (const s of board.swimlanes) {
-        for (const l of s.lists) {
-          const index = l.cards.findIndex((c) => c.id === payload.id);
-          if (index !== -1) {
-            l.cards.splice(index, 1);
-            l.cards = [...l.cards];
-            return;
+      if (!board.swimlanes.some((s) => s.lists.some((l) => l.cards.some((c) => c.id === payload.id)))) return;
+
+      animateRemoteDelete('card', payload.id, payload.deletedBy, () => {
+        for (const s of board.swimlanes) {
+          for (const l of s.lists) {
+            const index = l.cards.findIndex((c) => c.id === payload.id);
+            if (index !== -1) {
+              l.cards.splice(index, 1);
+              l.cards = [...l.cards];
+              return;
+            }
           }
         }
-      }
+      });
     });
 
     hub.on('BoardDeleted', () => {
@@ -360,6 +422,7 @@ export function createBoardState(
       const res = await hub.createSwimlane({ title, height, beforeId: null });
       if (res?.ok) {
         if (!board.swimlanes.some((s) => s.id === res.value.id)) {
+          markNew('swimlane', res.value.id);
           board.swimlanes.push({ id: res.value.id, title, height, rank: res.value.rank, lists: [] });
           sortSwimlanes();
         }
@@ -409,6 +472,7 @@ export function createBoardState(
       if (res?.ok) {
         const swimlane = board.swimlanes.find((s) => s.id === targetSwimlaneId);
         if (swimlane && !swimlane.lists.some((l) => l.id === res.value.id)) {
+          markNew('list', res.value.id);
           swimlane.lists.push({ id: res.value.id, title, width, rank: res.value.rank, cards: [] });
           sortLists(swimlane);
         }
@@ -464,6 +528,7 @@ export function createBoardState(
         for (const s of board.swimlanes) {
           const list = s.lists.find((l) => l.id === targetListId);
           if (list && !list.cards.some((c) => c.id === res.value.id)) {
+            markNew('card', res.value.id);
             list.cards.push({
               id: res.value.id,
               title,
@@ -524,6 +589,7 @@ export function createBoardState(
     get canManageCards() { return canManageCards; },
     getRecentMove,
     isInFlight,
+    isNew,
     sortAll,
     sortSwimlanes,
     registerHubEvents,

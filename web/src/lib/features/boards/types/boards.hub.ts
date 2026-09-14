@@ -30,12 +30,14 @@ export interface SwimlaneCreatedEventPayload {
   title: string;
   rank: string;
   height: number | null;
+  createdBy: GetBoardByIdResponse.UserDto;
 }
 
 export interface SwimlaneUpdatedEventPayload {
   id: number;
   title: string;
   height: number | null;
+  updatedBy: GetBoardByIdResponse.UserDto;
 }
 
 export interface SwimlaneMovedEventPayload {
@@ -46,6 +48,7 @@ export interface SwimlaneMovedEventPayload {
 
 export interface SwimlaneDeletedEventPayload {
   id: number;
+  deletedBy: GetBoardByIdResponse.UserDto;
 }
 
 export interface ListCreatedEventPayload {
@@ -54,12 +57,14 @@ export interface ListCreatedEventPayload {
   title: string;
   rank: string;
   width: number | null;
+  createdBy: GetBoardByIdResponse.UserDto;
 }
 
 export interface ListUpdatedEventPayload {
   id: number;
   title: string;
   width: number | null;
+  updatedBy: GetBoardByIdResponse.UserDto;
 }
 
 export interface ListMovedEventPayload {
@@ -71,6 +76,7 @@ export interface ListMovedEventPayload {
 
 export interface ListDeletedEventPayload {
   id: number;
+  deletedBy: GetBoardByIdResponse.UserDto;
 }
 
 export interface CardCreatedEventPayload {
@@ -87,6 +93,7 @@ export interface CardUpdatedEventPayload {
   id: number;
   title: string;
   description: string;
+  updatedBy: GetBoardByIdResponse.UserDto;
 }
 
 export interface CardMovedEventPayload {
@@ -106,6 +113,7 @@ export interface CardUnlockedEventPayload {
 
 export interface CardDeletedEventPayload {
   id: number;
+  deletedBy: GetBoardByIdResponse.UserDto;
 }
 
 export interface MoveSwimlaneRequest {
