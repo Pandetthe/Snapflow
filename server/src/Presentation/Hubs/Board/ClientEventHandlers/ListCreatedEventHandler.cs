@@ -1,15 +1,19 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR;
+using Snapflow.Application.Abstractions.Services;
 using Snapflow.Common;
 using Snapflow.Domain.Lists;
 
 namespace Snapflow.Presentation.Hubs.Board.ClientEventHandlers;
 
 public sealed class ListCreatedEventHandler(
-    IHubContext<BoardHub, IBoardHubClient> hubContext) : IDomainEventHandler<ListCreatedDomainEvent>
+    IHubContext<BoardHub, IBoardHubClient> hubContext,
+    IAvatarService avatarService) : IDomainEventHandler<ListCreatedDomainEvent>
 {
     public Task Handle(ListCreatedDomainEvent domainEvent, CancellationToken cancellationToken) =>
         hubContext.Clients
             .GroupExcept(domainEvent.BoardId, domainEvent.ConnectionId)
             .ListCreated(new(domainEvent.Id, domainEvent.SwimlaneId, domainEvent.Title,
-                domainEvent.Width, domainEvent.Rank), cancellationToken);
+                domainEvent.Width, domainEvent.Rank,
+                new(domainEvent.CreatedById, domainEvent.CreatedByUserName,
+                    avatarService.GenerateAvatarUrl(domainEvent.CreatedById))), cancellationToken);
 }

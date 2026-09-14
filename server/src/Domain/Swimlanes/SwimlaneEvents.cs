@@ -8,6 +8,8 @@ public sealed record SwimlaneCreatedDomainEvent(
     string Title,
     int? Height,
     string Rank,
+    int CreatedById,
+    string CreatedByUserName,
     string? ConnectionId) : IDomainEvent;
 
 public sealed record SwimlaneUpdatedDomainEvent(
@@ -15,6 +17,8 @@ public sealed record SwimlaneUpdatedDomainEvent(
     int BoardId,
     string Title,
     int? Height,
+    int UpdatedById,
+    string UpdatedByUserName,
     string? ConnectionId) : IDomainEvent;
 
 public sealed record SwimlaneMovedDomainEvent(
@@ -28,4 +32,6 @@ public sealed record SwimlaneMovedDomainEvent(
 public sealed record SwimlaneDeletedDomainEvent(
     int Id,
     int BoardId,
+    int DeletedById,
+    string DeletedByUserName,
     string? ConnectionId) : IDomainEvent;

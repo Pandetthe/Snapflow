@@ -45,22 +45,24 @@ public sealed class CardTests
     }
 
     [Fact]
-    public void Update_Should_UpdateProperties_And_RaiseEvent()
+    public void Update_Should_UpdateProperties_And_RaiseEventWithUpdater()
     {
         var card = Card.Create(1, 2, 3, "Old", "Old Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
         var newTitle = "New Title";
         var newDesc = "New Desc";
-        var updaterId = 2;
+        var updatedBy = CreateUser(2, "bob");
         var now = DateTimeOffset.UtcNow;
 
-        card.Update(newTitle, newDesc, updaterId, now, "new-conn");
+        card.Update(newTitle, newDesc, updatedBy, now, "new-conn");
 
         card.Title.Should().Be(newTitle);
         card.Description.Should().Be(newDesc);
-        card.UpdatedById.Should().Be(updaterId);
+        card.UpdatedById.Should().Be(2);
         card.UpdatedAt.Should().Be(now);
-        
-        card.DomainEvents.Select(e => e(card)).Should().Contain(e => e is CardUpdatedDomainEvent);
+
+        card.DomainEvents.Select(e => e(card)).OfType<CardUpdatedDomainEvent>().Should().ContainSingle()
+            .Which.Should().Match<CardUpdatedDomainEvent>(e =>
+                e.UpdatedById == 2 && e.UpdatedByUserName == "bob" && e.ConnectionId == "new-conn");
     }
 
     [Fact]
@@ -84,19 +86,20 @@ public sealed class CardTests
     }
 
     [Fact]
-    public void SoftDelete_Should_SetIsDeletedTrue_And_RaiseEvent()
+    public void SoftDelete_Should_SetIsDeletedTrue_And_RaiseEventWithDeleter()
     {
         var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
-        var deleterId = 1;
+        var deletedBy = CreateUser(3, "carol");
         var now = DateTimeOffset.UtcNow;
 
-        card.SoftDelete(deleterId, now);
+        card.SoftDelete(deletedBy, now);
 
         card.IsDeleted.Should().BeTrue();
-        card.DeletedById.Should().Be(deleterId);
+        card.DeletedById.Should().Be(3);
         card.DeletedAt.Should().Be(now);
         card.DeletedByCascade.Should().BeFalse();
 
-        card.DomainEvents.Select(e => e(card)).Should().Contain(e => e is CardDeletedDomainEvent);
+        card.DomainEvents.Select(e => e(card)).OfType<CardDeletedDomainEvent>().Should().ContainSingle()
+            .Which.Should().Match<CardDeletedDomainEvent>(e => e.DeletedById == 3 && e.DeletedByUserName == "carol");
     }
 }

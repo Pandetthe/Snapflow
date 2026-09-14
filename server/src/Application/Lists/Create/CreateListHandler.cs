@@ -45,7 +45,7 @@ internal sealed class CreateListHandler(
             command.Title,
             command.Width,
             rankResult.Value,
-            userContext.UserId,
+            user,
             createdAt,
             userContext.ConnectionId);
 

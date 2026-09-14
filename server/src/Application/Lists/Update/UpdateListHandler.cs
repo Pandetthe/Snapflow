@@ -32,7 +32,7 @@ internal sealed class UpdateListHandler(
         list.Update(
             command.Title,
             command.Width,
-            userContext.UserId,
+            user,
             updatedAt,
             userContext.ConnectionId);
 

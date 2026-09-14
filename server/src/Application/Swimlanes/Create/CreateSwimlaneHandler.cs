@@ -41,7 +41,7 @@ internal sealed class CreateSwimlaneHandler(
             command.Title,
             command.Height,
             rankResult.Value,
-            userContext.UserId,
+            user,
             createdAt,
             userContext.ConnectionId);
 

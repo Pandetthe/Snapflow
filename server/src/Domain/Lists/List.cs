@@ -38,7 +38,7 @@ public class List : Entity<int, List>, IRankable
 
     public virtual ICollection<Card> Cards { get; private set; } = [];
 
-    public static List Create(int boardId, int swimlaneId, string title, int? width, string rank, int createdById, DateTimeOffset createdAt, string? connectionId = null)
+    public static List Create(int boardId, int swimlaneId, string title, int? width, string rank, IUser createdBy, DateTimeOffset createdAt, string? connectionId = null)
     {
         var list = new List
         {
@@ -47,23 +47,24 @@ public class List : Entity<int, List>, IRankable
             Title = title,
             Width = width,
             Rank = rank,
-            CreatedById = createdById,
+            CreatedById = createdBy.Id,
             CreatedAt = createdAt
         };
 
-        list.Raise(l => new ListCreatedDomainEvent(l.Id, l.BoardId, l.SwimlaneId, l.Title, l.Width, l.Rank, connectionId));
+        list.Raise(l => new ListCreatedDomainEvent(l.Id, l.BoardId, l.SwimlaneId, l.Title, l.Width, l.Rank,
+            createdBy.Id, createdBy.UserName, connectionId));
 
         return list;
     }
 
-    public void Update(string title, int? width, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
+    public void Update(string title, int? width, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
     {
         Title = title;
         Width = width;
-        UpdatedById = updatedById;
+        UpdatedById = updatedBy.Id;
         UpdatedAt = updatedAt;
 
-        Raise(l => new ListUpdatedDomainEvent(l.Id, l.BoardId, l.Title, l.Width, connectionId));
+        Raise(l => new ListUpdatedDomainEvent(l.Id, l.BoardId, l.Title, l.Width, updatedBy.Id, updatedBy.UserName, connectionId));
     }
 
     public void Move(int swimlaneId, string rank, IUser movedBy, DateTimeOffset updatedAt, string? connectionId = null)
@@ -76,13 +77,13 @@ public class List : Entity<int, List>, IRankable
         Raise(l => new ListMovedDomainEvent(Id, BoardId, SwimlaneId, Rank, movedBy.Id, movedBy.UserName, connectionId));
     }
 
-    public void SoftDelete(int deletedById, DateTimeOffset deletedAt, string? connectionId = null)
+    public void SoftDelete(IUser deletedBy, DateTimeOffset deletedAt, string? connectionId = null)
     {
         IsDeleted = true;
-        DeletedById = deletedById;
+        DeletedById = deletedBy.Id;
         DeletedAt = deletedAt;
         DeletedByCascade = false;
 
-        Raise(l => new ListDeletedDomainEvent(l.Id, l.BoardId, connectionId));
+        Raise(l => new ListDeletedDomainEvent(l.Id, l.BoardId, deletedBy.Id, deletedBy.UserName, connectionId));
     }
 }

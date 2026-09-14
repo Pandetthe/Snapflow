@@ -10,11 +10,11 @@ public interface IBoardHubClient
 
     Task BoardDeleted(CancellationToken cancellationToken = default);
 
-    public sealed record SwimlaneCreatedPayload(int Id, string Title, int? Height, string Rank);
+    public sealed record SwimlaneCreatedPayload(int Id, string Title, int? Height, string Rank, UserDto CreatedBy);
 
     Task SwimlaneCreated(SwimlaneCreatedPayload payload, CancellationToken cancellationToken = default);
 
-    public sealed record SwimlaneUpdatedPayload(int Id, string Title, int? Height);
+    public sealed record SwimlaneUpdatedPayload(int Id, string Title, int? Height, UserDto UpdatedBy);
 
     Task SwimlaneUpdated(SwimlaneUpdatedPayload payload, CancellationToken cancellationToken = default);
 
@@ -22,15 +22,15 @@ public interface IBoardHubClient
 
     Task SwimlaneMoved(SwimlaneMovedPayload payload, CancellationToken cancellationToken = default);
 
-    public sealed record SwimlaneDeletedPayload(int Id);
+    public sealed record SwimlaneDeletedPayload(int Id, UserDto DeletedBy);
 
     Task SwimlaneDeleted(SwimlaneDeletedPayload payload, CancellationToken cancellationToken = default);
 
-    public sealed record ListCreatedPayload(int Id, int SwimlaneId, string Title, int? Width, string Rank);
+    public sealed record ListCreatedPayload(int Id, int SwimlaneId, string Title, int? Width, string Rank, UserDto CreatedBy);
 
     Task ListCreated(ListCreatedPayload payload, CancellationToken cancellationToken = default);
 
-    public sealed record ListUpdatedPayload(int Id, string Title, int? Width);
+    public sealed record ListUpdatedPayload(int Id, string Title, int? Width, UserDto UpdatedBy);
 
     Task ListUpdated(ListUpdatedPayload payload, CancellationToken cancellationToken = default);
 
@@ -38,7 +38,7 @@ public interface IBoardHubClient
 
     Task ListMoved(ListMovedPayload payload, CancellationToken cancellationToken = default);
 
-    public sealed record ListDeletedPayload(int Id);
+    public sealed record ListDeletedPayload(int Id, UserDto DeletedBy);
 
     Task ListDeleted(ListDeletedPayload payload, CancellationToken cancellationToken = default);
 
@@ -53,11 +53,11 @@ public interface IBoardHubClient
 
     Task CardCreated(CardCreatedPayload payload, CancellationToken cancellationToken = default);
 
-    public sealed record CardUpdatedPayload(int Id, string Title, string Description);
+    public sealed record CardUpdatedPayload(int Id, string Title, string Description, UserDto UpdatedBy);
 
     Task CardUpdated(CardUpdatedPayload payload, CancellationToken cancellationToken = default);
 
-    public sealed record CardDeletedPayload(int Id);
+    public sealed record CardDeletedPayload(int Id, UserDto DeletedBy);
 
     Task CardDeleted(CardDeletedPayload payload, CancellationToken cancellationToken = default);
 

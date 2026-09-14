@@ -36,7 +36,7 @@ public class Swimlane : Entity<int, Swimlane>, IRankable
     public virtual ICollection<List> Lists { get; private set; } = [];
     public virtual ICollection<Card> Cards { get; private set; } = [];
 
-    public static Swimlane Create(int boardId, string title, int? height, string rank, int createdById, DateTimeOffset createdAt, string? connectionId = null)
+    public static Swimlane Create(int boardId, string title, int? height, string rank, IUser createdBy, DateTimeOffset createdAt, string? connectionId = null)
     {
         var swimlane = new Swimlane
         {
@@ -44,23 +44,24 @@ public class Swimlane : Entity<int, Swimlane>, IRankable
             Title = title,
             Height = height,
             Rank = rank,
-            CreatedById = createdById,
+            CreatedById = createdBy.Id,
             CreatedAt = createdAt
         };
 
-        swimlane.Raise(s => new SwimlaneCreatedDomainEvent(s.Id, s.BoardId, s.Title, s.Height, s.Rank, connectionId));
+        swimlane.Raise(s => new SwimlaneCreatedDomainEvent(s.Id, s.BoardId, s.Title, s.Height, s.Rank,
+            createdBy.Id, createdBy.UserName, connectionId));
 
         return swimlane;
     }
 
-    public void Update(string title, int? height, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
+    public void Update(string title, int? height, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
     {
         Title = title;
         Height = height;
-        UpdatedById = updatedById;
+        UpdatedById = updatedBy.Id;
         UpdatedAt = updatedAt;
 
-        Raise(s => new SwimlaneUpdatedDomainEvent(s.Id, s.BoardId, s.Title, s.Height, connectionId));
+        Raise(s => new SwimlaneUpdatedDomainEvent(s.Id, s.BoardId, s.Title, s.Height, updatedBy.Id, updatedBy.UserName, connectionId));
     }
 
     public void Move(string rank, IUser movedBy, DateTimeOffset updatedAt, string? connectionId = null)
@@ -72,13 +73,13 @@ public class Swimlane : Entity<int, Swimlane>, IRankable
         Raise(s => new SwimlaneMovedDomainEvent(Id, BoardId, Rank, movedBy.Id, movedBy.UserName, connectionId));
     }
 
-    public void SoftDelete(int deletedById, DateTimeOffset deletedAt, string? connectionId = null)
+    public void SoftDelete(IUser deletedBy, DateTimeOffset deletedAt, string? connectionId = null)
     {
         IsDeleted = true;
-        DeletedById = deletedById;
+        DeletedById = deletedBy.Id;
         DeletedAt = deletedAt;
         DeletedByCascade = false;
 
-        Raise(s => new SwimlaneDeletedDomainEvent(s.Id, s.BoardId, connectionId));
+        Raise(s => new SwimlaneDeletedDomainEvent(s.Id, s.BoardId, deletedBy.Id, deletedBy.UserName, connectionId));
     }
 }

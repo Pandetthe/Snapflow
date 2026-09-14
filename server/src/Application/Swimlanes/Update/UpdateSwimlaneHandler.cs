@@ -32,7 +32,7 @@ internal sealed class UpdateSwimlaneHandler(
         swimlane.Update(
             command.Title,
             command.Height,
-            userContext.UserId,
+            user,
             updatedAt,
             userContext.ConnectionId);
 

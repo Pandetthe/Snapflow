@@ -59,14 +59,14 @@ public class Card : Entity<int, Card>, IRankable
         return card;
     }
 
-    public void Update(string title, string description, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
+    public void Update(string title, string description, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
     {
         Title = title;
         Description = description;
-        UpdatedById = updatedById;
+        UpdatedById = updatedBy.Id;
         UpdatedAt = updatedAt;
 
-        Raise(c => new CardUpdatedDomainEvent(Id, BoardId, Title, Description, connectionId));
+        Raise(c => new CardUpdatedDomainEvent(Id, BoardId, Title, Description, updatedBy.Id, updatedBy.UserName, connectionId));
     }
 
     public void Move(int listId, int swimlaneId, string rank, IUser movedBy, DateTimeOffset updatedAt, string? connectionId = null)
@@ -80,13 +80,13 @@ public class Card : Entity<int, Card>, IRankable
         Raise(c => new CardMovedDomainEvent(Id, BoardId, ListId, Rank, movedBy.Id, movedBy.UserName, connectionId));
     }
 
-    public void SoftDelete(int deletedById, DateTimeOffset deletedAt, string? connectionId = null)
+    public void SoftDelete(IUser deletedBy, DateTimeOffset deletedAt, string? connectionId = null)
     {
         IsDeleted = true;
-        DeletedById = deletedById;
+        DeletedById = deletedBy.Id;
         DeletedAt = deletedAt;
         DeletedByCascade = false;
 
-        Raise(c => new CardDeletedDomainEvent(Id, BoardId, connectionId));
+        Raise(c => new CardDeletedDomainEvent(Id, BoardId, deletedBy.Id, deletedBy.UserName, connectionId));
     }
 }

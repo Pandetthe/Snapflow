@@ -20,6 +20,8 @@ public sealed record CardUpdatedDomainEvent(
     int BoardId,
     string Title,
     string Description,
+    int UpdatedById,
+    string UpdatedByUserName,
     string? ConnectionId) : IDomainEvent;
 
 public sealed record CardMovedDomainEvent(
@@ -34,4 +36,6 @@ public sealed record CardMovedDomainEvent(
 public sealed record CardDeletedDomainEvent(
     int Id,
     int BoardId,
+    int DeletedById,
+    string DeletedByUserName,
     string? ConnectionId) : IDomainEvent;

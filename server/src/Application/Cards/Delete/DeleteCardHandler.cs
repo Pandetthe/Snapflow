@@ -15,9 +15,10 @@ internal sealed class DeleteCardHandler(
 {
     public async Task<Result> Handle(DeleteCardCommand command, CancellationToken cancellationToken = default)
     {
-        var userExists = await dbContext.Users.AsNoTracking()
-            .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (!userExists)
+        IUser? user = await dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
+        if (user == null)
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
         Card? card = await dbContext.Cards
@@ -26,9 +27,8 @@ internal sealed class DeleteCardHandler(
             return Result.Failure(CardErrors.NotFound(command.Id));
 
         DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
-        var userId = userContext.UserId;
 
-        card.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
+        card.SoftDelete(user, dateTimeOffset, userContext.ConnectionId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

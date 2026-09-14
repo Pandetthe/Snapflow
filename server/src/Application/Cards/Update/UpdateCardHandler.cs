@@ -32,7 +32,7 @@ internal sealed class UpdateCardHandler(
         card.Update(
             command.Title,
             command.Description,
-            userContext.UserId,
+            user,
             updatedAt,
             userContext.ConnectionId);
 

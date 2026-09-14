@@ -16,9 +16,10 @@ internal sealed class DeleteListHandler(
 {
     public async Task<Result> Handle(DeleteListCommand command, CancellationToken cancellationToken = default)
     {
-        var userExists = await dbContext.Users.AsNoTracking()
-            .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (!userExists)
+        IUser? user = await dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
+        if (user == null)
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
         List? list = await dbContext.Lists
@@ -37,7 +38,7 @@ internal sealed class DeleteListHandler(
 
             try
             {
-                list.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
+                list.SoftDelete(user, dateTimeOffset, userContext.ConnectionId);
 
                 await dbContext.Cards
                     .Where(c => c.ListId == list.Id && !c.IsDeleted)

@@ -16,9 +16,10 @@ internal sealed class DeleteSwimlaneHandler(
 {
     public async Task<Result> Handle(DeleteSwimlaneCommand command, CancellationToken cancellationToken = default)
     {
-        var userExists = await dbContext.Users.AsNoTracking()
-            .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (!userExists)
+        IUser? user = await dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
+        if (user == null)
             return Result.Failure(UserErrors.NotFound(userContext.UserId));
 
         Swimlane? swimlane = await dbContext.Swimlanes
@@ -37,7 +38,7 @@ internal sealed class DeleteSwimlaneHandler(
 
             try
             {
-                swimlane.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
+                swimlane.SoftDelete(user, dateTimeOffset, userContext.ConnectionId);
 
                 await dbContext.Lists
                     .Where(l => l.SwimlaneId == swimlane.Id && !l.IsDeleted)
