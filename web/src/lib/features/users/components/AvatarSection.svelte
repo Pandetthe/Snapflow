@@ -78,7 +78,7 @@
   }
 </script>
 
-<section class="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
+<section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50">
   <h2 class="mb-5 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
     <Camera size={18} class="text-gray-400" />
     Profile picture

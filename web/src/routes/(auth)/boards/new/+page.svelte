@@ -154,7 +154,7 @@
 </svelte:head>
 
 <FullLayout>
-  <div class="mx-auto w-full max-w-5xl space-y-8 pb-12">
+  <div class="mx-auto w-full max-w-5xl space-y-6 pb-12 sm:space-y-8">
     <header class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
         <GoBackButton
@@ -164,20 +164,20 @@
 
       <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div class="space-y-1">
-          <h1 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
+          <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
             Create your new board!
           </h1>
-          <p class="text-gray-600 dark:text-gray-400">
+          <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">
             Set up your project environment and invite your team.
           </p>
         </div>
       </div>
     </header>
 
-    <div class="grid items-start gap-8 lg:grid-cols-[1fr_minmax(20rem,25rem)]">
+    <div class="grid items-start gap-6 lg:grid-cols-[1fr_minmax(20rem,25rem)] lg:gap-8">
       <div class="space-y-6">
         <section
-          class="group rounded-3xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-brand-500/30 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-brand-500/20"
+          class="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 transition-all duration-200 hover:border-brand-500/30 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-brand-500/20"
         >
           <form onsubmit={form.handleSubmit} novalidate class="space-y-6">
             <InputTextField
@@ -204,7 +204,7 @@
               class="resize-none"
             />
 
-            <div class="flex items-center justify-between pt-2">
+            <div class="flex flex-col-reverse gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
               <p class="text-xs text-gray-600 dark:text-gray-400">
                 <span class="text-error-500">*</span> Required fields
               </p>
@@ -216,7 +216,7 @@
                 isLoading={form.isSubmitting}
                 loadingText="Creating..."
                 startIcon={Plus}
-                class="px-8"
+                class="w-full px-8 sm:w-auto"
               >
                 Create board
               </Button>
@@ -227,7 +227,7 @@
 
       <aside class="space-y-6">
         <section
-          class="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 dark:border-gray-800 dark:bg-gray-900/50"
+          class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all sm:rounded-3xl sm:p-6 duration-200 dark:border-gray-800 dark:bg-gray-900/50"
         >
           <div class="mb-6 flex items-start justify-between">
             <div>

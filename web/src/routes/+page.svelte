@@ -12,25 +12,25 @@
 </svelte:head>
 
 <FullLayout>
-  <div class="flex flex-1 items-center justify-center px-4 py-12">
+  <div class="flex flex-1 items-center justify-center py-6 sm:px-4 sm:py-12">
     <div class="w-full max-w-4xl text-center">
-      <div class="mb-16 duration-700 animate-in fade-in-0 slide-in-from-bottom-4">
+      <div class="mb-10 duration-700 animate-in fade-in-0 slide-in-from-bottom-4 sm:mb-16">
       <h1
-        class="mb-6 bg-linear-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-7xl leading-tight font-bold text-transparent"
+        class="mb-4 bg-linear-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-5xl leading-tight font-bold text-transparent sm:mb-6 sm:text-7xl"
       >
         Snapflow
       </h1>
       <p
-        class="mx-auto max-w-2xl text-2xl leading-relaxed font-light text-gray-600 dark:text-gray-300"
+        class="mx-auto max-w-2xl text-lg leading-relaxed font-light text-gray-600 sm:text-2xl dark:text-gray-300"
       >
         Simple, open-source kanban application that helps teams collaborate effectively
       </p>
     </div>
 
     <div
-      class="mb-12 transform rounded-2xl border border-yellow-200 bg-linear-to-r from-yellow-50 to-orange-50 p-8 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-yellow-800 dark:from-yellow-900/20 dark:to-orange-900/20"
+      class="mb-10 transform rounded-2xl border border-yellow-200 bg-linear-to-r from-yellow-50 to-orange-50 p-5 shadow-lg sm:mb-12 sm:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-yellow-800 dark:from-yellow-900/20 dark:to-orange-900/20"
     >
-      <div class="mb-6 flex items-center justify-center">
+      <div class="mb-4 flex items-center justify-start sm:mb-6 sm:justify-center">
         <div class="relative">
           <div
             class="flex h-12 w-12 animate-pulse items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30"
@@ -48,12 +48,12 @@
             </svg>
           </div>
         </div>
-        <h2 class="ml-4 text-2xl font-bold text-yellow-800 dark:text-yellow-200">
+        <h2 class="ml-3 text-left text-xl font-bold text-yellow-800 sm:ml-4 sm:text-2xl dark:text-yellow-200">
           Under Reconstruction
         </h2>
       </div>
       <p
-        class="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-yellow-700 dark:text-yellow-300"
+        class="mx-auto mb-6 max-w-2xl text-left text-base leading-relaxed text-yellow-700 sm:mb-8 sm:text-center sm:text-lg dark:text-yellow-300"
       >
         Our application is currently being rebuilt with exciting new features and improvements.
         We're working hard to bring you a better experience with enhanced functionality and
@@ -61,7 +61,7 @@
       </p>
 
       <!-- Action Buttons with Enhanced Styling -->
-      <div class="flex flex-col justify-center gap-6 sm:flex-row">
+      <div class="flex flex-col justify-center gap-3 sm:flex-row sm:gap-6">
         {#if data?.isAuthenticated}
           <Button.Root
             href="/boards"
@@ -106,7 +106,7 @@
     <!-- Additional Info with Cards -->
     <div class="mx-auto grid max-w-3xl gap-6 md:grid-cols-2">
       <div
-        class="rounded-xl bg-white p-6 shadow-md transition-all duration-300 hover:shadow-lg dark:bg-gray-800"
+        class="rounded-xl bg-white p-5 text-left shadow-md sm:p-6 transition-all duration-300 hover:shadow-lg dark:bg-gray-800"
       >
         <div class="mb-4 flex items-center">
           <div
@@ -130,7 +130,7 @@
       </div>
 
       <div
-        class="rounded-xl bg-white p-6 shadow-md transition-all duration-300 hover:shadow-lg dark:bg-gray-800"
+        class="rounded-xl bg-white p-5 text-left shadow-md sm:p-6 transition-all duration-300 hover:shadow-lg dark:bg-gray-800"
       >
         <div class="mb-4 flex items-center">
           <div

@@ -5,21 +5,14 @@
 	import { floatingMotionClass } from '$lib/ui/utils';
 	import type { User } from '$lib/features/users/api/users';
 	import { avatarBust } from '$lib/features/users/avatarBust.svelte';
-	import { onMount } from 'svelte';
 
+	// Desktop only; the mobile menu lives in AppHeader.
 	interface Props {
 		user: User | null;
-		mobile?: boolean;
 		handleSignOut?: () => void;
-		onAction?: () => void;
 	}
 
-	let { user, mobile = false, handleSignOut, onAction }: Props = $props();
-
-	let isMounted = $state(false);
-	onMount(() => {
-		isMounted = true;
-	});
+	let { user, handleSignOut }: Props = $props();
 
 	const menuItems = [
 		{ href: '/profile', icon: UserIcon, text: 'Edit profile' }
@@ -27,60 +20,7 @@
 </script>
 
 	<div class="relative">
-	{#if mobile}
-		{#if user}
-			<div
-				class="mb-4 flex items-center gap-3 rounded-lg border border-gray-300 bg-gray-50/80 px-3 py-2.5 shadow-sm dark:border-gray-600 dark:bg-gray-800/50"
-			>
-							<UserAvatar
-						src={user.avatarUrl ? `${user.avatarUrl}?v=${avatarBust.count}` : null}
-						name={user.userName || user.email || 'User'}
-						size={40}
-						class="ring-2 ring-white shadow-sm dark:ring-gray-700"
-					/>
-
-				<div class="min-w-0">
-					<p class="truncate text-sm font-bold text-gray-900 dark:text-white">{user.userName}</p>
-					<p class="truncate text-xs font-medium text-gray-500 dark:text-gray-400">{user.email}</p>
-				</div>
-			</div>
-
-			<ul class="flex flex-col gap-2 border-b border-gray-200 pb-2 dark:border-gray-800">
-				{#each menuItems as item}
-					<li>
-						<Button
-							variant="outline"
-							href={item.href}
-							onclick={() => onAction?.()}
-							class="w-full justify-start font-medium"
-							startIcon={item.icon}
-						>
-							{item.text}
-						</Button>
-					</li>
-				{/each}
-			</ul>
-		{:else}
-			<div class="flex flex-col gap-2">
-				<Button
-					variant="outline"
-					href="/sign-in"
-					class="w-full justify-center"
-					onclick={() => onAction?.()}
-				>
-					Sign in
-				</Button>
-				<Button
-					variant="outline"
-					href="/sign-up"
-					class="w-full justify-center"
-					onclick={() => onAction?.()}
-				>
-					Sign up
-				</Button>
-			</div>
-		{/if}
-	{:else if user}
+	{#if user}
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
 				{#snippet child({ props: triggerProps })}
@@ -123,7 +63,7 @@
 				</div>
 
 				<div class="space-y-0.5">
-					{#each menuItems as item}
+					{#each menuItems as item (item.href)}
 						<DropdownMenu.Item>
 							{#snippet child({ props: itemProps })}
 								<Button

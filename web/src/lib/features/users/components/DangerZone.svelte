@@ -28,7 +28,7 @@
   }
 </script>
 
-<section class="rounded-3xl border border-error-200 bg-white p-6 shadow-sm dark:border-error-900/60 dark:bg-gray-900/50">
+<section class="rounded-2xl border border-error-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-error-900/60 dark:bg-gray-900/50">
   <h2 class="mb-5 flex items-center gap-2 text-lg font-bold text-error-600 dark:text-error-400">
     <TriangleAlert size={18} class="text-error-500" />
     Danger zone

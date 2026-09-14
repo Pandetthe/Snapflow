@@ -2,15 +2,15 @@
   import { DropdownMenu } from 'bits-ui';
   import { Button } from '$lib/ui/components';
   import { theme } from '$lib/ui/stores/theme';
-  import { Sun, Moon, Monitor, ChevronDown, Check } from 'lucide-svelte';
+  import { Sun, Moon, Monitor, Check } from 'lucide-svelte';
   import { cn, floatingMotionClass } from '$lib/ui/utils';
 
+  // Header icon button; the mobile menu picks the theme with a SegmentedControl (AppHeader).
   interface Props {
-    showLabel?: boolean;
     class?: string;
   }
 
-  let { showLabel = false, class: className = '' }: Props = $props();
+  let { class: className = '' }: Props = $props();
 
   function setTheme(newTheme: 'light' | 'dark' | 'system') {
     theme.set(newTheme);
@@ -24,25 +24,14 @@
         {...triggerProps}
         variant="outline"
         class={cn(
-          "flex items-center transition-all active:scale-95",
-          showLabel ? "w-full justify-between" : "h-11 w-11 justify-center rounded-full p-0 text-gray-700 dark:text-gray-400",
+          "flex h-11 w-11 items-center justify-center rounded-full p-0 text-gray-700 transition-all active:scale-95 dark:text-gray-400",
           className
         )}
       >
-        {#if showLabel}
-          <div class="flex items-center gap-2">
-            <Sun size={18} class="text-gray-500 dark:text-gray-400 hidden theme-icon-light" />
-            <Moon size={18} class="text-gray-500 dark:text-gray-400 hidden theme-icon-dark" />
-            <Monitor size={18} class="text-gray-500 dark:text-gray-400 hidden theme-icon-system" />
-            <span>Theme</span>
-          </div>
-          <ChevronDown size={18} class="text-gray-500 dark:text-gray-400" />
-        {:else}
-          <Sun size={20} class="hidden theme-icon-light" />
-          <Moon size={20} class="hidden theme-icon-dark" />
-          <Monitor size={20} class="hidden theme-icon-system" />
-          <span class="sr-only">Toggle theme</span>
-        {/if}
+        <Sun size={20} class="hidden theme-icon-light" />
+        <Moon size={20} class="hidden theme-icon-dark" />
+        <Monitor size={20} class="hidden theme-icon-system" />
+        <span class="sr-only">Toggle theme</span>
       </Button>
     {/snippet}
   </DropdownMenu.Trigger>
@@ -51,7 +40,7 @@
     class={cn(
       "z-50 mt-1 overflow-hidden rounded-lg border border-gray-300 bg-white p-1 shadow-theme-lg dark:border-gray-700 dark:bg-gray-900",
       floatingMotionClass,
-      showLabel ? "w-(--bits-dropdown-menu-anchor-width) min-w-(--bits-dropdown-menu-anchor-width)" : "w-40"
+      "w-40"
     )}
     align="end"
     sideOffset={4}

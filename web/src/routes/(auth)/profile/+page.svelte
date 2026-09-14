@@ -28,27 +28,27 @@
 </svelte:head>
 
 <FullLayout>
-  <div class="mx-auto w-full max-w-5xl space-y-8 pb-12">
+  <div class="mx-auto w-full max-w-5xl space-y-6 pb-12 sm:space-y-8">
     <header class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
         <GoBackButton href={backHref} />
       </div>
       <div class="space-y-1">
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
           Profile
         </h1>
-        <p class="text-gray-600 dark:text-gray-400">Manage your account settings.</p>
+        <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">Manage your account settings.</p>
       </div>
     </header>
 
-    <div class="grid items-start gap-8 lg:grid-cols-[minmax(0,22rem)_1fr]">
+    <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,22rem)_1fr] lg:gap-8">
       <aside class="min-w-0 space-y-6">
         <AvatarSection user={data.user} {usersService} />
       </aside>
 
       <div class="min-w-0 space-y-6">
         <!-- Details section -->
-        <section class="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50">
           <h2 class="mb-5 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
             <UserIcon size={18} class="text-gray-400" />
             Details
@@ -107,7 +107,7 @@
         </section>
 
         <!-- Security section -->
-        <section class="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50">
           <h2 class="mb-5 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
             <ShieldCheck size={18} class="text-gray-400" />
             Security
