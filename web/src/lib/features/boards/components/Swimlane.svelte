@@ -47,6 +47,12 @@
     swimlane.lists.some((l) => (l as unknown as Record<string, unknown>)[SHADOW_ITEM_MARKER_PROPERTY_NAME])
   );
 
+  // An empty zone spans the whole swimlane. It keeps that width while a list hovers it: shrinking to the
+  // drop slot would move the zone out from under the cursor, dropping the slot and growing back in a loop.
+  const fillsSwimlane = $derived(
+    swimlane.lists.every((l) => (l as unknown as Record<string, unknown>)[SHADOW_ITEM_MARKER_PROPERTY_NAME])
+  );
+
   function handleListConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
     swimlane.lists = e.detail.items;
     const { info } = e.detail;
@@ -176,7 +182,8 @@
           data-board-zone="lists"
           data-empty={swimlane.lists.length === 0 || undefined}
           data-receiving={receivingList || undefined}
-          class="flex min-h-9 items-stretch gap-3 self-stretch {swimlane.lists.length === 0 ? 'w-full -mr-[100%]' : 'pr-28 -mr-28'}"
+          data-fill={fillsSwimlane || undefined}
+          class="flex min-h-9 items-stretch gap-3 self-stretch {fillsSwimlane ? 'w-full -mr-[100%]' : 'pr-28 -mr-28'}"
         >
           {#each swimlane.lists as list, index (list.id)}
             <div

@@ -167,7 +167,8 @@ section[data-board-zone='swimlanes'].board-drop-target[data-empty]::before {
 }
 
 /* The "Add …" button next to an empty zone would cover its placeholder while dragging */
-section[data-board-zone].board-drop-target[data-empty] + * {
+section[data-board-zone].board-drop-target[data-empty] + *,
+section[data-board-zone].board-drop-target[data-fill] + * {
   opacity: 0;
   pointer-events: none;
 }
