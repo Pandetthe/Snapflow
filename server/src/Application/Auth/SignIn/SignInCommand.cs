@@ -5,7 +5,6 @@ namespace Snapflow.Application.Auth.SignIn;
 public sealed record SignInCommand(
     string Email,
     string Password,
-    string? TwoFactorCode,
-    string? TwoFactorRecoveryCode,
+    string? RememberDeviceToken,
     bool? UseCookies,
     bool? UseSessionCookies) : ICommand;

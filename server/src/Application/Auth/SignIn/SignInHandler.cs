@@ -17,18 +17,6 @@ internal sealed class SignInHandler(
             return Result.Failure(UserErrors.SignInFailed);
         if (user.IsDeleted)
             return Result.Failure(UserErrors.AccountDeleted);
-        Result result = await signInManager.PasswordSignInAsync(user, command.Password, command.UseCookies, command.UseSessionCookies, true);
-
-        if (!result.IsSuccess && result.Error.Code != UserErrors.SignInTwoFactorRequired.Code)
-            return result;
-        if (!string.IsNullOrEmpty(command.TwoFactorCode))
-        {
-            result = await signInManager.TwoFactorAuthenticatorSignInAsync(command.TwoFactorCode, command.UseCookies, command.UseSessionCookies);
-        }
-        else if (!string.IsNullOrEmpty(command.TwoFactorRecoveryCode))
-        {
-            result = await signInManager.TwoFactorRecoveryCodeSignInAsync(command.TwoFactorRecoveryCode);
-        }
-        return result;
+        return await signInManager.PasswordSignInAsync(user, command.Password, command.UseCookies, command.UseSessionCookies, true, command.RememberDeviceToken);
     }
 }

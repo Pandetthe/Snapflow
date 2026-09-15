@@ -10,6 +10,8 @@ namespace Snapflow.Infrastructure.Auth.Managers;
 
 internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserManager
 {
+    private const string AuthenticatorIssuer = "Snapflow";
+
     private static AppUser EnsureIsAppUser(IUser user)
     {
         return user as AppUser ?? throw new ArgumentException("User must be of type AppUser.", nameof(user));
@@ -222,6 +224,81 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
         await userManager.DeleteAsync(user);
         return IdentityFailure(linked);
     }
+
+    public async Task<TwoFactorStatus> GetTwoFactorStatusAsync(IUser user)
+    {
+        AppUser appUser = EnsureIsAppUser(user);
+        return new TwoFactorStatus(
+            await userManager.GetTwoFactorEnabledAsync(appUser),
+            await userManager.CountRecoveryCodesAsync(appUser));
+    }
+
+    public async Task<AuthenticatorSetup> GetAuthenticatorSetupAsync(IUser user)
+    {
+        AppUser appUser = EnsureIsAppUser(user);
+
+        string? key = await userManager.GetAuthenticatorKeyAsync(appUser);
+        if (string.IsNullOrEmpty(key))
+        {
+            await userManager.ResetAuthenticatorKeyAsync(appUser);
+            key = await userManager.GetAuthenticatorKeyAsync(appUser)
+                  ?? throw new InvalidOperationException("The authenticator key could not be created.");
+        }
+
+        string issuer = Uri.EscapeDataString(AuthenticatorIssuer);
+        string account = Uri.EscapeDataString(appUser.Email ?? appUser.UserName ?? appUser.Id.ToString(CultureInfo.InvariantCulture));
+        string uri = $"otpauth://totp/{issuer}:{account}?secret={key}&issuer={issuer}&digits=6";
+
+        return new AuthenticatorSetup(key, uri);
+    }
+
+    public Task<bool> VerifyAuthenticatorCodeAsync(IUser user, string code) =>
+        userManager.VerifyTwoFactorTokenAsync(
+            EnsureIsAppUser(user),
+            userManager.Options.Tokens.AuthenticatorTokenProvider,
+            TwoFactorCode.NormalizeAuthenticatorCode(code));
+
+    public async Task<bool> RedeemRecoveryCodeAsync(IUser user, string recoveryCode)
+    {
+        IdentityResult result = await userManager.RedeemTwoFactorRecoveryCodeAsync(
+            EnsureIsAppUser(user),
+            TwoFactorCode.NormalizeRecoveryCode(recoveryCode));
+        return result.Succeeded;
+    }
+
+    public async Task<Result<IReadOnlyList<string>>> EnableTwoFactorAsync(IUser user)
+    {
+        AppUser appUser = EnsureIsAppUser(user);
+
+        IdentityResult result = await userManager.SetTwoFactorEnabledAsync(appUser, true);
+        if (!result.Succeeded)
+            return Result.ValidationFailure<IReadOnlyList<string>>(ToValidationError(result));
+
+        return Result.Success<IReadOnlyList<string>>(await GenerateRecoveryCodesAsync(appUser));
+    }
+
+    public async Task<Result> DisableTwoFactorAsync(IUser user)
+    {
+        AppUser appUser = EnsureIsAppUser(user);
+
+        IdentityResult disabled = await userManager.SetTwoFactorEnabledAsync(appUser, false);
+        if (!disabled.Succeeded)
+            return IdentityFailure(disabled);
+
+        IdentityResult reset = await userManager.ResetAuthenticatorKeyAsync(appUser);
+        return reset.Succeeded ? Result.Success() : IdentityFailure(reset);
+    }
+
+    public async Task<IReadOnlyList<string>> GenerateRecoveryCodesAsync(IUser user)
+    {
+        IEnumerable<string>? codes = await userManager.GenerateNewTwoFactorRecoveryCodesAsync(
+            EnsureIsAppUser(user),
+            Domain.Users.UserOptions.TwoFactorRecoveryCodeCount);
+        return [.. codes ?? []];
+    }
+
+    private static ValidationError ToValidationError(IdentityResult result) =>
+        new(result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray());
 
     private static UserLoginInfo ToLoginInfo(ExternalIdentity identity) =>
         new(identity.Provider, identity.ProviderKey, identity.ProviderDisplayName);

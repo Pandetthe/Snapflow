@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi;
 using Snapflow.Common;
 using Snapflow.Domain.Users;
+using Snapflow.Infrastructure.Auth.Tokens;
 using Snapflow.Infrastructure.Common;
 using Snapflow.Infrastructure.Persistence;
 using Snapflow.Presentation.Caching;
@@ -148,7 +149,8 @@ public static class DependencyInjection
                     policy.WithOrigins(servicesOptions.AllowedOrigins)
                           .AllowAnyMethod()
                           .AllowAnyHeader()
-                          .AllowCredentials();
+                          .AllowCredentials()
+                          .WithExposedHeaders(AuthHeaderNames.RememberDeviceToken);
                 }
             });
         });

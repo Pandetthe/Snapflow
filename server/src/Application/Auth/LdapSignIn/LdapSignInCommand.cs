@@ -5,5 +5,6 @@ namespace Snapflow.Application.Auth.LdapSignIn;
 public sealed record LdapSignInCommand(
     string UserName,
     string Password,
+    string? RememberDeviceToken,
     bool? UseCookies,
     bool? UseSessionCookies) : ICommand;

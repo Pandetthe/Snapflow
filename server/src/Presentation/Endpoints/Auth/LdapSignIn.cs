@@ -7,7 +7,7 @@ namespace Snapflow.Presentation.Endpoints.Auth;
 
 internal sealed class LdapSignIn : IEndpoint
 {
-    public sealed record LdapSignInRequest(string UserName, string Password);
+    public sealed record LdapSignInRequest(string UserName, string Password, string? RememberDeviceToken);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -18,7 +18,7 @@ internal sealed class LdapSignIn : IEndpoint
             ICommandHandler<LdapSignInCommand> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new LdapSignInCommand(request.UserName, request.Password, useCookies, useSessionCookies);
+            var command = new LdapSignInCommand(request.UserName, request.Password, request.RememberDeviceToken, useCookies, useSessionCookies);
 
             Result result = await handler.Handle(command, cancellationToken);
 

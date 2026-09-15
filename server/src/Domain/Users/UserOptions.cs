@@ -11,4 +11,7 @@ public sealed class UserOptions
     public const bool RequireNonAlphanumericInPassword = true;
     public const int MaxUserNameLength = 20;
     public const int MinUserNameLength = 3;
+    public const int TwoFactorRecoveryCodeCount = 10;
+    public const int MaxTwoFactorCodeLength = 32;
+    public const int MaxTwoFactorTokenLength = 4096;
 }

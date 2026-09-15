@@ -1,4 +1,5 @@
 ﻿using Snapflow.Common;
+using Snapflow.Domain.Users;
 
 namespace Snapflow.Presentation.Common;
 
@@ -49,6 +50,14 @@ public static class ResultHelper
 
     public static Dictionary<string, object?>? GetErrors(Result result)
     {
+        if (result.Error is TwoFactorRequiredError twoFactor)
+        {
+            return new Dictionary<string, object?>
+            {
+                { "twoFactorToken", twoFactor.TwoFactorToken }
+            };
+        }
+
         if (result.Error is not ValidationError validationError)
             return null;
 

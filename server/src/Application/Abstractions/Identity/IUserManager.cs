@@ -46,4 +46,18 @@ public interface IUserManager
     Task<Result> AddLoginAsync(IUser user, ExternalIdentity identity);
 
     Task<Result<IUser>> CreateExternalAsync(ExternalIdentity identity, string userName);
+
+    Task<TwoFactorStatus> GetTwoFactorStatusAsync(IUser user);
+
+    Task<AuthenticatorSetup> GetAuthenticatorSetupAsync(IUser user);
+
+    Task<bool> VerifyAuthenticatorCodeAsync(IUser user, string code);
+
+    Task<bool> RedeemRecoveryCodeAsync(IUser user, string recoveryCode);
+
+    Task<Result<IReadOnlyList<string>>> EnableTwoFactorAsync(IUser user);
+
+    Task<Result> DisableTwoFactorAsync(IUser user);
+
+    Task<IReadOnlyList<string>> GenerateRecoveryCodesAsync(IUser user);
 }

@@ -20,6 +20,6 @@ internal sealed class LdapSignInHandler(
         if (identity.IsFailure)
             return identity;
 
-        return await accountSignIn.SignInAsync(identity.Value, command.UseCookies, command.UseSessionCookies);
+        return await accountSignIn.SignInAsync(identity.Value, command.UseCookies, command.UseSessionCookies, command.RememberDeviceToken);
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Snapflow.Infrastructure.Auth.Cookies;
 using Sustainsys.Saml2;
 using Sustainsys.Saml2.AspNetCore2;
 using Sustainsys.Saml2.Metadata;
@@ -25,6 +26,7 @@ internal static class ExternalAuthenticationBuilderExtensions
             builder.AddGoogle(google =>
             {
                 google.SignInScheme = IdentityConstants.ExternalScheme;
+                google.CorrelationCookie.Name = AuthCookieNames.CorrelationPrefix;
                 google.ClientId = options.Google.ClientId;
                 google.ClientSecret = options.Google.ClientSecret;
                 google.ClaimActions.MapJsonKey(ExternalProviderRegistry.EmailVerifiedClaimType, "email_verified");
@@ -37,6 +39,7 @@ internal static class ExternalAuthenticationBuilderExtensions
             {
                 string tenant = Uri.EscapeDataString(options.Microsoft.TenantId);
                 microsoft.SignInScheme = IdentityConstants.ExternalScheme;
+                microsoft.CorrelationCookie.Name = AuthCookieNames.CorrelationPrefix;
                 microsoft.ClientId = options.Microsoft.ClientId;
                 microsoft.ClientSecret = options.Microsoft.ClientSecret;
                 microsoft.AuthorizationEndpoint = $"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize";
@@ -49,6 +52,7 @@ internal static class ExternalAuthenticationBuilderExtensions
             builder.AddFacebook(facebook =>
             {
                 facebook.SignInScheme = IdentityConstants.ExternalScheme;
+                facebook.CorrelationCookie.Name = AuthCookieNames.CorrelationPrefix;
                 facebook.AppId = options.Facebook.ClientId;
                 facebook.AppSecret = options.Facebook.ClientSecret;
             });
@@ -59,6 +63,7 @@ internal static class ExternalAuthenticationBuilderExtensions
             builder.AddOAuth(ExternalProviderRegistry.GitHubScheme, options.GitHub.DisplayName, github =>
             {
                 github.SignInScheme = IdentityConstants.ExternalScheme;
+                github.CorrelationCookie.Name = AuthCookieNames.CorrelationPrefix;
                 github.ClientId = options.GitHub.ClientId;
                 github.ClientSecret = options.GitHub.ClientSecret;
                 github.CallbackPath = "/signin-github";
@@ -81,6 +86,8 @@ internal static class ExternalAuthenticationBuilderExtensions
             builder.AddOpenIdConnect(provider.Scheme, provider.DisplayName, openId =>
             {
                 openId.SignInScheme = IdentityConstants.ExternalScheme;
+                openId.CorrelationCookie.Name = AuthCookieNames.CorrelationPrefix;
+                openId.NonceCookie.Name = AuthCookieNames.NoncePrefix;
                 openId.Authority = provider.Authority;
                 openId.ClientId = provider.ClientId;
                 openId.ClientSecret = string.IsNullOrEmpty(provider.ClientSecret) ? null : provider.ClientSecret;

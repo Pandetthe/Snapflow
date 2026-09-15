@@ -1,4 +1,5 @@
 ﻿using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
@@ -19,6 +20,7 @@ using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Application.Abstractions.Services;
 using Snapflow.Infrastructure.Auth.Accessors;
+using Snapflow.Infrastructure.Auth.Cookies;
 using Snapflow.Infrastructure.Auth.Entities;
 using Snapflow.Infrastructure.Auth.External;
 using Snapflow.Infrastructure.Auth.Managers;
@@ -47,6 +49,18 @@ public static class DependencyInjection
         });
         return logging;
     }
+    private const string CookieOrBearerScheme = "Snapflow.CookieOrBearer";
+    private const string AccessTokenQueryKey = "access_token";
+
+    private static bool HasBearerToken(HttpRequest request) =>
+        request.Headers.Authorization.ToString().StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+        || (IsHubRequest(request) && !string.IsNullOrEmpty(request.Query[AccessTokenQueryKey].ToString()));
+
+    private static bool IsHubRequest(HttpRequest request) =>
+        request.Path.Value is { } path
+        && path.StartsWith("/boards/", StringComparison.OrdinalIgnoreCase)
+        && (path.EndsWith("/hub", StringComparison.OrdinalIgnoreCase) || path.Contains("/hub/", StringComparison.OrdinalIgnoreCase));
+
     extension(IServiceCollection services)
     {
         public IServiceCollection AddInfrastructure(IConfiguration configuration, IHostEnvironment environment)
@@ -216,7 +230,7 @@ public static class DependencyInjection
                 var cookieDomain = identityOptions.CookieDomain;
 
 
-                options.Cookie.Name = "Snapflow.Auth.Cookie";
+                options.Cookie.Name = AuthCookieNames.Session;
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SecurePolicy = environment.IsProduction()
                     ? CookieSecurePolicy.Always
@@ -242,6 +256,31 @@ public static class DependencyInjection
                 };
             });
 
+            foreach ((string scheme, string cookieName) in new[]
+            {
+                (IdentityConstants.TwoFactorUserIdScheme, AuthCookieNames.TwoFactor),
+                (IdentityConstants.TwoFactorRememberMeScheme, AuthCookieNames.RememberDevice),
+                (IdentityConstants.ExternalScheme, AuthCookieNames.External)
+            })
+            {
+                services.Configure<CookieAuthenticationOptions>(scheme, options =>
+                {
+                    options.Cookie.Name = cookieName;
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.SecurePolicy = environment.IsProduction()
+                        ? CookieSecurePolicy.Always
+                        : CookieSecurePolicy.SameAsRequest;
+                    options.Cookie.SameSite = environment.IsProduction()
+                        ? SameSiteMode.None
+                        : SameSiteMode.Lax;
+
+                    if (!string.IsNullOrEmpty(identityOptions.CookieDomain))
+                    {
+                        options.Cookie.Domain = identityOptions.CookieDomain;
+                    }
+                });
+            }
+
             services.AddOptions<AuthenticationProvidersOptions>()
                 .Bind(configuration.GetSection(AuthenticationProvidersOptions.SectionName))
                 .ValidateDataAnnotations()
@@ -250,11 +289,32 @@ public static class DependencyInjection
             AuthenticationProvidersOptions providersOptions = configuration.GetSection(AuthenticationProvidersOptions.SectionName).Get<AuthenticationProvidersOptions>()
                                                               ?? new AuthenticationProvidersOptions();
 
-            services.AddAuthentication()
+            services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = CookieOrBearerScheme;
+                    options.DefaultChallengeScheme = CookieOrBearerScheme;
+                    options.DefaultForbidScheme = CookieOrBearerScheme;
+                })
+                .AddPolicyScheme(CookieOrBearerScheme, CookieOrBearerScheme, options =>
+                {
+                    options.ForwardDefaultSelector = context => HasBearerToken(context.Request)
+                        ? IdentityConstants.BearerScheme
+                        : IdentityConstants.ApplicationScheme;
+                })
                 .AddBearerToken(IdentityConstants.BearerScheme, options =>
                 {
                     options.BearerTokenExpiration = TimeSpan.FromMinutes(identityOptions.ExpiryMinutes);
                     options.RefreshTokenExpiration = TimeSpan.FromMinutes(identityOptions.RefreshExpiryMinutes);
+                    options.Events.OnMessageReceived = context =>
+                    {
+                        string queryToken = context.Request.Query[AccessTokenQueryKey].ToString();
+                        if (string.IsNullOrEmpty(context.Token) && !string.IsNullOrEmpty(queryToken) && IsHubRequest(context.Request))
+                        {
+                            context.Token = queryToken;
+                        }
+
+                        return Task.CompletedTask;
+                    };
                 })
                 .AddExternalProviders(providersOptions);
 

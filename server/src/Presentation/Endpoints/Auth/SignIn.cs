@@ -7,7 +7,7 @@ namespace Snapflow.Presentation.Endpoints.Auth;
 
 internal sealed class SignIn : IEndpoint
 {
-    public sealed record SignInRequest(string Email, string Password, string? TwoFactorCode, string? TwoFactorRecoveryCode);
+    public sealed record SignInRequest(string Email, string Password, string? RememberDeviceToken);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -21,8 +21,7 @@ internal sealed class SignIn : IEndpoint
             var command = new SignInCommand(
                 request.Email,
                 request.Password,
-                request.TwoFactorCode,
-                request.TwoFactorRecoveryCode,
+                request.RememberDeviceToken,
                 useCookies,
                 useSessionCookies);
 

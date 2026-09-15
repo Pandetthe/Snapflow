@@ -22,7 +22,8 @@ internal sealed class ExternalSignInHandler(
             return await accountSignIn.SignInAsync(
                 ticket.Identity,
                 useCookies: ticket.IsPersistent,
-                useSessionCookies: !ticket.IsPersistent);
+                useSessionCookies: !ticket.IsPersistent,
+                rememberDeviceToken: null);
         }
         finally
         {

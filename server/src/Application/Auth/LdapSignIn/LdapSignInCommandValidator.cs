@@ -16,5 +16,9 @@ internal sealed class LdapSignInCommandValidator : AbstractValidator<LdapSignInC
         RuleFor(c => c.Password)
             .NotEmpty()
             .WithMessage("Password is required.");
+
+        RuleFor(c => c.RememberDeviceToken)
+            .MaximumLength(UserOptions.MaxTwoFactorTokenLength)
+            .WithMessage($"Remember-device token must not exceed {UserOptions.MaxTwoFactorTokenLength} characters.");
     }
 }

@@ -12,7 +12,7 @@ internal sealed class ExternalAccountSignIn(
 {
     private const int MaxUserNameAttempts = 100;
 
-    public async Task<Result> SignInAsync(ExternalIdentity identity, bool? useCookies, bool? useSessionCookies)
+    public async Task<Result> SignInAsync(ExternalIdentity identity, bool? useCookies, bool? useSessionCookies, string? rememberDeviceToken)
     {
         IUser? user = await userManager.FindByLoginAsync(identity.Provider, identity.ProviderKey);
 
@@ -35,7 +35,7 @@ internal sealed class ExternalAccountSignIn(
         if (user.IsDeleted)
             return Result.Failure(AuthenticationErrors.ExternalSignInFailed);
 
-        return await signInManager.ExternalLoginSignInAsync(identity, useCookies, useSessionCookies);
+        return await signInManager.ExternalLoginSignInAsync(identity, useCookies, useSessionCookies, rememberDeviceToken);
     }
 
     private async Task<Result<IUser>> LinkAccountAsync(IUser user, ExternalIdentity identity)

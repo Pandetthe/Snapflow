@@ -14,5 +14,9 @@ internal sealed class SignInCommandValidator : AbstractValidator<SignInCommand>
             .WithMessage("Email must be a valid email address.")
             .MaximumLength(UserOptions.MaxEmailLength)
             .WithMessage($"Email must not exceed {UserOptions.MaxEmailLength} characters.");
+
+        RuleFor(c => c.RememberDeviceToken)
+            .MaximumLength(UserOptions.MaxTwoFactorTokenLength)
+            .WithMessage($"Remember-device token must not exceed {UserOptions.MaxTwoFactorTokenLength} characters.");
     }
 }
