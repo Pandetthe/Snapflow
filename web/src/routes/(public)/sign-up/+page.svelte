@@ -6,10 +6,16 @@
   import { Mail, Lock, User } from 'lucide-svelte';
   import { createForm } from '$lib/ui/_utils/form.svelte';
   import SignUpModal from '$lib/features/auth/components/SignUpModal.svelte';
+  import ExternalProviderButtons from '$lib/features/auth/components/ExternalProviderButtons.svelte';
   import PasswordStrength from '$lib/features/auth/components/PasswordStrength.svelte';
   import { validateEmail, validateUsername, validatePassword, validatePasswordConfirm } from '$lib/features/auth/validation';
 
   const authService = new AuthService(apiClient);
+
+  let { data } = $props();
+
+  const auth = $derived(data.authProviders);
+  const offerProviders = $derived(auth.externalSignUp && auth.providers.length > 0);
 
   let showSuccessModal = $state(false);
 
@@ -67,6 +73,15 @@
     <p class="text-sm text-gray-500 dark:text-gray-400">Join Snapflow to start collaborating.</p>
   </div>
 
+  {#if offerProviders}
+    <ExternalProviderButtons
+      providers={auth.providers}
+      action="Sign up"
+      showDivider={auth.passwordSignIn}
+    />
+  {/if}
+
+  {#if auth.passwordSignIn}
   <form onsubmit={form.handleSubmit} novalidate class="space-y-5">
     <InputTextField
       id="email"
@@ -144,6 +159,11 @@
       Create account
     </AppButton>
   </form>
+  {:else if !offerProviders}
+    <p class="text-sm text-gray-600 dark:text-gray-300">
+      New accounts cannot be created here. Sign in with your organization's account instead.
+    </p>
+  {/if}
 
   {#snippet footer()}
     <p class="text-center text-sm font-normal text-gray-700 sm:text-start dark:text-gray-400">

@@ -129,39 +129,43 @@
         </section>
 
         <!-- Security section -->
-        <section
-          class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50"
-        >
-          <h2 class="mb-5 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-            <ShieldCheck size={18} class="text-gray-400" />
-            Security
-          </h2>
+        {#if data.authProviders.passwordSignIn}
+          <section
+            class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50"
+          >
+            <h2
+              class="mb-5 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white"
+            >
+              <ShieldCheck size={18} class="text-gray-400" />
+              Security
+            </h2>
 
-          <div>
-            <div class="flex items-center justify-between gap-4">
-              <div class="flex min-w-0 items-center gap-3">
-                <KeyRound size={15} class="shrink-0 text-gray-400" />
-                <div class="min-w-0">
-                  <p class="text-xs text-gray-400 dark:text-gray-500">Password</p>
-                  <p class="text-sm font-medium tracking-widest text-gray-400 dark:text-gray-500">
-                    ••••••••
-                  </p>
+            <div>
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex min-w-0 items-center gap-3">
+                  <KeyRound size={15} class="shrink-0 text-gray-400" />
+                  <div class="min-w-0">
+                    <p class="text-xs text-gray-400 dark:text-gray-500">Password</p>
+                    <p class="text-sm font-medium tracking-widest text-gray-400 dark:text-gray-500">
+                      ••••••••
+                    </p>
+                  </div>
                 </div>
+                <Button
+                  variant="outline"
+                  size="xs"
+                  onclick={() => {
+                    isEditingPassword = true;
+                  }}
+                  startIcon={Pencil}
+                >
+                  Change
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="xs"
-                onclick={() => {
-                  isEditingPassword = true;
-                }}
-                startIcon={Pencil}
-              >
-                Change
-              </Button>
+              <ChangePasswordDialog bind:open={isEditingPassword} {usersService} />
             </div>
-            <ChangePasswordDialog bind:open={isEditingPassword} {usersService} />
-          </div>
-        </section>
+          </section>
+        {/if}
 
         <DangerZone {usersService} />
       </div>

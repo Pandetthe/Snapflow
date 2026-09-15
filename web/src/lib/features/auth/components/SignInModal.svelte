@@ -5,7 +5,7 @@
   import { AuthService } from '../api/auth';
   import { apiClient } from '$lib/core/api.client';
   import { errorStore } from '$lib/ui/stores/error.svelte';
-  import { ShieldAlert, KeyRound, CircleX, MailQuestionMark, UserX } from 'lucide-svelte';
+  import { ShieldAlert, KeyRound, CircleX, MailCheck, MailQuestionMark, UserX } from 'lucide-svelte';
   import { fade, scale } from 'svelte/transition';
   import { quintOut } from 'svelte/easing';
 
@@ -78,6 +78,65 @@
       icon: UserX,
       color: 'text-rose-600 dark:text-rose-400',
       bgColor: 'bg-rose-50 dark:bg-rose-500/10'
+    },
+    'Users.External.Failed': {
+      title: 'Sign in failed',
+      message: 'Signing in with the provider did not work. Please try again.',
+      icon: CircleX,
+      color: 'text-rose-600 dark:text-rose-400',
+      bgColor: 'bg-rose-50 dark:bg-rose-500/10'
+    },
+    'Users.External.ProviderNotAvailable': {
+      title: 'Sign-in option unavailable',
+      message: 'This sign-in option is not available. Please choose another one.',
+      icon: CircleX,
+      color: 'text-rose-600 dark:text-rose-400',
+      bgColor: 'bg-rose-50 dark:bg-rose-500/10'
+    },
+    'Users.External.EmailMissing': {
+      title: 'Email not shared',
+      message:
+        'The provider did not share your email address, which is needed to sign you in. Allow access to your email and try again.',
+      icon: MailQuestionMark,
+      color: 'text-sky-600 dark:text-sky-400',
+      bgColor: 'bg-sky-100 dark:bg-sky-900/30'
+    },
+    'Users.External.EmailNotVerified': {
+      title: 'Account already exists',
+      message:
+        'An account with this email already exists, but the provider has not verified the email, so it cannot be used for that account. Sign in with your password instead.',
+      icon: ShieldAlert,
+      color: 'text-amber-600 dark:text-amber-400',
+      bgColor: 'bg-amber-100 dark:bg-amber-900/30'
+    },
+    'Users.External.AccountNotConfirmed': {
+      title: 'Confirm your email first',
+      message:
+        'An account with this email exists, but its email is not confirmed yet. Confirm it or sign in with its password before using this provider.',
+      icon: MailQuestionMark,
+      color: 'text-sky-600 dark:text-sky-400',
+      bgColor: 'bg-sky-100 dark:bg-sky-900/30'
+    },
+    'Users.External.SignUpDisabled': {
+      title: 'No account found',
+      message: 'There is no account for this sign-in, and new accounts cannot be created with it.',
+      icon: UserX,
+      color: 'text-rose-600 dark:text-rose-400',
+      bgColor: 'bg-rose-50 dark:bg-rose-500/10'
+    },
+    'Users.External.ConfirmationSent': {
+      title: 'Confirm your email',
+      message: 'Your account was created. Open the link we sent to your email address, then sign in again.',
+      icon: MailCheck,
+      color: 'text-brand-600 dark:text-brand-400',
+      bgColor: 'bg-brand-100 dark:bg-brand-900/30'
+    },
+    'Users.PasswordAuthentication.Disabled': {
+      title: 'Password sign-in is off',
+      message: "Signing in with a password is disabled. Use your organization's sign-in instead.",
+      icon: ShieldAlert,
+      color: 'text-amber-600 dark:text-amber-400',
+      bgColor: 'bg-amber-100 dark:bg-amber-900/30'
     }
   };
 

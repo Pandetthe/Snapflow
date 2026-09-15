@@ -1,5 +1,41 @@
-import type { ApiClient, ProblemDetails, Response } from '$lib/core/types/api';
+import type { ApiClient, ApiEvent, ProblemDetails, Response } from '$lib/core/types/api';
+import { env } from '$env/dynamic/public';
 import logger from '$lib/logger';
+
+export type ExternalProviderType = 'google' | 'microsoft' | 'facebook' | 'github' | 'oidc' | 'saml';
+
+export interface ExternalProvider {
+  scheme: string;
+  displayName: string;
+  type: ExternalProviderType;
+}
+
+export interface AuthProviders {
+  passwordSignIn: boolean;
+  externalSignUp: boolean;
+  ldap: { displayName: string } | null;
+  providers: ExternalProvider[];
+  autoRedirectScheme: string | null;
+}
+
+export const localOnlyProviders: AuthProviders = {
+  passwordSignIn: true,
+  externalSignUp: false,
+  ldap: null,
+  providers: [],
+  autoRedirectScheme: null
+};
+
+export interface LdapSigninRequest {
+  userName: string;
+  password: string;
+  rememberMe: boolean;
+}
+
+export function externalSignInUrl(scheme: string, rememberMe: boolean): string {
+  const base = (env.PUBLIC_API_BASE_URL || '').replace(/\/+$/, '');
+  return `${base}/auth/external/${encodeURIComponent(scheme)}?rememberMe=${rememberMe}`;
+}
 
 export interface SigninRequest {
   email: string;
@@ -48,6 +84,37 @@ export class AuthService {
     const { rememberMe, ...payload } = data;
     const response = await this.apiClient.fetch(
       `/auth/sign-in?useCookies=true&useSessionCookies=${!rememberMe}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+    if (!response.ok) {
+      return await this.#handleBadResponse(response);
+    }
+    return { ok: true };
+  }
+
+  async getProviders(event?: ApiEvent): Promise<AuthProviders> {
+    try {
+      const response = await this.apiClient.fetch('/auth/providers', { method: 'GET' }, event);
+      if (response.ok) {
+        return (await response.json()) as AuthProviders;
+      }
+      logger.error({ status: response.status }, 'Failed to fetch authentication providers');
+    } catch (err) {
+      logger.error({ err }, 'Failed to fetch authentication providers');
+    }
+    return localOnlyProviders;
+  }
+
+  async ldapSignIn(data: LdapSigninRequest): Promise<Response> {
+    const { rememberMe, ...payload } = data;
+    const response = await this.apiClient.fetch(
+      `/auth/ldap/sign-in?useCookies=true&useSessionCookies=${!rememberMe}`,
       {
         method: 'POST',
         headers: {
