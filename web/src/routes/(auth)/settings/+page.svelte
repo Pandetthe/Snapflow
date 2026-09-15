@@ -1,12 +1,26 @@
 <script lang="ts">
-  import { FullLayout, GoBackButton } from '$lib/ui/components';
-  import { SlidersHorizontal } from 'lucide-svelte';
+  import { FullLayout, GoBackButton, SegmentedControl } from '$lib/ui/components';
+  import SettingsSection from '$lib/features/users/components/SettingsSection.svelte';
+  import { dragHandles, type DragHandleVisibility } from '$lib/features/boards/stores/dragHandles';
+  import { triggerHaptic } from '$lib/ui/utils';
+  import { Grip, GripVertical, LayoutGrid, MousePointer2, EyeOff } from 'lucide-svelte';
   import { afterNavigate } from '$app/navigation';
 
   let backHref = $state('/boards');
   afterNavigate(({ from }) => {
     backHref = from?.url.pathname ?? '/boards';
   });
+
+  const descriptions: Record<DragHandleVisibility, string> = {
+    always: 'The grip is always visible on cards, lists and swimlanes.',
+    hover: 'The grip appears when you hover an item or focus its handle.',
+    hidden: 'No grip at all — drag a card, list or swimlane by the item itself.'
+  };
+
+  function select(next: DragHandleVisibility) {
+    dragHandles.set(next);
+    triggerHaptic('selection');
+  }
 </script>
 
 <svelte:head>
@@ -27,18 +41,41 @@
       </div>
     </header>
 
-    <div
-      class="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 px-4 py-12 text-center sm:py-20 dark:border-gray-800"
-    >
-      <div
-        class="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 dark:bg-gray-800/30"
+    <div class="space-y-6">
+      <SettingsSection
+        icon={LayoutGrid}
+        title="Boards"
+        description="How boards behave while you work in them."
       >
-        <SlidersHorizontal class="h-8 w-8 text-gray-400" />
-      </div>
-      <h2 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">Nothing here yet</h2>
-      <p class="max-w-sm text-sm text-gray-500 dark:text-gray-400">
-        Settings will show up here as they arrive. Your account details live in your profile.
-      </p>
+        <div class="space-y-3">
+          <div class="flex items-center gap-3">
+            <div
+              class="flex size-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-400 dark:border-gray-800 dark:text-gray-500"
+            >
+              <GripVertical size={16} />
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-medium text-gray-900 dark:text-white">Drag handles</p>
+              <p class="text-xs text-gray-400 dark:text-gray-500">
+                {descriptions[$dragHandles]}
+              </p>
+            </div>
+          </div>
+
+          <SegmentedControl
+            size="xs"
+            options={[
+              { value: 'always', label: 'Always', icon: Grip },
+              { value: 'hover', label: 'On hover', icon: MousePointer2 },
+              { value: 'hidden', label: 'Hidden', icon: EyeOff }
+            ]}
+            value={$dragHandles}
+            onValueChange={select}
+          />
+
+          <p class="text-xs text-gray-400 dark:text-gray-500">Saved in this browser only.</p>
+        </div>
+      </SettingsSection>
     </div>
   </div>
 </FullLayout>

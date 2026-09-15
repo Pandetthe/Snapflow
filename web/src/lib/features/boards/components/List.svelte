@@ -32,13 +32,14 @@
 <script lang="ts">
   import { flip } from 'svelte/animate';
   import {
-    dragHandleZone,
     dragHandle,
     SHADOW_ITEM_MARKER_PROPERTY_NAME,
     SOURCES,
     TRIGGERS
   } from 'svelte-dnd-action';
   import type { DndEvent } from 'svelte-dnd-action';
+  import { boardZone } from '$lib/features/boards/actions/boardZone';
+  import { dragHandles } from '$lib/features/boards/stores/dragHandles';
   import { getContext } from 'svelte';
   import { getBoardUI } from '$lib/features/boards/context/board.context';
   import type { BoardsHub } from '$lib/features/boards/hub/boards.hub';
@@ -172,10 +173,10 @@
   <div
     class="board-item-bar flex h-10 shrink-0 items-center gap-1.5 rounded-t-[11px] border-b border-gray-200 bg-gray-100/80 px-2 dark:border-gray-700/60 dark:bg-gray-800/90"
   >
-    {#if canManageLists}
+    {#if canManageLists && $dragHandles !== 'hidden'}
       <div
         use:dragHandle
-        class="list-drag-handle board-control touch-none focus-visible:outline-none {boardState ===
+        class="list-drag-handle board-drag-handle board-control touch-none focus-visible:outline-none {boardState ===
         'connected'
           ? 'cursor-grab'
           : 'cursor-not-allowed opacity-40'}"
@@ -217,7 +218,8 @@
       <div class="flex h-full min-h-0 flex-col p-2">
         <!-- The drop area reaches under "Add card" via padding cancelled by a negative margin -->
         <section
-          use:dragHandleZone={{
+          use:boardZone={{
+            useHandle: $dragHandles !== 'hidden',
             items: list.cards,
             flipDurationMs: LAYOUT_FLIP_MS,
             type: 'cards',

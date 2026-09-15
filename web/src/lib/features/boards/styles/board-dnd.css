@@ -96,6 +96,24 @@ html:has([data-board-page]) {
   color: var(--color-gray-200);
 }
 
+/*
+  Handle visibility (Settings). 'always' is the default above. In 'hover' the grip only takes up its
+  space until its own item is hovered or the handle itself is focused, so keyboard reordering stays
+  reachable. 'hidden' renders no grip at all and the whole item is draggable (see boardZone).
+*/
+[data-drag-handles='hover'] .board-drag-handle {
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+[data-drag-handles='hover']
+  [data-board-item]:is(:hover, :focus-within):not(:has([data-board-item]:is(:hover, :focus-within)))
+  > .board-item-bar
+  .board-drag-handle,
+[data-drag-handles='hover'] .board-drag-handle:focus-visible {
+  opacity: 1;
+}
+
 .board-count {
   display: inline-flex;
   flex-shrink: 0;

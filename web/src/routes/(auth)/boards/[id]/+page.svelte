@@ -1,7 +1,9 @@
 <script lang="ts">
   import { flip } from 'svelte/animate';
   import { fade } from 'svelte/transition';
-  import { dragHandleZone, type DndEvent, SOURCES, TRIGGERS } from 'svelte-dnd-action';
+  import { type DndEvent, SOURCES, TRIGGERS } from 'svelte-dnd-action';
+  import { boardZone } from '$lib/features/boards/actions/boardZone';
+  import { dragHandles } from '$lib/features/boards/stores/dragHandles';
   import Swimlane from '$lib/features/boards/components/Swimlane.svelte';
   import BoardSkeleton, {
     type SkeletonBand
@@ -301,7 +303,8 @@
           <div class="relative flex w-full flex-1 flex-col">
             <!-- The drop area reaches under "Add swimlane" via padding cancelled by a negative margin -->
             <section
-              use:dragHandleZone={{
+              use:boardZone={{
+                useHandle: $dragHandles !== 'hidden',
                 items: bs.board.swimlanes,
                 flipDurationMs: LAYOUT_FLIP_MS,
                 type: 'swimlanes',

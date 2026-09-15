@@ -2,12 +2,13 @@
   import { flip } from 'svelte/animate';
   import {
     dragHandle,
-    dragHandleZone,
     SHADOW_ITEM_MARKER_PROPERTY_NAME,
     SOURCES,
     TRIGGERS
   } from 'svelte-dnd-action';
   import type { DndEvent } from 'svelte-dnd-action';
+  import { boardZone } from '$lib/features/boards/actions/boardZone';
+  import { dragHandles } from '$lib/features/boards/stores/dragHandles';
   import List from './List.svelte';
   import { getContext } from 'svelte';
   import { getBoardUI } from '$lib/features/boards/context/board.context';
@@ -148,10 +149,11 @@
   <div
     class="swimlane-header board-item-bar flex h-11 shrink-0 items-center gap-1.5 bg-gray-50 px-3 dark:bg-gray-800/70"
   >
-    {#if canManageSwimlanes}
+    {#if canManageSwimlanes && $dragHandles !== 'hidden'}
       <div
         use:dragHandle
-        class="board-control touch-none focus-visible:outline-none {boardState === 'connected'
+        class="board-drag-handle board-control touch-none focus-visible:outline-none {boardState ===
+        'connected'
           ? 'cursor-grab'
           : 'cursor-not-allowed opacity-40'}"
         aria-label="Drag swimlane"
@@ -195,7 +197,8 @@
           right after the last list (or into an empty swimlane) is easy to hit without changing the layout.
         -->
         <section
-          use:dragHandleZone={{
+          use:boardZone={{
+            useHandle: $dragHandles !== 'hidden',
             items: swimlane.lists,
             flipDurationMs: LAYOUT_FLIP_MS,
             type: 'lists',

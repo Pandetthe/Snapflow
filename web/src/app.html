@@ -19,6 +19,11 @@
           } else {
             document.documentElement.classList.remove('dark');
           }
+          var handles = localStorage.getItem('drag-handles');
+          document.documentElement.setAttribute(
+            'data-drag-handles',
+            handles === 'hover' || handles === 'hidden' ? handles : 'always'
+          );
         } catch (e) {}
       })();
     </script>
@@ -31,14 +36,17 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap"
       rel="stylesheet"
       media="print"
-      onload="this.media='all'"
+      onload="this.media = 'all'"
     />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="Snapflow" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="theme-color" content="#465fff" />
-    <meta name="description" content="Simple, open-source kanban application that helps teams collaborate effectively." />
+    <meta
+      name="description"
+      content="Simple, open-source kanban application that helps teams collaborate effectively."
+    />
     %sveltekit.head%
   </head>
   <body data-sveltekit-preload-data="hover">

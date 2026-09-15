@@ -5,6 +5,7 @@
     IsInFlight
   } from '$lib/features/boards/composables/boardState.svelte';
   import { dragHandle } from 'svelte-dnd-action';
+  import { dragHandles } from '$lib/features/boards/stores/dragHandles';
   import { getContext } from 'svelte';
   import { getBoardUI } from '$lib/features/boards/context/board.context';
   import { renderDescriptionHtml } from '$lib/features/boards/markdown/render';
@@ -37,6 +38,9 @@
   const summary = $derived(summarizeDescription(card.description));
 
   const ui = getBoardUI();
+
+  // Without a handle the whole card is the drag surface (see boardZone).
+  const surfaceDrag = $derived(canManageCards && $dragHandles === 'hidden');
 </script>
 
 <!-- --flight-landing-scale must match the card motion in animations/elementFlight.ts -->
@@ -51,12 +55,24 @@
 >
   <MovedByIndicator move={recentMove} />
 
+  <!--
+    Opens the card wherever it is clicked. A plain element rather than a button, because without a
+    handle the card itself is the drag surface and dndzone refuses to start a drag on a nested
+    element that has a `value` — which every button has. Keyboard users get the real button on the
+    title below, so this one stays out of the accessibility tree.
+  -->
+  <div
+    class="absolute inset-0 rounded-lg"
+    aria-hidden="true"
+    onclick={() => ui.openCardModal(listId, card)}
+  ></div>
+
   <div class="board-item-bar flex items-start gap-1.5">
-    {#if canManageCards}
-      <!-- relative z-10 keeps the handle above the title's click area, which covers the card -->
+    {#if canManageCards && !surfaceDrag}
+      <!-- relative z-10 keeps the handle above the click area, which covers the card -->
       <div
         use:dragHandle
-        class="card-drag-handle board-control relative z-10 touch-none focus-visible:outline-none {boardState ===
+        class="card-drag-handle board-drag-handle board-control relative z-10 touch-none focus-visible:outline-none {boardState ===
         'connected'
           ? 'cursor-grab'
           : 'cursor-not-allowed opacity-40'}"
@@ -70,11 +86,11 @@
     <h4
       class="min-w-0 flex-1 py-0.5 text-xs leading-relaxed font-medium wrap-break-word text-gray-800 dark:text-gray-100"
     >
-      <!-- Stretched over the whole card, so the card opens wherever it is clicked; the focus ring is the card's (board-dnd.css) -->
+      <!-- Carries the card's name for keyboard and screen readers; the focus ring is the card's (board-dnd.css) -->
       <button
         type="button"
         onclick={() => ui.openCardModal(listId, card)}
-        class="cursor-pointer text-left after:absolute after:inset-0 after:rounded-lg after:content-[''] focus-visible:outline-none"
+        class="cursor-pointer text-left focus-visible:outline-none"
       >
         {card.title}
       </button>
