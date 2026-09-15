@@ -279,4 +279,13 @@
   :global(.list-scroll-area [data-scroll-area-viewport] > [data-scroll-area-content]) {
     height: 100%;
   }
+
+  /* A swimlane without a fixed height grows with its lists; they overflow only while a drop resizes them */
+  :global(
+    [data-board-item='swimlane']:not([data-fixed-height])
+      .list-scroll-area
+      [data-scroll-area-scrollbar][data-orientation='vertical']
+  ) {
+    display: none;
+  }
 </style>
