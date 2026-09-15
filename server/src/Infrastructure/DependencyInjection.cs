@@ -259,6 +259,7 @@ public static class DependencyInjection
 
 
                 options.Cookie.Name = AuthCookieNames.Session;
+                options.Cookie.Path = "/";
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SecurePolicy = environment.IsProduction()
                     ? CookieSecurePolicy.Always
@@ -294,6 +295,7 @@ public static class DependencyInjection
                 services.Configure<CookieAuthenticationOptions>(scheme, options =>
                 {
                     options.Cookie.Name = cookieName;
+                    options.Cookie.Path = "/";
                     options.Cookie.HttpOnly = true;
                     options.Cookie.SecurePolicy = environment.IsProduction()
                         ? CookieSecurePolicy.Always
