@@ -30,8 +30,8 @@
       icon: 'text-amber-600 dark:text-amber-400'
     },
     danger: {
-      circle: 'bg-rose-50 dark:bg-rose-500/10',
-      icon: 'text-rose-600 dark:text-rose-400'
+      circle: 'bg-error-50 dark:bg-error-500/10',
+      icon: 'text-error-600 dark:text-error-400'
     }
   };
 

@@ -139,35 +139,42 @@
         />
       {/if}
 
-      <button
-        type="button"
-        class="rounded-sm text-sm text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-500"
-        onclick={toggleRecoveryCode}
-      >
-        {useRecoveryCode ? 'Use the authenticator app' : 'Lost your phone? Use a recovery code'}
-      </button>
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          class="rounded-sm text-sm text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-500"
+          onclick={toggleRecoveryCode}
+        >
+          {useRecoveryCode ? 'Use the authenticator app' : 'Lost your phone? Use a recovery code'}
+        </button>
+        {#if !useRecoveryCode}
+          <Button
+            type="submit"
+            variant="outline"
+            size="xs"
+            disabled={form.isSubmitting}
+            isLoading={form.isSubmitting && action === 'regenerate'}
+            loadingText="Generating"
+            startIcon={RefreshCw}
+            haptic="light"
+            onclick={() => {
+              action = 'regenerate';
+            }}
+          >
+            New recovery codes
+          </Button>
+        {/if}
+      </div>
     </div>
   {/if}
 
   {#snippet actions()}
     {#if recoveryCodes}
-      <Button onclick={close}>I have saved them</Button>
+      <Button haptic="medium" onclick={close}>I have saved them</Button>
     {:else}
-      {#if !useRecoveryCode}
-        <Button
-          type="submit"
-          variant="outline"
-          disabled={form.isSubmitting}
-          isLoading={form.isSubmitting && action === 'regenerate'}
-          loadingText="Generating"
-          startIcon={RefreshCw}
-          onclick={() => {
-            action = 'regenerate';
-          }}
-        >
-          New recovery codes
-        </Button>
-      {/if}
+      <Button variant="ghost" disabled={form.isSubmitting} haptic="light" onclick={close}>
+        Close
+      </Button>
       <Button
         type="submit"
         variant="danger"
@@ -175,6 +182,7 @@
         isLoading={form.isSubmitting && action === 'disable'}
         loadingText="Turning off"
         startIcon={ShieldOff}
+        haptic="heavy"
         onclick={() => {
           action = 'disable';
         }}

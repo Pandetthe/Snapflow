@@ -3,6 +3,8 @@
   import { apiClient } from '$lib/core/api.client';
   import { FullLayout, GoBackButton, Button } from '$lib/ui/components';
   import AvatarSection from '$lib/features/users/components/AvatarSection.svelte';
+  import SettingsSection from '$lib/features/users/components/SettingsSection.svelte';
+  import SettingRow from '$lib/features/users/components/SettingRow.svelte';
   import ChangeUsernameDialog from '$lib/features/users/components/ChangeUsernameDialog.svelte';
   import ChangeEmailDialog from '$lib/features/users/components/ChangeEmailDialog.svelte';
   import ChangePasswordDialog from '$lib/features/users/components/ChangePasswordDialog.svelte';
@@ -38,6 +40,8 @@
   let isEditingPassword = $state(false);
   let isEditingTwoFactor = $state(false);
   let isEditingPasskeys = $state(false);
+
+  const passkeyCount = $derived(data.passkeys?.length ?? 0);
 </script>
 
 <svelte:head>
@@ -47,9 +51,7 @@
 <FullLayout>
   <div class="mx-auto w-full max-w-5xl space-y-6 pb-12 sm:space-y-8">
     <header class="flex flex-col gap-4">
-      <div class="flex items-center gap-2">
-        <GoBackButton href={backHref} />
-      </div>
+      <GoBackButton href={backHref} />
       <div class="space-y-1">
         <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
           Profile
@@ -66,233 +68,193 @@
       </aside>
 
       <div class="min-w-0 space-y-6">
-        <!-- Details section -->
-        <section
-          class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50"
+        <SettingsSection
+          icon={UserIcon}
+          title="Details"
+          description="How your account identifies you."
         >
-          <h2 class="mb-5 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-            <UserIcon size={18} class="text-gray-400" />
-            Details
-          </h2>
-
-          <div>
-            <div class="flex items-center justify-between gap-4">
-              <div class="flex min-w-0 flex-1 items-center gap-3">
-                <UserIcon size={15} class="shrink-0 text-gray-400" />
-                <div class="min-w-0 flex-1">
-                  <p class="text-xs text-gray-400 dark:text-gray-500">Username</p>
-                  <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
-                    {data.user?.userName}
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                size="xs"
-                onclick={() => {
-                  isEditingUsername = true;
-                }}
-                startIcon={Pencil}
-              >
-                Change
-              </Button>
-            </div>
-            <ChangeUsernameDialog
-              bind:open={isEditingUsername}
-              currentUserName={data.user?.userName ?? ''}
-              {usersService}
-            />
-          </div>
-
-          <div class="my-5 h-px bg-gray-100 dark:bg-gray-800"></div>
-
-          <div>
-            <div class="flex items-center justify-between gap-4">
-              <div class="flex min-w-0 flex-1 items-center gap-3">
-                <Mail size={15} class="shrink-0 text-gray-400" />
-                <div class="min-w-0 flex-1">
-                  <p class="text-xs text-gray-400 dark:text-gray-500">Email</p>
-                  <div
-                    class="flex min-w-0 flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2"
+          <div class="space-y-5">
+            <div>
+              <SettingRow icon={UserIcon} label="Username" value={data.user?.userName}>
+                {#snippet action()}
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    haptic="light"
+                    onclick={() => {
+                      isEditingUsername = true;
+                    }}
+                    startIcon={Pencil}
                   >
-                    <p class="w-full truncate text-sm font-medium text-gray-900 dark:text-white">
-                      {data.user?.email}
-                    </p>
-                    <span
-                      class="shrink-0 rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-medium text-success-600 sm:text-xs dark:bg-success-500/10 dark:text-success-400"
-                    >
-                      Verified
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                size="xs"
-                onclick={() => {
-                  isEditingEmail = true;
-                }}
-                startIcon={Pencil}
-              >
-                Change
-              </Button>
+                    Change
+                  </Button>
+                {/snippet}
+              </SettingRow>
+              <ChangeUsernameDialog
+                bind:open={isEditingUsername}
+                currentUserName={data.user?.userName ?? ''}
+                {usersService}
+              />
             </div>
-            <ChangeEmailDialog
-              bind:open={isEditingEmail}
-              currentEmail={data.user?.email ?? ''}
-              {usersService}
-            />
-          </div>
-        </section>
 
-        <!-- Security section -->
+            <div class="h-px bg-gray-100 dark:bg-gray-800"></div>
+
+            <div>
+              <SettingRow
+                icon={Mail}
+                label="Email"
+                value={data.user?.email}
+                badge={data.user?.emailConfirmed ? 'Verified' : 'Not verified'}
+                badgeTone={data.user?.emailConfirmed ? 'success' : 'warning'}
+              >
+                {#snippet action()}
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    haptic="light"
+                    onclick={() => {
+                      isEditingEmail = true;
+                    }}
+                    startIcon={Pencil}
+                  >
+                    Change
+                  </Button>
+                {/snippet}
+              </SettingRow>
+              <ChangeEmailDialog
+                bind:open={isEditingEmail}
+                currentEmail={data.user?.email ?? ''}
+                {usersService}
+              />
+            </div>
+          </div>
+        </SettingsSection>
+
         {#if data.authProviders.passwordSignIn || data.twoFactor}
-          <section
-            class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50"
+          <SettingsSection
+            icon={ShieldCheck}
+            title="Security"
+            description="How you sign in and protect your account."
           >
-            <h2
-              class="mb-5 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white"
-            >
-              <ShieldCheck size={18} class="text-gray-400" />
-              Security
-            </h2>
-
-            {#if data.authProviders.passwordSignIn}
-              <div>
-                <div class="flex items-center justify-between gap-4">
-                  <div class="flex min-w-0 items-center gap-3">
-                    <KeyRound size={15} class="shrink-0 text-gray-400" />
-                    <div class="min-w-0">
-                      <p class="text-xs text-gray-400 dark:text-gray-500">Password</p>
-                      {#if data.hasPassword}
-                        <p
-                          class="text-sm font-medium tracking-widest text-gray-400 dark:text-gray-500"
-                        >
-                          ••••••••
-                        </p>
-                      {:else}
-                        <p class="text-sm font-medium text-gray-400 dark:text-gray-500">Not set</p>
-                      {/if}
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="xs"
-                    onclick={() => {
-                      isEditingPassword = true;
-                    }}
-                    startIcon={data.hasPassword ? Pencil : Plus}
+            <div class="space-y-5">
+              {#if data.authProviders.passwordSignIn}
+                <div>
+                  <SettingRow
+                    icon={KeyRound}
+                    label="Password"
+                    badge={data.hasPassword ? 'Set' : 'Not set'}
+                    badgeTone={data.hasPassword ? 'success' : 'neutral'}
                   >
-                    {data.hasPassword ? 'Change' : 'Set'}
-                  </Button>
+                    {#snippet action()}
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        haptic="light"
+                        onclick={() => {
+                          isEditingPassword = true;
+                        }}
+                        startIcon={data.hasPassword ? Pencil : Plus}
+                      >
+                        {data.hasPassword ? 'Change' : 'Set'}
+                      </Button>
+                    {/snippet}
+                  </SettingRow>
+                  {#if data.hasPassword}
+                    <ChangePasswordDialog
+                      bind:open={isEditingPassword}
+                      email={data.user?.email ?? ''}
+                      {usersService}
+                    />
+                  {:else}
+                    <SetPasswordDialog
+                      bind:open={isEditingPassword}
+                      email={data.user?.email ?? ''}
+                      {usersService}
+                      onChange={invalidateAll}
+                    />
+                  {/if}
                 </div>
-                {#if data.hasPassword}
-                  <ChangePasswordDialog
-                    bind:open={isEditingPassword}
-                    email={data.user?.email ?? ''}
+              {/if}
+
+              {#if data.passkeys}
+                <div class="h-px bg-gray-100 dark:bg-gray-800"></div>
+                <div>
+                  <SettingRow
+                    icon={Fingerprint}
+                    label="Passkeys"
+                    badge={passkeyCount === 0
+                      ? 'None'
+                      : `${passkeyCount} ${passkeyCount === 1 ? 'passkey' : 'passkeys'}`}
+                    badgeTone={passkeyCount === 0 ? 'neutral' : 'success'}
+                  >
+                    {#snippet action()}
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        haptic="light"
+                        onclick={() => {
+                          isEditingPasskeys = true;
+                        }}
+                        startIcon={Settings2}
+                      >
+                        Manage
+                      </Button>
+                    {/snippet}
+                  </SettingRow>
+                  <PasskeysDialog
+                    bind:open={isEditingPasskeys}
                     {usersService}
-                  />
-                {:else}
-                  <SetPasswordDialog
-                    bind:open={isEditingPassword}
-                    email={data.user?.email ?? ''}
-                    {usersService}
+                    passkeys={data.passkeys}
                     onChange={invalidateAll}
                   />
-                {/if}
-              </div>
-            {/if}
-
-            {#if data.passkeys}
-              <div class="my-5 h-px bg-gray-100 dark:bg-gray-800"></div>
-              <div>
-                <div class="flex items-center justify-between gap-4">
-                  <div class="flex min-w-0 items-center gap-3">
-                    <Fingerprint size={15} class="shrink-0 text-gray-400" />
-                    <div class="min-w-0">
-                      <p class="text-xs text-gray-400 dark:text-gray-500">Passkeys</p>
-                      <p class="text-sm font-medium text-gray-900 dark:text-white">
-                        {#if data.passkeys.length === 0}
-                          <span class="text-gray-400 dark:text-gray-500">None</span>
-                        {:else}
-                          {data.passkeys.length}
-                          {data.passkeys.length === 1 ? 'passkey' : 'passkeys'}
-                        {/if}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="xs"
-                    onclick={() => {
-                      isEditingPasskeys = true;
-                    }}
-                    startIcon={data.passkeys.length === 0 ? Plus : Settings2}
-                  >
-                    {data.passkeys.length === 0 ? 'Add' : 'Manage'}
-                  </Button>
                 </div>
-                <PasskeysDialog
-                  bind:open={isEditingPasskeys}
-                  {usersService}
-                  passkeys={data.passkeys}
-                  onChange={invalidateAll}
-                />
-              </div>
-            {/if}
+              {/if}
 
-            {#if data.authProviders.passwordSignIn && data.twoFactor}
-              <div class="my-5 h-px bg-gray-100 dark:bg-gray-800"></div>
-            {/if}
+              {#if data.authProviders.passwordSignIn && data.twoFactor}
+                <div class="h-px bg-gray-100 dark:bg-gray-800"></div>
+              {/if}
 
-            {#if data.twoFactor}
-              <div>
-                <div class="flex items-center justify-between gap-4">
-                  <div class="flex min-w-0 items-center gap-3">
-                    <Smartphone size={15} class="shrink-0 text-gray-400" />
-                    <div class="min-w-0">
-                      <p class="text-xs text-gray-400 dark:text-gray-500">
-                        Two-factor authentication
-                      </p>
-                      {#if data.twoFactor.isEnabled}
-                        <span
-                          class="mt-0.5 inline-flex rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-medium text-success-600 sm:text-xs dark:bg-success-500/10 dark:text-success-400"
-                        >
-                          On
-                        </span>
-                      {:else}
-                        <p class="text-sm font-medium text-gray-400 dark:text-gray-500">Off</p>
-                      {/if}
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="xs"
-                    onclick={() => {
-                      isEditingTwoFactor = true;
-                    }}
-                    startIcon={data.twoFactor.isEnabled ? Settings2 : ShieldCheck}
+              {#if data.twoFactor}
+                {@const twoFactor = data.twoFactor}
+                <div>
+                  <SettingRow
+                    icon={Smartphone}
+                    label="Two-factor authentication"
+                    badge={twoFactor.isEnabled ? 'On' : 'Off'}
+                    badgeTone={twoFactor.isEnabled ? 'success' : 'neutral'}
                   >
-                    {data.twoFactor.isEnabled ? 'Manage' : 'Set up'}
-                  </Button>
+                    {#snippet action()}
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        haptic="light"
+                        onclick={() => {
+                          isEditingTwoFactor = true;
+                        }}
+                        startIcon={twoFactor.isEnabled ? Settings2 : ShieldCheck}
+                      >
+                        {twoFactor.isEnabled ? 'Manage' : 'Set up'}
+                      </Button>
+                    {/snippet}
+                  </SettingRow>
+                  {#if twoFactor.isEnabled}
+                    <TwoFactorManageDialog
+                      bind:open={isEditingTwoFactor}
+                      {usersService}
+                      recoveryCodesLeft={twoFactor.recoveryCodesLeft}
+                      onChange={invalidateAll}
+                    />
+                  {:else}
+                    <TwoFactorSetupDialog
+                      bind:open={isEditingTwoFactor}
+                      {usersService}
+                      onChange={invalidateAll}
+                    />
+                  {/if}
                 </div>
-                {#if data.twoFactor.isEnabled}
-                  <TwoFactorManageDialog
-                    bind:open={isEditingTwoFactor}
-                    {usersService}
-                    recoveryCodesLeft={data.twoFactor.recoveryCodesLeft}
-                    onChange={invalidateAll}
-                  />
-                {:else}
-                  <TwoFactorSetupDialog
-                    bind:open={isEditingTwoFactor}
-                    {usersService}
-                    onChange={invalidateAll}
-                  />
-                {/if}
-              </div>
-            {/if}
-          </section>
+              {/if}
+            </div>
+          </SettingsSection>
         {/if}
 
         {#if data.logins && (data.authProviders.providers.length > 0 || data.logins.length > 0)}

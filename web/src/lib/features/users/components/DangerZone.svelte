@@ -1,7 +1,8 @@
 <script lang="ts">
   import { AppDialog, Button } from '$lib/ui/components';
+  import SettingsSection from './SettingsSection.svelte';
   import type { UsersService } from '../api/users';
-  import { errorStore } from '$lib/ui/stores/error.svelte';
+  import { triggerHaptic } from '$lib/ui/utils';
   import { Trash2, TriangleAlert } from 'lucide-svelte';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
@@ -14,49 +15,43 @@
 
   let isConfirmingDelete = $state(false);
   let isDeletingAccount = $state(false);
+  let notice = $state<string | null>(null);
 
   async function handleDeleteAccount() {
     if (isDeletingAccount) return;
     isDeletingAccount = true;
+    notice = null;
     const result = await usersService.deleteAccount();
     isDeletingAccount = false;
     if (result.ok) {
+      triggerHaptic('success');
       await goto(resolve('/sign-in'));
     } else {
-      errorStore.addError(result.problem?.title ?? null, result.problem?.detail ?? null);
+      triggerHaptic('error');
+      notice = result.problem?.detail ?? 'Your account could not be deleted. Try again.';
     }
   }
 </script>
 
-<section
-  class="rounded-2xl border border-error-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-error-900/60 dark:bg-gray-900/50"
+<SettingsSection
+  danger
+  icon={TriangleAlert}
+  title="Danger zone"
+  description="Permanently remove your account and all of its data."
 >
-  <h2 class="mb-5 flex items-center gap-2 text-lg font-bold text-error-600 dark:text-error-400">
-    <TriangleAlert size={18} class="text-error-500" />
-    Danger zone
-  </h2>
-  <div class="flex items-center justify-between gap-4">
-    <div class="flex min-w-0 items-center gap-3">
-      <Trash2 size={15} class="shrink-0 text-error-400 dark:text-error-500" />
-      <div class="min-w-0">
-        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Delete account</p>
-        <p class="text-xs text-gray-400 dark:text-gray-500">
-          Permanently removes all your data. This cannot be undone.
-        </p>
-      </div>
-    </div>
-    <Button
-      variant="outline"
-      size="xs"
-      startIcon={Trash2}
-      onclick={() => {
-        isConfirmingDelete = true;
-      }}
-      class="border-error-300 text-error-600 hover:bg-error-50 dark:border-error-800 dark:text-error-400 dark:hover:bg-error-900/20"
-    >
-      Delete
-    </Button>
-  </div>
+  <Button
+    variant="danger"
+    size="lg"
+    class="w-full justify-center shadow-lg shadow-error-500/10"
+    startIcon={Trash2}
+    haptic="medium"
+    onclick={() => {
+      notice = null;
+      isConfirmingDelete = true;
+    }}
+  >
+    Delete account
+  </Button>
 
   <AppDialog
     alert
@@ -76,9 +71,15 @@
       </p>
     </div>
 
+    {#if notice}
+      <p class="mt-4 text-sm text-error-600 dark:text-error-400" role="alert">{notice}</p>
+    {/if}
+
     {#snippet actions()}
       <Button
         variant="outline"
+        disabled={isDeletingAccount}
+        haptic="light"
         onclick={() => {
           isConfirmingDelete = false;
         }}
@@ -87,14 +88,16 @@
       </Button>
       <Button
         variant="danger"
+        class="shadow-md shadow-error-500/20"
         onclick={handleDeleteAccount}
         disabled={isDeletingAccount}
         isLoading={isDeletingAccount}
         loadingText="Deleting"
         startIcon={Trash2}
+        haptic="heavy"
       >
         Delete my account
       </Button>
     {/snippet}
   </AppDialog>
-</section>
+</SettingsSection>

@@ -15,7 +15,7 @@
   variant="ghost"
   size="sm"
   aria-label="Go back"
-  class="text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white text-sm"
+  class="w-fit text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
 >
   <span class="flex w-full items-center justify-center gap-2">
     <ChevronLeft class="h-6 w-6" />

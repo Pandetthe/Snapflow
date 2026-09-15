@@ -73,9 +73,9 @@
 
   {#snippet actions()}
     {#if changeSuccess}
-      <Button onclick={close}>Close</Button>
+      <Button haptic="medium" onclick={close}>Close</Button>
     {:else}
-      <Button variant="ghost" onclick={close}>Cancel</Button>
+      <Button variant="ghost" haptic="light" onclick={close}>Cancel</Button>
       <Button
         type="submit"
         disabled={form.isSubmitting}

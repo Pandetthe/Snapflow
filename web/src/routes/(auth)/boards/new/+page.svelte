@@ -155,9 +155,7 @@
 <FullLayout>
   <div class="mx-auto w-full max-w-5xl space-y-6 pb-12 sm:space-y-8">
     <header class="flex flex-col gap-4">
-      <div class="flex items-center gap-2">
-        <GoBackButton href={backHref} />
-      </div>
+      <GoBackButton href={backHref} />
 
       <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div class="space-y-1">
@@ -213,7 +211,7 @@
                 size="lg"
                 disabled={!form.values.title.trim() || form.isSubmitting}
                 isLoading={form.isSubmitting}
-                loadingText="Creating..."
+                loadingText="Creating"
                 startIcon={Plus}
                 class="w-full px-8 sm:w-auto"
               >

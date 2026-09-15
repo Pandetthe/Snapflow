@@ -4,7 +4,10 @@
   import { resolve } from '$app/paths';
   import { Link2, Unlink } from 'lucide-svelte';
   import { AppDialog, Button } from '$lib/ui/components';
+  import SettingsSection from './SettingsSection.svelte';
+  import SettingRow from './SettingRow.svelte';
   import { errorStore } from '$lib/ui/stores/error.svelte';
+  import { triggerHaptic } from '$lib/ui/utils';
   import { noticeStore } from '$lib/ui/stores/notice.svelte';
   import ProviderLogo from '$lib/features/auth/components/ProviderLogo.svelte';
   import {
@@ -85,6 +88,7 @@
     busy = false;
 
     if (!response.ok) {
+      triggerHaptic('error');
       notice =
         response.validationProblem?.errors[0]?.description ??
         response.problem?.detail ??
@@ -92,6 +96,7 @@
       return;
     }
 
+    triggerHaptic('success');
     confirmOpen = false;
     onChange();
   }
@@ -104,8 +109,10 @@
 
     if (linked) {
       const name = providers.find((provider) => provider.scheme === linked)?.displayName ?? linked;
+      triggerHaptic('success');
       noticeStore.add('Account connected', `You can now sign in with ${name}.`);
     } else if (error) {
+      triggerHaptic('error');
       errorStore.addError(
         error,
         linkErrors[error] ?? 'The account could not be connected. Try again.'
@@ -116,61 +123,47 @@
   });
 </script>
 
-<section
-  class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50"
+<SettingsSection
+  icon={Link2}
+  title="Connected accounts"
+  description="Sign in with accounts from other services."
 >
-  <h2 class="mb-1 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-    <Link2 size={18} class="text-gray-400" />
-    Connected accounts
-  </h2>
-  <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
-    Sign in with accounts from other services.
-  </p>
-
-  <ul class="space-y-4">
+  <ul class="space-y-5">
     {#each accounts as account (account.provider)}
-      <li class="flex items-center justify-between gap-4">
-        <div class="flex min-w-0 items-center gap-3">
-          <div
-            class="flex size-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 dark:border-gray-800"
-          >
+      <li>
+        <SettingRow
+          label={account.displayName}
+          badge={account.connected ? 'Connected' : 'Not connected'}
+          badgeTone={account.connected ? 'success' : 'neutral'}
+        >
+          {#snippet iconContent()}
             <ProviderLogo type={account.type} />
-          </div>
-          <div class="min-w-0">
-            <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
-              {account.displayName}
-            </p>
+          {/snippet}
+          {#snippet action()}
             {#if account.connected}
-              <span
-                class="mt-0.5 inline-flex rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-medium text-success-600 sm:text-xs dark:bg-success-500/10 dark:text-success-400"
+              <Button
+                variant="outline"
+                size="xs"
+                haptic="light"
+                startIcon={Unlink}
+                onclick={() => startDisconnect(account)}
               >
-                Connected
-              </span>
-            {:else}
-              <p class="text-xs text-gray-400 dark:text-gray-500">Not connected</p>
+                Disconnect
+              </Button>
+            {:else if account.connectable}
+              <Button
+                variant="outline"
+                size="xs"
+                haptic="light"
+                startIcon={Link2}
+                href={externalLinkUrl(account.provider)}
+                data-sveltekit-reload
+              >
+                Connect
+              </Button>
             {/if}
-          </div>
-        </div>
-        {#if account.connected}
-          <Button
-            variant="outline"
-            size="xs"
-            startIcon={Unlink}
-            onclick={() => startDisconnect(account)}
-          >
-            Disconnect
-          </Button>
-        {:else if account.connectable}
-          <Button
-            variant="outline"
-            size="xs"
-            startIcon={Link2}
-            href={externalLinkUrl(account.provider)}
-            data-sveltekit-reload
-          >
-            Connect
-          </Button>
-        {/if}
+          {/snippet}
+        </SettingRow>
       </li>
     {/each}
   </ul>
@@ -191,6 +184,8 @@
     {#snippet actions()}
       <Button
         variant="outline"
+        disabled={busy}
+        haptic="light"
         onclick={() => {
           confirmOpen = false;
         }}
@@ -203,10 +198,11 @@
         disabled={busy}
         isLoading={busy}
         loadingText="Disconnecting"
+        haptic="heavy"
         onclick={disconnect}
       >
         Disconnect
       </Button>
     {/snippet}
   </AppDialog>
-</section>
+</SettingsSection>

@@ -9,6 +9,7 @@
     passkeysSupported
   } from '$lib/features/auth/passkeys';
   import type { Response as AppResponse } from '$lib/core/types/app';
+  import { triggerHaptic } from '$lib/ui/utils';
   import type { Passkey, UsersService } from '../api/users';
 
   const MAX_PASSKEYS = 20;
@@ -54,6 +55,7 @@
     try {
       const options = await usersService.createPasskeyOptions();
       if (!options.ok) {
+        triggerHaptic('error');
         notice = problemText(options, 'The passkey could not be added. Try again.');
         return;
       }
@@ -61,17 +63,21 @@
       const credential = await createPasskey(options.value.options);
       const added = await usersService.addPasskey({ credential, state: options.value.state });
       if (!added.ok) {
+        triggerHaptic('error');
         notice = problemText(added, 'The passkey could not be added. Try again.');
         return;
       }
 
+      triggerHaptic('success');
       items = [...items, added.value];
       changed = true;
       await startRename(added.value);
     } catch (error) {
       if (isPasskeyAlreadyOnDevice(error)) {
+        triggerHaptic('error');
         notice = 'This device already has a passkey for your account.';
       } else if (!isPasskeyDismissed(error)) {
+        triggerHaptic('error');
         notice = 'Your browser could not create the passkey. Try again.';
       }
     } finally {
@@ -99,10 +105,12 @@
     event.preventDefault();
     const name = editName.trim();
     if (!name) {
+      triggerHaptic('error');
       nameError = 'Enter a name.';
       return;
     }
     if (name.length > MAX_NAME_LENGTH) {
+      triggerHaptic('error');
       nameError = `Use at most ${MAX_NAME_LENGTH} characters.`;
       return;
     }
@@ -116,10 +124,12 @@
     busyId = null;
 
     if (!response.ok) {
+      triggerHaptic('error');
       nameError = problemText(response, 'The name could not be saved.');
       return;
     }
 
+    triggerHaptic('success');
     items = items.map((item) => (item.id === passkey.id ? { ...item, name } : item));
     changed = true;
     cancelRename();
@@ -137,10 +147,12 @@
     busyId = null;
 
     if (!response.ok) {
+      triggerHaptic('error');
       notice = problemText(response, 'The passkey could not be removed.');
       return;
     }
 
+    triggerHaptic('success');
     items = items.filter((item) => item.id !== passkey.id);
     removingId = null;
     changed = true;
@@ -201,7 +213,9 @@
                   />
                 </div>
                 <div class="flex justify-end gap-2 sm:pt-7">
-                  <Button variant="ghost" size="xs" onclick={cancelRename}>Cancel</Button>
+                  <Button variant="ghost" size="xs" haptic="light" onclick={cancelRename}>
+                    Cancel
+                  </Button>
                   <Button
                     type="submit"
                     size="xs"
@@ -215,13 +229,15 @@
             {:else if removingId === passkey.id}
               <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p class="text-sm text-gray-700 dark:text-gray-300">
-                  Remove <span class="font-medium text-gray-900 dark:text-white">{passkey.name}</span>?
-                  You won't be able to sign in with it anymore.
+                  Remove <span class="font-medium text-gray-900 dark:text-white"
+                    >{passkey.name}</span
+                  >? You won't be able to sign in with it anymore.
                 </p>
                 <div class="flex shrink-0 justify-end gap-2">
                   <Button
                     variant="ghost"
                     size="xs"
+                    haptic="light"
                     onclick={() => {
                       removingId = null;
                     }}
@@ -233,6 +249,7 @@
                     size="xs"
                     isLoading={busyId === passkey.id}
                     loadingText="Removing"
+                    haptic="heavy"
                     onclick={() => remove(passkey)}
                   >
                     Remove
@@ -242,7 +259,7 @@
             {:else}
               <div class="flex items-center gap-3">
                 <div
-                  class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
+                  class="flex size-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-400 dark:border-gray-800 dark:text-gray-500"
                 >
                   <KeyRound size={16} />
                 </div>
@@ -260,6 +277,7 @@
                   variant="ghost"
                   size="xs"
                   startIcon={Pencil}
+                  haptic="light"
                   aria-label={`Rename ${passkey.name}`}
                   onclick={() => startRename(passkey)}
                 />
@@ -267,6 +285,7 @@
                   variant="ghost"
                   size="xs"
                   startIcon={Trash2}
+                  haptic="light"
                   aria-label={`Remove ${passkey.name}`}
                   onclick={() => startRemove(passkey)}
                 />
@@ -287,9 +306,10 @@
   </div>
 
   {#snippet actions()}
-    <Button variant="ghost" onclick={close}>Close</Button>
+    <Button variant="ghost" haptic="light" onclick={close}>Close</Button>
     <Button
       startIcon={Plus}
+      haptic="medium"
       disabled={!supported || adding || items.length >= MAX_PASSKEYS}
       isLoading={adding}
       loadingText="Adding"

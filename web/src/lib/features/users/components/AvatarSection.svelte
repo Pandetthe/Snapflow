@@ -1,12 +1,13 @@
 <script lang="ts">
   import { Button, UserAvatar, SegmentedControl, Dropzone } from '$lib/ui/components';
+  import SettingsSection from './SettingsSection.svelte';
   import { AvatarType, type UsersService } from '../api/users';
   import { avatarBust, bustAvatar } from '../avatarBust.svelte';
   import { errorStore } from '$lib/ui/stores/error.svelte';
   import { Check, Upload, Sparkles, User as UserIcon, Camera } from 'lucide-svelte';
   import { invalidateAll } from '$app/navigation';
   import { slide } from 'svelte/transition';
-  import { slideReveal } from '$lib/ui/utils';
+  import { slideReveal, triggerHaptic } from '$lib/ui/utils';
   import { untrack } from 'svelte';
 
   let {
@@ -50,11 +51,13 @@
     if (!file) return;
     const ext = '.' + file.name.split('.').pop()?.toLowerCase();
     if (!allowedExtensions.includes(ext)) {
+      triggerHaptic('error');
       avatarFileError = `Unsupported format · accepted: ${allowedFormatsLabel}`;
       avatarFiles = [];
       return;
     }
     if (file.size > maxFileSizeMB * 1024 * 1024) {
+      triggerHaptic('error');
       avatarFileError = `File too large · max ${maxFileSizeMB} MB`;
       avatarFiles = [];
     }
@@ -63,6 +66,7 @@
   async function handleSave() {
     if (isUpdatingAvatar) return;
     if (selectedAvatarType === AvatarType.Uploaded && !avatarFile) {
+      triggerHaptic('error');
       avatarFileError = 'Select a file first';
       return;
     }
@@ -73,23 +77,22 @@
     const result = await usersService.updateAvatar(formData);
     isUpdatingAvatar = false;
     if (result.ok) {
+      triggerHaptic('success');
       avatarFiles = [];
       bustAvatar();
       await invalidateAll();
     } else {
+      triggerHaptic('error');
       errorStore.addError(result.problem?.title ?? null, result.problem?.detail ?? null);
     }
   }
 </script>
 
-<section
-  class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50"
+<SettingsSection
+  icon={Camera}
+  title="Profile picture"
+  description="How you appear across your boards."
 >
-  <h2 class="mb-5 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-    <Camera size={18} class="text-gray-400" />
-    Profile picture
-  </h2>
-
   <div class="mb-5 flex justify-center">
     <UserAvatar
       src={avatarPreview ?? (user?.avatarUrl ? `${user.avatarUrl}?v=${avatarBust.count}` : null)}
@@ -134,10 +137,11 @@
       onclick={handleSave}
       disabled={isUpdatingAvatar || (selectedAvatarType === AvatarType.Uploaded && !avatarFile)}
       isLoading={isUpdatingAvatar}
-      loadingText="Saving..."
+      loadingText="Saving"
       startIcon={Check}
+      haptic="medium"
     >
       Save picture
     </Button>
   </div>
-</section>
+</SettingsSection>

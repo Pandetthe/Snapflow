@@ -12,6 +12,7 @@ export { default as LoadingDots } from './base/LoadingDots.svelte';
 export { default as ThemeToggle } from './base/ThemeToggle.svelte';
 export { default as GithubButton } from './base/GithubButton.svelte';
 export { default as RoleBadge } from './base/RoleBadge.svelte';
+export { default as StatusBadge } from './base/StatusBadge.svelte';
 export { default as Skeleton } from './base/Skeleton.svelte';
 export { default as UserAvatar } from './base/UserAvatar.svelte';
 export { default as InputTextField } from './forms/InputTextField.svelte';

@@ -152,9 +152,9 @@
 
   {#snippet actions()}
     {#if recoveryCodes}
-      <Button onclick={close}>I have saved them</Button>
+      <Button haptic="medium" onclick={close}>I have saved them</Button>
     {:else}
-      <Button variant="ghost" onclick={close}>Cancel</Button>
+      <Button variant="ghost" haptic="light" onclick={close}>Cancel</Button>
       <Button
         type="submit"
         disabled={!setup || form.isSubmitting}

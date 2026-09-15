@@ -13,7 +13,7 @@
   } from '$lib/ui/components';
   import RoleSelector from '$lib/features/boards/components/RoleSelector.svelte';
   import { createForm, itemIn, itemOut, slideReveal } from '$lib/ui/utils';
-  import { Trash2, Users, X, UserPlus, Check } from 'lucide-svelte';
+  import { Trash2, Users, X, UserPlus, Check, TriangleAlert } from 'lucide-svelte';
   import { afterNavigate, goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import type { Pathname } from '$app/types';
@@ -303,9 +303,7 @@
 <FullLayout>
   <div class="mx-auto w-full max-w-5xl space-y-6 pb-12 sm:space-y-8">
     <header class="flex flex-col gap-4">
-      <div class="flex items-center gap-2">
-        <GoBackButton href={backHref} />
-      </div>
+      <GoBackButton href={backHref} />
 
       <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div class="space-y-1">
@@ -362,7 +360,7 @@
                   size="lg"
                   disabled={!form.values.title.trim() || form.isSubmitting}
                   isLoading={form.isSubmitting}
-                  loadingText="Saving..."
+                  loadingText="Saving"
                   startIcon={Check}
                   class="w-full px-8 sm:w-auto"
                 >
@@ -374,32 +372,32 @@
         </section>
 
         <section
-          class="rounded-2xl border border-rose-100 bg-rose-50/20 p-5 transition-all duration-200 sm:rounded-3xl sm:p-8 dark:border-rose-900/30 dark:bg-rose-950/10"
+          class="rounded-2xl border border-error-100 bg-error-50/20 p-5 shadow-sm transition-all duration-200 sm:rounded-3xl sm:p-6 dark:border-error-900/30 dark:bg-error-950/10"
         >
-          <div class="mb-6 space-y-1">
-            <h2 class="text-sm font-bold tracking-wider text-rose-600 uppercase dark:text-rose-400">
-              Delete board
-            </h2>
-            <p class="text-xs text-rose-700/60 dark:text-rose-400/60">
-              Permanently remove this board and all of its data.
-            </p>
+          <div class="mb-6 flex items-start justify-between gap-4">
+            <div class="min-w-0 space-y-1">
+              <h2 class="text-lg font-bold text-error-600 dark:text-error-400">Danger zone</h2>
+              <p class="text-sm text-error-700/60 dark:text-error-400/60">
+                Permanently remove this board and all of its data.
+              </p>
+            </div>
+            <TriangleAlert class="h-5 w-5 shrink-0 text-error-500" />
           </div>
 
-          <div class="space-y-6">
-            <Button
-              type="button"
-              variant="danger"
-              size="lg"
-              class="w-full justify-center shadow-lg shadow-rose-500/10"
-              onclick={() => {
-                deleteConfirmation = '';
-                isDeleteModalOpen = true;
-              }}
-              startIcon={Trash2}
-            >
-              Delete board
-            </Button>
-          </div>
+          <Button
+            type="button"
+            variant="danger"
+            size="lg"
+            class="w-full justify-center shadow-lg shadow-error-500/10"
+            startIcon={Trash2}
+            haptic="medium"
+            onclick={() => {
+              deleteConfirmation = '';
+              isDeleteModalOpen = true;
+            }}
+          >
+            Delete board
+          </Button>
         </section>
       </div>
 

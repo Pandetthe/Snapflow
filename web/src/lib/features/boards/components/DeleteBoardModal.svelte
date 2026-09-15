@@ -69,7 +69,7 @@
       name="modalDeleteConfirmation"
       placeholder={title}
       bind:value={deleteConfirmation}
-      class="border-rose-200 focus:border-rose-500 focus:ring-rose-500/20 dark:border-rose-900/50"
+      class="border-error-200 focus:border-error-500 focus:ring-error-500/20 dark:border-error-900/50"
     />
   </div>
 
@@ -86,7 +86,7 @@
     </Button>
     <Button
       variant="danger"
-      class="shadow-md shadow-rose-500/20"
+      class="shadow-md shadow-error-500/20"
       onclick={onConfirm}
       disabled={!canDelete}
       isLoading={isDeleting}
