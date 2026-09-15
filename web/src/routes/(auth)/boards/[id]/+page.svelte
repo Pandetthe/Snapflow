@@ -148,6 +148,7 @@
   setContext('canManageSwimlanes', () => bs.canManageSwimlanes);
   setContext('canManageLists', () => bs.canManageLists);
   setContext('canManageCards', () => bs.canManageCards);
+  setContext('canAssignTags', () => bs.canAssignTags);
   setContext('recentMove', bs.getRecentMove);
   setContext('isInFlight', bs.isInFlight);
   setContext('isNew', bs.isNew);
@@ -363,7 +364,7 @@
 <CardModal
   bind:open={cardModalOpen}
   card={editingCard}
-  onConfirm={(title, description) =>
-    bs.handleCardConfirm(editingCard, targetListId, title, description)}
+  onConfirm={(title, description, tagIds) =>
+    bs.handleCardConfirm(editingCard, targetListId, title, description, tagIds)}
   onDelete={(id) => bs.handleCardDelete(id)}
 />

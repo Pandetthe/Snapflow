@@ -1,4 +1,9 @@
-import type { GetBoardByIdResponse, GetBoardDetailsResponse, MemberRole } from './boards.api';
+import type {
+  GetBoardByIdResponse,
+  GetBoardDetailsResponse,
+  MemberRole,
+  TagColor
+} from './boards.api';
 
 export interface BoardsHubEvents {
   BoardSnapshot: (payload: BoardSnapshotEventPayload) => void;
@@ -19,6 +24,11 @@ export interface BoardsHubEvents {
   CardLocked: (payload: CardLockedEventPayload) => void;
   CardUnlocked: (payload: CardUnlockedEventPayload) => void;
   CardDeleted: (payload: CardDeletedEventPayload) => void;
+  TagCreated: (payload: TagCreatedEventPayload) => void;
+  TagUpdated: (payload: TagUpdatedEventPayload) => void;
+  TagDeleted: (payload: TagDeletedEventPayload) => void;
+  CardTagAdded: (payload: CardTagAddedEventPayload) => void;
+  CardTagRemoved: (payload: CardTagRemovedEventPayload) => void;
 }
 
 export interface BoardSnapshotEventPayload {
@@ -26,6 +36,7 @@ export interface BoardSnapshotEventPayload {
   title: string;
   description: string;
   swimlanes: GetBoardByIdResponse.SwimlaneDto[];
+  tags: GetBoardByIdResponse.TagDto[];
   members: GetBoardDetailsResponse.BoardMemberDto[];
 }
 
@@ -123,6 +134,37 @@ export interface CardUnlockedEventPayload {
 export interface CardDeletedEventPayload {
   id: number;
   deletedBy: GetBoardByIdResponse.UserDto;
+}
+
+export interface TagCreatedEventPayload {
+  id: number;
+  title: string;
+  color: TagColor;
+  createdBy: GetBoardByIdResponse.UserDto;
+}
+
+export interface TagUpdatedEventPayload {
+  id: number;
+  title: string;
+  color: TagColor;
+  updatedBy: GetBoardByIdResponse.UserDto;
+}
+
+export interface TagDeletedEventPayload {
+  id: number;
+  deletedBy: GetBoardByIdResponse.UserDto;
+}
+
+export interface CardTagAddedEventPayload {
+  cardId: number;
+  tagId: number;
+  addedBy: GetBoardByIdResponse.UserDto;
+}
+
+export interface CardTagRemovedEventPayload {
+  cardId: number;
+  tagId: number;
+  removedBy: GetBoardByIdResponse.UserDto;
 }
 
 export interface MoveSwimlaneRequest {
@@ -249,5 +291,47 @@ export interface UpdateCardResponse {
     id: number;
     userName: string;
     avatarUrl: string | null;
+  };
+}
+
+export interface CreateTagHubRequest {
+  title: string;
+  color: TagColor;
+}
+
+export interface UpdateTagHubRequest {
+  id: number;
+  title: string;
+  color: TagColor;
+}
+
+export interface DeleteTagRequest {
+  id: number;
+}
+
+export interface AddTagToCardRequest {
+  cardId: number;
+  tagId: number;
+}
+
+export interface RemoveTagFromCardRequest {
+  cardId: number;
+  tagId: number;
+}
+
+export interface CreateTagHubResponse {
+  id: number;
+  createdAt: string;
+  createdBy: {
+    id: number;
+    userName: string;
+  };
+}
+
+export interface UpdateTagHubResponse {
+  updatedAt: string;
+  updatedBy: {
+    id: number;
+    userName: string;
   };
 }

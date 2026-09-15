@@ -16,12 +16,35 @@ export namespace GetBoardsResponse {
   }
 }
 
+export type TagColor =
+  'red' | 'green' | 'blue' | 'yellow' | 'purple' | 'orange' | 'pink' | 'teal' | 'gray';
+
+export const TAG_COLORS: TagColor[] = [
+  'red',
+  'orange',
+  'yellow',
+  'green',
+  'teal',
+  'blue',
+  'purple',
+  'pink',
+  'gray'
+];
+
 export namespace GetBoardByIdResponse {
   export interface BoardDto {
     id: number;
     title: string;
     description: string;
     swimlanes: SwimlaneDto[];
+    tags: TagDto[];
+  }
+
+  /** A tag definition on the board; cards carry only the ids. */
+  export interface TagDto {
+    id: number;
+    title: string;
+    color: TagColor;
   }
 
   export interface UserDto {
@@ -59,6 +82,7 @@ export namespace GetBoardByIdResponse {
     createdBy: UserDto;
     updatedAt: string | null;
     updatedBy: UserDto | null;
+    tagIds: number[];
   }
 }
 
@@ -102,4 +126,31 @@ export interface UpdateBoardRequest {
 
 export interface IdResponse {
   id: number;
+}
+
+export interface CreateTagRequest {
+  title: string;
+  color: TagColor;
+}
+
+export interface UpdateTagRequest {
+  title: string;
+  color: TagColor;
+}
+
+export interface CreateTagResponse {
+  id: number;
+  createdAt: string;
+  createdBy: {
+    id: number;
+    userName: string;
+  };
+}
+
+export interface UpdateTagResponse {
+  updatedAt: string;
+  updatedBy: {
+    id: number;
+    userName: string;
+  };
 }

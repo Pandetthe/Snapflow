@@ -1,6 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { BoardsService } from '$lib/features/boards/api/boards.api';
+import { TagsService } from '$lib/features/boards/api/tags.api';
 import { apiClient } from '$lib/server/api.server';
 
 export const load: PageServerLoad = async (event) => {
@@ -9,7 +10,10 @@ export const load: PageServerLoad = async (event) => {
 
   if (!result.ok) {
     if (result.problem?.status === 404) {
-      throw error(404, `${result.problem?.title ?? 'Board not found'}\n${result.problem?.detail ?? ''}`);
+      throw error(
+        404,
+        `${result.problem?.title ?? 'Board not found'}\n${result.problem?.detail ?? ''}`
+      );
     }
 
     throw error(
@@ -26,7 +30,12 @@ export const load: PageServerLoad = async (event) => {
     throw redirect(302, `/boards/${boardId}`);
   }
 
+  // The board's tags come from their own endpoint; an unreachable one leaves the section empty
+  // rather than failing the whole page.
+  const tagsResult = await new TagsService(apiClient).getTags(boardId, event);
+
   return {
-    board: result.value
+    board: result.value,
+    tags: tagsResult.ok ? tagsResult.value : []
   };
 };

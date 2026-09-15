@@ -10,6 +10,7 @@
   import { Button, UserAvatar } from '$lib/ui/components';
   import { CalendarDays, GripVertical, Pencil } from 'lucide-svelte';
   import MovedByIndicator from './MovedByIndicator.svelte';
+  import TagChip from './TagChip.svelte';
 
   let { card, listId }: { card: GetBoardByIdResponse.CardDto; listId: number } = $props();
 
@@ -21,6 +22,12 @@
   const recentMove = $derived(getRecentMove?.('card', card.id));
   const getIsInFlight = getContext<IsInFlight | undefined>('isInFlight');
   const inFlight = $derived(getIsInFlight?.('card', card.id) ?? false);
+
+  const getBoard = getContext<() => GetBoardByIdResponse.BoardDto>('board');
+  // The card holds ids only; the board's definitions give each one its title and colour.
+  const tags = $derived(
+    card.tagIds.map((id) => getBoard().tags.find((t) => t.id === id)).filter((t) => t !== undefined)
+  );
 
   const ui = getBoardUI();
 </script>
@@ -83,6 +90,14 @@
     >
       {card.description}
     </p>
+  {/if}
+
+  {#if tags.length > 0}
+    <div class="flex flex-wrap gap-1 {canManageCards ? 'pl-7.5' : ''}">
+      {#each tags as tag (tag.id)}
+        <TagChip {tag} size="xs" />
+      {/each}
+    </div>
   {/if}
 
   <div class="flex items-center justify-between {canManageCards ? 'pl-7.5' : ''}">

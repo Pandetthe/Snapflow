@@ -32,7 +32,7 @@ export const load: PageServerLoad = async (event) => {
   }
 
   const { id, title, description, members } = detailsResult.value;
-  const board: GetBoardByIdResponse.BoardDto = { id, title, description, swimlanes: [] };
+  const board: GetBoardByIdResponse.BoardDto = { id, title, description, swimlanes: [], tags: [] };
 
   return { board, members };
 };

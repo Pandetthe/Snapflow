@@ -22,6 +22,7 @@
   import { untrack } from 'svelte';
   import TransferOwnershipModal from '$lib/features/boards/components/TransferOwnershipModal.svelte';
   import DeleteBoardModal from '$lib/features/boards/components/DeleteBoardModal.svelte';
+  import TagDefinitionsEditor from '$lib/features/boards/components/TagDefinitionsEditor.svelte';
 
   let { data } = $props();
   const board = $derived.by(() => data.board);
@@ -40,6 +41,8 @@
   };
 
   let backHref = $state<Pathname>('/boards');
+
+  let tags = $state(untrack(() => data.tags));
 
   let searchQuery = $state('');
   let searchResults = $state<SearchUserDto[]>([]);
@@ -150,6 +153,8 @@
       } else {
         selectedMembers = [];
       }
+
+      tags = data.tags;
     }
   });
 
@@ -399,6 +404,8 @@
       </div>
 
       <aside class="space-y-6">
+        <TagDefinitionsEditor boardId={board.id} bind:tags />
+
         <section
           class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50"
         >

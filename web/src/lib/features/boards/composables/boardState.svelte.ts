@@ -1,7 +1,8 @@
 import type {
   GetBoardByIdResponse,
   GetBoardDetailsResponse,
-  MemberRole
+  MemberRole,
+  TagColor
 } from '../types/boards.api';
 import type { Response } from '$lib/core/types/app';
 import { BoardsHub } from '../hub/boards.hub';
@@ -184,6 +185,9 @@ export function createBoardState(
   const canManageSwimlanes = $derived(role === 'owner' || role === 'admin');
   const canManageLists = $derived(role === 'owner' || role === 'admin');
   const canManageCards = $derived(role !== 'viewer');
+  // Defining the board's tags is an admin job; putting one on a card is not.
+  const canManageTags = $derived(role === 'owner' || role === 'admin');
+  const canAssignTags = $derived(role !== 'viewer');
 
   function sortSwimlanes() {
     board.swimlanes.sort((a, b) => a.rank.localeCompare(b.rank));
@@ -200,6 +204,26 @@ export function createBoardState(
     list.cards = [...list.cards];
   }
 
+  function sortTags() {
+    board.tags.sort((a, b) => a.title.localeCompare(b.title));
+    board.tags = [...board.tags];
+  }
+
+  /** Every card that carries the tag, so an edit or a delete reaches all of them. */
+  function forEachCardWithTag(tagId: number, apply: (card: GetBoardByIdResponse.CardDto) => void) {
+    for (const s of board.swimlanes)
+      for (const l of s.lists) for (const c of l.cards) if (c.tagIds.includes(tagId)) apply(c);
+  }
+
+  function findCard(cardId: number): GetBoardByIdResponse.CardDto | undefined {
+    for (const s of board.swimlanes)
+      for (const l of s.lists) {
+        const card = l.cards.find((c) => c.id === cardId);
+        if (card) return card;
+      }
+    return undefined;
+  }
+
   function sortAll() {
     board.swimlanes.sort((a, b) => a.rank.localeCompare(b.rank));
     for (const s of board.swimlanes) {
@@ -208,6 +232,7 @@ export function createBoardState(
         sortCards(l);
       }
     }
+    board.tags.sort((a, b) => a.title.localeCompare(b.title));
   }
 
   let loaded = $state(false);
@@ -219,7 +244,8 @@ export function createBoardState(
       id: snapshot.id,
       title: snapshot.title,
       description: snapshot.description,
-      swimlanes: snapshot.swimlanes
+      swimlanes: snapshot.swimlanes,
+      tags: snapshot.tags
     };
     members = snapshot.members;
     sortAll();
@@ -392,7 +418,7 @@ export function createBoardState(
           }
           markNew('card', payload.id);
           markChanged('card', payload.id, payload.createdBy, 'added');
-          list.cards.push({ ...payload, updatedAt: null, updatedBy: null });
+          list.cards.push({ ...payload, updatedAt: null, updatedBy: null, tagIds: [] });
           sortCards(list);
           break;
         }
@@ -462,6 +488,45 @@ export function createBoardState(
           }
         }
       });
+    });
+
+    on('TagCreated', (payload) => {
+      if (board.tags.some((t) => t.id === payload.id)) return;
+      board.tags.push({ id: payload.id, title: payload.title, color: payload.color });
+      sortTags();
+    });
+
+    on('TagUpdated', (payload) => {
+      const tag = board.tags.find((t) => t.id === payload.id);
+      if (!tag) return;
+      tag.title = payload.title;
+      tag.color = payload.color;
+      sortTags();
+    });
+
+    on('TagDeleted', (payload) => {
+      const index = board.tags.findIndex((t) => t.id === payload.id);
+      if (index === -1) return;
+      board.tags.splice(index, 1);
+      board.tags = [...board.tags];
+      // A deleted tag leaves every card it was on, so no card keeps an id nothing resolves.
+      forEachCardWithTag(payload.id, (card) => {
+        card.tagIds = card.tagIds.filter((id) => id !== payload.id);
+      });
+    });
+
+    on('CardTagAdded', (payload) => {
+      const card = findCard(payload.cardId);
+      if (!card || card.tagIds.includes(payload.tagId)) return;
+      card.tagIds = [...card.tagIds, payload.tagId];
+      markChanged('card', payload.cardId, payload.addedBy, 'edited');
+    });
+
+    on('CardTagRemoved', (payload) => {
+      const card = findCard(payload.cardId);
+      if (!card || !card.tagIds.includes(payload.tagId)) return;
+      card.tagIds = card.tagIds.filter((id) => id !== payload.tagId);
+      markChanged('card', payload.cardId, payload.removedBy, 'edited');
     });
 
     on('BoardDeleted', () => {
@@ -607,11 +672,25 @@ export function createBoardState(
     return true;
   }
 
+  /**
+   * Brings a card's tags in line with `tagIds`, one call per difference. A card is tagged through
+   * its own endpoints rather than as part of the card itself, so this runs after the card is saved.
+   */
+  async function applyCardTags(cardId: number, tagIds: number[]) {
+    const card = findCard(cardId);
+    const current = card?.tagIds ?? [];
+    const added = tagIds.filter((id) => !current.includes(id));
+    const removed = current.filter((id) => !tagIds.includes(id));
+    for (const tagId of added) await handleCardTagToggle(cardId, tagId, true);
+    for (const tagId of removed) await handleCardTagToggle(cardId, tagId, false);
+  }
+
   async function handleCardConfirm(
     editingCard: GetBoardByIdResponse.CardDto | undefined,
     targetListId: number | null,
     title: string,
-    description: string
+    description: string,
+    tagIds: number[] = []
   ): Promise<Response<unknown>> {
     if (!hub) return hubUnavailable;
     if (!editingCard && !targetListId)
@@ -626,6 +705,7 @@ export function createBoardState(
         editingCard.description = description;
         if (res.value.updatedAt) editingCard.updatedAt = res.value.updatedAt;
         if (res.value.updatedBy) editingCard.updatedBy = res.value.updatedBy;
+        await applyCardTags(editingCard.id, tagIds);
       }
       return res;
     } else {
@@ -648,12 +728,14 @@ export function createBoardState(
               createdAt: res.value.createdAt,
               createdBy: res.value.createdBy,
               updatedAt: null,
-              updatedBy: null
+              updatedBy: null,
+              tagIds: []
             });
             sortCards(list);
             break;
           }
         }
+        await applyCardTags(res.value.id, tagIds);
       }
       return res;
     }
@@ -682,6 +764,93 @@ export function createBoardState(
         }
       }
     }
+    triggerHaptic('success');
+    return true;
+  }
+
+  async function handleTagConfirm(
+    editingTag: GetBoardByIdResponse.TagDto | undefined,
+    title: string,
+    color: TagColor
+  ): Promise<Response<unknown>> {
+    if (!hub) return hubUnavailable;
+    if (editingTag) {
+      const res = await hub.updateTag({ id: editingTag.id, title, color });
+      if (res?.ok) {
+        editingTag.title = title;
+        editingTag.color = color;
+        sortTags();
+      }
+      return res;
+    }
+    const res = await hub.createTag({ title, color });
+    if (res?.ok && !board.tags.some((t) => t.id === res.value.id)) {
+      board.tags.push({ id: res.value.id, title, color });
+      sortTags();
+    }
+    return res;
+  }
+
+  async function handleTagDelete(id: number): Promise<boolean> {
+    if (!hub) {
+      triggerHaptic('error');
+      errorStore.addError('Web.BoardHubUnavailable', 'Board connection is unavailable');
+      return false;
+    }
+    const res = await hub.deleteTag({ id });
+    if (!res.ok) {
+      triggerHaptic('error');
+      errorStore.addError('Web.DeleteTagFailed', 'Failed to delete tag');
+      return false;
+    }
+    const index = board.tags.findIndex((t) => t.id === id);
+    if (index !== -1) {
+      board.tags.splice(index, 1);
+      board.tags = [...board.tags];
+    }
+    forEachCardWithTag(id, (card) => {
+      card.tagIds = card.tagIds.filter((tagId) => tagId !== id);
+    });
+    triggerHaptic('success');
+    return true;
+  }
+
+  /**
+   * Puts a tag on a card or takes it off. The card is changed straight away and put back
+   * the way it was if the server refuses, so the picker never waits on a round trip.
+   */
+  async function handleCardTagToggle(
+    cardId: number,
+    tagId: number,
+    add: boolean
+  ): Promise<boolean> {
+    const card = findCard(cardId);
+    if (!card) return false;
+    if (card.tagIds.includes(tagId) === add) return true;
+
+    if (!hub) {
+      triggerHaptic('error');
+      errorStore.addError('Web.BoardHubUnavailable', 'Board connection is unavailable');
+      return false;
+    }
+
+    const previous = card.tagIds;
+    card.tagIds = add ? [...previous, tagId] : previous.filter((id) => id !== tagId);
+
+    const res = add
+      ? await hub.addTagToCard({ cardId, tagId })
+      : await hub.removeTagFromCard({ cardId, tagId });
+
+    if (!res.ok) {
+      card.tagIds = previous;
+      triggerHaptic('error');
+      errorStore.addError(
+        add ? 'Web.AddTagToCardFailed' : 'Web.RemoveTagFromCardFailed',
+        add ? 'Failed to add the tag to the card' : 'Failed to remove the tag from the card'
+      );
+      return false;
+    }
+
     triggerHaptic('success');
     return true;
   }
@@ -723,6 +892,12 @@ export function createBoardState(
     get canManageCards() {
       return canManageCards;
     },
+    get canManageTags() {
+      return canManageTags;
+    },
+    get canAssignTags() {
+      return canAssignTags;
+    },
     getRecentMove,
     isInFlight,
     isNew,
@@ -736,6 +911,9 @@ export function createBoardState(
     handleListConfirm,
     handleListDelete,
     handleCardConfirm,
-    handleCardDelete
+    handleCardDelete,
+    handleTagConfirm,
+    handleTagDelete,
+    handleCardTagToggle
   };
 }

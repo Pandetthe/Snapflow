@@ -39,7 +39,14 @@ import type {
   CardCreatedEventPayload,
   CardUpdatedEventPayload,
   CardMovedEventPayload,
-  CardDeletedEventPayload
+  CardDeletedEventPayload,
+  CreateTagHubRequest,
+  UpdateTagHubRequest,
+  DeleteTagRequest,
+  AddTagToCardRequest,
+  RemoveTagFromCardRequest,
+  CreateTagHubResponse,
+  UpdateTagHubResponse
 } from '$lib/features/boards/types/boards.hub';
 
 export class BoardsHub {
@@ -206,5 +213,34 @@ export class BoardsHub {
 
   deleteCard(request: DeleteCardRequest): Promise<Response> {
     return this.handleResponse('DeleteCard', this.connection.invoke('DeleteCard', request));
+  }
+
+  createTag(request: CreateTagHubRequest): Promise<Response<CreateTagHubResponse>> {
+    return this.handleResponse<CreateTagHubResponse>(
+      'CreateTag',
+      this.connection.invoke('CreateTag', request)
+    );
+  }
+
+  updateTag(request: UpdateTagHubRequest): Promise<Response<UpdateTagHubResponse>> {
+    return this.handleResponse<UpdateTagHubResponse>(
+      'UpdateTag',
+      this.connection.invoke('UpdateTag', request)
+    );
+  }
+
+  deleteTag(request: DeleteTagRequest): Promise<Response> {
+    return this.handleResponse('DeleteTag', this.connection.invoke('DeleteTag', request));
+  }
+
+  addTagToCard(request: AddTagToCardRequest): Promise<Response> {
+    return this.handleResponse('AddTagToCard', this.connection.invoke('AddTagToCard', request));
+  }
+
+  removeTagFromCard(request: RemoveTagFromCardRequest): Promise<Response> {
+    return this.handleResponse(
+      'RemoveTagFromCard',
+      this.connection.invoke('RemoveTagFromCard', request)
+    );
   }
 }
