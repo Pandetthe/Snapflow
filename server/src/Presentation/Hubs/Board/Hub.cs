@@ -1,11 +1,17 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Snapflow.Application.Abstractions.Messaging;
+using Snapflow.Application.Boards.GetById;
+using Snapflow.Application.Boards.GetDetails;
+using Snapflow.Common;
 using Snapflow.Domain.Boards;
+using static Snapflow.Presentation.Hubs.Board.IBoardHubClient;
 
 namespace Snapflow.Presentation.Hubs.Board;
 
 [Authorize(BoardPermissions.Boards.View)]
 public sealed partial class BoardHub(
+    IServiceScopeFactory scopeFactory,
     ILogger<BoardHub> logger) : Hub<IBoardHubClient>
 {
     public override async Task OnConnectedAsync()
@@ -33,8 +39,46 @@ public sealed partial class BoardHub(
             await Groups.AddToGroupAsync(Context.ConnectionId, $"{boardId}-{userIdString}", Context.ConnectionAborted);
         }
 
+        // Loaded after joining the board groups, so no change made meanwhile is missed: the client applies
+        // the changes that reach it before the snapshot on top of it.
+        BoardSnapshotPayload? snapshot = await LoadSnapshotAsync(boardId, Context.ConnectionAborted);
+        if (snapshot is null)
+        {
+            logger.LogWarning("Connection {ConnectionId} aborted: board {BoardId} could not be loaded.", Context.ConnectionId, boardId);
+            Context.Abort();
+            return;
+        }
+
         await base.OnConnectedAsync();
+        await Clients.Caller.BoardSnapshot(snapshot, Context.ConnectionAborted);
+
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Connection {ConnectionId} connected to board {BoardId}.", Context.ConnectionId, boardId);
+    }
+
+    // Combines the board and its members from their own queries; Application slices do not share queries.
+    private async Task<BoardSnapshotPayload?> LoadSnapshotAsync(int boardId, CancellationToken cancellationToken)
+    {
+        await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+        var boardHandler = scope.ServiceProvider
+            .GetRequiredService<IQueryHandler<GetBoardByIdQuery, GetBoardByIdResponse>>();
+        var detailsHandler = scope.ServiceProvider
+            .GetRequiredService<IQueryHandler<GetBoardDetailsQuery, GetBoardDetailsResponse>>();
+
+        // One after the other: both handlers share the scope's DbContext.
+        Result<GetBoardByIdResponse> board = await boardHandler.Handle(new GetBoardByIdQuery(boardId), cancellationToken);
+        if (!board.IsSuccess)
+            return null;
+
+        Result<GetBoardDetailsResponse> details = await detailsHandler.Handle(new GetBoardDetailsQuery(boardId), cancellationToken);
+        if (!details.IsSuccess)
+            return null;
+
+        return new BoardSnapshotPayload(
+            board.Value.Id,
+            board.Value.Title,
+            board.Value.Description,
+            board.Value.Swimlanes,
+            details.Value.Members);
     }
 }

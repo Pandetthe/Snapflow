@@ -1,9 +1,17 @@
-﻿using Snapflow.Domain.Members;
+﻿using Snapflow.Application.Boards.GetById;
+using Snapflow.Application.Boards.GetDetails;
+using Snapflow.Domain.Members;
 
 namespace Snapflow.Presentation.Hubs.Board;
 
 public interface IBoardHubClient
 {
+    // The whole board, sent to a connection when it connects or reconnects; it replaces the client's state.
+    public sealed record BoardSnapshotPayload(int Id, string Title, string Description,
+        IReadOnlyList<GetBoardByIdResponse.SwimlaneDto> Swimlanes, IReadOnlyList<GetBoardDetailsMemberResponse> Members);
+
+    Task BoardSnapshot(BoardSnapshotPayload payload, CancellationToken cancellationToken = default);
+
     public sealed record BoardUpdatedPayload(string Title, string Description);
 
     Task BoardUpdated(BoardUpdatedPayload payload, CancellationToken cancellationToken = default);
