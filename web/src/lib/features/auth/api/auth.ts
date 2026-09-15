@@ -26,6 +26,13 @@ export const localOnlyProviders: AuthProviders = {
   autoRedirectScheme: null
 };
 
+export interface TwoFactorSigninRequest {
+  code?: string;
+  recoveryCode?: string;
+  rememberMe: boolean;
+  rememberDevice: boolean;
+}
+
 export interface LdapSigninRequest {
   userName: string;
   password: string;
@@ -115,6 +122,24 @@ export class AuthService {
     const { rememberMe, ...payload } = data;
     const response = await this.apiClient.fetch(
       `/auth/ldap/sign-in?useCookies=true&useSessionCookies=${!rememberMe}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+    if (!response.ok) {
+      return await this.#handleBadResponse(response);
+    }
+    return { ok: true };
+  }
+
+  async twoFactorSignIn(data: TwoFactorSigninRequest): Promise<Response> {
+    const { rememberMe, ...payload } = data;
+    const response = await this.apiClient.fetch(
+      `/auth/sign-in/two-factor?useCookies=true&useSessionCookies=${!rememberMe}`,
       {
         method: 'POST',
         headers: {

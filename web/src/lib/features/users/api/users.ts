@@ -23,6 +23,20 @@ export interface SearchUserDto {
   avatarUrl: string | null;
 }
 
+export interface TwoFactorStatus {
+  isEnabled: boolean;
+  recoveryCodesLeft: number;
+}
+
+export interface AuthenticatorSetup {
+  sharedKey: string;
+  authenticatorUri: string;
+}
+
+export interface RecoveryCodesResponse {
+  recoveryCodes: string[];
+}
+
 export class UsersService extends BaseService {
 
   async getMe(event?: RequestEvent | ServerLoadEvent): Promise<ApiResponseType<{ user: User }>> {
@@ -107,6 +121,48 @@ export class UsersService extends BaseService {
   async updateAvatar(formData: FormData): Promise<AppResponse<void>> {
     return this.handleResponse(
       this.apiClient.fetch('/me/avatar', { method: 'PUT', body: formData })
+    );
+  }
+
+  async getTwoFactor(event?: RequestEvent | ServerLoadEvent): Promise<AppResponse<TwoFactorStatus>> {
+    return this.handleResponse<TwoFactorStatus>(
+      this.apiClient.fetch('/me/two-factor', { method: 'GET' }, event)
+    );
+  }
+
+  async setupAuthenticator(): Promise<AppResponse<AuthenticatorSetup>> {
+    return this.handleResponse<AuthenticatorSetup>(
+      this.apiClient.fetch('/me/two-factor/authenticator', { method: 'POST' })
+    );
+  }
+
+  async enableTwoFactor(body: { code: string }): Promise<AppResponse<RecoveryCodesResponse>> {
+    return this.handleResponse<RecoveryCodesResponse>(
+      this.apiClient.fetch('/me/two-factor/enable', {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+  }
+
+  async disableTwoFactor(body: { code?: string; recoveryCode?: string }): Promise<AppResponse<void>> {
+    return this.handleResponse(
+      this.apiClient.fetch('/me/two-factor/disable', {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+  }
+
+  async regenerateRecoveryCodes(body: { code: string }): Promise<AppResponse<RecoveryCodesResponse>> {
+    return this.handleResponse<RecoveryCodesResponse>(
+      this.apiClient.fetch('/me/two-factor/recovery-codes', {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' }
+      })
     );
   }
 

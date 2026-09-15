@@ -137,6 +137,13 @@
       icon: ShieldAlert,
       color: 'text-amber-600 dark:text-amber-400',
       bgColor: 'bg-amber-100 dark:bg-amber-900/30'
+    },
+    'Users.TwoFactor.SignInExpired': {
+      title: 'Sign in again',
+      message: 'The sign-in expired before the code was entered. Sign in again to get a new chance.',
+      icon: KeyRound,
+      color: 'text-brand-600 dark:text-brand-400',
+      bgColor: 'bg-brand-100 dark:bg-brand-900/30'
     }
   };
 

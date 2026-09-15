@@ -12,7 +12,7 @@
     SegmentedControl,
     SplitLayout
   } from '$lib/ui/components';
-  import { Mail, Lock, User } from 'lucide-svelte';
+  import { Mail, Lock, User, Smartphone, LifeBuoy } from 'lucide-svelte';
   import { createForm } from '$lib/ui/utils';
   import SignInModal from '$lib/features/auth/components/SignInModal.svelte';
   import ExternalProviderButtons from '$lib/features/auth/components/ExternalProviderButtons.svelte';
@@ -22,6 +22,9 @@
   let showSignInInfoModal = $state(false);
   let signInInfoCode = $state('');
   let signInMethod = $state<'ldap' | 'email'>('ldap');
+  let twoFactorStep = $state(false);
+  let useRecoveryCode = $state(false);
+  let twoFactorCodeError = $state<string | undefined>();
 
   const authService = new AuthService(apiClient);
 
@@ -45,10 +48,15 @@
     'Users.External.AccountNotConfirmed',
     'Users.External.SignUpDisabled',
     'Users.External.ConfirmationSent',
-    'Users.PasswordAuthentication.Disabled'
+    'Users.PasswordAuthentication.Disabled',
+    'Users.TwoFactor.SignInExpired'
   ];
 
   function showSignInInfo(code: string | null | undefined): boolean {
+    if (code === 'Users.SignIn.TwoFactorRequired') {
+      twoFactorStep = true;
+      return true;
+    }
     if (code && handledCodes.includes(code)) {
       signInInfoCode = code;
       showSignInInfoModal = true;
@@ -103,6 +111,56 @@
     },
     onError: (problem: ProblemDetails) => showSignInInfo(problem.title)
   });
+
+  const twoFactorForm = createForm({
+    initialValues: {
+      code: '',
+      rememberDevice: false
+    },
+    validate: (values) => {
+      const errors: Record<string, string> = {};
+      if (!values.code.trim()) {
+        errors.code = useRecoveryCode ? 'Recovery code is required.' : 'Code is required.';
+      }
+      return errors;
+    },
+    onSubmit: async (values) => {
+      const code = values.code.trim();
+      return await authService.twoFactorSignIn({
+        ...(useRecoveryCode ? { recoveryCode: code } : { code }),
+        rememberMe: form.values.rememberMe,
+        rememberDevice: !useRecoveryCode && values.rememberDevice
+      });
+    },
+    onSuccess: () => {
+      setTimeout(() => {
+        window.location.href = '/boards';
+      }, 300);
+    },
+    onError: (problem: ProblemDetails) => {
+      if (problem.title === 'Users.TwoFactor.InvalidCode') {
+        twoFactorCodeError = problem.detail ?? 'The code is not valid.';
+        return true;
+      }
+      if (problem.title === 'Users.TwoFactor.SignInExpired') {
+        twoFactorStep = false;
+      }
+      return showSignInInfo(problem.title);
+    }
+  });
+
+  function toggleRecoveryCode() {
+    useRecoveryCode = !useRecoveryCode;
+    twoFactorForm.values.code = '';
+    twoFactorCodeError = undefined;
+  }
+
+  function leaveTwoFactorStep() {
+    twoFactorStep = false;
+    useRecoveryCode = false;
+    twoFactorCodeError = undefined;
+    twoFactorForm.reset();
+  }
 </script>
 
 <svelte:head>
@@ -118,10 +176,14 @@
 
   <div class="mb-3 sm:mb-8">
     <h1 class="mb-2 text-2xl font-semibold text-gray-800 sm:text-3xl dark:text-white/90">
-      Welcome back!
+      {twoFactorStep ? 'Two-factor authentication' : 'Welcome back!'}
     </h1>
     <p class="text-sm text-gray-500 dark:text-gray-400">
-      {#if ldapMode}
+      {#if twoFactorStep}
+        {useRecoveryCode
+          ? 'Enter one of the recovery codes you saved when you turned on two-factor authentication.'
+          : 'Enter the 6-digit code from your authenticator app.'}
+      {:else if ldapMode}
         Enter your {auth.ldap?.displayName} user name and password to sign in.
       {:else if showForm}
         Enter your email and password to sign in.
@@ -131,6 +193,59 @@
     </p>
   </div>
 
+  {#if twoFactorStep}
+    <form onsubmit={twoFactorForm.handleSubmit} novalidate class="space-y-5">
+      <InputTextField
+        id="twoFactorCode"
+        name={useRecoveryCode ? 'recoveryCode' : 'code'}
+        label={useRecoveryCode ? 'Recovery code' : 'Authentication code'}
+        placeholder={useRecoveryCode ? 'XXXXX-XXXXX' : '123456'}
+        autocomplete={useRecoveryCode ? 'off' : 'one-time-code'}
+        inputmode={useRecoveryCode ? 'text' : 'numeric'}
+        maxlength={useRecoveryCode ? 16 : 7}
+        bind:value={twoFactorForm.values.code}
+        error={twoFactorCodeError ?? twoFactorForm.errors.code}
+        oninput={() => (twoFactorCodeError = undefined)}
+        leftIcon={useRecoveryCode ? LifeBuoy : Smartphone}
+      />
+
+      {#if !useRecoveryCode}
+        <Checkbox
+          bind:checked={twoFactorForm.values.rememberDevice}
+          label="Don't ask for a code on this device"
+        />
+      {/if}
+
+      <Button
+        type="submit"
+        variant="primary"
+        size="md"
+        class="w-full justify-center"
+        disabled={!twoFactorForm.values.code || twoFactorForm.isSubmitting}
+        isLoading={twoFactorForm.isSubmitting}
+        loadingText="Verifying"
+      >
+        Verify
+      </Button>
+
+      <div class="flex items-center justify-between gap-4 text-sm">
+        <button
+          type="button"
+          class="rounded-sm text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 dark:text-brand-400 dark:hover:text-brand-500"
+          onclick={toggleRecoveryCode}
+        >
+          {useRecoveryCode ? 'Use the authenticator app' : 'Use a recovery code'}
+        </button>
+        <button
+          type="button"
+          class="rounded-sm text-gray-500 underline underline-offset-2 transition-all duration-200 hover:text-gray-700 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 dark:text-gray-400 dark:hover:text-gray-200"
+          onclick={leaveTwoFactorStep}
+        >
+          Back to sign in
+        </button>
+      </div>
+    </form>
+  {:else}
   {#if auth.providers.length > 0}
     <ExternalProviderButtons
       providers={auth.providers}
@@ -211,9 +326,10 @@
       </Button>
     </form>
   {/if}
+  {/if}
 
   {#snippet footer()}
-    {#if canSignUp}
+    {#if canSignUp && !twoFactorStep}
       <p class="text-center text-sm font-normal text-gray-800 sm:text-start dark:text-gray-100">
         Don't have an account?
         <a

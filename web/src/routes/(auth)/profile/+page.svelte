@@ -7,8 +7,18 @@
   import ChangeEmailDialog from '$lib/features/users/components/ChangeEmailDialog.svelte';
   import ChangePasswordDialog from '$lib/features/users/components/ChangePasswordDialog.svelte';
   import DangerZone from '$lib/features/users/components/DangerZone.svelte';
-  import { ShieldCheck, User as UserIcon, Mail, KeyRound, Pencil } from 'lucide-svelte';
-  import { afterNavigate } from '$app/navigation';
+  import TwoFactorSetupDialog from '$lib/features/users/components/TwoFactorSetupDialog.svelte';
+  import TwoFactorManageDialog from '$lib/features/users/components/TwoFactorManageDialog.svelte';
+  import {
+    ShieldCheck,
+    User as UserIcon,
+    Mail,
+    KeyRound,
+    Pencil,
+    Smartphone,
+    Settings2
+  } from 'lucide-svelte';
+  import { afterNavigate, invalidateAll } from '$app/navigation';
 
   let { data } = $props();
   const usersService = new UsersService(apiClient);
@@ -21,6 +31,7 @@
   let isEditingUsername = $state(false);
   let isEditingEmail = $state(false);
   let isEditingPassword = $state(false);
+  let isEditingTwoFactor = $state(false);
 </script>
 
 <svelte:head>
@@ -129,7 +140,7 @@
         </section>
 
         <!-- Security section -->
-        {#if data.authProviders.passwordSignIn}
+        {#if data.authProviders.passwordSignIn || data.twoFactor}
           <section
             class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50"
           >
@@ -140,30 +151,86 @@
               Security
             </h2>
 
-            <div>
-              <div class="flex items-center justify-between gap-4">
-                <div class="flex min-w-0 items-center gap-3">
-                  <KeyRound size={15} class="shrink-0 text-gray-400" />
-                  <div class="min-w-0">
-                    <p class="text-xs text-gray-400 dark:text-gray-500">Password</p>
-                    <p class="text-sm font-medium tracking-widest text-gray-400 dark:text-gray-500">
-                      ••••••••
-                    </p>
+            {#if data.authProviders.passwordSignIn}
+              <div>
+                <div class="flex items-center justify-between gap-4">
+                  <div class="flex min-w-0 items-center gap-3">
+                    <KeyRound size={15} class="shrink-0 text-gray-400" />
+                    <div class="min-w-0">
+                      <p class="text-xs text-gray-400 dark:text-gray-500">Password</p>
+                      <p
+                        class="text-sm font-medium tracking-widest text-gray-400 dark:text-gray-500"
+                      >
+                        ••••••••
+                      </p>
+                    </div>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    onclick={() => {
+                      isEditingPassword = true;
+                    }}
+                    startIcon={Pencil}
+                  >
+                    Change
+                  </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  size="xs"
-                  onclick={() => {
-                    isEditingPassword = true;
-                  }}
-                  startIcon={Pencil}
-                >
-                  Change
-                </Button>
+                <ChangePasswordDialog bind:open={isEditingPassword} {usersService} />
               </div>
-              <ChangePasswordDialog bind:open={isEditingPassword} {usersService} />
-            </div>
+            {/if}
+
+            {#if data.authProviders.passwordSignIn && data.twoFactor}
+              <div class="my-5 h-px bg-gray-100 dark:bg-gray-800"></div>
+            {/if}
+
+            {#if data.twoFactor}
+              <div>
+                <div class="flex items-center justify-between gap-4">
+                  <div class="flex min-w-0 items-center gap-3">
+                    <Smartphone size={15} class="shrink-0 text-gray-400" />
+                    <div class="min-w-0">
+                      <p class="text-xs text-gray-400 dark:text-gray-500">
+                        Two-factor authentication
+                      </p>
+                      {#if data.twoFactor.isEnabled}
+                        <span
+                          class="mt-0.5 inline-flex rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-medium text-success-600 sm:text-xs dark:bg-success-500/10 dark:text-success-400"
+                        >
+                          On
+                        </span>
+                      {:else}
+                        <p class="text-sm font-medium text-gray-400 dark:text-gray-500">Off</p>
+                      {/if}
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    onclick={() => {
+                      isEditingTwoFactor = true;
+                    }}
+                    startIcon={data.twoFactor.isEnabled ? Settings2 : ShieldCheck}
+                  >
+                    {data.twoFactor.isEnabled ? 'Manage' : 'Set up'}
+                  </Button>
+                </div>
+                {#if data.twoFactor.isEnabled}
+                  <TwoFactorManageDialog
+                    bind:open={isEditingTwoFactor}
+                    {usersService}
+                    recoveryCodesLeft={data.twoFactor.recoveryCodesLeft}
+                    onChange={invalidateAll}
+                  />
+                {:else}
+                  <TwoFactorSetupDialog
+                    bind:open={isEditingTwoFactor}
+                    {usersService}
+                    onChange={invalidateAll}
+                  />
+                {/if}
+              </div>
+            {/if}
           </section>
         {/if}
 
