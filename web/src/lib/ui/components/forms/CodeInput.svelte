@@ -15,6 +15,7 @@
     length = 6,
     kind = 'numeric',
     label,
+    ariaLabel,
     error,
     id = generatedId,
     name,
@@ -27,6 +28,7 @@
     length?: number;
     kind?: 'numeric' | 'alphanumeric';
     label?: string;
+    ariaLabel?: string;
     error?: string;
     id?: string;
     name?: string;
@@ -39,7 +41,7 @@
   let inputRef = $state<HTMLInputElement | null>(null);
 
   const numeric = $derived(kind === 'numeric');
-  const fluid = $derived(length > 6);
+  const compact = $derived(length > 6);
   const errorId = $derived(error ? `${id}-error` : undefined);
   const groupSize = $derived(Math.ceil(length / 2));
 
@@ -58,8 +60,8 @@
   <PinInput.Cell
     {cell}
     class={cn(
-      'relative flex items-center justify-center rounded-lg border bg-transparent font-medium text-gray-800 tabular-nums shadow-theme-xs transition-all duration-200 dark:text-white/90',
-      fluid ? 'h-11 min-w-0 flex-1 text-base' : 'h-12 w-11 text-lg',
+      'relative flex min-w-0 flex-1 items-center justify-center rounded-lg border bg-transparent font-medium text-gray-800 tabular-nums shadow-theme-xs transition-all duration-200 dark:text-white/90',
+      compact ? 'h-11 text-base' : 'h-12 text-lg',
       !numeric && 'uppercase',
       error ? 'border-error-500 dark:border-error-500' : 'border-gray-300 dark:border-gray-700',
       cell.isActive && 'border-transparent outline-2 outline-offset-2 dark:border-transparent',
@@ -100,13 +102,11 @@
     aria-describedby={errorId}
     onValueChange={(next: string) => onValueChange?.(next)}
     onComplete={(code: string) => onComplete?.(code)}
-    class={cn(
-      'flex items-center has-disabled:opacity-60',
-      fluid ? 'w-full gap-1.5' : 'w-fit gap-2'
-    )}
+    aria-label={label ? undefined : ariaLabel}
+    class={cn('flex w-full items-center has-disabled:opacity-60', compact ? 'gap-1.5' : 'gap-2')}
   >
     {#snippet children({ cells })}
-      <div class={cn('flex', fluid ? 'min-w-0 flex-1 gap-1.5' : 'gap-2')}>
+      <div class={cn('flex min-w-0 flex-1', compact ? 'gap-1.5' : 'gap-2')}>
         {#each cells.slice(0, groupSize) as cell, index (index)}
           {@render cellView(cell)}
         {/each}
@@ -116,7 +116,7 @@
           class="h-0.5 w-3 shrink-0 rounded-full bg-gray-300 dark:bg-gray-600"
           aria-hidden="true"
         ></div>
-        <div class={cn('flex', fluid ? 'min-w-0 flex-1 gap-1.5' : 'gap-2')}>
+        <div class={cn('flex min-w-0 flex-1', compact ? 'gap-1.5' : 'gap-2')}>
           {#each cells.slice(groupSize) as cell, index (index)}
             {@render cellView(cell)}
           {/each}
