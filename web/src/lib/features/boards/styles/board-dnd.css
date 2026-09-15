@@ -448,6 +448,48 @@ section[data-board-zone='swimlanes'] {
   transition: flex-grow 0s 150ms;
 }
 
+/*
+  Swimlanes folded to their header bars while one is dragged (animations/swimlaneFold.ts): [data-fold-held] pins
+  every swimlane at its measured height, [data-folded] eases it down to the bar and its content folds away.
+*/
+section[data-board-zone='swimlanes'][data-fold-held] [data-board-item='swimlane'] {
+  height: var(--swimlane-rest-height, auto) !important;
+  min-height: 0;
+  flex: none;
+  overflow: clip;
+  transition:
+    height 280ms var(--ease-flow),
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    outline-color 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+section[data-board-zone='swimlanes'][data-folded] [data-board-item='swimlane'] {
+  height: calc(2.75rem + 1px) !important;
+}
+
+/* The clone's own height is eased by swimlaneFold.ts, its swimlane just fills it */
+#dnd-action-dragged-el > [data-board-item='swimlane'] {
+  height: 100% !important;
+  min-height: 0;
+  overflow: clip;
+}
+
+section[data-board-zone='swimlanes'] [data-board-item='swimlane'] > .swimlane-content {
+  transform-origin: top;
+  transition:
+    opacity 200ms ease-out 80ms,
+    scale 280ms var(--ease-flow);
+}
+
+section[data-board-zone='swimlanes'][data-folded] [data-board-item='swimlane'] > .swimlane-content {
+  opacity: 0;
+  scale: 1 0.92;
+  transition:
+    opacity 140ms cubic-bezier(0.4, 0, 1, 1),
+    scale 280ms var(--ease-flow);
+}
+
 section:is([data-board-zone='lists'], [data-board-zone='swimlanes']).board-drop-target {
   flex-grow: 1;
   transition-delay: 1ms;
@@ -498,6 +540,13 @@ section[data-board-zone].board-drop-target + * {
 
   section[data-board-zone='lists'],
   section[data-board-zone='swimlanes'],
+  section[data-board-zone='swimlanes'][data-fold-held] [data-board-item='swimlane'],
+  section[data-board-zone='swimlanes'][data-fold-held]
+    [data-board-item='swimlane']
+    > .swimlane-content,
+  section[data-board-zone='swimlanes'][data-folded]
+    [data-board-item='swimlane']
+    > .swimlane-content,
   section[data-board-zone]::before,
   section[data-board-zone]::after,
   section[data-board-zone] + *,

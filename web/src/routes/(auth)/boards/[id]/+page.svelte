@@ -20,6 +20,7 @@
   import { placeholderOut, triggerHaptic } from '$lib/ui/utils';
   import { Folders, Pencil, Plus, Loader2 } from 'lucide-svelte';
   import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
+  import { foldSwimlanes, unfoldSwimlanes } from '$lib/features/boards/animations/swimlaneFold';
   import '$lib/features/boards/styles/board-dnd.css';
 
   let { data } = $props();
@@ -161,6 +162,7 @@
     bs.board.swimlanes = [...e.detail.items];
     if (e.detail.info.source === SOURCES.KEYBOARD)
       keyboardMovedSwimlaneId = Number(e.detail.info.id);
+    if (e.detail.info.trigger === TRIGGERS.DRAG_STARTED) foldSwimlanes(Number(e.detail.info.id));
   }
 
   async function handleSwimlaneFinalize(
@@ -168,6 +170,7 @@
   ) {
     bs.board.swimlanes = [...e.detail.items];
     keyboardMovedSwimlaneId = null;
+    unfoldSwimlanes();
     const { info } = e.detail;
     if (info.trigger === TRIGGERS.DROPPED_INTO_ZONE) {
       triggerHaptic('success');
