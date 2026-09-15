@@ -144,6 +144,18 @@
       transform: translateY(4px);
     }
   }
+
+  /* Loading placeholders (Skeleton): a highlight sweeping across. Animates translate, like Tailwind's translate utilities. */
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+
+  @keyframes shimmer {
+    from {
+      translate: -100% 0;
+    }
+    to {
+      translate: 100% 0;
+    }
+  }
 }
 
 @layer base {
