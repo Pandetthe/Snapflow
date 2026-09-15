@@ -130,7 +130,7 @@
             <Button
               variant="primary"
               size="md"
-              class="mt-6 w-full sm:min-w-[140px] justify-center"
+              class="mt-6 w-full sm:min-w-35 justify-center"
               haptic="light"
             >
               Close

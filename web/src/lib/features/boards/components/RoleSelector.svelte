@@ -77,7 +77,7 @@
 >
   <Select.Trigger
     class={cn(
-      'group inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold whitespace-nowrap rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 w-[88px]',
+      'group inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold whitespace-nowrap rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 w-22',
       showArrow ? 'justify-between' : 'justify-center',
       variantClassMap[role] || variantClassMap.member,
       disabled && 'opacity-50 cursor-not-allowed',
@@ -94,7 +94,7 @@
   <Select.Portal>
     <Select.Content
       class={cn(
-        'z-50 min-w-[130px] overflow-hidden rounded-xl border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-800 dark:bg-gray-950',
+        'z-50 min-w-32.5 overflow-hidden rounded-xl border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-800 dark:bg-gray-950',
         floatingMotionClass
       )}
       sideOffset={4}

@@ -3,7 +3,9 @@
   import { fade } from 'svelte/transition';
   import { dragHandleZone, type DndEvent, SOURCES, TRIGGERS } from 'svelte-dnd-action';
   import Swimlane from '$lib/features/boards/components/Swimlane.svelte';
-  import BoardSkeleton, { type SkeletonBand } from '$lib/features/boards/components/BoardSkeleton.svelte';
+  import BoardSkeleton, {
+    type SkeletonBand
+  } from '$lib/features/boards/components/BoardSkeleton.svelte';
   import SwimlaneModal from '$lib/features/boards/components/SwimlaneModal.svelte';
   import ListModal from '$lib/features/boards/components/ListModal.svelte';
   import CardModal from '$lib/features/boards/components/CardModal.svelte';
@@ -30,22 +32,14 @@
 
   let hub = $state<BoardsHub | null>(null);
 
-  /*
-    Loading: only the skeleton. Morphing: the board renders invisibly and the skeleton resizes to its measured
-    layout (board-dnd.css). Ready: the board shows and the skeleton fades out. A reconnect keeps the loaded board,
-    so this plays once per board.
-  */
   let loadPhase = $state<'loading' | 'morphing' | 'ready'>('loading');
   let skeletonLayout = $state<SkeletonBand[] | null>(null);
   let boardContent = $state<HTMLElement>();
-  // The board came quickly: it replaces the skeleton at once, without the morph or fades.
   let instantReveal = $state(false);
   let skeletonShownAt = performance.now();
 
-  /** A little longer than the skeleton's transitions in board-dnd.css. */
   const BOARD_MORPH_MS = 260;
 
-  /** A skeleton seen for less than this is barely noticed, so morphing it would only delay the board. */
   const QUICK_LOAD_MS = 250;
 
   $effect(() => {
@@ -76,7 +70,6 @@
       return;
     }
     skeletonLayout = measureBoardLayout(boardContent);
-    // A timer rather than transitionend: it also runs out in background tabs.
     await new Promise((resolve) => setTimeout(resolve, BOARD_MORPH_MS));
     if (loadPhase === 'morphing') loadPhase = 'ready';
   }
@@ -123,7 +116,6 @@
     recentBoards.add(data.board.id);
   });
 
-  // One hub connection per board. Its snapshot loads the board on connect and again on every reconnect (boardState).
   $effect(() => {
     const boardId = data.board.id;
     const connection = new BoardsHub(boardId);
@@ -131,7 +123,6 @@
     untrack(() => {
       if (bs.board.id !== boardId) bs.reset(data.board, data.members);
       hub = connection;
-      // Before start: the snapshot is sent as soon as the connection is established.
       bs.registerHubEvents(connection);
     });
 
@@ -167,10 +158,13 @@
 
   function handleSwimlaneConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.SwimlaneDto>>) {
     bs.board.swimlanes = [...e.detail.items];
-    if (e.detail.info.source === SOURCES.KEYBOARD) keyboardMovedSwimlaneId = Number(e.detail.info.id);
+    if (e.detail.info.source === SOURCES.KEYBOARD)
+      keyboardMovedSwimlaneId = Number(e.detail.info.id);
   }
 
-  async function handleSwimlaneFinalize(e: CustomEvent<DndEvent<GetBoardByIdResponse.SwimlaneDto>>) {
+  async function handleSwimlaneFinalize(
+    e: CustomEvent<DndEvent<GetBoardByIdResponse.SwimlaneDto>>
+  ) {
     bs.board.swimlanes = [...e.detail.items];
     keyboardMovedSwimlaneId = null;
     const { info } = e.detail;
@@ -204,28 +198,36 @@
 
 <FullBleedLayout>
   {#if bs.connectionState !== 'connected'}
-    <div class="fixed bottom-4 right-4 z-50 flex h-14 items-center gap-3 rounded-full px-6 text-sm font-medium text-white shadow-lg transition-all dark:shadow-black/40 {bs.connectionState === 'disconnected' ? 'bg-red-600' : 'bg-primary-600 dark:bg-primary-500'}">
+    <div
+      class="fixed right-4 bottom-4 z-50 flex h-14 items-center gap-3 rounded-full px-6 text-sm font-medium text-white shadow-lg transition-all dark:shadow-black/40 {bs.connectionState ===
+      'disconnected'
+        ? 'bg-red-600'
+        : 'bg-primary-600 dark:bg-primary-500'}"
+    >
       {#if bs.connectionState === 'connecting'}
-        <Loader2 class="h-4 w-4 animate-spin" /> <span class="flex items-center gap-0.5">Connecting<LoadingDots /></span>
+        <Loader2 class="h-4 w-4 animate-spin" />
+        <span class="flex items-center gap-0.5">Connecting<LoadingDots /></span>
       {:else if bs.connectionState === 'reconnecting'}
-        <Loader2 class="h-4 w-4 animate-spin" /> <span class="flex items-center gap-0.5">Reconnecting<LoadingDots /></span>
+        <Loader2 class="h-4 w-4 animate-spin" />
+        <span class="flex items-center gap-0.5">Reconnecting<LoadingDots /></span>
       {:else}
-        <div class="h-2.5 w-2.5 rounded-full bg-red-600"></div> <span>Disconnected</span>
+        <div class="h-2.5 w-2.5 rounded-full bg-red-600"></div>
+        <span>Disconnected</span>
       {/if}
     </div>
   {/if}
-  <!-- A flex column down to the swimlanes zone, so a dragged swimlane's drop area can take the rest of the height (board-dnd.css) -->
   <div class="flex w-full flex-1 flex-col overflow-x-clip pb-12" data-board-page>
     <!-- Board header -->
-    <div class="relative w-full border-b border-gray-200/80 bg-white/95 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/95">
+    <div
+      class="relative w-full border-b border-gray-200/80 bg-white/95 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/95"
+    >
       <div class="flex w-full items-center gap-4 px-4 py-2.5 sm:px-6 lg:px-8">
-        <GoBackButton
-          href="/boards"
-          hideTextOnMobile={true}
-        />
+        <GoBackButton href="/boards" hideTextOnMobile={true} />
 
         <div class="min-w-0 flex-1">
-          <h1 class="truncate text-base font-semibold tracking-tight text-gray-900 dark:text-white sm:text-lg">
+          <h1
+            class="truncate text-base font-semibold tracking-tight text-gray-900 sm:text-lg dark:text-white"
+          >
             {bs.board.title}
           </h1>
           {#if bs.board.description?.trim()}
@@ -240,7 +242,7 @@
             href={`/boards/${bs.board.id}/edit`}
             variant="ghost"
             size="sm"
-            class="shrink-0 h-8 gap-1.5 rounded-lg px-3 text-xs font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white sm:h-9"
+            class="h-8 shrink-0 gap-1.5 rounded-lg px-3 text-xs font-medium text-gray-600 hover:bg-gray-100 sm:h-9 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
             startIcon={Pencil}
             aria-label="Edit board"
           >
@@ -251,89 +253,94 @@
     </div>
 
     <!-- Swimlanes -->
-    <!--
-      The skeleton and the board share one grid cell: the skeleton morphs into the board's layout while the board
-      renders invisibly over it, then the board shows and the skeleton fades out underneath.
-      minmax(0, 1fr) keeps the cell as wide as the page, so wide swimlanes still scroll inside it.
-    -->
     <section class="grid flex-1 grid-cols-[minmax(0,1fr)]">
       {#if loadPhase !== 'ready'}
-        <div class="col-start-1 row-start-1 min-w-0" out:fade={instantReveal ? { duration: 0 } : placeholderOut}>
+        <div
+          class="col-start-1 row-start-1 min-w-0"
+          out:fade={instantReveal ? { duration: 0 } : placeholderOut}
+        >
           <BoardSkeleton layout={skeletonLayout} />
         </div>
       {/if}
       {#if loadPhase !== 'loading'}
-      <div
-        bind:this={boardContent}
-        class="col-start-1 row-start-1 flex min-w-0 flex-col transition-opacity duration-150 ease-flow"
-        class:opacity-0={loadPhase === 'morphing'}
-        inert={loadPhase === 'morphing'}
-      >
-      {#if bs.board.swimlanes.length === 0}
-        <div class="flex flex-col items-center justify-center px-4 py-16 text-center">
-          <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800">
-            <Folders class="h-7 w-7 text-gray-400" />
-          </div>
-          <h2 class="mb-1.5 text-base font-semibold text-gray-900 dark:text-white">No swimlanes yet</h2>
-          <p class="max-w-xs text-sm text-gray-500 dark:text-gray-400">
-            Create your first swimlane to start organizing this board.
-          </p>
-        </div>
-      {/if}
-
-      <div class="relative flex w-full flex-1 flex-col">
-        <!-- The drop area reaches under "Add swimlane" via padding cancelled by a negative margin -->
-        <section
-          use:dragHandleZone={{
-            items: bs.board.swimlanes,
-            flipDurationMs: LAYOUT_FLIP_MS,
-            type: 'swimlanes',
-            dropTargetStyle: {},
-            dropTargetClasses: ['board-drop-target'],
-            // Swimlanes keep their own size while dragged.
-            morphDisabled: true,
-            useCursorForDetection: true,
-            zoneTabIndex: -1,
-            zoneItemTabIndex: 0,
-            dragDisabled: bs.connectionState !== 'connected'
-          }}
-          onconsider={handleSwimlaneConsider}
-          onfinalize={handleSwimlaneFinalize}
-          data-board-zone="swimlanes"
-          data-empty={bs.board.swimlanes.length === 0 || undefined}
-          class="flex flex-col {bs.canManageSwimlanes ? 'pb-14 -mb-14' : ''}"
+        <div
+          bind:this={boardContent}
+          class="col-start-1 row-start-1 flex min-w-0 flex-col transition-opacity duration-150 ease-flow"
+          class:opacity-0={loadPhase === 'morphing'}
+          inert={loadPhase === 'morphing'}
         >
-          {#each bs.board.swimlanes as swimlane, index (swimlane.id)}
-            <div
-              animate:flip={layoutFlip}
-              class="relative z-20 w-full outline-none"
-              class:board-enter={bs.isNew('swimlane', swimlane.id)}
-              class:board-leave={bs.isLeaving('swimlane', swimlane.id)}
-              data-board-slot="swimlane"
-              data-selected={keyboardMovedSwimlaneId === swimlane.id || undefined}
-            >
-              <Swimlane bind:swimlane={bs.board.swimlanes[index]} />
+          {#if bs.board.swimlanes.length === 0}
+            <div class="flex flex-col items-center justify-center px-4 py-16 text-center">
+              <div
+                class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800"
+              >
+                <Folders class="h-7 w-7 text-gray-400" />
+              </div>
+              <h2 class="mb-1.5 text-base font-semibold text-gray-900 dark:text-white">
+                No swimlanes yet
+              </h2>
+              <p class="max-w-xs text-sm text-gray-500 dark:text-gray-400">
+                Create your first swimlane to start organizing this board.
+              </p>
             </div>
-          {/each}
-        </section>
+          {/if}
 
-        {#if bs.canManageSwimlanes}
-          <div class="relative z-10 px-5 py-2">
-            <Button
-              type="button"
-              variant="ghost"
-              startIcon={Plus}
-              onclick={() => { editingSwimlane = undefined; swimlaneModalOpen = true; }}
-              disabled={bs.connectionState !== 'connected'}
-              aria-label="Add swimlane"
-              class="h-9 justify-start gap-1.5 rounded-lg px-3 text-xs font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-700/60 dark:hover:text-gray-300"
+          <div class="relative flex w-full flex-1 flex-col">
+            <!-- The drop area reaches under "Add swimlane" via padding cancelled by a negative margin -->
+            <section
+              use:dragHandleZone={{
+                items: bs.board.swimlanes,
+                flipDurationMs: LAYOUT_FLIP_MS,
+                type: 'swimlanes',
+                dropTargetStyle: {},
+                dropTargetClasses: ['board-drop-target'],
+                // Swimlanes keep their own size while dragged.
+                morphDisabled: true,
+                useCursorForDetection: true,
+                zoneTabIndex: -1,
+                zoneItemTabIndex: 0,
+                dragDisabled: bs.connectionState !== 'connected'
+              }}
+              onconsider={handleSwimlaneConsider}
+              onfinalize={handleSwimlaneFinalize}
+              data-board-zone="swimlanes"
+              data-empty={bs.board.swimlanes.length === 0 || undefined}
+              class="flex flex-col {bs.canManageSwimlanes ? '-mb-14 pb-14' : ''}"
             >
-              Add swimlane
-            </Button>
+              {#each bs.board.swimlanes as swimlane, index (swimlane.id)}
+                <div
+                  animate:flip={layoutFlip}
+                  class="relative z-20 w-full outline-none"
+                  class:board-enter={bs.isNew('swimlane', swimlane.id)}
+                  class:board-leave={bs.isLeaving('swimlane', swimlane.id)}
+                  data-board-slot="swimlane"
+                  data-selected={keyboardMovedSwimlaneId === swimlane.id || undefined}
+                >
+                  <Swimlane bind:swimlane={bs.board.swimlanes[index]} />
+                </div>
+              {/each}
+            </section>
+
+            {#if bs.canManageSwimlanes}
+              <div class="relative z-10 px-5 py-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  startIcon={Plus}
+                  onclick={() => {
+                    editingSwimlane = undefined;
+                    swimlaneModalOpen = true;
+                  }}
+                  disabled={bs.connectionState !== 'connected'}
+                  aria-label="Add swimlane"
+                  class="h-9 justify-start gap-1.5 rounded-lg px-3 text-xs font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-700/60 dark:hover:text-gray-300"
+                >
+                  Add swimlane
+                </Button>
+              </div>
+            {/if}
           </div>
-        {/if}
-      </div>
-      </div>
+        </div>
       {/if}
     </section>
   </div>
@@ -356,6 +363,7 @@
 <CardModal
   bind:open={cardModalOpen}
   card={editingCard}
-  onConfirm={(title, description) => bs.handleCardConfirm(editingCard, targetListId, title, description)}
+  onConfirm={(title, description) =>
+    bs.handleCardConfirm(editingCard, targetListId, title, description)}
   onDelete={(id) => bs.handleCardDelete(id)}
 />

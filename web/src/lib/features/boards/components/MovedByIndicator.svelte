@@ -26,7 +26,10 @@
   };
 
   /** Rises onto the edge it is anchored to; the outro plays the same motion in reverse, a bit faster. */
-  function pill(_node: Element, { duration, easing }: { duration: number; easing: (t: number) => number }): TransitionConfig {
+  function pill(
+    _node: Element,
+    { duration, easing }: { duration: number; easing: (t: number) => number }
+  ): TransitionConfig {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     return {
       duration: reduceMotion ? 0 : duration,
@@ -43,7 +46,8 @@
 -->
 {#each move ? [move] : [] as m (m.key)}
   {@const action = ACTIONS[m.action]}
-  <span aria-hidden="true" class="moved-by-ring pointer-events-none absolute inset-0 {rounded}"></span>
+  <span aria-hidden="true" class="moved-by-ring pointer-events-none absolute inset-0 {rounded}"
+  ></span>
   <div
     class="pointer-events-none absolute -top-2 right-3 z-30 flex origin-bottom-right items-center"
     in:pill={{ duration: 280, easing: cubicOut }}

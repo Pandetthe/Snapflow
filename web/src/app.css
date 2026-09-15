@@ -145,7 +145,6 @@
     }
   }
 
-  /* Loading placeholders (Skeleton): a highlight sweeping across. Animates translate, like Tailwind's translate utilities. */
   --animate-shimmer: shimmer 1.6s ease-in-out infinite;
 
   @keyframes shimmer {
@@ -267,23 +266,23 @@
 */
 @layer base {
   :where(
-      a[href],
-      button,
-      input,
-      select,
-      textarea,
-      summary,
-      [tabindex]:not([tabindex='-1']),
-      [role='button'],
-      [role='checkbox'],
-      [role='radio'],
-      [role='switch'],
-      [role='tab'],
-      [role='menuitem'],
-      [role='option'],
-      [role='combobox'],
-      [role='slider']
-    ) {
+    a[href],
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [tabindex]:not([tabindex='-1']),
+    [role='button'],
+    [role='checkbox'],
+    [role='radio'],
+    [role='switch'],
+    [role='tab'],
+    [role='menuitem'],
+    [role='option'],
+    [role='combobox'],
+    [role='slider']
+  ) {
     outline: 2px solid transparent;
     outline-offset: 2px;
     transition-property: outline-color;
@@ -292,23 +291,23 @@
   }
 
   :where(
-      a[href],
-      button,
-      input,
-      select,
-      textarea,
-      summary,
-      [tabindex]:not([tabindex='-1']),
-      [role='button'],
-      [role='checkbox'],
-      [role='radio'],
-      [role='switch'],
-      [role='tab'],
-      [role='menuitem'],
-      [role='option'],
-      [role='combobox'],
-      [role='slider']
-    ):focus-visible {
+    a[href],
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [tabindex]:not([tabindex='-1']),
+    [role='button'],
+    [role='checkbox'],
+    [role='radio'],
+    [role='switch'],
+    [role='tab'],
+    [role='menuitem'],
+    [role='option'],
+    [role='combobox'],
+    [role='slider']
+  ):focus-visible {
     outline-color: var(--color-brand-500);
   }
 

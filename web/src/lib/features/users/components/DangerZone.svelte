@@ -5,6 +5,7 @@
   import { errorStore } from '$lib/ui/stores/error.svelte';
   import { Trash2, TriangleAlert, X } from 'lucide-svelte';
   import { goto } from '$app/navigation';
+  import { resolve } from '$app/paths';
 
   let {
     usersService
@@ -21,14 +22,16 @@
     const result = await usersService.deleteAccount();
     isDeletingAccount = false;
     if (result.ok) {
-      await goto('/sign-in');
+      await goto(resolve('/sign-in'));
     } else {
       errorStore.addError(result.problem?.title ?? null, result.problem?.detail ?? null);
     }
   }
 </script>
 
-<section class="rounded-2xl border border-error-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-error-900/60 dark:bg-gray-900/50">
+<section
+  class="rounded-2xl border border-error-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-error-900/60 dark:bg-gray-900/50"
+>
   <h2 class="mb-5 flex items-center gap-2 text-lg font-bold text-error-600 dark:text-error-400">
     <TriangleAlert size={18} class="text-error-500" />
     Danger zone
@@ -47,7 +50,9 @@
       variant="outline"
       size="xs"
       startIcon={Trash2}
-      onclick={() => { isConfirmingDelete = true; }}
+      onclick={() => {
+        isConfirmingDelete = true;
+      }}
       class="border-error-300 text-error-600 hover:bg-error-50 dark:border-error-800 dark:text-error-400 dark:hover:bg-error-900/20"
     >
       Delete
@@ -65,11 +70,14 @@
         </Dialog.Description>
       </div>
 
-      <div class="space-y-3 rounded-xl border border-error-100 bg-error-50/50 p-4 dark:border-error-900/40 dark:bg-error-900/10">
+      <div
+        class="space-y-3 rounded-xl border border-error-100 bg-error-50/50 p-4 dark:border-error-900/40 dark:bg-error-900/10"
+      >
         <div class="flex items-start gap-2.5">
           <TriangleAlert size={15} class="mt-0.5 shrink-0 text-error-500" />
           <p class="text-sm text-error-700 dark:text-error-300">
-            Your account will be deactivated and you will be signed out immediately. All data will be permanently removed.
+            Your account will be deactivated and you will be signed out immediately. All data will
+            be permanently removed.
           </p>
         </div>
       </div>
@@ -79,8 +87,10 @@
           variant="ghost"
           size="sm"
           startIcon={X}
-          onclick={() => { isConfirmingDelete = false; }}
-        >Cancel</Button>
+          onclick={() => {
+            isConfirmingDelete = false;
+          }}>Cancel</Button
+        >
         <Button
           variant="primary"
           size="sm"

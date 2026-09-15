@@ -5,16 +5,19 @@
   import { Sun, Moon, Monitor, Check } from 'lucide-svelte';
   import { cn, floatingMotionClass } from '$lib/ui/utils';
 
-  // Header icon button; the mobile menu picks the theme with a SegmentedControl (AppHeader).
   interface Props {
     class?: string;
   }
 
   let { class: className = '' }: Props = $props();
 
-  function setTheme(newTheme: 'light' | 'dark' | 'system') {
-    theme.set(newTheme);
-  }
+  type ThemeMode = 'light' | 'dark' | 'system';
+
+  const options: { value: ThemeMode; label: string; icon: typeof Sun }[] = [
+    { value: 'light', label: 'Light', icon: Sun },
+    { value: 'dark', label: 'Dark', icon: Moon },
+    { value: 'system', label: 'System', icon: Monitor }
+  ];
 </script>
 
 <DropdownMenu.Root>
@@ -24,13 +27,13 @@
         {...triggerProps}
         variant="outline"
         class={cn(
-          "flex h-11 w-11 items-center justify-center rounded-full p-0 text-gray-700 transition-all active:scale-95 dark:text-gray-400",
+          'flex h-11 w-11 items-center justify-center rounded-full p-0 text-gray-700 transition-all active:scale-95 dark:text-gray-400',
           className
         )}
       >
-        <Sun size={20} class="hidden theme-icon-light" />
-        <Moon size={20} class="hidden theme-icon-dark" />
-        <Monitor size={20} class="hidden theme-icon-system" />
+        <Sun size={20} class="theme-icon-light hidden" />
+        <Moon size={20} class="theme-icon-dark hidden" />
+        <Monitor size={20} class="theme-icon-system hidden" />
         <span class="sr-only">Toggle theme</span>
       </Button>
     {/snippet}
@@ -38,76 +41,40 @@
 
   <DropdownMenu.Content
     class={cn(
-      "z-50 mt-1 overflow-hidden rounded-lg border border-gray-300 bg-white p-1 shadow-theme-lg dark:border-gray-700 dark:bg-gray-900",
-      floatingMotionClass,
-      "w-40"
+      'z-50 mt-1 w-40 overflow-hidden rounded-lg border border-gray-300 bg-white p-1 shadow-theme-lg dark:border-gray-700 dark:bg-gray-900',
+      floatingMotionClass
     )}
     align="end"
     sideOffset={4}
   >
-    <DropdownMenu.Item onclick={() => setTheme('light')}>
-      {#snippet child({ props })}
-        <Button
-          {...props}
-          variant="ghost"
-          size="sm"
-          class={cn(
-            "w-full justify-between items-center font-medium",
-            $theme === 'light' ? "text-brand-600 dark:text-brand-400" : ""
-          )}
-        >
-          <div class="flex items-center gap-2">
-            <Sun size={16} class={cn($theme === 'light' && "text-brand-500 dark:text-brand-400")} />
-            <span>Light</span>
-          </div>
-          {#if $theme === 'light'}
-            <Check size={16} class="shrink-0 text-brand-500 dark:text-brand-400" />
-          {/if}
-        </Button>
-      {/snippet}
-    </DropdownMenu.Item>
-    <DropdownMenu.Item onclick={() => setTheme('dark')}>
-      {#snippet child({ props })}
-        <Button
-          {...props}
-          variant="ghost"
-          size="sm"
-          class={cn(
-            "w-full justify-between items-center font-medium",
-            $theme === 'dark' ? "text-brand-600 dark:text-brand-400" : ""
-          )}
-        >
-          <div class="flex items-center gap-2">
-            <Moon size={16} class={cn($theme === 'dark' && "text-brand-500 dark:text-brand-400")} />
-            <span>Dark</span>
-          </div>
-          {#if $theme === 'dark'}
-            <Check size={16} class="shrink-0 text-brand-500 dark:text-brand-400" />
-          {/if}
-        </Button>
-      {/snippet}
-    </DropdownMenu.Item>
-    <DropdownMenu.Item onclick={() => setTheme('system')}>
-      {#snippet child({ props })}
-        <Button
-          {...props}
-          variant="ghost"
-          size="sm"
-          class={cn(
-            "w-full justify-between items-center font-medium",
-            $theme === 'system' ? "text-brand-600 dark:text-brand-400" : ""
-          )}
-        >
-          <div class="flex items-center gap-2">
-            <Monitor size={16} class={cn($theme === 'system' && "text-brand-500 dark:text-brand-400")} />
-            <span>System</span>
-          </div>
-          {#if $theme === 'system'}
-            <Check size={16} class="shrink-0 text-brand-500 dark:text-brand-400" />
-          {/if}
-        </Button>
-      {/snippet}
-    </DropdownMenu.Item>
+    <DropdownMenu.RadioGroup value={$theme} onValueChange={(mode) => theme.set(mode as ThemeMode)}>
+      {#each options as option (option.value)}
+        <DropdownMenu.RadioItem value={option.value}>
+          {#snippet child({ props, checked })}
+            <Button
+              {...props}
+              variant="ghost"
+              size="sm"
+              class={cn(
+                'w-full items-center justify-between font-medium',
+                checked && 'text-brand-600 dark:text-brand-400'
+              )}
+            >
+              <div class="flex items-center gap-2">
+                <option.icon
+                  size={16}
+                  class={cn(checked && 'text-brand-500 dark:text-brand-400')}
+                />
+                <span>{option.label}</span>
+              </div>
+              {#if checked}
+                <Check size={16} class="shrink-0 text-brand-500 dark:text-brand-400" />
+              {/if}
+            </Button>
+          {/snippet}
+        </DropdownMenu.RadioItem>
+      {/each}
+    </DropdownMenu.RadioGroup>
   </DropdownMenu.Content>
 </DropdownMenu.Root>
 

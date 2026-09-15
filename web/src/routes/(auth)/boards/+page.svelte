@@ -24,31 +24,20 @@
   let filteredBoards = $derived(
     data.boards.filter((b: BoardData) => b.title.toLowerCase().includes(searchQuery.toLowerCase()))
   );
-  /*
-    Loading: only the skeleton (also what the server renders). Morphing: the page renders invisibly and each
-    placeholder moves onto the element that replaces it (skeletonMorph.ts). Ready: the page shows and the
-    skeleton fades out.
-  */
-  // A server-rendered page shows its skeleton until it hydrates; client-side navigation has the data at once
-  // and renders the page directly, without a skeleton.
   const serverRendered =
     typeof document === 'undefined' || document.querySelector('[data-boards-skeleton]') !== null;
   let loadPhase = $state<'loading' | 'morphing' | 'ready'>(serverRendered ? 'loading' : 'ready');
   let placeholder = $state<HTMLElement>();
   let content = $state<HTMLElement>();
-  // The skeleton was barely on screen: the page replaces it at once, without the morph or fades.
   let instantReveal = $state(false);
 
-  /** Long enough for the placeholders to arrive, short enough not to hold the page back. */
   const BOARDS_MORPH_MS = 260;
 
-  /** A skeleton seen for less than this is barely noticed, so morphing it would only delay the page. */
   const QUICK_LOAD_MS = 250;
 
   onMount(async () => {
     if (loadPhase === 'ready') return;
 
-    // How long the server-rendered skeleton has been on screen, from the first paint.
     const firstPaint = performance.getEntriesByName('first-contentful-paint')[0];
     const skeletonShownFor = firstPaint ? performance.now() - firstPaint.startTime : Infinity;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -97,163 +86,164 @@
 
 <FullLayout>
   <div class="relative w-full flex-1 pb-20 sm:pb-6">
-    <!-- The skeleton and the page share one grid cell, so the skeleton morphs in place over the invisible page -->
     <div class="grid grid-cols-[minmax(0,1fr)]">
-    {#if loadPhase !== 'loading'}
-      <div
-        bind:this={content}
-        class="col-start-1 row-start-1 min-w-0 transition-opacity duration-150 ease-flow"
-        class:opacity-0={loadPhase === 'morphing'}
-        inert={loadPhase === 'morphing'}
-      >
-        <div class="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
-          <div class="space-y-1">
-            <!-- w-fit: the morph targets the text's own width -->
-            <h1 class="w-fit text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl dark:text-white" data-morph="title">
-              Hi {data.user.userName}!
-            </h1>
-            <p class="w-fit text-sm text-gray-500 dark:text-gray-400" data-morph="subtitle">
-              Manage your projects and collaborate with your team.
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="relative w-full sm:w-64" data-morph="search">
-              <Input
-                type="search"
-                placeholder="Search boards..."
-                bind:value={searchQuery}
-                class="h-10"
-              />
+      {#if loadPhase !== 'loading'}
+        <div
+          bind:this={content}
+          class="col-start-1 row-start-1 min-w-0 transition-opacity duration-150 ease-flow"
+          class:opacity-0={loadPhase === 'morphing'}
+          inert={loadPhase === 'morphing'}
+        >
+          <div
+            class="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div class="space-y-1">
+              <h1
+                class="w-fit text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl dark:text-white"
+                data-morph="title"
+              >
+                Hi {data.user.userName}!
+              </h1>
+              <p class="w-fit text-sm text-gray-500 dark:text-gray-400" data-morph="subtitle">
+                Manage your projects and collaborate with your team.
+              </p>
             </div>
-            <Button
-              variant="primary"
-              size="md"
-              haptic="light"
-              startIcon={Plus}
-              class="hidden sm:inline-flex"
-              href="/boards/new"
-              data-morph="new"
-            >
-              New Board
-            </Button>
+            <div class="flex items-center gap-3">
+              <div class="relative w-full sm:w-64" data-morph="search">
+                <Input
+                  type="search"
+                  placeholder="Search boards..."
+                  bind:value={searchQuery}
+                  class="h-10"
+                />
+              </div>
+              <Button
+                variant="primary"
+                size="md"
+                haptic="light"
+                startIcon={Plus}
+                class="hidden sm:inline-flex"
+                href="/boards/new"
+                data-morph="new"
+              >
+                New Board
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {#if $recentBoards.length > 0}
-          <div class="mb-8 lg:mb-10" transition:slide={slideReveal}>
-            <h2
-              class="mb-4 flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-400"
-            >
-              <History class="h-3.5 w-3.5" />
-              Recently visited
-            </h2>
+          {#if $recentBoards.length > 0}
+            <div class="mb-8 lg:mb-10" transition:slide={slideReveal}>
+              <h2
+                class="mb-4 flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-400"
+              >
+                <History class="h-3.5 w-3.5" />
+                Recently visited
+              </h2>
+              <div
+                class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 xl:gap-6 2xl:grid-cols-5"
+              >
+                {#each $recentBoards as boardId (boardId)}
+                  {@const board = data.boards.find((b: BoardData) => b.id === Number(boardId))}
+                  {#if board}
+                    <BoardCard
+                      title={board.title}
+                      id={board.id.toString()}
+                      yourRole={(board as BoardData).yourRole}
+                    />
+                  {/if}
+                {/each}
+              </div>
+            </div>
+          {/if}
+
+          <h2
+            class="mb-4 flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-400"
+          >
+            <span class="flex items-center gap-2">
+              <Folders class="h-3.5 w-3.5" />
+              Your boards
+            </span>
+          </h2>
+
+          {#if data.boards.length === 0}
             <div
-              class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:gap-5 xl:gap-6"
+              class="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 px-4 py-12 text-center sm:py-20 dark:border-gray-800"
             >
-              {#each $recentBoards as boardId}
-                {@const board = data.boards.find((b: BoardData) => b.id === Number(boardId))}
-                {#if board}
-                  <BoardCard
-                    title={board.title}
-                    id={board.id.toString()}
-                    href={`/boards/${board.id}`}
-                    editHref={`/boards/${board.id}/edit`}
-                    yourRole={(board as BoardData).yourRole}
-                  />
-                {/if}
+              <div
+                class="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 dark:bg-gray-800/30"
+              >
+                <Folders class="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
+                No boards found
+              </h3>
+              <p class="mb-8 max-w-sm text-sm text-gray-500 dark:text-gray-400">
+                {searchQuery
+                  ? `No boards match "${searchQuery}". Try a different search term.`
+                  : 'Get started by creating your first board to organize your tasks and projects.'}
+              </p>
+              {#if !searchQuery}
+                <Button href="/boards/new" variant="primary" startIcon={Plus}
+                  >Create First Board</Button
+                >
+              {/if}
+            </div>
+          {:else}
+            <div
+              class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 xl:gap-6 2xl:grid-cols-5"
+            >
+              {#each filteredBoards as board (board.id)}
+                <BoardCard
+                  title={board.title}
+                  id={board.id.toString()}
+                  yourRole={(board as BoardData).yourRole}
+                />
               {/each}
             </div>
-          </div>
-        {/if}
+          {/if}
 
-        <h2
-          class="mb-4 flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-400"
-        >
-          <span class="flex items-center gap-2">
-            <Folders class="h-3.5 w-3.5" />
-            Your boards
-          </span>
-        </h2>
-
-        {#if data.boards.length === 0}
           <div
-            class="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 px-4 py-12 text-center dark:border-gray-800 sm:py-20"
+            class="mt-12 flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400"
           >
-            <div
-              class="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 dark:bg-gray-800/30"
-            >
-              <Folders class="h-8 w-8 text-gray-400" />
-            </div>
-            <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">No boards found</h3>
-            <p class="mb-8 max-w-sm text-sm text-gray-500 dark:text-gray-400">
-              {searchQuery
-                ? `No boards match "${searchQuery}". Try a different search term.`
-                : 'Get started by creating your first board to organize your tasks and projects.'}
-            </p>
-            {#if !searchQuery}
-              <Button href="/boards/new" variant="primary" startIcon={Plus}
-                >Create First Board</Button
-              >
-            {/if}
+            <Clock3 class="h-3 w-3" />
+            <span>Last refreshed: <span class="font-medium">{formatTime(refreshTime)}</span></span>
           </div>
-        {:else}
-          <div
-            class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:gap-5 xl:gap-6"
-          >
-            {#each filteredBoards as board}
-              <BoardCard
-                title={board.title}
-                id={board.id.toString()}
-                href={`/boards/${board.id}`}
-                editHref={`/boards/${board.id}/edit`}
-                yourRole={(board as BoardData).yourRole}
-              />
-            {/each}
-          </div>
-        {/if}
-
+        </div>
+      {/if}
+      {#if loadPhase !== 'ready'}
         <div
-          class="mt-12 flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400"
+          bind:this={placeholder}
+          class="col-start-1 row-start-1 flex min-w-0 flex-col gap-8"
+          aria-hidden="true"
+          data-boards-skeleton
+          out:fade={instantReveal ? { duration: 0 } : placeholderOut}
         >
-          <Clock3 class="h-3 w-3" />
-          <span>Last refreshed: <span class="font-medium">{formatTime(refreshTime)}</span></span>
-        </div>
-      </div>
-    {/if}
-    {#if loadPhase !== 'ready'}
-      <div
-        bind:this={placeholder}
-        class="col-start-1 row-start-1 flex min-w-0 flex-col gap-8"
-        aria-hidden="true"
-        data-boards-skeleton
-        out:fade={instantReveal ? { duration: 0 } : placeholderOut}
-      >
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div class="space-y-3">
-            <Skeleton class="h-9 w-48" data-morph="title" />
-            <Skeleton class="h-4 w-64" data-morph="subtitle" />
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="space-y-3">
+              <Skeleton class="h-9 w-48" data-morph="title" />
+              <Skeleton class="h-4 w-64" data-morph="subtitle" />
+            </div>
+            <div class="flex items-center gap-3">
+              <Skeleton class="h-10 w-full rounded-lg sm:w-64" data-morph="search" />
+              <Skeleton class="hidden h-11 w-35 rounded-lg sm:block" data-morph="new" />
+            </div>
           </div>
-          <div class="flex items-center gap-3">
-            <Skeleton class="h-10 w-full rounded-lg sm:w-64" data-morph="search" />
-            <Skeleton class="hidden h-11 w-35 rounded-lg sm:block" data-morph="new" />
-          </div>
-        </div>
 
-        <div class="space-y-4">
-          <Skeleton class="h-4 w-32" />
-          <div
-            class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:gap-5 xl:gap-6"
-          >
-            <div data-morph="card"><BoardCardSkeleton /></div>
-            <div data-morph="card"><BoardCardSkeleton /></div>
-            <div data-morph="card"><BoardCardSkeleton /></div>
-            <div data-morph="card"><BoardCardSkeleton /></div>
-            <div data-morph="card"><BoardCardSkeleton /></div>
-            <div data-morph="card"><BoardCardSkeleton /></div>
+          <div class="space-y-4">
+            <Skeleton class="h-4 w-32" />
+            <div
+              class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 xl:gap-6 2xl:grid-cols-5"
+            >
+              <div data-morph="card"><BoardCardSkeleton /></div>
+              <div data-morph="card"><BoardCardSkeleton /></div>
+              <div data-morph="card"><BoardCardSkeleton /></div>
+              <div data-morph="card"><BoardCardSkeleton /></div>
+              <div data-morph="card"><BoardCardSkeleton /></div>
+              <div data-morph="card"><BoardCardSkeleton /></div>
+            </div>
           </div>
         </div>
-      </div>
-    {/if}
+      {/if}
     </div>
 
     <Button

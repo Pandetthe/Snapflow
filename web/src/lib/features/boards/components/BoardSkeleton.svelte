@@ -1,28 +1,21 @@
 <script lang="ts" module>
-  /** A list placeholder's size in px; `leaving` when the loaded board has no list in its place. */
   export interface SkeletonList {
     width: number;
     height: number;
     leaving?: boolean;
   }
 
-  /** A swimlane placeholder: its height in px and its lists; `leaving` when the loaded board has no swimlane there. */
   export interface SkeletonBand {
     height: number;
     lists: SkeletonList[];
     leaving?: boolean;
   }
 
-  // Header (44) + content padding (24) + a 160px list + the bottom border.
   const PLACEHOLDER: SkeletonBand[] = [0, 1].map(() => ({
     height: 229,
     lists: [0, 1, 2].map(() => ({ width: 220, height: 160 }))
   }));
 
-  /**
-   * The measured layout, keeping the placeholders it has no place for: they shrink to nothing and fade out
-   * (board-dnd.css) instead of disappearing at once.
-   */
   function towards(layout: SkeletonBand[]): SkeletonBand[] {
     return Array.from({ length: Math.max(layout.length, PLACEHOLDER.length) }, (_, bandIndex) => {
       const target = layout[bandIndex];
@@ -42,7 +35,11 @@
         lists: Array.from(
           { length: Math.max(target.lists.length, fromLists.length) },
           (_, listIndex) =>
-            target.lists[listIndex] ?? { width: 0, height: fromLists[listIndex].height, leaving: true }
+            target.lists[listIndex] ?? {
+              width: 0,
+              height: fromLists[listIndex].height,
+              leaving: true
+            }
         )
       };
     });
@@ -52,11 +49,6 @@
 <script lang="ts">
   import { Skeleton } from '$lib/ui/components';
 
-  /**
-   * Placeholder in the board's own look and layout, like BoardCardSkeleton for board cards: swimlane bands
-   * with their header, lists with their header bar and a couple of cards. Given the measured layout of the
-   * loaded board, bands and lists resize to it (board-dnd.css), so the skeleton morphs into the board.
-   */
   let { layout = null }: { layout?: SkeletonBand[] | null } = $props();
 
   const bands = $derived(layout ? towards(layout) : PLACEHOLDER);
@@ -73,7 +65,9 @@
         <Skeleton class="h-4 w-32" />
         <Skeleton class="ml-auto h-5 w-6 rounded-full" />
       </div>
-      <div class="flex min-h-0 flex-1 items-start gap-3 overflow-hidden bg-white/60 px-3 py-3 dark:bg-gray-900/40">
+      <div
+        class="flex min-h-0 flex-1 items-start gap-3 overflow-hidden bg-white/60 px-3 py-3 dark:bg-gray-900/40"
+      >
         {#each band.lists as list, listIndex (listIndex)}
           <div
             class="board-skeleton-list flex shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200/80 bg-gray-50 shadow-sm dark:border-gray-700/50 dark:bg-gray-900/40"

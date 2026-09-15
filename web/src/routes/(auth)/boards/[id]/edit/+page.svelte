@@ -15,6 +15,8 @@
   import { createForm, itemIn, itemOut, slideReveal } from '$lib/ui/utils';
   import { Trash2, Users, X, UserPlus, Check } from 'lucide-svelte';
   import { afterNavigate, goto } from '$app/navigation';
+  import { resolve } from '$app/paths';
+  import type { Pathname } from '$app/types';
   import type { MemberRole } from '$lib/features/boards/types/boards.api';
   import { fade, slide, fly } from 'svelte/transition';
   import { untrack } from 'svelte';
@@ -29,9 +31,15 @@
 
   type SelectedMember = SearchUserDto & { role: MemberRole };
   type OwnerMember = SearchUserDto & { role: 'owner' };
-  type MemberData = { id?: number; userId?: number; role: MemberRole | string; userName: string; avatarUrl: string | null };
+  type MemberData = {
+    id?: number;
+    userId?: number;
+    role: MemberRole | string;
+    userName: string;
+    avatarUrl: string | null;
+  };
 
-  let backHref = $state('/boards');
+  let backHref = $state<Pathname>('/boards');
 
   let searchQuery = $state('');
   let searchResults = $state<SearchUserDto[]>([]);
@@ -48,7 +56,8 @@
           userName: m.userName,
           avatarUrl: m.avatarUrl,
           role: m.role as MemberRole
-        }))) || []
+        }))
+    ) || []
   );
 
   const ownerMember = $derived.by<OwnerMember | null>(() => {
@@ -66,13 +75,13 @@
 
   const selectedMembersCount = $derived(selectedMembers.length + (ownerMember ? 1 : 0));
 
-  const searchExcludedIds = $derived.by(() => [
-    ownerMember?.id,
-    ...selectedMembers.map((member) => member.id)
-  ].filter(Boolean) as number[]);
+  const searchExcludedIds = $derived.by(
+    () =>
+      [ownerMember?.id, ...selectedMembers.map((member) => member.id)].filter(Boolean) as number[]
+  );
 
   afterNavigate(({ from }) => {
-    backHref = from?.url.pathname.replace(/\/edit$/, '') ?? '/boards';
+    backHref = (from?.url.pathname.replace(/\/edit$/, '') ?? '/boards') as Pathname;
   });
 
   const form = createForm({
@@ -114,7 +123,7 @@
       });
     },
     onSuccess: () => {
-      goto(backHref);
+      goto(resolve(backHref));
     }
   });
 
@@ -123,7 +132,7 @@
   $effect(() => {
     if (board && board.id !== currentBoardId) {
       currentBoardId = board.id;
-      
+
       form.reset({
         title: board.title,
         description: board.description
@@ -182,12 +191,12 @@
 
   async function confirmTransferOwnership() {
     if (!transferTargetUserId) return;
-    
+
     isTransferring = true;
     try {
       const response = await boardsService.changeOwner(board.id, { userId: transferTargetUserId });
       if (response.ok) {
-        goto(`/boards/${board.id}`, { invalidateAll: true });
+        goto(resolve(`/boards/${board.id}`), { invalidateAll: true });
       } else {
         errorStore.addError(
           response.problem?.title ?? 'Transfer Failed',
@@ -290,9 +299,7 @@
   <div class="mx-auto w-full max-w-5xl space-y-6 pb-12 sm:space-y-8">
     <header class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
-        <GoBackButton
-          href={backHref}
-        />
+        <GoBackButton href={backHref} />
       </div>
 
       <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
@@ -310,7 +317,7 @@
     <div class="grid items-start gap-6 lg:grid-cols-[1fr_minmax(20rem,25rem)] lg:gap-8">
       <div class="space-y-6 sm:space-y-8">
         <section
-          class="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 transition-all duration-200 hover:border-brand-500/30 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-brand-500/20"
+          class="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 hover:border-brand-500/30 hover:shadow-md sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-brand-500/20"
         >
           <form onsubmit={form.handleSubmit} novalidate class="space-y-6">
             <InputTextField
@@ -337,7 +344,9 @@
               class="resize-none"
             />
 
-            <div class="flex flex-col-reverse gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
+            <div
+              class="flex flex-col-reverse gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between"
+            >
               <p class="text-xs text-gray-600 dark:text-gray-400">
                 <span class="text-error-500">*</span> Required fields
               </p>
@@ -360,7 +369,7 @@
         </section>
 
         <section
-          class="rounded-2xl border border-rose-100 bg-rose-50/20 p-5 transition-all duration-200 dark:border-rose-900/30 dark:bg-rose-950/10 sm:rounded-3xl sm:p-8"
+          class="rounded-2xl border border-rose-100 bg-rose-50/20 p-5 transition-all duration-200 sm:rounded-3xl sm:p-8 dark:border-rose-900/30 dark:bg-rose-950/10"
         >
           <div class="mb-6 space-y-1">
             <h2 class="text-sm font-bold tracking-wider text-rose-600 uppercase dark:text-rose-400">
@@ -391,7 +400,7 @@
 
       <aside class="space-y-6">
         <section
-          class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all sm:rounded-3xl sm:p-6 duration-200 dark:border-gray-800 dark:bg-gray-900/50"
+          class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50"
         >
           <div class="mb-6 flex items-start justify-between">
             <div>
@@ -412,19 +421,20 @@
               placeholder="Search by name..."
               bind:value={searchQuery}
               isLoading={isSearching}
+              error={searchError}
               class="pr-10"
             />
 
             {#if searchResults.length > 0}
               <div
-                class="absolute left-0 right-0 top-full z-50 mt-2 max-h-60 overflow-y-auto rounded-2xl border border-gray-300 bg-white p-1.5 shadow-xl transition-all duration-200 will-change-[opacity,transform] dark:border-gray-700 dark:bg-gray-900/90 dark:backdrop-blur-xl"
+                class="absolute top-full right-0 left-0 z-50 mt-2 max-h-60 overflow-y-auto rounded-2xl border border-gray-300 bg-white p-1.5 shadow-xl transition-all duration-200 will-change-[opacity,transform] dark:border-gray-700 dark:bg-gray-900/90 dark:backdrop-blur-xl"
                 in:fly={itemIn}
                 out:fade={itemOut}
               >
                 {#each searchResults as user (user.id)}
                   <button
                     type="button"
-                    class="group flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2 transition-all duration-200 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 active:scale-[0.98] dark:hover:bg-white/5"
+                    class="group flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2 transition-all duration-200 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 active:scale-[0.98] dark:hover:bg-white/5"
                     onclick={() => addMember(user)}
                   >
                     <div class="flex items-center gap-3">
@@ -481,7 +491,8 @@
                       role={member.role}
                       onRoleChange={(role) => updateMemberRole(member.id as number, role)}
                       allowTransferOwnership={currentUserIsOwner}
-                      onTransferOwnership={() => openTransferModal(member.id as number, member.userName)}
+                      onTransferOwnership={() =>
+                        openTransferModal(member.id as number, member.userName)}
                     />
                   </div>
                 </div>

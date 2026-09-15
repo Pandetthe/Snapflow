@@ -1,6 +1,4 @@
 <script lang="ts" module>
-  // Height each list needs to also fit the dragged card, measured when a card drag starts (by list id).
-  // Plain data read at event time, not reactive state.
   let cardDropHeights: Record<number, number> = {};
 
   function measureCardDropHeights(draggedCardId: number) {
@@ -16,21 +14,30 @@
       const style = getComputedStyle(zone);
       const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
       const gap = parseFloat(style.rowGap) || 0;
-      // offsetHeight ignores the transforms of cards that are still animating
-      const slots = [...zone.querySelectorAll<HTMLElement>(':scope > [data-board-slot="card"]')].filter((s) => s !== draggedSlot);
-      const cardsHeight = slots.reduce((sum, s) => sum + s.offsetHeight, 0) + gap * Math.max(slots.length - 1, 0);
+      const slots = [
+        ...zone.querySelectorAll<HTMLElement>(':scope > [data-board-slot="card"]')
+      ].filter((s) => s !== draggedSlot);
+      const cardsHeight =
+        slots.reduce((sum, s) => sum + s.offsetHeight, 0) + gap * Math.max(slots.length - 1, 0);
       const withDragged = cardsHeight + draggedHeight + (slots.length > 0 ? gap : 0);
-      // Everything around the cards (header, padding, "Add card") stays; the list can be stretched past its content.
       const chrome = listEl.offsetHeight - (zone.offsetHeight - padding);
       const minContent = Math.max(parseFloat(style.minHeight) - padding, 0);
-      cardDropHeights[Number(listEl.dataset.listId)] = Math.round(chrome + Math.max(withDragged, minContent));
+      cardDropHeights[Number(listEl.dataset.listId)] = Math.round(
+        chrome + Math.max(withDragged, minContent)
+      );
     }
   }
 </script>
 
 <script lang="ts">
   import { flip } from 'svelte/animate';
-  import { dragHandleZone, dragHandle, SHADOW_ITEM_MARKER_PROPERTY_NAME, SOURCES, TRIGGERS } from 'svelte-dnd-action';
+  import {
+    dragHandleZone,
+    dragHandle,
+    SHADOW_ITEM_MARKER_PROPERTY_NAME,
+    SOURCES,
+    TRIGGERS
+  } from 'svelte-dnd-action';
   import type { DndEvent } from 'svelte-dnd-action';
   import { getContext } from 'svelte';
   import { getBoardUI } from '$lib/features/boards/context/board.context';
@@ -42,12 +49,23 @@
   import { Button } from '$lib/ui/components';
   import { GripVertical, Pencil, Plus } from 'lucide-svelte';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
-  import type { GetRecentMove, IsInFlight, IsLeaving, IsNew } from '$lib/features/boards/composables/boardState.svelte';
+  import type {
+    GetRecentMove,
+    IsInFlight,
+    IsLeaving,
+    IsNew
+  } from '$lib/features/boards/composables/boardState.svelte';
   import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
-  import { holdListZoneHeights, releaseListZoneHeights } from '$lib/features/boards/animations/zoneHeights';
+  import {
+    holdListZoneHeights,
+    releaseListZoneHeights
+  } from '$lib/features/boards/animations/zoneHeights';
   import MovedByIndicator from './MovedByIndicator.svelte';
 
-  let { list = $bindable(), swimlaneId }: { list: GetBoardByIdResponse.ListDto; swimlaneId: number } = $props();
+  let {
+    list = $bindable(),
+    swimlaneId
+  }: { list: GetBoardByIdResponse.ListDto; swimlaneId: number } = $props();
 
   const getHub = getContext<() => BoardsHub | null>('hub');
   const hub = $derived(getHub());
@@ -71,12 +89,12 @@
 
   let listEl: HTMLElement;
 
-  // While a card is dragged, every list zone holds its height and the zone whose list holds the drop slot grows
-  // to fit that list with the card (animations/zoneHeights.ts), so the swimlane resizes smoothly instead of jumping.
   const RECEIVING_LIST_HEIGHT_VAR = '--board-receiving-list-height';
 
   const receivingCard = $derived(
-    list.cards.some((c) => (c as unknown as Record<string, unknown>)[SHADOW_ITEM_MARKER_PROPERTY_NAME])
+    list.cards.some(
+      (c) => (c as unknown as Record<string, unknown>)[SHADOW_ITEM_MARKER_PROPERTY_NAME]
+    )
   );
 
   $effect(() => {
@@ -88,7 +106,6 @@
     zone.dataset.cardReceiver = receiver;
     zone.style.setProperty(RECEIVING_LIST_HEIGHT_VAR, `${height}px`);
     return () => {
-      // The next list may already have taken the zone over when this one's slot leaves
       if (zone.dataset.cardReceiver !== receiver) return;
       delete zone.dataset.cardReceiver;
       zone.style.removeProperty(RECEIVING_LIST_HEIGHT_VAR);
@@ -110,7 +127,10 @@
     keyboardMovedCardId = null;
     releaseListZoneHeights();
     const { info } = e.detail;
-    if (info.trigger === TRIGGERS.DROPPED_INTO_ZONE || info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER) {
+    if (
+      info.trigger === TRIGGERS.DROPPED_INTO_ZONE ||
+      info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER
+    ) {
       const id = Number(info.id);
       const index = list.cards.findIndex((c) => c.id === id);
       // Finalize also fires in the source list when a card leaves it; only the list holding the card sends the move.
@@ -143,16 +163,21 @@
   class:flight-hidden={inFlight}
   class:flight-settle={recentMove?.pop && !inFlight}
   style:width={list.width ? `${list.width}px` : 'auto'}
-  class="group/list relative flex h-full max-h-full min-h-0 min-w-[220px] shrink-0 flex-col rounded-xl border border-gray-200/80 bg-gray-50 shadow-sm dark:border-gray-700/50 dark:bg-gray-900/40 dark:shadow-black/20"
+  class="group/list relative flex h-full max-h-full min-h-0 min-w-55 shrink-0 flex-col rounded-xl border border-gray-200/80 bg-gray-50 shadow-sm dark:border-gray-700/50 dark:bg-gray-900/40 dark:shadow-black/20"
 >
   <MovedByIndicator move={recentMove} rounded="rounded-xl" />
 
   <!-- List header; the list does not clip its overflow (the moved-by label sits on its edge), so the parts round their own corners -->
-  <div class="board-item-bar flex h-10 shrink-0 items-center gap-1.5 rounded-t-[11px] border-b border-gray-200 bg-gray-100/80 px-2 dark:border-gray-700/60 dark:bg-gray-800/90">
+  <div
+    class="board-item-bar flex h-10 shrink-0 items-center gap-1.5 rounded-t-[11px] border-b border-gray-200 bg-gray-100/80 px-2 dark:border-gray-700/60 dark:bg-gray-800/90"
+  >
     {#if canManageLists}
       <div
         use:dragHandle
-        class="list-drag-handle board-control touch-none focus-visible:outline-none {boardState === 'connected' ? 'cursor-grab' : 'cursor-not-allowed opacity-40'}"
+        class="list-drag-handle board-control touch-none focus-visible:outline-none {boardState ===
+        'connected'
+          ? 'cursor-grab'
+          : 'cursor-not-allowed opacity-40'}"
         aria-label="Drag list"
       >
         <GripVertical class="h-3.5 w-3.5" />
@@ -183,7 +208,10 @@
   </div>
 
   <!-- Cards area -->
-  <ScrollArea.Root class="list-scroll-area relative flex-1 overflow-hidden rounded-b-[11px]" type="auto">
+  <ScrollArea.Root
+    class="list-scroll-area relative flex-1 overflow-hidden rounded-b-[11px]"
+    type="auto"
+  >
     <ScrollArea.Viewport class="h-full w-full rounded-[inherit]">
       <div class="flex h-full min-h-0 flex-col p-2">
         <!-- The drop area reaches under "Add card" via padding cancelled by a negative margin -->
@@ -202,7 +230,7 @@
           onfinalize={handleCardFinalize}
           data-board-zone="cards"
           data-empty={list.cards.length === 0 || undefined}
-          class="flex min-h-10 flex-1 flex-col gap-1.5 {canManageCards ? 'pb-12 -mb-12' : ''}"
+          class="flex min-h-10 flex-1 flex-col gap-1.5 {canManageCards ? '-mb-12 pb-12' : ''}"
         >
           {#each list.cards as card (card.id)}
             <div

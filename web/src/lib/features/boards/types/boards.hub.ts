@@ -21,7 +21,6 @@ export interface BoardsHubEvents {
   CardDeleted: (payload: CardDeletedEventPayload) => void;
 }
 
-/** Sent to a connection when it connects or reconnects: the whole board, replacing what the client has. */
 export interface BoardSnapshotEventPayload {
   id: number;
   title: string;
@@ -252,5 +251,3 @@ export interface UpdateCardResponse {
     avatarUrl: string | null;
   };
 }
-
-

@@ -12,30 +12,14 @@
     class?: string;
   }
 
-  let {
-    src,
-    name = 'User',
-    size = 'md',
-    isLoading = false,
-    class: className
-  }: Props = $props();
+  let { src, name = 'User', size = 'md', isLoading = false, class: className }: Props = $props();
 
-  /*
-    The skeleton stays until the image has loaded, so the avatar never shows an empty circle; a broken image falls
-    back to the initials. What loaded is remembered per src, so a new src shows the skeleton again without an
-    effect resetting state, which could run after the image had already loaded.
-  */
   let loadedSrc = $state<string | null>(null);
   let failedSrc = $state<string | null>(null);
 
   const showImage = $derived(Boolean(src) && failedSrc !== src);
   const loaded = $derived(loadedSrc === src);
 
-  /**
-   * Reports when the image is ready, however its element came to be: rendered fresh, kept from the server, taken
-   * from cache, or moved around by drag & drop. `load` can fire before anyone listens, so decode() is awaited as well;
-   * it resolves for an image that has already loaded.
-   */
   const watchImage: Action<HTMLImageElement, string> = (node, imageSrc) => {
     let current = imageSrc;
 
@@ -50,7 +34,6 @@
           if (current === watched) loadedSrc = watched;
         },
         () => {
-          // decode() also rejects while a new src is still loading; only a finished, empty image is broken.
           if (current === watched && node.complete && node.naturalWidth === 0) failedSrc = watched;
         }
       );
@@ -94,14 +77,18 @@
   });
 
   const resolvedSizeClass = $derived(typeof size === 'string' ? sizeMap[size] : '');
-  const customSizeStyle = $derived(typeof size === 'number' ? `width: ${size}px; height: ${size}px; font-size: ${size * 0.4}px;` : '');
+  const customSizeStyle = $derived(
+    typeof size === 'number'
+      ? `width: ${size}px; height: ${size}px; font-size: ${size * 0.4}px;`
+      : ''
+  );
 </script>
 
 <div
   class={cn(
     'relative flex shrink-0 items-center justify-center overflow-hidden rounded-full ring-1 ring-black/5 dark:ring-white/10',
     resolvedSizeClass,
-    !showImage && 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400 font-bold',
+    !showImage && 'bg-brand-50 font-bold text-brand-700 dark:bg-brand-500/10 dark:text-brand-400',
     className
   )}
   style={customSizeStyle}

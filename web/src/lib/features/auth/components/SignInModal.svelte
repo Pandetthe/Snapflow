@@ -150,7 +150,7 @@
             <Button
               variant="outline"
               size="md"
-              class="min-w-[140px]"
+              class="min-w-35"
               onclick={resendEmailConfirmation}
               isLoading={isResending}
               loadingText="Sending..."
@@ -162,7 +162,7 @@
           <Button
             variant="primary"
             size="md"
-            class="min-w-[140px]"
+            class="min-w-35"
             onclick={() => {
               open = false;
             }}

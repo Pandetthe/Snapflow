@@ -983,20 +983,17 @@
         <BoardCard
           title="Scenography board"
           id="scenography"
-          href="#"
-          class="w-[280px]"
+          class="w-70"
         />
         <BoardCard
           title="Project Alpha"
           id="project-alpha"
-          href="#"
-          class="w-[280px]"
+          class="w-70"
         />
         <BoardCard
           title="Marketing Team"
           id="marketing-team"
-          href="#"
-          class="w-[280px]"
+          class="w-70"
         />
       </div>
     </section>

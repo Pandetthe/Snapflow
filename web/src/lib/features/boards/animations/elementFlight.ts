@@ -23,7 +23,6 @@ interface FlightMotion {
 const MOTION: Record<MovableKind, FlightMotion> = {
   card: { lift: 4, liftScale: 1.03, rotate: 0.8, landingScale: 1.015 },
   list: { lift: 4, liftScale: 1.012, rotate: 0.3, landingScale: 1 },
-  // Same pose as a swimlane dragged by hand (board-dnd.css)
   swimlane: { lift: 3, liftScale: 1.006, rotate: 0.12, landingScale: 1 }
 };
 
@@ -35,7 +34,9 @@ const ID_ATTRIBUTES = ['data-card-id', 'data-list-id', 'data-swimlane-id'];
 
 /** Rendered elements for an item, skipping ones Svelte keeps in the DOM while they transition out. */
 const findElements = (kind: MovableKind, id: number) =>
-  [...document.querySelectorAll<HTMLElement>(`[data-${kind}-id="${id}"]`)].filter((el) => !el.closest('[inert]'));
+  [...document.querySelectorAll<HTMLElement>(`[data-${kind}-id="${id}"]`)].filter(
+    (el) => !el.closest('[inert]')
+  );
 
 /**
  * Where an element is laid out, ignoring `transform` on it and its ancestors.
@@ -47,7 +48,11 @@ function layoutRect(el: HTMLElement): DOMRect {
   const rect = el.getBoundingClientRect();
   let offsetX = 0;
   let offsetY = 0;
-  for (let node: HTMLElement | null = el; node && node !== document.body; node = node.parentElement) {
+  for (
+    let node: HTMLElement | null = el;
+    node && node !== document.body;
+    node = node.parentElement
+  ) {
     const transform = getComputedStyle(node).transform;
     if (transform && transform !== 'none') {
       const matrix = new DOMMatrixReadOnly(transform);
@@ -58,7 +63,6 @@ function layoutRect(el: HTMLElement): DOMRect {
   return new DOMRect(rect.left - offsetX, rect.top - offsetY, rect.width, rect.height);
 }
 
-/** A floating copy of an element at its current position, detached from the board's state. */
 function createGhost(source: HTMLElement, from: DOMRect): HTMLElement {
   const ghost = source.cloneNode(true) as HTMLElement;
   ghost.classList.remove('flight-hidden', 'flight-settle');
@@ -84,8 +88,10 @@ function createGhost(source: HTMLElement, from: DOMRect): HTMLElement {
   return ghost;
 }
 
-/** The element to capture, or null when it is not rendered or has no size. */
-function captureSource(kind: MovableKind, id: number): { source: HTMLElement; from: DOMRect } | null {
+function captureSource(
+  kind: MovableKind,
+  id: number
+): { source: HTMLElement; from: DOMRect } | null {
   if (typeof document === 'undefined') return null;
   const source = findElements(kind, id)[0];
   if (!source) return null;
@@ -99,7 +105,11 @@ function captureSource(kind: MovableKind, id: number): { source: HTMLElement; fr
  * can be shown as the element travelling from its old place to the new one. Call before the move is applied.
  */
 export function startElementFlight(kind: MovableKind, id: number): ElementFlight | null {
-  if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
+  if (
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
+    return null;
 
   const captured = captureSource(kind, id);
   if (!captured) return null;
@@ -117,7 +127,9 @@ export function startElementFlight(kind: MovableKind, id: number): ElementFlight
       // Moving to another parent renders a new element while the old one may still be in the DOM;
       // reordering within the same parent keeps (and moves) the original element.
       const candidates = findElements(kind, id);
-      const target = candidates.find((el) => el !== source) ?? (candidates.includes(source) ? source : undefined);
+      const target =
+        candidates.find((el) => el !== source) ??
+        (candidates.includes(source) ? source : undefined);
       const to = target ? layoutRect(target) : undefined;
 
       if (!to || to.width === 0) {
@@ -162,7 +174,9 @@ export function startElementFlight(kind: MovableKind, id: number): ElementFlight
 
       // Browsers may pause animations in background tabs; never leave the real element hidden for long.
       const running = animation;
-      const timeout = new Promise((resolve) => setTimeout(resolve, Number(running.effect?.getTiming().duration ?? 0) + 150));
+      const timeout = new Promise((resolve) =>
+        setTimeout(resolve, Number(running.effect?.getTiming().duration ?? 0) + 150)
+      );
       await Promise.race([running.finished.catch(() => {}), timeout]);
     },
     release() {

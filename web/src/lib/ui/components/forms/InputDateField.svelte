@@ -260,7 +260,7 @@
       {#if LeftIcon}
         {#if leftIconDecorated}
           <span
-            class="absolute top-1/2 left-0 z-10 flex h-11 w-[46px] -translate-y-1/2 items-center justify-center border-r border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400"
+            class="absolute top-1/2 left-0 z-10 flex h-11 w-11.5 -translate-y-1/2 items-center justify-center border-r border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400"
           >
             <LeftIcon size={18} />
           </span>
@@ -427,7 +427,7 @@
             {/if}
           </DatePicker.Header>
 
-          <div class="h-[238px] w-full">
+          <div class="h-59.5 w-full">
             {#if viewMode === 'days'}
               {#each months as month (month.value.toString())}
                 <DatePicker.Grid class="w-full border-collapse">

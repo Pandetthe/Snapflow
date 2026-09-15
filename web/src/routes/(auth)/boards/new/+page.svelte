@@ -7,13 +7,12 @@
     FullLayout,
     InputTextField,
     GoBackButton,
-    RoleBadge,
     Textarea,
     UserAvatar
   } from '$lib/ui/components';
   import RoleSelector from '$lib/features/boards/components/RoleSelector.svelte';
   import { createForm, itemIn, itemOut, slideReveal } from '$lib/ui/utils';
-  import { FolderPlus, Plus, Users, X, Search, UserPlus } from 'lucide-svelte';
+  import { Plus, Users, X, UserPlus } from 'lucide-svelte';
   import type { MemberRole } from '$lib/features/boards/types/boards.api';
   import { fade, slide, fly } from 'svelte/transition';
 
@@ -157,9 +156,7 @@
   <div class="mx-auto w-full max-w-5xl space-y-6 pb-12 sm:space-y-8">
     <header class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
-        <GoBackButton
-          href={backHref}
-        />
+        <GoBackButton href={backHref} />
       </div>
 
       <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
@@ -177,7 +174,7 @@
     <div class="grid items-start gap-6 lg:grid-cols-[1fr_minmax(20rem,25rem)] lg:gap-8">
       <div class="space-y-6">
         <section
-          class="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 transition-all duration-200 hover:border-brand-500/30 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-brand-500/20"
+          class="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 hover:border-brand-500/30 hover:shadow-md sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-brand-500/20"
         >
           <form onsubmit={form.handleSubmit} novalidate class="space-y-6">
             <InputTextField
@@ -204,7 +201,9 @@
               class="resize-none"
             />
 
-            <div class="flex flex-col-reverse gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
+            <div
+              class="flex flex-col-reverse gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between"
+            >
               <p class="text-xs text-gray-600 dark:text-gray-400">
                 <span class="text-error-500">*</span> Required fields
               </p>
@@ -227,7 +226,7 @@
 
       <aside class="space-y-6">
         <section
-          class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all sm:rounded-3xl sm:p-6 duration-200 dark:border-gray-800 dark:bg-gray-900/50"
+          class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50"
         >
           <div class="mb-6 flex items-start justify-between">
             <div>
@@ -248,6 +247,7 @@
               placeholder="Search by name..."
               bind:value={searchQuery}
               isLoading={isSearching}
+              error={searchError}
               class="pr-10"
             />
 
@@ -260,7 +260,7 @@
                 {#each searchResults as user (user.id)}
                   <button
                     type="button"
-                    class="group flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2 transition-all duration-200 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 active:scale-[0.98] dark:hover:bg-white/5"
+                    class="group flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2 transition-all duration-200 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 active:scale-[0.98] dark:hover:bg-white/5"
                     onclick={() => addMember(user)}
                   >
                     <div class="flex items-center gap-3">

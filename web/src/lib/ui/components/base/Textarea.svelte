@@ -60,7 +60,7 @@
       return '';
     }
 
-    return leftIconDecorated ? 'pl-[62px]' : 'pl-11';
+    return leftIconDecorated ? 'pl-15.5' : 'pl-11';
   });
 </script>
 
@@ -75,7 +75,7 @@
     {#if LeftIcon}
       {#if leftIconDecorated}
         <span
-          class="absolute top-6 left-0 flex h-11 w-[46px] -translate-y-1/2 items-center justify-center border-r border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400"
+          class="absolute top-6 left-0 flex h-11 w-11.5 -translate-y-1/2 items-center justify-center border-r border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400"
         >
           <LeftIcon size={18} />
         </span>

@@ -1,6 +1,12 @@
 <script lang="ts">
   import { flip } from 'svelte/animate';
-  import { dragHandle, dragHandleZone, SHADOW_ITEM_MARKER_PROPERTY_NAME, SOURCES, TRIGGERS } from 'svelte-dnd-action';
+  import {
+    dragHandle,
+    dragHandleZone,
+    SHADOW_ITEM_MARKER_PROPERTY_NAME,
+    SOURCES,
+    TRIGGERS
+  } from 'svelte-dnd-action';
   import type { DndEvent } from 'svelte-dnd-action';
   import List from './List.svelte';
   import { getContext } from 'svelte';
@@ -12,9 +18,17 @@
   import { ScrollArea } from 'bits-ui';
   import { triggerHaptic } from '$lib/ui/utils';
   import { GripVertical, Pencil, Plus } from 'lucide-svelte';
-  import type { GetRecentMove, IsInFlight, IsLeaving, IsNew } from '$lib/features/boards/composables/boardState.svelte';
+  import type {
+    GetRecentMove,
+    IsInFlight,
+    IsLeaving,
+    IsNew
+  } from '$lib/features/boards/composables/boardState.svelte';
   import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
-  import { holdListZoneHeights, releaseListZoneHeights } from '$lib/features/boards/animations/zoneHeights';
+  import {
+    holdListZoneHeights,
+    releaseListZoneHeights
+  } from '$lib/features/boards/animations/zoneHeights';
   import MovedByIndicator from './MovedByIndicator.svelte';
 
   let { swimlane = $bindable() }: { swimlane: GetBoardByIdResponse.SwimlaneDto } = $props();
@@ -40,18 +54,21 @@
   let keyboardMovedListId = $state<number | null>(null);
 
   // While a list is dragged, every list zone holds its height and the zone the list hovers grows to fit it
-  // (animations/zoneHeights.ts): the swimlane grows smoothly when the list enters, shrinks when it leaves or drops.
   const DRAGGED_LIST_HEIGHT_VAR = '--board-dragged-list-height';
 
   // The drop slot of the dragged list is in this swimlane.
   const receivingList = $derived(
-    swimlane.lists.some((l) => (l as unknown as Record<string, unknown>)[SHADOW_ITEM_MARKER_PROPERTY_NAME])
+    swimlane.lists.some(
+      (l) => (l as unknown as Record<string, unknown>)[SHADOW_ITEM_MARKER_PROPERTY_NAME]
+    )
   );
 
   // An empty zone spans the whole swimlane. It keeps that width while a list hovers it: shrinking to the
   // drop slot would move the zone out from under the cursor, dropping the slot and growing back in a loop.
   const fillsSwimlane = $derived(
-    swimlane.lists.every((l) => (l as unknown as Record<string, unknown>)[SHADOW_ITEM_MARKER_PROPERTY_NAME])
+    swimlane.lists.every(
+      (l) => (l as unknown as Record<string, unknown>)[SHADOW_ITEM_MARKER_PROPERTY_NAME]
+    )
   );
 
   function handleListConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
@@ -59,8 +76,14 @@
     const { info } = e.detail;
     if (info.source === SOURCES.KEYBOARD) keyboardMovedListId = Number(info.id);
     if (info.trigger === TRIGGERS.DRAG_STARTED) {
-      const height = document.querySelector(`[data-list-id="${info.id}"]`)?.getBoundingClientRect().height;
-      if (height) document.documentElement.style.setProperty(DRAGGED_LIST_HEIGHT_VAR, `${Math.round(height)}px`);
+      const height = document
+        .querySelector(`[data-list-id="${info.id}"]`)
+        ?.getBoundingClientRect().height;
+      if (height)
+        document.documentElement.style.setProperty(
+          DRAGGED_LIST_HEIGHT_VAR,
+          `${Math.round(height)}px`
+        );
       holdListZoneHeights();
     }
   }
@@ -72,7 +95,10 @@
     releaseListZoneHeights();
     const { info } = e.detail;
 
-    if (info.trigger === TRIGGERS.DROPPED_INTO_ZONE || info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER) {
+    if (
+      info.trigger === TRIGGERS.DROPPED_INTO_ZONE ||
+      info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER
+    ) {
       triggerHaptic('success');
       const id = Number(info.id);
 
@@ -113,16 +139,20 @@
   data-fixed-height={swimlane.height ? true : undefined}
   class="group/swimlane relative flex flex-col border-b border-gray-200 dark:border-gray-700/60 {swimlane.height
     ? ''
-    : 'flex-1 min-h-[180px]'}"
+    : 'min-h-45 flex-1'}"
 >
   <MovedByIndicator move={recentMove} rounded="rounded-none" />
 
   <!-- Header band — always visible, even when collapsed during drag -->
-  <div class="swimlane-header board-item-bar flex h-11 shrink-0 items-center gap-1.5 bg-gray-50 px-3 dark:bg-gray-800/70">
+  <div
+    class="swimlane-header board-item-bar flex h-11 shrink-0 items-center gap-1.5 bg-gray-50 px-3 dark:bg-gray-800/70"
+  >
     {#if canManageSwimlanes}
       <div
         use:dragHandle
-        class="board-control touch-none focus-visible:outline-none {boardState === 'connected' ? 'cursor-grab' : 'cursor-not-allowed opacity-40'}"
+        class="board-control touch-none focus-visible:outline-none {boardState === 'connected'
+          ? 'cursor-grab'
+          : 'cursor-not-allowed opacity-40'}"
         aria-label="Drag swimlane"
       >
         <GripVertical class="h-3.5 w-3.5" />
@@ -153,7 +183,10 @@
 
   <!-- Content area — hidden when this swimlane is being dragged -->
   <!-- Flex column so the viewport gets a definite height and an empty list zone can fill the swimlane -->
-  <ScrollArea.Root class="swimlane-content swimlane-scroll-area relative flex flex-1 flex-col overflow-hidden bg-white/60 dark:bg-gray-900/40" type="auto">
+  <ScrollArea.Root
+    class="swimlane-content swimlane-scroll-area relative flex flex-1 flex-col overflow-hidden bg-white/60 dark:bg-gray-900/40"
+    type="auto"
+  >
     <ScrollArea.Viewport class="flex min-h-0 w-full flex-1 flex-col rounded-[inherit]">
       <div class="flex min-h-0 flex-1 px-3 py-3">
         <!--
@@ -179,7 +212,9 @@
           data-empty={swimlane.lists.length === 0 || undefined}
           data-receiving={receivingList || undefined}
           data-fill={fillsSwimlane || undefined}
-          class="flex min-h-9 items-stretch gap-3 self-stretch {fillsSwimlane ? 'w-full -mr-[100%]' : 'pr-28 -mr-28'}"
+          class="flex min-h-9 items-stretch gap-3 self-stretch {fillsSwimlane
+            ? '-mr-[100%] w-full'
+            : '-mr-28 pr-28'}"
         >
           {#each swimlane.lists as list, index (list.id)}
             <div
@@ -230,12 +265,12 @@
     flex-direction: column;
   }
 
-  /*
-    With a set height the content fills the viewport and may shrink below its lists (the viewport only scrolls
-    sideways), so lists are capped to the swimlane and scroll their cards. Without one this would collapse the
-    swimlane to its minimum height instead of growing to its lists.
-  */
-  :global([data-fixed-height] > .swimlane-scroll-area [data-scroll-area-viewport] > [data-scroll-area-content]) {
+  :global(
+    [data-fixed-height]
+      > .swimlane-scroll-area
+      [data-scroll-area-viewport]
+      > [data-scroll-area-content]
+  ) {
     flex: 1 1 0;
     min-height: 0;
   }

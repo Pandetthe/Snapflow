@@ -153,7 +153,7 @@
               }}
               variant="primary"
               size="md"
-              class="min-w-[140px]"
+              class="min-w-35"
               haptic="light"
             >
               Understand

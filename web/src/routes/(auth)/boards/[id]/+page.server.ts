@@ -4,8 +4,6 @@ import { BoardsService } from '$lib/features/boards/api/boards.api';
 import { apiClient } from '$lib/server/api.server';
 import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
 
-// Only what the page shows before connecting (title, members, access); the board itself comes from the
-// hub's snapshot on connect and reconnect.
 export const load: PageServerLoad = async (event) => {
   const boardId = parseInt(event.params.id);
   const boardsService = new BoardsService(apiClient);
@@ -21,15 +19,15 @@ export const load: PageServerLoad = async (event) => {
 
   if (!detailsResult.ok) {
     if (isHiddenBoardStatus(detailsResult.problem?.status)) {
-      throw error(
-        404,
-        formatErrorMessage('Board not found', detailsResult.problem?.detail)
-      );
+      throw error(404, formatErrorMessage('Board not found', detailsResult.problem?.detail));
     }
 
     throw error(
       detailsResult.problem?.status ?? 500,
-      formatErrorMessage(detailsResult.problem?.title ?? 'Failed to load board', detailsResult.problem?.detail)
+      formatErrorMessage(
+        detailsResult.problem?.title ?? 'Failed to load board',
+        detailsResult.problem?.detail
+      )
     );
   }
 

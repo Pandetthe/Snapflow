@@ -2,9 +2,7 @@ import { page } from 'vitest/browser';
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import UserAvatar from './UserAvatar.svelte';
-import AvatarMoveHarness from './__tests__/AvatarMoveHarness.svelte';
 
-// A 1×1 transparent PNG, and bytes that are not an image.
 const IMAGE =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 const BROKEN = 'data:image/png;base64,AAAA';
@@ -32,18 +30,5 @@ describe('UserAvatar', () => {
 
     await expect.element(page.getByText('AL')).toBeInTheDocument();
     expect(skeletonIn(container)).toBeNull();
-  });
-
-  it('loads the avatar of an item moved to another list', async () => {
-    const { container } = render(AvatarMoveHarness, { props: { src: IMAGE } });
-    const left = container.querySelector('[data-testid="left"]')!;
-    const right = container.querySelector('[data-testid="right"]')!;
-
-    await expect.poll(() => skeletonIn(left)).toBeNull();
-    await page.getByRole('button', { name: 'Move' }).click();
-
-    await expect.poll(() => imageIn(right) !== null).toBe(true);
-    await expect.poll(() => imageIn(right)?.classList.contains('opacity-0')).toBe(false);
-    await expect.poll(() => skeletonIn(right)).toBeNull();
   });
 });

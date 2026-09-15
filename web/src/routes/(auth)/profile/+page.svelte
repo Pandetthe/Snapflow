@@ -37,7 +37,9 @@
         <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
           Profile
         </h1>
-        <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">Manage your account settings.</p>
+        <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">
+          Manage your account settings.
+        </p>
       </div>
     </header>
 
@@ -48,7 +50,9 @@
 
       <div class="min-w-0 space-y-6">
         <!-- Details section -->
-        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50">
+        <section
+          class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50"
+        >
           <h2 class="mb-5 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
             <UserIcon size={18} class="text-gray-400" />
             Details
@@ -65,7 +69,14 @@
                   </p>
                 </div>
               </div>
-              <Button variant="outline" size="xs" onclick={() => { isEditingUsername = true; }} startIcon={Pencil}>
+              <Button
+                variant="outline"
+                size="xs"
+                onclick={() => {
+                  isEditingUsername = true;
+                }}
+                startIcon={Pencil}
+              >
                 Change
               </Button>
             </div>
@@ -84,17 +95,28 @@
                 <Mail size={15} class="shrink-0 text-gray-400" />
                 <div class="min-w-0 flex-1">
                   <p class="text-xs text-gray-400 dark:text-gray-500">Email</p>
-                  <div class="flex min-w-0 flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2">
+                  <div
+                    class="flex min-w-0 flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2"
+                  >
                     <p class="w-full truncate text-sm font-medium text-gray-900 dark:text-white">
                       {data.user?.email}
                     </p>
-                    <span class="shrink-0 rounded-full bg-success-50 px-2 py-0.5 text-[10px] sm:text-xs font-medium text-success-600 dark:bg-success-500/10 dark:text-success-400">
+                    <span
+                      class="shrink-0 rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-medium text-success-600 sm:text-xs dark:bg-success-500/10 dark:text-success-400"
+                    >
                       Verified
                     </span>
                   </div>
                 </div>
               </div>
-              <Button variant="outline" size="xs" onclick={() => { isEditingEmail = true; }} startIcon={Pencil}>
+              <Button
+                variant="outline"
+                size="xs"
+                onclick={() => {
+                  isEditingEmail = true;
+                }}
+                startIcon={Pencil}
+              >
                 Change
               </Button>
             </div>
@@ -107,7 +129,9 @@
         </section>
 
         <!-- Security section -->
-        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50">
+        <section
+          class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50"
+        >
           <h2 class="mb-5 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
             <ShieldCheck size={18} class="text-gray-400" />
             Security
@@ -124,7 +148,14 @@
                   </p>
                 </div>
               </div>
-              <Button variant="outline" size="xs" onclick={() => { isEditingPassword = true; }} startIcon={Pencil}>
+              <Button
+                variant="outline"
+                size="xs"
+                onclick={() => {
+                  isEditingPassword = true;
+                }}
+                startIcon={Pencil}
+              >
                 Change
               </Button>
             </div>

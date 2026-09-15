@@ -1,6 +1,9 @@
 <script lang="ts">
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
-  import type { GetRecentMove, IsInFlight } from '$lib/features/boards/composables/boardState.svelte';
+  import type {
+    GetRecentMove,
+    IsInFlight
+  } from '$lib/features/boards/composables/boardState.svelte';
   import { dragHandle } from 'svelte-dnd-action';
   import { getContext } from 'svelte';
   import { getBoardUI } from '$lib/features/boards/context/board.context';
@@ -38,7 +41,10 @@
     {#if canManageCards}
       <div
         use:dragHandle
-        class="card-drag-handle board-control touch-none focus-visible:outline-none {boardState === 'connected' ? 'cursor-grab' : 'cursor-not-allowed opacity-40'}"
+        class="card-drag-handle board-control touch-none focus-visible:outline-none {boardState ===
+        'connected'
+          ? 'cursor-grab'
+          : 'cursor-not-allowed opacity-40'}"
         aria-label="Drag card"
       >
         <GripVertical class="h-3.5 w-3.5" />
@@ -46,7 +52,9 @@
     {/if}
 
     <!-- py-0.5 centres the first line on the 24px controls -->
-    <h4 class="min-w-0 flex-1 py-0.5 text-xs font-medium leading-relaxed wrap-break-word text-gray-800 dark:text-gray-100">
+    <h4
+      class="min-w-0 flex-1 py-0.5 text-xs leading-relaxed font-medium wrap-break-word text-gray-800 dark:text-gray-100"
+    >
       {card.title}
     </h4>
 
@@ -68,12 +76,16 @@
 
   <!-- Body lines up with the title: control width (24px) + gap (6px) -->
   {#if card.description}
-    <p class="line-clamp-2 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400 {canManageCards ? 'pl-[30px]' : ''}">
+    <p
+      class="line-clamp-2 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400 {canManageCards
+        ? 'pl-7.5'
+        : ''}"
+    >
       {card.description}
     </p>
   {/if}
 
-  <div class="flex items-center justify-between {canManageCards ? 'pl-[30px]' : ''}">
+  <div class="flex items-center justify-between {canManageCards ? 'pl-7.5' : ''}">
     <span title={card.createdBy.userName}>
       <UserAvatar src={card.createdBy.avatarUrl} name={card.createdBy.userName} size={18} />
     </span>

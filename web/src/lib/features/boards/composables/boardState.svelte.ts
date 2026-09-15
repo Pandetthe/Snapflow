@@ -1,18 +1,25 @@
-import type { GetBoardByIdResponse, GetBoardDetailsResponse, MemberRole } from '../types/boards.api';
+import type {
+  GetBoardByIdResponse,
+  GetBoardDetailsResponse,
+  MemberRole
+} from '../types/boards.api';
 import type { Response } from '$lib/core/types/app';
 import { BoardsHub } from '../hub/boards.hub';
 import { errorStore } from '$lib/ui/stores/error.svelte';
 import { triggerHaptic } from '$lib/ui/utils';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import { tick } from 'svelte';
-import type { BoardSnapshotEventPayload, BoardsHubEvents, CardMovedEventPayload } from '../types/boards.hub';
+import type {
+  BoardSnapshotEventPayload,
+  BoardsHubEvents,
+  CardMovedEventPayload
+} from '../types/boards.hub';
 import { startElementFlight, type ElementFlight } from '../animations/elementFlight';
 
 export type MovableKind = 'card' | 'list' | 'swimlane';
 
 export type BoardAction = 'moved' | 'added' | 'edited' | 'deleted';
 
-/** A recent change made on another connection, labelled on the item with who made it. */
 export interface RecentMove {
   user: GetBoardByIdResponse.UserDto;
   action: BoardAction;
@@ -32,10 +39,8 @@ export type IsLeaving = (kind: MovableKind, id: number) => boolean;
 
 const RECENT_MOVE_DURATION_MS = 2500;
 
-/** Longer than the enter animation in board-dnd.css, so the class never cuts it short. */
 const NEW_ITEM_DURATION_MS = 700;
 
-/** Covers the whole leave animation in board-dnd.css: label shown, fade-out, then the slot closing. */
 const LEAVING_ITEM_DURATION_MS = 1250;
 
 export function createBoardState(
@@ -45,18 +50,29 @@ export function createBoardState(
 ) {
   let board = $state(initialBoard);
   let members = $state(initialMembers);
-  let connectionState = $state<'connecting' | 'connected' | 'reconnecting' | 'disconnected'>('connecting');
+  let connectionState = $state<'connecting' | 'connected' | 'reconnecting' | 'disconnected'>(
+    'connecting'
+  );
   let hub: BoardsHub | null = null;
 
-  // Items recently added, edited, moved or deleted on other connections (the acting connection never receives the event).
   const recentMoves = new SvelteMap<string, RecentMove>();
   let recentMoveKey = 0;
 
-  // Only a move has an arrival animation; it enables it with markArrived once the item has landed.
-  function markChanged(kind: MovableKind, id: number, user: GetBoardByIdResponse.UserDto, action: BoardAction) {
+  function markChanged(
+    kind: MovableKind,
+    id: number,
+    user: GetBoardByIdResponse.UserDto,
+    action: BoardAction
+  ) {
     const mapKey = `${kind}:${id}`;
     const key = ++recentMoveKey;
-    recentMoves.set(mapKey, { user, action, isCurrentUser: user.id === currentUserId, key, pop: false });
+    recentMoves.set(mapKey, {
+      user,
+      action,
+      isCurrentUser: user.id === currentUserId,
+      key,
+      pop: false
+    });
     setTimeout(() => {
       if (recentMoves.get(mapKey)?.key === key) recentMoves.delete(mapKey);
     }, RECENT_MOVE_DURATION_MS);
@@ -77,7 +93,6 @@ export function createBoardState(
 
   const isInFlight: IsInFlight = (kind, id) => inFlight.has(`${kind}:${id}`);
 
-  // Items just added here or on another connection; they play their enter animation (board-dnd.css) once.
   const newItems = new SvelteSet<string>();
 
   function markNew(kind: MovableKind, id: number) {
@@ -88,7 +103,6 @@ export function createBoardState(
 
   const isNew: IsNew = (kind, id) => newItems.has(`${kind}:${id}`);
 
-  // Items deleted on another connection, still shown in place while they play their leave animation.
   const leavingItems = new SvelteSet<string>();
 
   const isLeaving: IsLeaving = (kind, id) => leavingItems.has(`${kind}:${id}`);
@@ -147,12 +161,12 @@ export function createBoardState(
     flight.release();
   }
 
-  /**
-   * Shows a deletion made on another connection: the item stays in its place labelled with who deleted it,
-   * fades out and closes its slot (board-dnd.css), and only then is removed, so nothing moves underneath it.
-   * `apply` removes the item from the state.
-   */
-  async function animateRemoteDelete(kind: MovableKind, id: number, user: GetBoardByIdResponse.UserDto, apply: () => void) {
+  async function animateRemoteDelete(
+    kind: MovableKind,
+    id: number,
+    user: GetBoardByIdResponse.UserDto,
+    apply: () => void
+  ) {
     const key = `${kind}:${id}`;
     activeFlights.get(key)?.cancel();
     activeFlights.delete(key);
@@ -160,15 +174,12 @@ export function createBoardState(
 
     markChanged(kind, id, user, 'deleted');
     leavingItems.add(key);
-    // A timer rather than animationend: it also runs out in background tabs and with reduced motion.
     await new Promise((resolve) => setTimeout(resolve, LEAVING_ITEM_DURATION_MS));
     leavingItems.delete(key);
     apply();
   }
 
-  const role = $derived<MemberRole>(
-    members.find((m) => m.id === currentUserId)?.role ?? 'viewer'
-  );
+  const role = $derived<MemberRole>(members.find((m) => m.id === currentUserId)?.role ?? 'viewer');
   const canEditBoard = $derived(role === 'owner' || role === 'admin');
   const canManageSwimlanes = $derived(role === 'owner' || role === 'admin');
   const canManageLists = $derived(role === 'owner' || role === 'admin');
@@ -199,14 +210,7 @@ export function createBoardState(
     }
   }
 
-  /*
-    The board is loaded from the snapshot the server sends each connection when it connects or reconnects.
-    Changes that reach the connection before its snapshot are held and applied on top of it, so none is lost
-    and none is overwritten by the snapshot.
-  */
-  // The board has been loaded from a snapshot at least once; it stays on screen while a reconnect waits for the next.
   let loaded = $state(false);
-  // The current connection's snapshot is still on the way, so its events are held.
   let awaitingSnapshot = true;
   let pendingEvents: (() => void)[] = [];
 
@@ -228,8 +232,10 @@ export function createBoardState(
     for (const apply of events) apply();
   }
 
-  // Another board on the same page starts over until its own connection's snapshot arrives.
-  function reset(nextBoard: GetBoardByIdResponse.BoardDto, nextMembers: GetBoardDetailsResponse.BoardMemberDto[]) {
+  function reset(
+    nextBoard: GetBoardByIdResponse.BoardDto,
+    nextMembers: GetBoardDetailsResponse.BoardMemberDto[]
+  ) {
     board = nextBoard;
     members = nextMembers;
     loaded = false;
@@ -243,7 +249,6 @@ export function createBoardState(
     awaitingSnapshot = true;
     pendingEvents = [];
 
-    // Events of a connection that was replaced (another board) are ignored.
     function on<E extends keyof BoardsHubEvents>(event: E, callback: BoardsHubEvents[E]) {
       const run = callback as (...args: unknown[]) => void;
       h.on(event, ((...args: unknown[]) => {
@@ -440,7 +445,10 @@ export function createBoardState(
     });
 
     on('CardDeleted', (payload) => {
-      if (!board.swimlanes.some((s) => s.lists.some((l) => l.cards.some((c) => c.id === payload.id)))) return;
+      if (
+        !board.swimlanes.some((s) => s.lists.some((l) => l.cards.some((c) => c.id === payload.id)))
+      )
+        return;
 
       animateRemoteDelete('card', payload.id, payload.deletedBy, () => {
         for (const s of board.swimlanes) {
@@ -468,23 +476,24 @@ export function createBoardState(
     h.onClose(() => {
       if (hub === h) connectionState = 'disconnected';
     });
-    // A reconnect is a new connection: the server sends it a fresh snapshot, which marks the board connected again.
     h.onReconnecting(() => {
       if (hub !== h) return;
-      // Events held so far belong to the lost connection; the next snapshot already includes them.
       awaitingSnapshot = true;
       pendingEvents = [];
       connectionState = 'reconnecting';
     });
   }
 
-  const hubUnavailable = { ok: false, problem: { title: 'Board hub unavailable', detail: 'Please try again.' } } as const;
+  const hubUnavailable = {
+    ok: false,
+    problem: { title: 'Board hub unavailable', detail: 'Please try again.' }
+  } as const;
 
   async function handleSwimlaneConfirm(
     editingSwimlane: GetBoardByIdResponse.SwimlaneDto | undefined,
     title: string,
     height: number | null
-  ): Promise<Response<any>> {
+  ): Promise<Response<unknown>> {
     if (!hub) return hubUnavailable;
     if (editingSwimlane) {
       const res = await hub.updateSwimlane({ id: editingSwimlane.id, title, height });
@@ -498,7 +507,13 @@ export function createBoardState(
       if (res?.ok) {
         if (!board.swimlanes.some((s) => s.id === res.value.id)) {
           markNew('swimlane', res.value.id);
-          board.swimlanes.push({ id: res.value.id, title, height, rank: res.value.rank, lists: [] });
+          board.swimlanes.push({
+            id: res.value.id,
+            title,
+            height,
+            rank: res.value.rank,
+            lists: []
+          });
           sortSwimlanes();
         }
       }
@@ -532,9 +547,16 @@ export function createBoardState(
     targetSwimlaneId: number | null,
     title: string,
     width: number | null
-  ): Promise<Response<any>> {
+  ): Promise<Response<unknown>> {
     if (!hub) return hubUnavailable;
-    if (!editingList && !targetSwimlaneId) return { ok: false, problem: { title: 'Invalid target swimlane', detail: 'Please choose a swimlane and try again.' } };
+    if (!editingList && !targetSwimlaneId)
+      return {
+        ok: false,
+        problem: {
+          title: 'Invalid target swimlane',
+          detail: 'Please choose a swimlane and try again.'
+        }
+      };
     if (editingList) {
       const res = await hub.updateList({ id: editingList.id, title, width });
       if (res?.ok) {
@@ -543,7 +565,12 @@ export function createBoardState(
       }
       return res;
     } else {
-      const res = await hub.createList({ swimlaneId: targetSwimlaneId!, title, width, beforeId: null });
+      const res = await hub.createList({
+        swimlaneId: targetSwimlaneId!,
+        title,
+        width,
+        beforeId: null
+      });
       if (res?.ok) {
         const swimlane = board.swimlanes.find((s) => s.id === targetSwimlaneId);
         if (swimlane && !swimlane.lists.some((l) => l.id === res.value.id)) {
@@ -585,9 +612,13 @@ export function createBoardState(
     targetListId: number | null,
     title: string,
     description: string
-  ): Promise<Response<any>> {
+  ): Promise<Response<unknown>> {
     if (!hub) return hubUnavailable;
-    if (!editingCard && !targetListId) return { ok: false, problem: { title: 'Invalid target list', detail: 'Please choose a list and try again.' } };
+    if (!editingCard && !targetListId)
+      return {
+        ok: false,
+        problem: { title: 'Invalid target list', detail: 'Please choose a list and try again.' }
+      };
     if (editingCard) {
       const res = await hub.updateCard({ id: editingCard.id, title, description });
       if (res?.ok) {
@@ -598,7 +629,12 @@ export function createBoardState(
       }
       return res;
     } else {
-      const res = await hub.createCard({ listId: targetListId!, title, description, beforeId: null });
+      const res = await hub.createCard({
+        listId: targetListId!,
+        title,
+        description,
+        beforeId: null
+      });
       if (res?.ok) {
         for (const s of board.swimlanes) {
           const list = s.lists.find((l) => l.id === targetListId);
@@ -651,18 +687,42 @@ export function createBoardState(
   }
 
   return {
-    get board() { return board; },
-    set board(v) { board = v; },
-    get members() { return members; },
-    set members(v) { members = v; },
-    get connectionState() { return connectionState; },
-    get hasSnapshot() { return loaded; },
-    set connectionState(v) { connectionState = v; },
-    get role() { return role; },
-    get canEditBoard() { return canEditBoard; },
-    get canManageSwimlanes() { return canManageSwimlanes; },
-    get canManageLists() { return canManageLists; },
-    get canManageCards() { return canManageCards; },
+    get board() {
+      return board;
+    },
+    set board(v) {
+      board = v;
+    },
+    get members() {
+      return members;
+    },
+    set members(v) {
+      members = v;
+    },
+    get connectionState() {
+      return connectionState;
+    },
+    get hasSnapshot() {
+      return loaded;
+    },
+    set connectionState(v) {
+      connectionState = v;
+    },
+    get role() {
+      return role;
+    },
+    get canEditBoard() {
+      return canEditBoard;
+    },
+    get canManageSwimlanes() {
+      return canManageSwimlanes;
+    },
+    get canManageLists() {
+      return canManageLists;
+    },
+    get canManageCards() {
+      return canManageCards;
+    },
     getRecentMove,
     isInFlight,
     isNew,
