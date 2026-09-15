@@ -16,7 +16,9 @@
   let pattern = $derived(GeoPattern.generate(id));
 </script>
 
+<!-- data-board-card: where a skeleton placeholder morphs to on the boards page -->
 <div
+  data-board-card
   class={cn(
     "group relative flex h-32 w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm sm:h-40 dark:border-gray-800 dark:bg-gray-900",
     "transition-all duration-200 hover:shadow-md hover:border-brand-500/30",

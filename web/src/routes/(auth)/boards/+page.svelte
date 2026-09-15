@@ -1,13 +1,14 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, tick } from 'svelte';
   import { invalidate } from '$app/navigation';
   import BoardCard from '$lib/features/boards/components/BoardCard.svelte';
   import BoardCardSkeleton from '$lib/features/boards/components/BoardCardSkeleton.svelte';
   import { recentBoards } from '$lib/features/boards/stores/recent';
   import { Button, FullLayout, Input, Skeleton } from '$lib/ui/components';
   import { Clock3, History, Folders, Plus } from 'lucide-svelte';
-  import { slide } from 'svelte/transition';
-  import { slideReveal } from '$lib/ui/utils';
+  import { fade, slide } from 'svelte/transition';
+  import { placeholderOut, slideReveal } from '$lib/ui/utils';
+  import { morphPlaceholders, type MorphPair } from '$lib/features/boards/animations/skeletonMorph';
 
   let { data } = $props();
   let intervalId: NodeJS.Timeout;
@@ -23,9 +24,58 @@
   let filteredBoards = $derived(
     data.boards.filter((b: BoardData) => b.title.toLowerCase().includes(searchQuery.toLowerCase()))
   );
-  let isMounted = $state(false);
-  onMount(() => {
-    isMounted = true;
+  /*
+    Loading: only the skeleton (also what the server renders). Morphing: the page renders invisibly and each
+    placeholder moves onto the element that replaces it (skeletonMorph.ts). Ready: the page shows and the
+    skeleton fades out.
+  */
+  // A server-rendered page shows its skeleton until it hydrates; client-side navigation has the data at once
+  // and renders the page directly, without a skeleton.
+  const serverRendered =
+    typeof document === 'undefined' || document.querySelector('[data-boards-skeleton]') !== null;
+  let loadPhase = $state<'loading' | 'morphing' | 'ready'>(serverRendered ? 'loading' : 'ready');
+  let placeholder = $state<HTMLElement>();
+  let content = $state<HTMLElement>();
+  // The skeleton was barely on screen: the page replaces it at once, without the morph or fades.
+  let instantReveal = $state(false);
+
+  /** Long enough for the placeholders to arrive, short enough not to hold the page back. */
+  const BOARDS_MORPH_MS = 260;
+
+  /** A skeleton seen for less than this is barely noticed, so morphing it would only delay the page. */
+  const QUICK_LOAD_MS = 250;
+
+  onMount(async () => {
+    if (loadPhase === 'ready') return;
+
+    // How long the server-rendered skeleton has been on screen, from the first paint.
+    const firstPaint = performance.getEntriesByName('first-contentful-paint')[0];
+    const skeletonShownFor = firstPaint ? performance.now() - firstPaint.startTime : Infinity;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion || skeletonShownFor < QUICK_LOAD_MS) {
+      instantReveal = true;
+      loadPhase = 'ready';
+      return;
+    }
+
+    loadPhase = 'morphing';
+    await tick();
+    if (!placeholder || !content) {
+      loadPhase = 'ready';
+      return;
+    }
+
+    const pairs: MorphPair[] = ['title', 'subtitle', 'search', 'new'].map((part) => [
+      placeholder!.querySelector<HTMLElement>(`[data-morph="${part}"]`),
+      content!.querySelector<HTMLElement>(`[data-morph="${part}"]`)
+    ]);
+    const cards = content.querySelectorAll<HTMLElement>('[data-board-card]');
+    placeholder.querySelectorAll<HTMLElement>('[data-morph="card"]').forEach((card, index) => {
+      pairs.push([card, cards[index]]);
+    });
+
+    await morphPlaceholders(pairs, BOARDS_MORPH_MS);
+    loadPhase = 'ready';
   });
 
   function formatTime(date: Date) {
@@ -47,19 +97,27 @@
 
 <FullLayout>
   <div class="relative w-full flex-1 pb-20 sm:pb-6">
-    {#if isMounted}
-      <div>
+    <!-- The skeleton and the page share one grid cell, so the skeleton morphs in place over the invisible page -->
+    <div class="grid grid-cols-[minmax(0,1fr)]">
+    {#if loadPhase !== 'loading'}
+      <div
+        bind:this={content}
+        class="col-start-1 row-start-1 min-w-0 transition-opacity duration-150 ease-flow"
+        class:opacity-0={loadPhase === 'morphing'}
+        inert={loadPhase === 'morphing'}
+      >
         <div class="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
           <div class="space-y-1">
-            <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl dark:text-white">
+            <!-- w-fit: the morph targets the text's own width -->
+            <h1 class="w-fit text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl dark:text-white" data-morph="title">
               Hi {data.user.userName}!
             </h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
+            <p class="w-fit text-sm text-gray-500 dark:text-gray-400" data-morph="subtitle">
               Manage your projects and collaborate with your team.
             </p>
           </div>
           <div class="flex items-center gap-3">
-            <div class="relative w-full sm:w-64">
+            <div class="relative w-full sm:w-64" data-morph="search">
               <Input
                 type="search"
                 placeholder="Search boards..."
@@ -74,6 +132,7 @@
               startIcon={Plus}
               class="hidden sm:inline-flex"
               href="/boards/new"
+              data-morph="new"
             >
               New Board
             </Button>
@@ -160,16 +219,23 @@
           <span>Last refreshed: <span class="font-medium">{formatTime(refreshTime)}</span></span>
         </div>
       </div>
-    {:else}
-      <div class="flex flex-col gap-8">
+    {/if}
+    {#if loadPhase !== 'ready'}
+      <div
+        bind:this={placeholder}
+        class="col-start-1 row-start-1 flex min-w-0 flex-col gap-8"
+        aria-hidden="true"
+        data-boards-skeleton
+        out:fade={instantReveal ? { duration: 0 } : placeholderOut}
+      >
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div class="space-y-3">
-            <Skeleton class="h-9 w-48" />
-            <Skeleton class="h-4 w-64" />
+            <Skeleton class="h-9 w-48" data-morph="title" />
+            <Skeleton class="h-4 w-64" data-morph="subtitle" />
           </div>
           <div class="flex items-center gap-3">
-            <Skeleton class="h-10 w-full rounded-lg sm:w-64" />
-            <Skeleton class="hidden h-11 w-35 rounded-lg sm:block" />
+            <Skeleton class="h-10 w-full rounded-lg sm:w-64" data-morph="search" />
+            <Skeleton class="hidden h-11 w-35 rounded-lg sm:block" data-morph="new" />
           </div>
         </div>
 
@@ -178,16 +244,17 @@
           <div
             class="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:gap-5 xl:gap-6"
           >
-            <BoardCardSkeleton />
-            <BoardCardSkeleton />
-            <BoardCardSkeleton />
-            <BoardCardSkeleton />
-            <BoardCardSkeleton />
-            <BoardCardSkeleton />
+            <div data-morph="card"><BoardCardSkeleton /></div>
+            <div data-morph="card"><BoardCardSkeleton /></div>
+            <div data-morph="card"><BoardCardSkeleton /></div>
+            <div data-morph="card"><BoardCardSkeleton /></div>
+            <div data-morph="card"><BoardCardSkeleton /></div>
+            <div data-morph="card"><BoardCardSkeleton /></div>
           </div>
         </div>
       </div>
     {/if}
+    </div>
 
     <Button
       variant="primary"

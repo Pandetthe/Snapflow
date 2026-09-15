@@ -26,3 +26,6 @@ export const itemIn = { y: 8, duration: ms(280), easing: quintOut };
 
 /** An item leaving a list, quicker than it came in. */
 export const itemOut = { duration: ms(160), easing: cubicIn };
+
+/** A placeholder (skeleton) fading out under the content that replaces it, quicker than the content comes in. */
+export const placeholderOut = { duration: ms(120), easing: cubicIn };
