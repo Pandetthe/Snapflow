@@ -51,6 +51,8 @@ public interface IUserManager
 
     Task<bool> HasPasswordAsync(IUser user);
 
+    Task<Result> AddPasswordAsync(IUser user, string password);
+
     Task<Result<IUser>> CreateExternalAsync(ExternalIdentity identity, string userName);
 
     Task<TwoFactorStatus> GetTwoFactorStatusAsync(IUser user);

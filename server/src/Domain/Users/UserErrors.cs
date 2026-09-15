@@ -64,6 +64,10 @@ public static class UserErrors
         "Users.AccountDeleted",
         "This account has been deleted.");
 
+    public static readonly Error PasswordAlreadySet = Error.Conflict(
+        "Users.Password.AlreadySet",
+        "This account already has a password. Change it instead.");
+
     public static readonly Error EmailSameAsCurrent = Error.Problem(
         "Users.Email.SameAsCurrent",
         "The new email address must be different from the current one.");

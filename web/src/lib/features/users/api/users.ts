@@ -131,6 +131,24 @@ export class UsersService extends BaseService {
     );
   }
 
+  async getPasswordStatus(
+    event?: RequestEvent | ServerLoadEvent
+  ): Promise<AppResponse<{ hasPassword: boolean }>> {
+    return this.handleResponse<{ hasPassword: boolean }>(
+      this.apiClient.fetch('/me/password', { method: 'GET' }, event)
+    );
+  }
+
+  async setPassword(body: { newPassword: string }): Promise<AppResponse<void>> {
+    return this.handleResponse(
+      this.apiClient.fetch('/me/password', {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+  }
+
   async updateAvatar(formData: FormData): Promise<AppResponse<void>> {
     return this.handleResponse(
       this.apiClient.fetch('/me/avatar', { method: 'PUT', body: formData })

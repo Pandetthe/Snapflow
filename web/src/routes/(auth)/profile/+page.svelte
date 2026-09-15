@@ -6,6 +6,7 @@
   import ChangeUsernameDialog from '$lib/features/users/components/ChangeUsernameDialog.svelte';
   import ChangeEmailDialog from '$lib/features/users/components/ChangeEmailDialog.svelte';
   import ChangePasswordDialog from '$lib/features/users/components/ChangePasswordDialog.svelte';
+  import SetPasswordDialog from '$lib/features/users/components/SetPasswordDialog.svelte';
   import DangerZone from '$lib/features/users/components/DangerZone.svelte';
   import TwoFactorSetupDialog from '$lib/features/users/components/TwoFactorSetupDialog.svelte';
   import TwoFactorManageDialog from '$lib/features/users/components/TwoFactorManageDialog.svelte';
@@ -163,11 +164,15 @@
                     <KeyRound size={15} class="shrink-0 text-gray-400" />
                     <div class="min-w-0">
                       <p class="text-xs text-gray-400 dark:text-gray-500">Password</p>
-                      <p
-                        class="text-sm font-medium tracking-widest text-gray-400 dark:text-gray-500"
-                      >
-                        ••••••••
-                      </p>
+                      {#if data.hasPassword}
+                        <p
+                          class="text-sm font-medium tracking-widest text-gray-400 dark:text-gray-500"
+                        >
+                          ••••••••
+                        </p>
+                      {:else}
+                        <p class="text-sm font-medium text-gray-400 dark:text-gray-500">Not set</p>
+                      {/if}
                     </div>
                   </div>
                   <Button
@@ -176,16 +181,25 @@
                     onclick={() => {
                       isEditingPassword = true;
                     }}
-                    startIcon={Pencil}
+                    startIcon={data.hasPassword ? Pencil : Plus}
                   >
-                    Change
+                    {data.hasPassword ? 'Change' : 'Set'}
                   </Button>
                 </div>
-                <ChangePasswordDialog
-                  bind:open={isEditingPassword}
-                  email={data.user?.email ?? ''}
-                  {usersService}
-                />
+                {#if data.hasPassword}
+                  <ChangePasswordDialog
+                    bind:open={isEditingPassword}
+                    email={data.user?.email ?? ''}
+                    {usersService}
+                  />
+                {:else}
+                  <SetPasswordDialog
+                    bind:open={isEditingPassword}
+                    email={data.user?.email ?? ''}
+                    {usersService}
+                    onChange={invalidateAll}
+                  />
+                {/if}
               </div>
             {/if}
 

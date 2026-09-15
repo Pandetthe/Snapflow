@@ -221,6 +221,12 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
     public Task<bool> HasPasswordAsync(IUser user) =>
         userManager.HasPasswordAsync(EnsureIsAppUser(user));
 
+    public async Task<Result> AddPasswordAsync(IUser user, string password)
+    {
+        IdentityResult result = await userManager.AddPasswordAsync(EnsureIsAppUser(user), password);
+        return result.Succeeded ? Result.Success() : IdentityFailure(result);
+    }
+
     public async Task<Result<IUser>> CreateExternalAsync(ExternalIdentity identity, string userName)
     {
         if (string.IsNullOrWhiteSpace(identity.Email))
