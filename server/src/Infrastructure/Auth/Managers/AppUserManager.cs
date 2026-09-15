@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Common;
+using Snapflow.Domain.Roles;
 using Snapflow.Domain.Users;
 using Snapflow.Infrastructure.Auth.Entities;
 using System.Globalization;
@@ -151,6 +152,53 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
             return Result.Success();
 
         appUser.ClearDomainEvents();
+        var errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
+        return Result.ValidationFailure<IUser>(new ValidationError(errors));
+    }
+
+    public async Task<IReadOnlyList<string>> GetRolesAsync(IUser user) =>
+        [.. await userManager.GetRolesAsync(EnsureIsAppUser(user))];
+
+    public async Task<Result> AddToRoleAsync(IUser user, string role)
+    {
+        AppUser appUser = EnsureIsAppUser(user);
+        if (!SystemRoles.All.Contains(role))
+            return Result.Failure(RoleErrors.NotFound(role));
+        if (await userManager.IsInRoleAsync(appUser, role))
+            return Result.Failure(RoleErrors.AlreadyAssigned(role));
+
+        IdentityResult result = await userManager.AddToRoleAsync(appUser, role);
+        if (!result.Succeeded)
+            return RoleChangeFailure(result);
+
+        // Role claims baked into an existing cookie or token go stale; permission checks read the database,
+        // but refreshing the stamp keeps role claims honest for anything relying on them.
+        return await RefreshSecurityStampAsync(appUser);
+    }
+
+    public async Task<Result> RemoveFromRoleAsync(IUser user, string role)
+    {
+        AppUser appUser = EnsureIsAppUser(user);
+        if (!SystemRoles.All.Contains(role))
+            return Result.Failure(RoleErrors.NotFound(role));
+        if (!await userManager.IsInRoleAsync(appUser, role))
+            return Result.Failure(RoleErrors.NotAssigned(role));
+
+        IdentityResult result = await userManager.RemoveFromRoleAsync(appUser, role);
+        if (!result.Succeeded)
+            return RoleChangeFailure(result);
+
+        return await RefreshSecurityStampAsync(appUser);
+    }
+
+    private async Task<Result> RefreshSecurityStampAsync(AppUser appUser)
+    {
+        IdentityResult result = await userManager.UpdateSecurityStampAsync(appUser);
+        return result.Succeeded ? Result.Success() : RoleChangeFailure(result);
+    }
+
+    private static Result<IUser> RoleChangeFailure(IdentityResult result)
+    {
         var errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
         return Result.ValidationFailure<IUser>(new ValidationError(errors));
     }

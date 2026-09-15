@@ -21,6 +21,7 @@ using Snapflow.Application.Abstractions.Services;
 using Snapflow.Infrastructure.Auth.Accessors;
 using Snapflow.Infrastructure.Auth.Entities;
 using Snapflow.Infrastructure.Auth.Managers;
+using Snapflow.Infrastructure.Auth.Services;
 using Snapflow.Infrastructure.Authorization;
 using Snapflow.Infrastructure.Common;
 using Snapflow.Infrastructure.Identity.Services;
@@ -250,6 +251,9 @@ public static class DependencyInjection
             services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
             services.AddScoped<PermissionProvider>();
             services.AddScoped<IAuthorizationHandler, BoardPermissionAuthorizationHandler>();
+            services.AddScoped<SystemPermissionProvider>();
+            services.AddScoped<IAuthorizationHandler, SystemPermissionAuthorizationHandler>();
+            services.AddScoped<ISystemPermissionService, SystemPermissionService>();
 
             services.AddScoped<IUserManager, AppUserManager>();
             services.AddScoped<ISignInManager, AppSignInManager>();

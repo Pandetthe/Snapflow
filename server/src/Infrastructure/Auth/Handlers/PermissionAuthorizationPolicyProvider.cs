@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Snapflow.Domain.Boards;
+using Snapflow.Domain.Roles;
 
 namespace Snapflow.Infrastructure.Authorization;
 
@@ -26,6 +27,13 @@ internal sealed class PermissionAuthorizationPolicyProvider : DefaultAuthorizati
         {
             permissionPolicy = new AuthorizationPolicyBuilder()
                 .AddRequirements(new BoardPermissionRequirement(policyName))
+                .Build();
+        }
+        else if (policyName.StartsWith(SystemPermissions.StartingPoint, StringComparison.Ordinal))
+        {
+            permissionPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .AddRequirements(new SystemPermissionRequirement(policyName))
                 .Build();
         }
         else

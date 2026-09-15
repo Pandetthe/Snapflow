@@ -34,4 +34,10 @@ public interface IUserManager
     Task<Result> UpdateAvatarAsync(IUser user, AvatarType avatarType, byte[]? avatarData, string? contentType);
 
     Task<Result> SoftDeleteAsync(IUser user, TimeProvider timeProvider);
+
+    Task<IReadOnlyList<string>> GetRolesAsync(IUser user);
+
+    Task<Result> AddToRoleAsync(IUser user, string role);
+
+    Task<Result> RemoveFromRoleAsync(IUser user, string role);
 }
