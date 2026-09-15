@@ -30,6 +30,7 @@
     releaseListZoneHeights
   } from '$lib/features/boards/animations/zoneHeights';
   import MovedByIndicator from './MovedByIndicator.svelte';
+  import { storedToCss } from '$lib/features/boards/sizes';
 
   let { swimlane = $bindable() }: { swimlane: GetBoardByIdResponse.SwimlaneDto } = $props();
 
@@ -135,7 +136,7 @@
   role="group"
   class:flight-hidden={inFlight}
   class:flight-settle={recentMove?.pop && !inFlight}
-  style:height={swimlane.height ? `${swimlane.height}px` : undefined}
+  style:height={swimlane.height ? storedToCss(swimlane.height) : undefined}
   data-fixed-height={swimlane.height ? true : undefined}
   class="group/swimlane relative flex flex-col border-b border-gray-200 dark:border-gray-700/60 {swimlane.height
     ? ''

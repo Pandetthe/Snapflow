@@ -61,6 +61,7 @@
     releaseListZoneHeights
   } from '$lib/features/boards/animations/zoneHeights';
   import MovedByIndicator from './MovedByIndicator.svelte';
+  import { storedToCss } from '$lib/features/boards/sizes';
 
   let {
     list = $bindable(),
@@ -162,7 +163,7 @@
   data-board-item="list"
   class:flight-hidden={inFlight}
   class:flight-settle={recentMove?.pop && !inFlight}
-  style:width={list.width ? `${list.width}px` : 'auto'}
+  style:width={list.width ? storedToCss(list.width) : 'auto'}
   class="group/list relative flex h-full max-h-full min-h-0 min-w-55 shrink-0 flex-col rounded-xl border border-gray-200/80 bg-gray-50 shadow-sm dark:border-gray-700/50 dark:bg-gray-900/40 dark:shadow-black/20"
 >
   <MovedByIndicator move={recentMove} rounded="rounded-xl" />
