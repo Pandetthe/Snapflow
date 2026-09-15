@@ -8,9 +8,11 @@
 
   let {
     open = $bindable(false),
+    email,
     usersService
   }: {
     open: boolean;
+    email: string;
     usersService: UsersService;
   } = $props();
 
@@ -63,11 +65,13 @@
 >
   {#if !changeSuccess}
     <div class="space-y-4">
+      <input type="text" name="username" autocomplete="username" value={email} readonly hidden />
       <InputTextField
         id="currentPassword"
         name="currentPassword"
         label="Current password"
         type="password"
+        autocomplete="current-password"
         showPasswordToggle
         required
         bind:value={form.values.currentPassword}
@@ -78,6 +82,7 @@
         name="newPassword"
         label="New password"
         type="password"
+        autocomplete="new-password"
         showPasswordToggle
         required
         bind:value={form.values.newPassword}

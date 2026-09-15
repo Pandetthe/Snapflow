@@ -304,7 +304,7 @@
         type={ldapMode ? 'text' : 'email'}
         label={ldapMode ? 'User name' : 'Email'}
         placeholder={ldapMode ? 'Enter your user name' : 'info@example.com'}
-        autocomplete={ldapMode ? 'username' : 'email'}
+        autocomplete="username"
         bind:value={form.values.email}
         error={form.errors.email}
         leftIcon={ldapMode ? User : Mail}

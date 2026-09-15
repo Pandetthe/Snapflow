@@ -176,7 +176,11 @@
                     Change
                   </Button>
                 </div>
-                <ChangePasswordDialog bind:open={isEditingPassword} {usersService} />
+                <ChangePasswordDialog
+                  bind:open={isEditingPassword}
+                  email={data.user?.email ?? ''}
+                  {usersService}
+                />
               </div>
             {/if}
 

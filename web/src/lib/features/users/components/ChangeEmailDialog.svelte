@@ -58,6 +58,7 @@
       name="newEmail"
       type="email"
       label="New email address"
+      autocomplete="email"
       placeholder={currentEmail}
       required
       bind:value={form.values.newEmail}

@@ -87,6 +87,7 @@
   </div>
 
   <form onsubmit={form.handleSubmit} novalidate class="space-y-5">
+    <input type="text" name="username" autocomplete="username" value={data.email} readonly hidden />
     <div class="space-y-2">
       <InputTextField
         id="password"

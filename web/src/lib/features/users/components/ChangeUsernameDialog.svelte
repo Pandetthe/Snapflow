@@ -64,6 +64,7 @@
       id="userName"
       name="userName"
       label="New username"
+      autocomplete="nickname"
       required
       bind:value={form.values.userName}
       error={form.errors.userName}

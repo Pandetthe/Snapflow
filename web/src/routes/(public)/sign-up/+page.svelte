@@ -89,7 +89,7 @@
       type="email"
       label="Email address"
       placeholder="Enter your email"
-      autocomplete="email"
+      autocomplete="username"
       bind:value={form.values.email}
       error={form.errors.email}
       leftIcon={Mail}
@@ -102,7 +102,7 @@
       type="text"
       label="User name"
       placeholder="Choose a username"
-      autocomplete="username"
+      autocomplete="nickname"
       bind:value={form.values.userName}
       error={form.errors.userName}
       leftIcon={User}
