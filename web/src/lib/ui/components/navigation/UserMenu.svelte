@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronDown, User as UserIcon, LogOut } from 'lucide-svelte';
+  import { ChevronDown, User as UserIcon, LogOut, SlidersHorizontal } from 'lucide-svelte';
   import { DropdownMenu } from 'bits-ui';
   import { Button, UserAvatar } from '$lib/ui/components';
   import { floatingMotionClass } from '$lib/ui/utils';
@@ -13,7 +13,10 @@
 
   let { user, handleSignOut }: Props = $props();
 
-  const menuItems = [{ href: '/profile', icon: UserIcon, text: 'Edit profile' }];
+  const menuItems = [
+    { href: '/profile', icon: UserIcon, text: 'Edit profile' },
+    { href: '/settings', icon: SlidersHorizontal, text: 'Settings' }
+  ];
 </script>
 
 <div class="relative">
