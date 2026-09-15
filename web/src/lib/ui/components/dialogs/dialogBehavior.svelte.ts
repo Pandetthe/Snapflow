@@ -175,7 +175,7 @@ export class DialogBehavior {
 
   get baseContentClasses(): string {
     return cn(
-      `fixed ${this.zIndex} w-[calc(100%-1.25rem)] overflow-y-auto border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900`,
+      `fixed ${this.zIndex} w-[calc(100%-1.25rem)] overflow-y-auto border border-gray-200 bg-white shadow-2xl outline-none dark:border-gray-700 dark:bg-gray-900`,
       DIALOG_SIZE_CLASS[this.size],
       this.sizeClass,
       getAnimationClasses(this.activeAnimation, this.activeMode, this.activeDrawerSide),

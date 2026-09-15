@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { Dialog } from 'bits-ui';
-  import { Button, InputTextField, ResponsiveDialog, UserAvatar } from '$lib/ui/components';
+  import { AppDialog, Button, InputTextField, UserAvatar } from '$lib/ui/components';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import type { Response } from '$lib/core/types/app';
   import { createForm } from '$lib/ui/utils';
@@ -58,6 +57,8 @@
   let mode = $state<'view' | 'edit'>('view');
   // Bumped each time editing starts, so the editor mounts again with the values it should load.
   let editSession = $state(0);
+
+  const viewing = $derived(mode === 'view' && card !== undefined);
 
   const cardTags = $derived(
     (card?.tagIds ?? [])
@@ -160,7 +161,7 @@
   }
 </script>
 
-<ResponsiveDialog
+<AppDialog
   bind:open
   size="xl"
   sizeClass="max-w-3xl"
@@ -172,33 +173,26 @@
   {desktopAnimation}
   {mobileAnimation}
   {triggerElement}
-  contentClass="sm:rounded-lg md:w-full"
+  title={viewing && card ? card.title : card ? 'Edit card' : 'Create card'}
+  onsubmit={viewing ? undefined : form.handleSubmit}
 >
-  {#if mode === 'view' && card}
+  {#if viewing && card}
     <!-- The card's content, with who made and changed it in a panel beside it (under it on narrow screens) -->
     <div class="flex flex-col gap-5 md:flex-row md:gap-6">
-      <div class="min-w-0 flex-1">
-        <Dialog.Title
-          class="text-lg leading-snug font-semibold tracking-tight wrap-break-word text-gray-900 dark:text-gray-100"
-        >
-          {card.title}
-        </Dialog.Title>
-
+      <div class="min-w-0 flex-1 space-y-5">
         {#if cardTags.length > 0}
-          <div class="mt-3 flex flex-wrap gap-1.5">
+          <div class="flex flex-wrap gap-1.5">
             {#each cardTags as tag (tag.id)}
               <TagChip {tag} />
             {/each}
           </div>
         {/if}
 
-        <div class="mt-5">
-          {#if card.description.trim()}
-            <MarkdownView markdown={card.description} />
-          {:else}
-            <p class="text-sm text-gray-400 italic dark:text-gray-500">No description</p>
-          {/if}
-        </div>
+        {#if card.description.trim()}
+          <MarkdownView markdown={card.description} />
+        {:else}
+          <p class="text-sm text-gray-400 italic dark:text-gray-500">No description</p>
+        {/if}
       </div>
 
       <aside
@@ -238,38 +232,8 @@
         </dl>
       </aside>
     </div>
-
-    <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-      <Button
-        type="button"
-        onclick={() => {
-          open = false;
-        }}
-        variant="outline"
-        class="w-full sm:min-w-32"
-      >
-        Close
-      </Button>
-      {#if canManageCards}
-        <Button
-          type="button"
-          onclick={startEditing}
-          variant="primary"
-          startIcon={Pencil}
-          disabled={boardState !== 'connected'}
-          class="w-full sm:min-w-32"
-        >
-          Edit
-        </Button>
-      {/if}
-    </div>
   {:else}
-    <Dialog.Title
-      class="text-lg leading-none font-semibold tracking-tight text-gray-900 dark:text-gray-100"
-    >
-      {card ? 'Edit Card' : 'Create Card'}
-    </Dialog.Title>
-    <form onsubmit={form.handleSubmit} novalidate class="mt-4 space-y-4">
+    <div class="space-y-4">
       <InputTextField
         id="card-title"
         name="title"
@@ -318,41 +282,60 @@
           </div>
         </div>
       {/if}
+    </div>
+  {/if}
 
-      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        {#if card && onDelete}
-          <Button
-            type="button"
-            onclick={handleDelete}
-            variant="danger"
-            disabled={form.isSubmitting || isDeleting}
-            isLoading={isDeleting}
-            loadingText="Deleting"
-            class="w-full sm:mr-auto sm:min-w-32"
-          >
-            Delete
-          </Button>
-        {/if}
+  {#snippet actions()}
+    {#if viewing}
+      <Button
+        type="button"
+        onclick={() => {
+          open = false;
+        }}
+        variant="outline"
+      >
+        Close
+      </Button>
+      {#if canManageCards}
         <Button
           type="button"
-          onclick={stopEditing}
-          variant="outline"
-          disabled={form.isSubmitting || isDeleting}
-          class="w-full sm:min-w-32"
+          onclick={startEditing}
+          startIcon={Pencil}
+          disabled={boardState !== 'connected'}
         >
-          Cancel
+          Edit
         </Button>
+      {/if}
+    {:else}
+      {#if card && onDelete}
         <Button
-          type="submit"
-          variant="primary"
-          disabled={!form.values.title.trim() || form.isSubmitting || isDeleting}
-          isLoading={form.isSubmitting}
-          loadingText={card ? 'Saving' : 'Creating'}
-          class="w-full sm:min-w-32"
+          type="button"
+          onclick={handleDelete}
+          variant="danger"
+          disabled={form.isSubmitting || isDeleting}
+          isLoading={isDeleting}
+          loadingText="Deleting"
+          class="sm:mr-auto"
         >
-          {card ? 'Save Changes' : 'Create'}
+          Delete
         </Button>
-      </div>
-    </form>
-  {/if}
-</ResponsiveDialog>
+      {/if}
+      <Button
+        type="button"
+        onclick={stopEditing}
+        variant="outline"
+        disabled={form.isSubmitting || isDeleting}
+      >
+        Cancel
+      </Button>
+      <Button
+        type="submit"
+        disabled={!form.values.title.trim() || form.isSubmitting || isDeleting}
+        isLoading={form.isSubmitting}
+        loadingText={card ? 'Saving' : 'Creating'}
+      >
+        {card ? 'Save changes' : 'Create'}
+      </Button>
+    {/if}
+  {/snippet}
+</AppDialog>

@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { Dialog } from 'bits-ui';
-  import { Button, InputTextField, ResponsiveDialog } from '$lib/ui/components';
+  import { AppDialog, Button, InputTextField } from '$lib/ui/components';
   import { Check } from 'lucide-svelte';
   import type { UsersService } from '../api/users';
   import { createForm } from '$lib/ui/utils';
@@ -49,58 +48,42 @@
   });
 </script>
 
-<ResponsiveDialog bind:open size="sm">
-  <div class="space-y-6">
+<AppDialog
+  bind:open
+  size="sm"
+  icon={changeSuccess ? Check : undefined}
+  tone="success"
+  title={changeSuccess ? 'Username updated' : 'Change username'}
+  description={changeSuccess
+    ? 'Your username has been updated successfully.'
+    : 'Enter your new username below.'}
+  onsubmit={changeSuccess ? undefined : form.handleSubmit}
+>
+  {#if !changeSuccess}
+    <InputTextField
+      id="userName"
+      name="userName"
+      label="New username"
+      required
+      bind:value={form.values.userName}
+      error={form.errors.userName}
+    />
+  {/if}
+
+  {#snippet actions()}
     {#if changeSuccess}
-      <div class="space-y-6 text-center pt-4">
-        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full shadow-inner transition-all duration-500 bg-success-100 dark:bg-success-900/40">
-          <Check size={32} class="transition-transform duration-500 text-success-600 dark:text-success-400" />
-        </div>
-        <div class="space-y-2">
-          <Dialog.Title class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Username updated
-          </Dialog.Title>
-          <Dialog.Description class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-            Your username has been updated successfully.
-          </Dialog.Description>
-        </div>
-        <div class="pt-4">
-          <Button class="w-full justify-center" onclick={close}>Close</Button>
-        </div>
-      </div>
+      <Button onclick={close}>Close</Button>
     {:else}
-      <div class="space-y-2">
-        <Dialog.Title class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-          Change username
-        </Dialog.Title>
-        <Dialog.Description class="text-sm text-gray-500 dark:text-gray-400">
-          Enter your new username below.
-        </Dialog.Description>
-      </div>
-      <form onsubmit={form.handleSubmit} novalidate class="space-y-4">
-        <InputTextField
-          id="userName"
-          name="userName"
-          label="New username"
-          required
-          bind:value={form.values.userName}
-          error={form.errors.userName}
-        />
-        <div class="flex justify-end gap-2">
-          <Button variant="ghost" size="sm" onclick={close}>Cancel</Button>
-          <Button
-            type="submit"
-            variant="primary"
-            size="sm"
-            disabled={form.isSubmitting}
-            isLoading={form.isSubmitting}
-            loadingText="Saving..."
-            startIcon={Check}
-          >
-            Save username
-          </Button>
-        </div>
-      </form>
+      <Button variant="ghost" onclick={close}>Cancel</Button>
+      <Button
+        type="submit"
+        disabled={form.isSubmitting}
+        isLoading={form.isSubmitting}
+        loadingText="Saving"
+        startIcon={Check}
+      >
+        Save username
+      </Button>
     {/if}
-  </div>
-</ResponsiveDialog>
+  {/snippet}
+</AppDialog>

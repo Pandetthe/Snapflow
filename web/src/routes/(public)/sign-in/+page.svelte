@@ -7,12 +7,13 @@
   import {
     Button,
     Checkbox,
+    CodeInput,
     GoBackButton,
     InputTextField,
     SegmentedControl,
     SplitLayout
   } from '$lib/ui/components';
-  import { Mail, Lock, User, Smartphone, LifeBuoy } from 'lucide-svelte';
+  import { Mail, Lock, User } from 'lucide-svelte';
   import { createForm } from '$lib/ui/utils';
   import SignInModal from '$lib/features/auth/components/SignInModal.svelte';
   import ExternalProviderButtons from '$lib/features/auth/components/ExternalProviderButtons.svelte';
@@ -119,8 +120,10 @@
     },
     validate: (values) => {
       const errors: Record<string, string> = {};
-      if (!values.code.trim()) {
-        errors.code = useRecoveryCode ? 'Recovery code is required.' : 'Code is required.';
+      if (useRecoveryCode && values.code.length !== 10) {
+        errors.code = 'Enter the 10-character recovery code.';
+      } else if (!useRecoveryCode && values.code.length !== 6) {
+        errors.code = 'Enter the 6-digit code from your app.';
       }
       return errors;
     },
@@ -139,7 +142,9 @@
     },
     onError: (problem: ProblemDetails) => {
       if (problem.title === 'Users.TwoFactor.InvalidCode') {
-        twoFactorCodeError = problem.detail ?? 'The code is not valid.';
+        twoFactorCodeError = useRecoveryCode
+          ? 'This recovery code is not valid or has already been used.'
+          : (problem.detail ?? 'The code is not valid.');
         return true;
       }
       if (problem.title === 'Users.TwoFactor.SignInExpired') {
@@ -153,6 +158,14 @@
     useRecoveryCode = !useRecoveryCode;
     twoFactorForm.values.code = '';
     twoFactorCodeError = undefined;
+  }
+
+  async function submitTwoFactor(event?: Event) {
+    event?.preventDefault();
+    await twoFactorForm.handleSubmit();
+    if (twoFactorCodeError) {
+      twoFactorForm.values.code = '';
+    }
   }
 
   function leaveTwoFactorStep() {
@@ -194,20 +207,32 @@
   </div>
 
   {#if twoFactorStep}
-    <form onsubmit={twoFactorForm.handleSubmit} novalidate class="space-y-5">
-      <InputTextField
-        id="twoFactorCode"
-        name={useRecoveryCode ? 'recoveryCode' : 'code'}
-        label={useRecoveryCode ? 'Recovery code' : 'Authentication code'}
-        placeholder={useRecoveryCode ? 'XXXXX-XXXXX' : '123456'}
-        autocomplete={useRecoveryCode ? 'off' : 'one-time-code'}
-        inputmode={useRecoveryCode ? 'text' : 'numeric'}
-        maxlength={useRecoveryCode ? 16 : 7}
-        bind:value={twoFactorForm.values.code}
-        error={twoFactorCodeError ?? twoFactorForm.errors.code}
-        oninput={() => (twoFactorCodeError = undefined)}
-        leftIcon={useRecoveryCode ? LifeBuoy : Smartphone}
-      />
+    <form onsubmit={submitTwoFactor} novalidate class="space-y-5">
+      {#if useRecoveryCode}
+        <CodeInput
+          id="twoFactorCode"
+          name="recoveryCode"
+          label="Recovery code"
+          kind="alphanumeric"
+          length={10}
+          autofocus
+          bind:value={twoFactorForm.values.code}
+          error={twoFactorCodeError ?? twoFactorForm.errors.code}
+          onValueChange={() => (twoFactorCodeError = undefined)}
+          onComplete={() => submitTwoFactor()}
+        />
+      {:else}
+        <CodeInput
+          id="twoFactorCode"
+          name="code"
+          label="Authentication code"
+          autofocus
+          bind:value={twoFactorForm.values.code}
+          error={twoFactorCodeError ?? twoFactorForm.errors.code}
+          onValueChange={() => (twoFactorCodeError = undefined)}
+          onComplete={() => submitTwoFactor()}
+        />
+      {/if}
 
       {#if !useRecoveryCode}
         <Checkbox

@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { Dialog } from 'bits-ui';
-  import { Button, InputTextField, ResponsiveDialog } from '$lib/ui/components';
+  import { AppDialog, Button, InputTextField } from '$lib/ui/components';
   import { slide } from 'svelte/transition';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import type { Response } from '$lib/core/types/app';
@@ -101,7 +100,7 @@
   }
 </script>
 
-<ResponsiveDialog
+<AppDialog
   bind:open
   size="lg"
   {desktopMode}
@@ -112,14 +111,10 @@
   {desktopAnimation}
   {mobileAnimation}
   {triggerElement}
-  contentClass="sm:rounded-lg md:w-full"
+  title={list ? 'Edit list' : 'Create list'}
+  onsubmit={form.handleSubmit}
 >
-  <Dialog.Title
-    class="text-lg leading-none font-semibold tracking-tight text-gray-900 dark:text-gray-100"
-  >
-    {list ? 'Edit List' : 'Create List'}
-  </Dialog.Title>
-  <form onsubmit={form.handleSubmit} novalidate class="mt-4 space-y-6">
+  <div class="space-y-6">
     <InputTextField
       id="list-title"
       name="title"
@@ -197,42 +192,39 @@
         </div>
       {/if}
     </div>
+  </div>
 
-    <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-      {#if list && onDelete}
-        <Button
-          type="button"
-          onclick={handleDelete}
-          variant="danger"
-          disabled={form.isSubmitting || isDeleting}
-          isLoading={isDeleting}
-          loadingText="Deleting"
-          class="w-full sm:mr-auto sm:min-w-32"
-        >
-          Delete
-        </Button>
-      {/if}
+  {#snippet actions()}
+    {#if list && onDelete}
       <Button
         type="button"
-        onclick={() => {
-          open = false;
-        }}
-        variant="outline"
+        onclick={handleDelete}
+        variant="danger"
         disabled={form.isSubmitting || isDeleting}
-        class="w-full sm:min-w-32"
+        isLoading={isDeleting}
+        loadingText="Deleting"
+        class="sm:mr-auto"
       >
-        Cancel
+        Delete
       </Button>
-      <Button
-        type="submit"
-        variant="primary"
-        disabled={!form.values.title.trim() || form.isSubmitting || isDeleting}
-        isLoading={form.isSubmitting}
-        loadingText={list ? 'Saving' : 'Creating'}
-        class="w-full sm:min-w-32"
-      >
-        {list ? 'Save Changes' : 'Create'}
-      </Button>
-    </div>
-  </form>
-</ResponsiveDialog>
+    {/if}
+    <Button
+      type="button"
+      onclick={() => {
+        open = false;
+      }}
+      variant="outline"
+      disabled={form.isSubmitting || isDeleting}
+    >
+      Cancel
+    </Button>
+    <Button
+      type="submit"
+      disabled={!form.values.title.trim() || form.isSubmitting || isDeleting}
+      isLoading={form.isSubmitting}
+      loadingText={list ? 'Saving' : 'Creating'}
+    >
+      {list ? 'Save changes' : 'Create'}
+    </Button>
+  {/snippet}
+</AppDialog>

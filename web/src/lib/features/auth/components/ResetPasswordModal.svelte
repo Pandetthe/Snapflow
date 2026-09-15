@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { Dialog } from 'bits-ui';
-  import { Button, ResponsiveDialog } from '$lib/ui/components';
+  import { AppDialog, Button } from '$lib/ui/components';
+  import type { DialogTone } from '$lib/ui/components/dialogs/AppDialog.svelte';
+  import type { Icon as IconType } from 'lucide-svelte';
   import { Check, CircleX, UserX } from 'lucide-svelte';
-  import { cn } from '$lib/ui/utils';
 
   let {
     open = $bindable(false),
@@ -33,27 +33,27 @@
   let redirectTimer: ReturnType<typeof setTimeout> | undefined;
   let redirectDelayTimer: ReturnType<typeof setTimeout> | undefined;
 
-  const config = {
+  const config: Record<
+    'success' | 'error' | 'accountDeleted',
+    { title: string; message: string; icon: typeof IconType; tone: DialogTone }
+  > = {
     success: {
       title: 'Password reset successful!',
       message: 'Your password has been successfully updated. You can now sign in with your new password.',
       icon: Check,
-      color: 'text-green-600 dark:text-green-400',
-      bgColor: 'bg-green-100 dark:bg-green-900/40'
+      tone: 'success'
     },
     error: {
       title: 'Reset password failed',
       message: 'The reset password attempt failed. Please try again later.',
       icon: CircleX,
-      color: 'text-rose-600 dark:text-rose-400',
-      bgColor: 'bg-rose-50 dark:bg-rose-500/10'
+      tone: 'danger'
     },
     accountDeleted: {
       title: 'Account deleted',
       message: 'This account has been deleted and can no longer be used to reset a password.',
       icon: UserX,
-      color: 'text-rose-600 dark:text-rose-400',
-      bgColor: 'bg-rose-50 dark:bg-rose-500/10'
+      tone: 'danger'
     }
   };
 
@@ -86,7 +86,7 @@
   });
 </script>
 
-<ResponsiveDialog
+<AppDialog
   bind:open
   size="md"
   {desktopMode}
@@ -99,68 +99,44 @@
   {triggerElement}
   escapeClosable={variant !== 'success'}
   overlayClosable={variant !== 'success'}
-  contentClass="border-white/10 bg-white/95 backdrop-blur-xl dark:bg-gray-900/95"
+  icon={info.icon}
+  tone={info.tone}
+  title={info.title}
+  description={info.message}
 >
-      <div class="space-y-6 text-center">
-        <div
-          class={cn(
-            'mx-auto flex h-16 w-16 items-center justify-center rounded-full shadow-inner transition-all duration-500',
-            info.bgColor
-          )}
+  {#if variant === 'success'}
+    <div
+      class="rounded-2xl border border-brand-100 bg-brand-50 p-5 dark:border-brand-500/10 dark:bg-brand-500/5"
+    >
+      <div
+        class="mb-3 flex items-center justify-between text-xs font-semibold text-brand-700 dark:text-brand-400"
+      >
+        <span>Redirecting to sign in</span>
+        <span class="rounded-full bg-white px-2 py-0.5 font-mono dark:bg-black/20"
+          >{redirectCountdown}s</span
         >
-          <info.icon size={32} class={cn('transition-transform duration-500', info.color)} />
-        </div>
-
-        <div class="space-y-2">
-          <Dialog.Title class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-            {info.title}
-          </Dialog.Title>
-          <Dialog.Description class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-            {info.message}
-          </Dialog.Description>
-        </div>
-
-        {#if variant === 'success'}
-          <div
-            class="mb-8 rounded-2xl border border-brand-100 bg-brand-50 p-5 dark:border-brand-500/10 dark:bg-brand-500/5"
-          >
-            <div
-              class="mb-3 flex items-center justify-between text-xs font-semibold text-brand-700 dark:text-brand-400"
-            >
-              <span>Redirecting to sign in</span>
-              <span class="rounded-full bg-white px-2 py-0.5 font-mono dark:bg-black/20"
-                >{redirectCountdown}s</span
-              >
-            </div>
-            <div class="h-2 w-full overflow-hidden rounded-full bg-brand-200/50 dark:bg-brand-900/30">
-              <div
-                class="h-full rounded-full bg-brand-500 shadow-[0_0_8px_rgba(var(--color-brand-500),0.4)] transition-all duration-1000 ease-linear"
-                style="width: {sliderWidth}%"
-              ></div>
-            </div>
-          </div>
-        {/if}
-
-        <div class="flex flex-col-reverse justify-center gap-3 sm:flex-row">
-          {#if variant === 'success'}
-            <Button href="/sign-in" variant="primary" size="md" class="w-full justify-center" haptic="medium">
-              Sign in now
-            </Button>
-          {:else}
-            <Button
-              onclick={() => {
-                open = false;
-              }}
-              variant="primary"
-              size="md"
-              class="min-w-35"
-              haptic="light"
-            >
-              Understand
-            </Button>
-          {/if}
-        </div>
       </div>
-    </ResponsiveDialog>
+      <div class="h-2 w-full overflow-hidden rounded-full bg-brand-200/50 dark:bg-brand-900/30">
+        <div
+          class="h-full rounded-full bg-brand-500 shadow-[0_0_8px_rgba(var(--color-brand-500),0.4)] transition-all duration-1000 ease-linear"
+          style="width: {sliderWidth}%"
+        ></div>
+      </div>
+    </div>
+  {/if}
 
-
+  {#snippet actions()}
+    {#if variant === 'success'}
+      <Button href="/sign-in" haptic="medium">Sign in now</Button>
+    {:else}
+      <Button
+        onclick={() => {
+          open = false;
+        }}
+        haptic="light"
+      >
+        Understand
+      </Button>
+    {/if}
+  {/snippet}
+</AppDialog>

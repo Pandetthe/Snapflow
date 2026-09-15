@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { Dialog } from 'bits-ui';
-  import { RefreshCw, ShieldOff } from 'lucide-svelte';
-  import { Button, InputTextField, ResponsiveDialog } from '$lib/ui/components';
+  import { KeyRound, RefreshCw, ShieldOff } from 'lucide-svelte';
+  import { AppDialog, Button, CodeInput } from '$lib/ui/components';
   import { createForm } from '$lib/ui/utils';
   import type { Response as AppResponse } from '$lib/core/types/app';
   import type { RecoveryCodesResponse, UsersService } from '../api/users';
@@ -25,12 +24,20 @@
   let codeError = $state<string | undefined>();
   let changed = false;
 
+  const statusText = $derived(
+    recoveryCodesLeft === 0
+      ? "It's on, but you have no recovery codes left. Generate new ones."
+      : `It's on. You have ${recoveryCodesLeft} recovery ${recoveryCodesLeft === 1 ? 'code' : 'codes'} left.`
+  );
+
   const form = createForm({
     initialValues: { code: '' },
     validate: (values) => {
       const errors: Record<string, string> = {};
-      if (!values.code.trim()) {
-        errors.code = useRecoveryCode ? 'Enter a recovery code.' : 'Enter the code from your app.';
+      if (useRecoveryCode && values.code.length !== 10) {
+        errors.code = 'Enter the 10-character recovery code.';
+      } else if (!useRecoveryCode && values.code.length !== 6) {
+        errors.code = 'Enter the 6-digit code from your app.';
       }
       return errors;
     },
@@ -54,12 +61,22 @@
     },
     onError: (problem) => {
       if (problem.title === 'Users.TwoFactor.InvalidCode') {
-        codeError = problem.detail ?? 'The code is not valid.';
+        codeError = useRecoveryCode
+          ? 'This recovery code is not valid or has already been used.'
+          : (problem.detail ?? 'The code is not valid.');
         return true;
       }
       return false;
     }
   });
+
+  async function submitCode(event?: Event) {
+    event?.preventDefault();
+    await form.handleSubmit();
+    if (codeError) {
+      form.values.code = '';
+    }
+  }
 
   function toggleRecoveryCode() {
     useRecoveryCode = !useRecoveryCode;
@@ -85,92 +102,85 @@
   });
 </script>
 
-<ResponsiveDialog bind:open size="sm">
-  <div class="space-y-6">
-    {#if recoveryCodes}
-      <div class="space-y-2">
-        <Dialog.Title class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-          Your new recovery codes
-        </Dialog.Title>
-        <Dialog.Description class="text-sm text-gray-500 dark:text-gray-400">
-          The old codes no longer work. Keep these somewhere safe, they won't be shown again.
-        </Dialog.Description>
-      </div>
-      <RecoveryCodes codes={recoveryCodes} />
-      <Button class="w-full justify-center" onclick={close}>I have saved them</Button>
-    {:else}
-      <div class="space-y-2">
-        <Dialog.Title class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-          Two-factor authentication
-        </Dialog.Title>
-        <Dialog.Description class="text-sm text-gray-500 dark:text-gray-400">
-          It's on.
-          {#if recoveryCodesLeft === 0}
-            You have no recovery codes left, so generate new ones.
-          {:else}
-            You have {recoveryCodesLeft} recovery {recoveryCodesLeft === 1 ? 'code' : 'codes'} left.
-          {/if}
-          Confirm either change with a code.
-        </Dialog.Description>
-      </div>
-
-      <form onsubmit={form.handleSubmit} novalidate class="space-y-4">
-        <InputTextField
+<AppDialog
+  bind:open
+  size="sm"
+  icon={recoveryCodes ? KeyRound : undefined}
+  tone="success"
+  title={recoveryCodes ? 'New recovery codes' : 'Two-factor authentication'}
+  description={recoveryCodes
+    ? "The old codes no longer work. Save these somewhere safe, they won't be shown again."
+    : statusText}
+  onsubmit={recoveryCodes ? undefined : submitCode}
+>
+  {#if recoveryCodes}
+    <RecoveryCodes codes={recoveryCodes} />
+  {:else}
+    <div class="space-y-3">
+      {#if useRecoveryCode}
+        <CodeInput
           id="twoFactorManageCode"
-          name={useRecoveryCode ? 'recoveryCode' : 'code'}
-          label={useRecoveryCode ? 'Recovery code' : 'Code from the app'}
-          placeholder={useRecoveryCode ? 'XXXXX-XXXXX' : '123456'}
-          inputmode={useRecoveryCode ? 'text' : 'numeric'}
-          autocomplete={useRecoveryCode ? 'off' : 'one-time-code'}
-          maxlength={useRecoveryCode ? 16 : 7}
+          name="recoveryCode"
+          label="Recovery code"
+          kind="alphanumeric"
+          length={10}
           bind:value={form.values.code}
           error={codeError ?? form.errors.code}
-          oninput={() => (codeError = undefined)}
+          onValueChange={() => (codeError = undefined)}
         />
+      {:else}
+        <CodeInput
+          id="twoFactorManageCode"
+          name="code"
+          label="Code from the app"
+          bind:value={form.values.code}
+          error={codeError ?? form.errors.code}
+          onValueChange={() => (codeError = undefined)}
+        />
+      {/if}
 
-        <button
-          type="button"
-          class="rounded-sm text-sm text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-brand-400 dark:hover:text-brand-500"
-          onclick={toggleRecoveryCode}
+      <button
+        type="button"
+        class="rounded-sm text-sm text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-500"
+        onclick={toggleRecoveryCode}
+      >
+        {useRecoveryCode ? 'Use the authenticator app' : 'Lost your phone? Use a recovery code'}
+      </button>
+    </div>
+  {/if}
+
+  {#snippet actions()}
+    {#if recoveryCodes}
+      <Button onclick={close}>I have saved them</Button>
+    {:else}
+      {#if !useRecoveryCode}
+        <Button
+          type="submit"
+          variant="outline"
+          disabled={form.isSubmitting}
+          isLoading={form.isSubmitting && action === 'regenerate'}
+          loadingText="Generating"
+          startIcon={RefreshCw}
+          onclick={() => {
+            action = 'regenerate';
+          }}
         >
-          {useRecoveryCode ? 'Use the authenticator app' : 'Lost your phone? Use a recovery code'}
-        </button>
-
-        <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          {#if !useRecoveryCode}
-            <Button
-              type="submit"
-              variant="outline"
-              size="sm"
-              class="justify-center"
-              disabled={form.isSubmitting}
-              isLoading={form.isSubmitting && action === 'regenerate'}
-              loadingText="Generating..."
-              startIcon={RefreshCw}
-              onclick={() => {
-                action = 'regenerate';
-              }}
-            >
-              New recovery codes
-            </Button>
-          {/if}
-          <Button
-            type="submit"
-            variant="danger"
-            size="sm"
-            class="justify-center"
-            disabled={form.isSubmitting}
-            isLoading={form.isSubmitting && action === 'disable'}
-            loadingText="Turning off..."
-            startIcon={ShieldOff}
-            onclick={() => {
-              action = 'disable';
-            }}
-          >
-            Turn off
-          </Button>
-        </div>
-      </form>
+          New recovery codes
+        </Button>
+      {/if}
+      <Button
+        type="submit"
+        variant="danger"
+        disabled={form.isSubmitting}
+        isLoading={form.isSubmitting && action === 'disable'}
+        loadingText="Turning off"
+        startIcon={ShieldOff}
+        onclick={() => {
+          action = 'disable';
+        }}
+      >
+        Turn off
+      </Button>
     {/if}
-  </div>
-</ResponsiveDialog>
+  {/snippet}
+</AppDialog>
