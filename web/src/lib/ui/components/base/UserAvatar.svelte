@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { cn } from '$lib/ui/utils';
+  import { cn, placeholderOut } from '$lib/ui/utils';
+  import { fade } from 'svelte/transition';
+  import type { Action } from 'svelte/action';
   import Skeleton from './Skeleton.svelte';
-  import { onMount } from 'svelte';
 
   interface Props {
     src?: string | null;
@@ -19,10 +20,59 @@
     class: className
   }: Props = $props();
 
-  let isMounted = $state(false);
-  onMount(() => {
-    isMounted = true;
-  });
+  /*
+    The skeleton stays until the image has loaded, so the avatar never shows an empty circle; a broken image falls
+    back to the initials. What loaded is remembered per src, so a new src shows the skeleton again without an
+    effect resetting state, which could run after the image had already loaded.
+  */
+  let loadedSrc = $state<string | null>(null);
+  let failedSrc = $state<string | null>(null);
+
+  const showImage = $derived(Boolean(src) && failedSrc !== src);
+  const loaded = $derived(loadedSrc === src);
+
+  /**
+   * Reports when the image is ready, however its element came to be: rendered fresh, kept from the server, taken
+   * from cache, or moved around by drag & drop. `load` can fire before anyone listens, so decode() is awaited as well;
+   * it resolves for an image that has already loaded.
+   */
+  const watchImage: Action<HTMLImageElement, string> = (node, imageSrc) => {
+    let current = imageSrc;
+
+    function check() {
+      const watched = current;
+      if (node.complete && node.naturalWidth > 0) {
+        loadedSrc = watched;
+        return;
+      }
+      node.decode().then(
+        () => {
+          if (current === watched) loadedSrc = watched;
+        },
+        () => {
+          // decode() also rejects while a new src is still loading; only a finished, empty image is broken.
+          if (current === watched && node.complete && node.naturalWidth === 0) failedSrc = watched;
+        }
+      );
+    }
+
+    const onLoad = () => (loadedSrc = current);
+    const onError = () => (failedSrc = current);
+    node.addEventListener('load', onLoad);
+    node.addEventListener('error', onError);
+    check();
+
+    return {
+      update(nextSrc) {
+        current = nextSrc;
+        check();
+      },
+      destroy() {
+        node.removeEventListener('load', onLoad);
+        node.removeEventListener('error', onError);
+      }
+    };
+  };
 
   const sizeMap: Record<string, string> = {
     xs: 'h-6 w-6 text-[10px]',
@@ -51,16 +101,26 @@
   class={cn(
     'relative flex shrink-0 items-center justify-center overflow-hidden rounded-full ring-1 ring-black/5 dark:ring-white/10',
     resolvedSizeClass,
-    !src && 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400 font-bold',
+    !showImage && 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400 font-bold',
     className
   )}
   style={customSizeStyle}
 >
-  {#if isLoading || !isMounted}
-    <Skeleton class="h-full w-full rounded-full" />
-  {:else if src}
-    <img {src} alt={name} class="h-full w-full object-cover" />
-  {:else}
+  {#if showImage && src}
+    <img
+      use:watchImage={src}
+      {src}
+      alt={name}
+      class="h-full w-full object-cover transition-opacity duration-200"
+      class:opacity-0={!loaded}
+    />
+  {:else if !isLoading}
     <span>{initials}</span>
+  {/if}
+
+  {#if isLoading || (showImage && !loaded)}
+    <div class="absolute inset-0" out:fade={placeholderOut}>
+      <Skeleton class="h-full w-full rounded-full" />
+    </div>
   {/if}
 </div>
