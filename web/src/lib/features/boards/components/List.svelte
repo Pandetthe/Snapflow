@@ -122,13 +122,19 @@
     }
     list.cards = e.detail.items;
     if (info.source === SOURCES.KEYBOARD) keyboardMovedCardId = Number(info.id);
+    if (info.trigger === TRIGGERS.DRAG_STOPPED) endCardDrag();
+  }
+
+  function endCardDrag() {
+    keyboardMovedCardId = null;
+    releaseListZoneHeights();
   }
 
   async function handleCardFinalize(e: CustomEvent<DndEvent<GetBoardByIdResponse.CardDto>>) {
     list.cards = e.detail.items;
-    keyboardMovedCardId = null;
-    releaseListZoneHeights();
     const { info } = e.detail;
+    if (info.source === SOURCES.POINTER) endCardDrag();
+    else if (info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER) keyboardMovedCardId = null;
     if (
       info.trigger === TRIGGERS.DROPPED_INTO_ZONE ||
       info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER

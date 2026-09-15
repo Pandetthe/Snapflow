@@ -169,20 +169,25 @@
   // Swimlane picked up with the keyboard, shown as selected until it is dropped.
   let keyboardMovedSwimlaneId = $state<number | null>(null);
 
+  function endSwimlaneDrag() {
+    keyboardMovedSwimlaneId = null;
+    unfoldSwimlanes();
+  }
+
   function handleSwimlaneConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.SwimlaneDto>>) {
     bs.board.swimlanes = [...e.detail.items];
-    if (e.detail.info.source === SOURCES.KEYBOARD)
-      keyboardMovedSwimlaneId = Number(e.detail.info.id);
-    if (e.detail.info.trigger === TRIGGERS.DRAG_STARTED) foldSwimlanes(Number(e.detail.info.id));
+    const { info } = e.detail;
+    if (info.source === SOURCES.KEYBOARD) keyboardMovedSwimlaneId = Number(info.id);
+    if (info.trigger === TRIGGERS.DRAG_STARTED) foldSwimlanes(Number(info.id));
+    if (info.trigger === TRIGGERS.DRAG_STOPPED) endSwimlaneDrag();
   }
 
   async function handleSwimlaneFinalize(
     e: CustomEvent<DndEvent<GetBoardByIdResponse.SwimlaneDto>>
   ) {
     bs.board.swimlanes = [...e.detail.items];
-    keyboardMovedSwimlaneId = null;
-    unfoldSwimlanes();
     const { info } = e.detail;
+    if (info.source === SOURCES.POINTER) endSwimlaneDrag();
     if (info.trigger === TRIGGERS.DROPPED_INTO_ZONE) {
       triggerHaptic('success');
       const id = Number(info.id);

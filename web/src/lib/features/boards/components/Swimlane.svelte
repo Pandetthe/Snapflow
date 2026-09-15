@@ -88,14 +88,20 @@
         );
       holdListZoneHeights();
     }
+    if (info.trigger === TRIGGERS.DRAG_STOPPED) endListDrag();
+  }
+
+  function endListDrag() {
+    keyboardMovedListId = null;
+    document.documentElement.style.removeProperty(DRAGGED_LIST_HEIGHT_VAR);
+    releaseListZoneHeights();
   }
 
   async function handleListFinalize(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
     swimlane.lists = e.detail.items;
-    keyboardMovedListId = null;
-    document.documentElement.style.removeProperty(DRAGGED_LIST_HEIGHT_VAR);
-    releaseListZoneHeights();
     const { info } = e.detail;
+    if (info.source === SOURCES.POINTER) endListDrag();
+    else if (info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER) keyboardMovedListId = null;
 
     if (
       info.trigger === TRIGGERS.DROPPED_INTO_ZONE ||
