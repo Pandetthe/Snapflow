@@ -40,7 +40,8 @@ public static class DependencyInjection
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor
                 | ForwardedHeaders.XForwardedProto
-                | ForwardedHeaders.XForwardedHost;
+                | ForwardedHeaders.XForwardedHost
+                | ForwardedHeaders.XForwardedPrefix;
             options.KnownIPNetworks.Clear();
             options.KnownProxies.Clear();
         });
