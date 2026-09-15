@@ -13,7 +13,8 @@
   Swimlanes span the page edge to edge, so the scrollbar space other pages keep reserved (app.css) would show
   as an empty strip on the right while the board does not scroll.
 */
-html:has(section[data-board-zone='swimlanes']) {
+/* The page wrapper rather than the swimlanes zone, which is not rendered while the board is loading */
+html:has([data-board-page]) {
   scrollbar-gutter: auto;
 }
 
@@ -307,6 +308,44 @@ html:has(section[data-board-zone='swimlanes']) {
   }
 }
 
+/*
+  Loading placeholder (BoardSkeleton.svelte) morphing into the loaded board: bands and lists take the sizes
+  measured from the board, bands and lists that did not exist grow from nothing. BOARD_MORPH_MS in the board
+  page waits for these transitions.
+*/
+.board-skeleton-band {
+  height: var(--band-height);
+  transition:
+    height 240ms var(--ease-flow),
+    opacity 150ms ease-out;
+}
+
+.board-skeleton-list {
+  width: var(--list-width);
+  height: var(--list-height);
+  transition:
+    width 240ms var(--ease-flow),
+    height 240ms var(--ease-flow),
+    opacity 150ms ease-out;
+}
+
+/* Placeholders the loaded board has nothing for: they fade out while shrinking to nothing */
+.board-skeleton-band[data-leaving],
+.board-skeleton-list[data-leaving] {
+  opacity: 0;
+}
+
+@starting-style {
+  .board-skeleton-band {
+    height: 0;
+  }
+
+  .board-skeleton-list {
+    width: 0;
+    opacity: 0;
+  }
+}
+
 /* Empty zone while an item of its type is dragged */
 section[data-board-zone] {
   position: relative;
@@ -322,7 +361,8 @@ section[data-board-zone='lists'] {
   interpolate-size: allow-keywords;
   transition:
     height 280ms var(--ease-flow),
-    min-height 280ms var(--ease-flow);
+    min-height 280ms var(--ease-flow),
+    flex-grow 0s 150ms;
 }
 
 section[data-board-zone='lists'].board-drop-target {
@@ -344,30 +384,177 @@ section[data-board-zone='lists'][data-card-receiver]:has(
   height: max(var(--board-zone-rest-height, 0px), var(--board-receiving-list-height, 0px));
 }
 
-section[data-board-zone].board-drop-target[data-empty]::before {
+/*
+  Drop areas while an item of a zone's type is dragged: an empty zone shows a placeholder over its whole area
+  (::before), a zone with items one at its end where the "Add …" button is, reached through the zone's padding
+  (::after). The end area shows in the zone holding the drop slot too, so the item can be moved to the end of its
+  own zone; only when that slot is already the zone's last item is the end area hidden, as it would repeat it.
+  The pseudo-elements always exist, so they fade and settle in like the rest of the board and fade out quicker
+  when the drag ends.
+*/
+section[data-board-zone]::before,
+section[data-board-zone]::after {
   content: '';
   position: absolute;
-  inset: 0;
   border: 2px dashed color-mix(in srgb, var(--color-brand-500) 30%, transparent);
   border-radius: 0.5rem;
   background-color: color-mix(in srgb, var(--color-brand-500) 4%, transparent);
   pointer-events: none;
-  animation: board-fade-in 200ms ease-out both;
+  opacity: 0;
+  scale: 0.98;
+  transition:
+    opacity 150ms cubic-bezier(0.4, 0, 1, 1),
+    scale 150ms cubic-bezier(0.4, 0, 1, 1);
 }
 
-section[data-board-zone='lists'].board-drop-target[data-empty]::before {
+section[data-board-zone].board-drop-target[data-empty]::before,
+section[data-board-zone].board-drop-target:not([data-empty], [data-fill]):not(
+    :has(> [data-is-dnd-shadow-item-internal]:last-child)
+  )::after {
+  opacity: 1;
+  scale: 1;
+  transition:
+    opacity 200ms ease-out,
+    scale 280ms var(--ease-flow);
+}
+
+/* Empty zone: its whole area */
+section[data-board-zone]::before {
+  inset: 0;
+}
+
+section[data-board-zone='lists']::before {
   border-radius: 0.75rem;
 }
 
-section[data-board-zone='swimlanes'].board-drop-target[data-empty]::before {
-  inset: 0.5rem 1.25rem;
+/* An empty list's placeholder ends at the bottom of "Add card", like a list's end area */
+section[data-board-zone='cards']::before {
+  bottom: 0.375rem;
 }
 
-/* The "Add …" button next to an empty zone would cover its placeholder while dragging */
-section[data-board-zone].board-drop-target[data-empty] + *,
-section[data-board-zone].board-drop-target[data-fill] + * {
+/* An empty board's placeholder spans the width like a swimlane, square, down to the bottom of "Add swimlane" */
+section[data-board-zone='swimlanes']::before {
+  inset: 0 0 0.75rem;
+  border-radius: 0;
+}
+
+/*
+  End of a card zone: everything from under the last card to the bottom of "Add card" (List.svelte). In the zone's
+  column it is a flex item rather than absolute, growing into any space after the cards. It must not change the
+  zone's size, which the list and the swimlane follow: its 2.25rem height plus the 0.375rem gap before it equal the
+  negative bottom margin (mt-1.5 + h-9 of "Add card"), so it takes no room and reaches over the button inside the
+  zone's padding. display transitions discretely, so it still fades in and out.
+*/
+section[data-board-zone='cards']::after,
+section[data-board-zone='lists']::after,
+section[data-board-zone='swimlanes']::after {
+  position: static;
+  display: none;
+  flex: 1 0 auto;
+  transition:
+    opacity 150ms cubic-bezier(0.4, 0, 1, 1),
+    scale 150ms cubic-bezier(0.4, 0, 1, 1),
+    display 150ms allow-discrete;
+}
+
+section[data-board-zone='cards']::after {
+  height: 2.25rem;
+  margin-bottom: -2.625rem;
+}
+
+section:is(
+    [data-board-zone='cards'],
+    [data-board-zone='lists'],
+    [data-board-zone='swimlanes']
+  ).board-drop-target:not([data-empty], [data-fill]):not(
+    :has(> [data-is-dnd-shadow-item-internal]:last-child)
+  )::after {
+  display: block;
+  transition:
+    opacity 200ms ease-out,
+    scale 280ms var(--ease-flow),
+    display 0s allow-discrete;
+}
+
+/* The same selector as above, so the starting style outweighs the shown opacity and scale */
+@starting-style {
+  section:is(
+      [data-board-zone='cards'],
+      [data-board-zone='lists'],
+      [data-board-zone='swimlanes']
+    ).board-drop-target:not([data-empty], [data-fill]):not(
+      :has(> [data-is-dnd-shadow-item-internal]:last-child)
+    )::after {
+    opacity: 0;
+    scale: 0.98;
+  }
+}
+
+/*
+  End of a list zone: everything from after the last list to the swimlane's right edge (Swimlane.svelte). Drops
+  only count inside the zone, so while a list is dragged the zone itself grows over the rest of the swimlane's row;
+  "Add list", hidden meanwhile, moves aside, and hides at once so its jump is not seen. In that wider zone the end
+  area, a flex item like the card zone's, fills the space after the lists; the negative margin reaches into the
+  zone's padding, up to the row's own padding. With lists overflowing the swimlane, it keeps its width at the end.
+*/
+/*
+  After the drop the zone keeps its size until its end area has faded out (150ms), so the area never shrinks while
+  still visible; the list zone's transition above carries the same delay.
+  When a drag starts it grows 1ms later rather than at once: svelte-dnd-action locks the origin zone's size as its
+  min-width/min-height right as the drag starts (preventShrinking) and keeps that lock until the drop animation has
+  ended. Locked at its grown size, the zone would stay grown after the drop, with "Add list" / "Add swimlane" fading
+  in pushed aside before jumping back.
+*/
+section[data-board-zone='swimlanes'] {
+  transition: flex-grow 0s 150ms;
+}
+
+section:is([data-board-zone='lists'], [data-board-zone='swimlanes']).board-drop-target {
+  flex-grow: 1;
+  transition-delay: 1ms;
+}
+
+section:is([data-board-zone='lists'], [data-board-zone='swimlanes']).board-drop-target + * {
+  transition-duration: 0ms;
+}
+
+/*
+  Its 5.5rem width plus the 0.75rem gap before it equal the negative margin, so like the other end areas it takes no
+  room: a zone wider by it would be what svelte-dnd-action locks at drag start, holding "Add list" 12px aside until
+  the drop has finished. With room after the lists it grows to 0.75rem short of the swimlane's edge.
+*/
+section[data-board-zone='lists']::after {
+  width: 5.5rem;
+  margin-right: -6.25rem;
+  border-radius: 0.75rem;
+}
+
+/*
+  End of the swimlanes zone: everything under the last swimlane down to the bottom of the board, as the list zone's
+  reaches to the right, and shaped like a swimlane: full width, square. The board page is a flex column down to the
+  zone, which grows over the rest of the height while a swimlane is dragged (the rules above); "Add swimlane" moves
+  aside and hides at once. The area's 2.75rem height equals its negative bottom margin, which reaches the bottom of
+  the "Add swimlane" button (py-2 + h-9), so it takes no room.
+*/
+section[data-board-zone='swimlanes']::after {
+  height: 2.75rem;
+  margin-bottom: -2.75rem;
+  border-radius: 0;
+}
+
+/*
+  The "Add …" button makes way for the drop areas while an item of its zone's type is dragged, and comes back only
+  once they have faded out (150ms), when a list or swimlane zone has also returned to its size and the button is
+  back in its place.
+*/
+section[data-board-zone] + * {
+  transition: opacity 150ms ease-out 150ms;
+}
+
+section[data-board-zone].board-drop-target + * {
   opacity: 0;
   pointer-events: none;
+  transition-delay: 0ms;
 }
 
 @keyframes board-fade-in {
@@ -387,7 +574,27 @@ section[data-board-zone].board-drop-target[data-fill] + * {
     animation: none;
   }
 
-  section[data-board-zone='lists'] {
+  section[data-board-zone='lists'],
+  section[data-board-zone='swimlanes'],
+  section[data-board-zone]::before,
+  section[data-board-zone]::after,
+  section[data-board-zone] + *,
+  .board-skeleton-band,
+  .board-skeleton-list {
+    transition: none;
+  }
+
+  /* The card and list zones' end areas have more specific transitions of their own */
+  section[data-board-zone='cards']::after,
+  section[data-board-zone='lists']::after,
+  section[data-board-zone='swimlanes']::after,
+  section:is(
+      [data-board-zone='cards'],
+      [data-board-zone='lists'],
+      [data-board-zone='swimlanes']
+    ).board-drop-target:not([data-empty], [data-fill]):not(
+      :has(> [data-is-dnd-shadow-item-internal]:last-child)
+    )::after {
     transition: none;
   }
 

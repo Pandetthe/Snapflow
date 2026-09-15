@@ -2,14 +2,14 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { BoardsService } from '$lib/features/boards/api/boards.api';
 import { apiClient } from '$lib/server/api.server';
+import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
 
+// Only what the page shows before connecting (title, members, access); the board itself comes from the
+// hub's snapshot on connect and reconnect.
 export const load: PageServerLoad = async (event) => {
   const boardId = parseInt(event.params.id);
   const boardsService = new BoardsService(apiClient);
-  const [result, detailsResult] = await Promise.all([
-    boardsService.getBoard(boardId, event),
-    boardsService.getBoardDetails(boardId, event)
-  ]);
+  const detailsResult = await boardsService.getBoardDetails(boardId, event);
 
   function formatErrorMessage(title: string, detail?: string | null) {
     return detail?.trim() ? `${title}\n${detail}` : title;
@@ -17,20 +17,6 @@ export const load: PageServerLoad = async (event) => {
 
   function isHiddenBoardStatus(status?: number | null) {
     return status === 401 || status === 403 || status === 404;
-  }
-
-  if (!result.ok) {
-    if (isHiddenBoardStatus(result.problem?.status)) {
-      throw error(
-        404,
-        formatErrorMessage('Board not found', result.problem?.detail)
-      );
-    }
-
-    throw error(
-      result.problem?.status ?? 500,
-      formatErrorMessage(result.problem?.title ?? 'Failed to load board', result.problem?.detail)
-    );
   }
 
   if (!detailsResult.ok) {
@@ -43,12 +29,12 @@ export const load: PageServerLoad = async (event) => {
 
     throw error(
       detailsResult.problem?.status ?? 500,
-      formatErrorMessage(detailsResult.problem?.title ?? 'Failed to load board members', detailsResult.problem?.detail)
+      formatErrorMessage(detailsResult.problem?.title ?? 'Failed to load board', detailsResult.problem?.detail)
     );
   }
 
-  return {
-    board: result.value,
-    members: detailsResult.value.members
-  };
+  const { id, title, description, members } = detailsResult.value;
+  const board: GetBoardByIdResponse.BoardDto = { id, title, description, swimlanes: [] };
+
+  return { board, members };
 };

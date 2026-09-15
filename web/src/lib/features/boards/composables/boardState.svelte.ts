@@ -5,7 +5,7 @@ import { errorStore } from '$lib/ui/stores/error.svelte';
 import { triggerHaptic } from '$lib/ui/utils';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import { tick } from 'svelte';
-import type { CardMovedEventPayload } from '../types/boards.hub';
+import type { BoardSnapshotEventPayload, BoardsHubEvents, CardMovedEventPayload } from '../types/boards.hub';
 import { startElementFlight, type ElementFlight } from '../animations/elementFlight';
 
 export type MovableKind = 'card' | 'list' | 'swimlane';
@@ -199,15 +199,73 @@ export function createBoardState(
     }
   }
 
+  /*
+    The board is loaded from the snapshot the server sends each connection when it connects or reconnects.
+    Changes that reach the connection before its snapshot are held and applied on top of it, so none is lost
+    and none is overwritten by the snapshot.
+  */
+  // The board has been loaded from a snapshot at least once; it stays on screen while a reconnect waits for the next.
+  let loaded = $state(false);
+  // The current connection's snapshot is still on the way, so its events are held.
+  let awaitingSnapshot = true;
+  let pendingEvents: (() => void)[] = [];
+
+  function applySnapshot(snapshot: BoardSnapshotEventPayload) {
+    board = {
+      id: snapshot.id,
+      title: snapshot.title,
+      description: snapshot.description,
+      swimlanes: snapshot.swimlanes
+    };
+    members = snapshot.members;
+    sortAll();
+    loaded = true;
+    awaitingSnapshot = false;
+    connectionState = 'connected';
+
+    const events = pendingEvents;
+    pendingEvents = [];
+    for (const apply of events) apply();
+  }
+
+  // Another board on the same page starts over until its own connection's snapshot arrives.
+  function reset(nextBoard: GetBoardByIdResponse.BoardDto, nextMembers: GetBoardDetailsResponse.BoardMemberDto[]) {
+    board = nextBoard;
+    members = nextMembers;
+    loaded = false;
+    awaitingSnapshot = true;
+    pendingEvents = [];
+    connectionState = 'connecting';
+  }
+
   function registerHubEvents(h: BoardsHub) {
     hub = h;
+    awaitingSnapshot = true;
+    pendingEvents = [];
 
-    hub.on('BoardUpdated', (payload) => {
+    // Events of a connection that was replaced (another board) are ignored.
+    function on<E extends keyof BoardsHubEvents>(event: E, callback: BoardsHubEvents[E]) {
+      const run = callback as (...args: unknown[]) => void;
+      h.on(event, ((...args: unknown[]) => {
+        if (hub !== h) return;
+        if (awaitingSnapshot) {
+          pendingEvents.push(() => run(...args));
+          return;
+        }
+        run(...args);
+      }) as BoardsHubEvents[E]);
+    }
+
+    h.on('BoardSnapshot', (snapshot) => {
+      if (hub === h) applySnapshot(snapshot);
+    });
+
+    on('BoardUpdated', (payload) => {
       board.title = payload.title;
       board.description = payload.description;
     });
 
-    hub.on('SwimlaneCreated', (payload) => {
+    on('SwimlaneCreated', (payload) => {
       const existing = board.swimlanes.find((s) => s.id === payload.id);
       if (existing) {
         Object.assign(existing, payload);
@@ -220,7 +278,7 @@ export function createBoardState(
       sortSwimlanes();
     });
 
-    hub.on('SwimlaneUpdated', (payload) => {
+    on('SwimlaneUpdated', (payload) => {
       const index = board.swimlanes.findIndex((s) => s.id === payload.id);
       if (index !== -1) {
         board.swimlanes[index].title = payload.title;
@@ -229,7 +287,7 @@ export function createBoardState(
       }
     });
 
-    hub.on('SwimlaneMoved', (payload) => {
+    on('SwimlaneMoved', (payload) => {
       const index = board.swimlanes.findIndex((s) => s.id === payload.id);
       if (index === -1 || payload.rank === board.swimlanes[index].rank) return;
 
@@ -242,7 +300,7 @@ export function createBoardState(
       });
     });
 
-    hub.on('SwimlaneDeleted', (payload) => {
+    on('SwimlaneDeleted', (payload) => {
       if (!board.swimlanes.some((s) => s.id === payload.id)) return;
 
       animateRemoteDelete('swimlane', payload.id, payload.deletedBy, () => {
@@ -254,7 +312,7 @@ export function createBoardState(
       });
     });
 
-    hub.on('ListCreated', (payload) => {
+    on('ListCreated', (payload) => {
       const swimlane = board.swimlanes.find((s) => s.id === payload.swimlaneId);
       if (swimlane) {
         const existing = swimlane.lists.find((l) => l.id === payload.id);
@@ -270,7 +328,7 @@ export function createBoardState(
       }
     });
 
-    hub.on('ListUpdated', (payload) => {
+    on('ListUpdated', (payload) => {
       for (const s of board.swimlanes) {
         const list = s.lists.find((l) => l.id === payload.id);
         if (list) {
@@ -281,7 +339,7 @@ export function createBoardState(
       }
     });
 
-    hub.on('ListMoved', (payload) => {
+    on('ListMoved', (payload) => {
       animateRemoteMove('list', payload.id, payload.movedBy, () => {
         let movedList: GetBoardByIdResponse.ListDto | null = null;
         for (const s of board.swimlanes) {
@@ -302,7 +360,7 @@ export function createBoardState(
       });
     });
 
-    hub.on('ListDeleted', (payload) => {
+    on('ListDeleted', (payload) => {
       if (!board.swimlanes.some((s) => s.lists.some((l) => l.id === payload.id))) return;
 
       animateRemoteDelete('list', payload.id, payload.deletedBy, () => {
@@ -317,7 +375,7 @@ export function createBoardState(
       });
     });
 
-    hub.on('CardCreated', (payload) => {
+    on('CardCreated', (payload) => {
       for (const s of board.swimlanes) {
         const list = s.lists.find((l) => l.id === payload.listId);
         if (list) {
@@ -363,11 +421,11 @@ export function createBoardState(
       return false;
     };
 
-    hub.on('CardMoved', (payload) => {
+    on('CardMoved', (payload) => {
       animateRemoteMove('card', payload.id, payload.movedBy, () => applyCardMove(payload));
     });
 
-    hub.on('CardUpdated', (payload) => {
+    on('CardUpdated', (payload) => {
       for (const s of board.swimlanes) {
         for (const l of s.lists) {
           const card = l.cards.find((c) => c.id === payload.id);
@@ -381,7 +439,7 @@ export function createBoardState(
       }
     });
 
-    hub.on('CardDeleted', (payload) => {
+    on('CardDeleted', (payload) => {
       if (!board.swimlanes.some((s) => s.lists.some((l) => l.cards.some((c) => c.id === payload.id)))) return;
 
       animateRemoteDelete('card', payload.id, payload.deletedBy, () => {
@@ -398,18 +456,26 @@ export function createBoardState(
       });
     });
 
-    hub.on('BoardDeleted', () => {
+    on('BoardDeleted', () => {
       window.location.href = '/boards/';
     });
 
-    hub.on('YourRoleChanged', (_oldRole, newRole) => {
+    on('YourRoleChanged', (_oldRole, newRole) => {
       const me = members.find((m) => m.id === currentUserId);
       if (me) me.role = newRole;
     });
 
-    hub.onClose(() => { connectionState = 'disconnected'; });
-    hub.onReconnecting(() => { connectionState = 'reconnecting'; });
-    hub.onReconnected(() => { connectionState = 'connected'; });
+    h.onClose(() => {
+      if (hub === h) connectionState = 'disconnected';
+    });
+    // A reconnect is a new connection: the server sends it a fresh snapshot, which marks the board connected again.
+    h.onReconnecting(() => {
+      if (hub !== h) return;
+      // Events held so far belong to the lost connection; the next snapshot already includes them.
+      awaitingSnapshot = true;
+      pendingEvents = [];
+      connectionState = 'reconnecting';
+    });
   }
 
   const hubUnavailable = { ok: false, problem: { title: 'Board hub unavailable', detail: 'Please try again.' } } as const;
@@ -590,6 +656,7 @@ export function createBoardState(
     get members() { return members; },
     set members(v) { members = v; },
     get connectionState() { return connectionState; },
+    get hasSnapshot() { return loaded; },
     set connectionState(v) { connectionState = v; },
     get role() { return role; },
     get canEditBoard() { return canEditBoard; },
@@ -603,6 +670,7 @@ export function createBoardState(
     sortAll,
     sortSwimlanes,
     registerHubEvents,
+    reset,
     handleSwimlaneConfirm,
     handleSwimlaneDelete,
     handleListConfirm,

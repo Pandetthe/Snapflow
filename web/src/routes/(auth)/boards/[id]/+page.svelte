@@ -1,11 +1,13 @@
 <script lang="ts">
   import { flip } from 'svelte/animate';
+  import { fade } from 'svelte/transition';
   import { dragHandleZone, type DndEvent, SOURCES, TRIGGERS } from 'svelte-dnd-action';
   import Swimlane from '$lib/features/boards/components/Swimlane.svelte';
+  import BoardSkeleton, { type SkeletonBand } from '$lib/features/boards/components/BoardSkeleton.svelte';
   import SwimlaneModal from '$lib/features/boards/components/SwimlaneModal.svelte';
   import ListModal from '$lib/features/boards/components/ListModal.svelte';
   import CardModal from '$lib/features/boards/components/CardModal.svelte';
-  import { onDestroy, onMount, setContext, untrack } from 'svelte';
+  import { setContext, tick, untrack } from 'svelte';
   import { setBoardUI } from '$lib/features/boards/context/board.context';
   import { BoardsHub } from '$lib/features/boards/hub/boards.hub';
   import { createBoardState } from '$lib/features/boards/composables/boardState.svelte';
@@ -13,7 +15,7 @@
   import { recentBoards } from '$lib/features/boards/stores/recent';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import { Button, FullBleedLayout, GoBackButton, LoadingDots } from '$lib/ui/components';
-  import { triggerHaptic } from '$lib/ui/utils';
+  import { placeholderOut, triggerHaptic } from '$lib/ui/utils';
   import { Folders, Pencil, Plus, Loader2 } from 'lucide-svelte';
   import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
   import '$lib/features/boards/styles/board-dnd.css';
@@ -27,6 +29,67 @@
   });
 
   let hub = $state<BoardsHub | null>(null);
+
+  /*
+    Loading: only the skeleton. Morphing: the board renders invisibly and the skeleton resizes to its measured
+    layout (board-dnd.css). Ready: the board shows and the skeleton fades out. A reconnect keeps the loaded board,
+    so this plays once per board.
+  */
+  let loadPhase = $state<'loading' | 'morphing' | 'ready'>('loading');
+  let skeletonLayout = $state<SkeletonBand[] | null>(null);
+  let boardContent = $state<HTMLElement>();
+  // The board came quickly: it replaces the skeleton at once, without the morph or fades.
+  let instantReveal = $state(false);
+  let skeletonShownAt = performance.now();
+
+  /** A little longer than the skeleton's transitions in board-dnd.css. */
+  const BOARD_MORPH_MS = 260;
+
+  /** A skeleton seen for less than this is barely noticed, so morphing it would only delay the board. */
+  const QUICK_LOAD_MS = 250;
+
+  $effect(() => {
+    if (!bs.hasSnapshot) {
+      untrack(() => {
+        loadPhase = 'loading';
+        skeletonLayout = null;
+        instantReveal = false;
+        skeletonShownAt = performance.now();
+      });
+      return;
+    }
+    if (untrack(() => loadPhase) === 'loading') untrack(() => morphIntoBoard());
+  });
+
+  async function morphIntoBoard() {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion || performance.now() - skeletonShownAt < QUICK_LOAD_MS) {
+      instantReveal = true;
+      loadPhase = 'ready';
+      return;
+    }
+
+    loadPhase = 'morphing';
+    await tick();
+    if (!boardContent) {
+      loadPhase = 'ready';
+      return;
+    }
+    skeletonLayout = measureBoardLayout(boardContent);
+    // A timer rather than transitionend: it also runs out in background tabs.
+    await new Promise((resolve) => setTimeout(resolve, BOARD_MORPH_MS));
+    if (loadPhase === 'morphing') loadPhase = 'ready';
+  }
+
+  function measureBoardLayout(root: HTMLElement): SkeletonBand[] {
+    return [...root.querySelectorAll<HTMLElement>('[data-board-slot="swimlane"]')].map((slot) => ({
+      height: slot.offsetHeight,
+      lists: [...slot.querySelectorAll<HTMLElement>('[data-list-id]')].map((list) => ({
+        width: list.offsetWidth,
+        height: list.offsetHeight
+      }))
+    }));
+  }
 
   let swimlaneModalOpen = $state(false);
   let editingSwimlane: GetBoardByIdResponse.SwimlaneDto | undefined = $state(undefined);
@@ -57,12 +120,35 @@
   });
 
   $effect(() => {
-    if (data.board.id !== bs.board.id) {
-      bs.board = data.board;
-      bs.members = data.members;
-      bs.sortAll();
-    }
-    recentBoards.add(bs.board.id);
+    recentBoards.add(data.board.id);
+  });
+
+  // One hub connection per board. Its snapshot loads the board on connect and again on every reconnect (boardState).
+  $effect(() => {
+    const boardId = data.board.id;
+    const connection = new BoardsHub(boardId);
+
+    untrack(() => {
+      if (bs.board.id !== boardId) bs.reset(data.board, data.members);
+      hub = connection;
+      // Before start: the snapshot is sent as soon as the connection is established.
+      bs.registerHubEvents(connection);
+    });
+
+    connection.start().catch((err) => {
+      if (hub !== connection) return;
+      bs.connectionState = 'disconnected';
+      if (err instanceof Error) {
+        errorStore.addError(err.name, err.message);
+      } else {
+        errorStore.addError('Web.WebSocketConnectionProblem', 'Failed to connect to board hub');
+      }
+    });
+
+    return () => {
+      connection.stop();
+      if (hub === connection) hub = null;
+    };
   });
 
   setContext('hub', () => hub);
@@ -75,23 +161,6 @@
   setContext('isInFlight', bs.isInFlight);
   setContext('isNew', bs.isNew);
   setContext('isLeaving', bs.isLeaving);
-
-  onMount(async () => {
-    hub = new BoardsHub(data.board.id);
-
-    try {
-      await hub.start();
-      bs.registerHubEvents(hub);
-      bs.connectionState = 'connected';
-    } catch (err) {
-      bs.connectionState = 'disconnected';
-      if (err instanceof Error) {
-        errorStore.addError(err.name, err.message);
-      } else {
-        errorStore.addError('Web.WebSocketConnectionProblem', 'Failed to connect to board hub');
-      }
-    }
-  });
 
   // Swimlane picked up with the keyboard, shown as selected until it is dropped.
   let keyboardMovedSwimlaneId = $state<number | null>(null);
@@ -127,11 +196,6 @@
       }
     }
   }
-
-  onDestroy(async () => {
-    await hub?.stop();
-    hub = null;
-  });
 </script>
 
 <svelte:head>
@@ -150,7 +214,8 @@
       {/if}
     </div>
   {/if}
-  <div class="w-full overflow-x-clip pb-12">
+  <!-- A flex column down to the swimlanes zone, so a dragged swimlane's drop area can take the rest of the height (board-dnd.css) -->
+  <div class="flex w-full flex-1 flex-col overflow-x-clip pb-12" data-board-page>
     <!-- Board header -->
     <div class="relative w-full border-b border-gray-200/80 bg-white/95 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/95">
       <div class="flex w-full items-center gap-4 px-4 py-2.5 sm:px-6 lg:px-8">
@@ -186,7 +251,24 @@
     </div>
 
     <!-- Swimlanes -->
-    <section>
+    <!--
+      The skeleton and the board share one grid cell: the skeleton morphs into the board's layout while the board
+      renders invisibly over it, then the board shows and the skeleton fades out underneath.
+      minmax(0, 1fr) keeps the cell as wide as the page, so wide swimlanes still scroll inside it.
+    -->
+    <section class="grid flex-1 grid-cols-[minmax(0,1fr)]">
+      {#if loadPhase !== 'ready'}
+        <div class="col-start-1 row-start-1 min-w-0" out:fade={instantReveal ? { duration: 0 } : placeholderOut}>
+          <BoardSkeleton layout={skeletonLayout} />
+        </div>
+      {/if}
+      {#if loadPhase !== 'loading'}
+      <div
+        bind:this={boardContent}
+        class="col-start-1 row-start-1 flex min-w-0 flex-col transition-opacity duration-150 ease-flow"
+        class:opacity-0={loadPhase === 'morphing'}
+        inert={loadPhase === 'morphing'}
+      >
       {#if bs.board.swimlanes.length === 0}
         <div class="flex flex-col items-center justify-center px-4 py-16 text-center">
           <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800">
@@ -199,7 +281,7 @@
         </div>
       {/if}
 
-      <div class="relative w-full">
+      <div class="relative flex w-full flex-1 flex-col">
         <!-- The drop area reaches under "Add swimlane" via padding cancelled by a negative margin -->
         <section
           use:dragHandleZone={{
@@ -251,6 +333,8 @@
           </div>
         {/if}
       </div>
+      </div>
+      {/if}
     </section>
   </div>
 </FullBleedLayout>

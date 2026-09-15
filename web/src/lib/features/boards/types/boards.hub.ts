@@ -1,6 +1,7 @@
-import type { GetBoardByIdResponse, MemberRole } from './boards.api';
+import type { GetBoardByIdResponse, GetBoardDetailsResponse, MemberRole } from './boards.api';
 
 export interface BoardsHubEvents {
+  BoardSnapshot: (payload: BoardSnapshotEventPayload) => void;
   BoardUpdated: (payload: BoardUpdatedEventPayload) => void;
   BoardDeleted: () => void;
   YourRoleChanged: (oldRole: MemberRole, newRole: MemberRole) => void;
@@ -18,6 +19,15 @@ export interface BoardsHubEvents {
   CardLocked: (payload: CardLockedEventPayload) => void;
   CardUnlocked: (payload: CardUnlockedEventPayload) => void;
   CardDeleted: (payload: CardDeletedEventPayload) => void;
+}
+
+/** Sent to a connection when it connects or reconnects: the whole board, replacing what the client has. */
+export interface BoardSnapshotEventPayload {
+  id: number;
+  title: string;
+  description: string;
+  swimlanes: GetBoardByIdResponse.SwimlaneDto[];
+  members: GetBoardDetailsResponse.BoardMemberDto[];
 }
 
 export interface BoardUpdatedEventPayload {
