@@ -83,6 +83,8 @@
     }
   });
 
+  // Filled in on open only. Clearing on close would empty the dialog while it animates away,
+  // and every open overwrites the form anyway.
   $effect(() => {
     if (open) {
       form.reset({
@@ -90,9 +92,6 @@
         description: card?.description ?? ''
       });
       selectedTagIds = [...(card?.tagIds ?? [])];
-    } else {
-      form.reset();
-      selectedTagIds = [];
     }
   });
 

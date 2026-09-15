@@ -77,14 +77,14 @@
     }
   });
 
+  // Filled in on open only. Clearing on close would empty the dialog while it animates away,
+  // and every open overwrites the form anyway.
   $effect(() => {
     if (open) {
       form.reset({
         title: board?.title ?? '',
         description: board?.description ?? ''
       });
-    } else {
-      form.reset();
     }
   });
 </script>

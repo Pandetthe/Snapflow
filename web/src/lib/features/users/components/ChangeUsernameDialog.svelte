@@ -35,10 +35,10 @@
     }
   });
 
+  // Only closes. Clearing here would swap the success panel back for the form while the
+  // dialog animates away; the effect below puts both back on the next open.
   function close() {
     open = false;
-    changeSuccess = false;
-    form.reset({ userName: currentUserName });
   }
 
   $effect(() => {

@@ -73,14 +73,14 @@
     }
   });
 
+  // Filled in on open only. Clearing on close would empty the dialog while it animates away,
+  // and every open overwrites the form anyway.
   $effect(() => {
     if (open) {
       form.reset({
         title: list?.title ?? '',
         width: list?.width ? toRem(list.width) : null
       });
-    } else {
-      form.reset();
     }
   });
 
