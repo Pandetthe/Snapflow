@@ -1,4 +1,4 @@
-﻿namespace Snapflow.Domain.Users;
+namespace Snapflow.Domain.Users;
 
 public sealed class UserOptions
 {
@@ -14,4 +14,9 @@ public sealed class UserOptions
     public const int TwoFactorRecoveryCodeCount = 10;
     public const int MaxTwoFactorCodeLength = 32;
     public const int MaxTwoFactorTokenLength = 4096;
+    public const int MaxPasskeysPerUser = 20;
+    public const int MaxPasskeyNameLength = 50;
+    public const int MaxPasskeyIdLength = 1400;
+    public const int MaxPasskeyCredentialLength = 16384;
+    public const int MaxPasskeyStateLength = 8192;
 }

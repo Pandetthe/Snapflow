@@ -13,8 +13,16 @@
     SegmentedControl,
     SplitLayout
   } from '$lib/ui/components';
-  import { Mail, Lock, User } from 'lucide-svelte';
+  import { Fingerprint, Mail, Lock, User } from 'lucide-svelte';
   import { createForm } from '$lib/ui/utils';
+  import { errorStore } from '$lib/ui/stores/error.svelte';
+  import {
+    getPasskey,
+    isPasskeyDismissed,
+    passkeyAutofillSupported,
+    passkeysSupported,
+    type PasskeyJson
+  } from '$lib/features/auth/passkeys';
   import SignInModal from '$lib/features/auth/components/SignInModal.svelte';
   import ExternalProviderButtons from '$lib/features/auth/components/ExternalProviderButtons.svelte';
 
@@ -26,6 +34,12 @@
   let twoFactorStep = $state(false);
   let useRecoveryCode = $state(false);
   let twoFactorCodeError = $state<string | undefined>();
+  let passkeySupported = $state(true);
+  let passkeyAvailable = $state(false);
+  let passkeyPending = $state(false);
+  let twoFactorPasskeyPending = $state(false);
+  let redirecting = $state(false);
+  let autofillController: AbortController | null = null;
 
   const authService = new AuthService(apiClient);
 
@@ -50,7 +64,9 @@
     'Users.External.SignUpDisabled',
     'Users.External.ConfirmationSent',
     'Users.PasswordAuthentication.Disabled',
-    'Users.TwoFactor.SignInExpired'
+    'Users.TwoFactor.SignInExpired',
+    'Users.Passkeys.NotRecognized',
+    'Users.Passkeys.Expired'
   ];
 
   function showSignInInfo(code: string | null | undefined): boolean {
@@ -67,7 +83,146 @@
   }
 
   onMount(() => {
+    passkeySupported = passkeysSupported();
     showSignInInfo(new URLSearchParams(window.location.search).get('error'));
+  });
+
+  function problemOf(response: { ok: false }): ProblemDetails | null {
+    return 'title' in response ? (response as unknown as ProblemDetails) : null;
+  }
+
+  function goToBoards() {
+    redirecting = true;
+    setTimeout(() => {
+      window.location.href = '/boards';
+    }, 300);
+  }
+
+  async function startPasskeyAutofill() {
+    autofillController?.abort();
+    const controller = new AbortController();
+    autofillController = controller;
+
+    if (!(await passkeyAutofillSupported())) return;
+    const options = await authService.passkeySignInOptions();
+    if (!options.ok || controller.signal.aborted) return;
+
+    try {
+      const credential = await getPasskey(options.options, {
+        autofill: true,
+        signal: controller.signal
+      });
+      await completePasskeySignIn(credential, options.state);
+    } catch (error) {
+      if (!isPasskeyDismissed(error)) {
+        showSignInInfo('Users.Passkeys.NotRecognized');
+      }
+    }
+  }
+
+  async function completePasskeySignIn(credential: PasskeyJson, state: string) {
+    passkeyPending = true;
+    const response = await authService.passkeySignIn({
+      credential,
+      state,
+      rememberMe: form.values.rememberMe
+    });
+
+    if (response.ok) {
+      goToBoards();
+      return;
+    }
+
+    passkeyPending = false;
+    const problem = problemOf(response);
+    if (!showSignInInfo(problem?.title)) {
+      errorStore.addError(problem?.title ?? null, problem?.detail ?? 'Signing in with a passkey failed.');
+    }
+    startPasskeyAutofill();
+  }
+
+  async function signInWithPasskey() {
+    if (passkeyPending) return;
+    autofillController?.abort();
+    passkeyPending = true;
+
+    try {
+      const options = await authService.passkeySignInOptions();
+      if (!options.ok) {
+        passkeyPending = false;
+        const problem = problemOf(options);
+        if (!showSignInInfo(problem?.title)) {
+          errorStore.addError(problem?.title ?? null, problem?.detail ?? 'Signing in with a passkey failed.');
+        }
+        return;
+      }
+
+      const credential = await getPasskey(options.options);
+      await completePasskeySignIn(credential, options.state);
+    } catch (error) {
+      passkeyPending = false;
+      if (!isPasskeyDismissed(error)) {
+        showSignInInfo('Users.Passkeys.NotRecognized');
+      }
+      startPasskeyAutofill();
+    }
+  }
+
+  function showTwoFactorPasskeyProblem(response: { ok: false }) {
+    const problem = problemOf(response);
+    if (problem?.title === 'Users.Passkeys.NotRecognized' || problem?.title === 'Users.Passkeys.Expired') {
+      twoFactorCodeError = 'The passkey could not be used. Try again or enter a code.';
+      return;
+    }
+    if (problem?.title === 'Users.TwoFactor.SignInExpired') {
+      leaveTwoFactorStep();
+    }
+    if (!showSignInInfo(problem?.title)) {
+      errorStore.addError(problem?.title ?? null, problem?.detail ?? 'Signing in with a passkey failed.');
+    }
+  }
+
+  async function useTwoFactorPasskey() {
+    if (twoFactorPasskeyPending || redirecting) return;
+    twoFactorPasskeyPending = true;
+    twoFactorCodeError = undefined;
+
+    try {
+      const options = await authService.twoFactorPasskeyOptions();
+      if (!options.ok) {
+        twoFactorPasskeyPending = false;
+        showTwoFactorPasskeyProblem(options);
+        return;
+      }
+
+      const credential = await getPasskey(options.options);
+      const response = await authService.twoFactorSignIn({
+        passkeyCredential: credential,
+        passkeyState: options.state,
+        rememberMe: form.values.rememberMe,
+        rememberDevice: twoFactorForm.values.rememberDevice
+      });
+
+      if (response.ok) {
+        goToBoards();
+        return;
+      }
+
+      twoFactorPasskeyPending = false;
+      showTwoFactorPasskeyProblem(response);
+    } catch (error) {
+      twoFactorPasskeyPending = false;
+      if (!isPasskeyDismissed(error)) {
+        twoFactorCodeError = 'The passkey could not be used. Try again or enter a code.';
+      }
+    }
+  }
+
+  $effect(() => {
+    if (passkeySupported && auth.passwordSignIn && !ldapMode && !twoFactorStep) {
+      startPasskeyAutofill();
+      return () => autofillController?.abort();
+    }
   });
 
   const form = createForm({
@@ -96,20 +251,18 @@
       return errors;
     },
     onSubmit: async (values) => {
-      if (ldapMode) {
-        return await authService.ldapSignIn({
-          userName: values.email,
-          password: values.password,
-          rememberMe: values.rememberMe
-        });
-      }
-      return await authService.signIn(values);
+      const response = ldapMode
+        ? await authService.ldapSignIn({
+            userName: values.email,
+            password: values.password,
+            rememberMe: values.rememberMe
+          })
+        : await authService.signIn(values);
+      passkeyAvailable =
+        !response.ok && (response as { passkeyAvailable?: boolean }).passkeyAvailable === true;
+      return response;
     },
-    onSuccess: () => {
-      setTimeout(() => {
-        window.location.href = '/boards';
-      }, 300);
-    },
+    onSuccess: goToBoards,
     onError: (problem: ProblemDetails) => showSignInInfo(problem.title)
   });
 
@@ -135,11 +288,7 @@
         rememberDevice: !useRecoveryCode && values.rememberDevice
       });
     },
-    onSuccess: () => {
-      setTimeout(() => {
-        window.location.href = '/boards';
-      }, 300);
-    },
+    onSuccess: goToBoards,
     onError: (problem: ProblemDetails) => {
       if (problem.title === 'Users.TwoFactor.InvalidCode') {
         twoFactorCodeError = useRecoveryCode
@@ -162,6 +311,7 @@
 
   async function submitTwoFactor(event?: Event) {
     event?.preventDefault();
+    if (redirecting) return;
     await twoFactorForm.handleSubmit();
     if (twoFactorCodeError) {
       twoFactorForm.values.code = '';
@@ -193,9 +343,13 @@
     </h1>
     <p class="text-sm text-gray-500 dark:text-gray-400">
       {#if twoFactorStep}
-        {useRecoveryCode
-          ? 'Enter one of the recovery codes you saved when you turned on two-factor authentication.'
-          : 'Enter the 6-digit code from your authenticator app.'}
+        {#if useRecoveryCode}
+          Enter one of the recovery codes you saved when you turned on two-factor authentication.
+        {:else if passkeyAvailable && passkeySupported}
+          Enter the 6-digit code from your authenticator app or use a passkey.
+        {:else}
+          Enter the 6-digit code from your authenticator app.
+        {/if}
       {:else if ldapMode}
         Enter your {auth.ldap?.displayName} user name and password to sign in.
       {:else if showForm}
@@ -212,7 +366,7 @@
         <CodeInput
           id="twoFactorCode"
           name="recoveryCode"
-          label="Recovery code"
+          ariaLabel="Recovery code"
           kind="alphanumeric"
           length={10}
           autofocus
@@ -225,7 +379,7 @@
         <CodeInput
           id="twoFactorCode"
           name="code"
-          label="Authentication code"
+          ariaLabel="Authentication code"
           autofocus
           bind:value={twoFactorForm.values.code}
           error={twoFactorCodeError ?? twoFactorForm.errors.code}
@@ -246,12 +400,27 @@
         variant="primary"
         size="md"
         class="w-full justify-center"
-        disabled={!twoFactorForm.values.code || twoFactorForm.isSubmitting}
-        isLoading={twoFactorForm.isSubmitting}
+        disabled={!twoFactorForm.values.code || twoFactorForm.isSubmitting || redirecting}
+        isLoading={twoFactorForm.isSubmitting || redirecting}
         loadingText="Verifying"
       >
         Verify
       </Button>
+
+      {#if passkeyAvailable && passkeySupported && !useRecoveryCode}
+        <Button
+          variant="outline"
+          size="md"
+          class="w-full justify-center"
+          startIcon={Fingerprint}
+          disabled={twoFactorPasskeyPending || twoFactorForm.isSubmitting || redirecting}
+          isLoading={twoFactorPasskeyPending}
+          loadingText="Waiting for your passkey"
+          onclick={useTwoFactorPasskey}
+        >
+          Use a passkey instead
+        </Button>
+      {/if}
 
       <div class="flex items-center justify-between gap-4 text-sm">
         <button
@@ -304,7 +473,7 @@
         type={ldapMode ? 'text' : 'email'}
         label={ldapMode ? 'User name' : 'Email'}
         placeholder={ldapMode ? 'Enter your user name' : 'info@example.com'}
-        autocomplete="username"
+        autocomplete={ldapMode ? 'username' : 'username webauthn'}
         bind:value={form.values.email}
         error={form.errors.email}
         leftIcon={ldapMode ? User : Mail}
@@ -350,6 +519,21 @@
         Sign in
       </Button>
     </form>
+  {/if}
+
+  {#if auth.passwordSignIn && passkeySupported}
+    <Button
+      variant="outline"
+      size="md"
+      class="mt-3 w-full justify-center"
+      startIcon={Fingerprint}
+      disabled={passkeyPending}
+      isLoading={passkeyPending}
+      loadingText="Signing in"
+      onclick={signInWithPasskey}
+    >
+      Sign in with a passkey
+    </Button>
   {/if}
   {/if}
 

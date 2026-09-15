@@ -10,6 +10,8 @@ internal sealed class TwoFactorSignInHandler(ISignInManager signInManager) : ICo
         signInManager.TwoFactorSignInAsync(
             command.Code,
             command.RecoveryCode,
+            command.PasskeyCredential,
+            command.PasskeyState,
             command.RememberDevice,
             command.TwoFactorToken,
             command.UseCookies,

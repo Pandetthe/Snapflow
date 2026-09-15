@@ -128,6 +128,19 @@
       message: 'The sign-in expired before the code was entered. Sign in again to get a new chance.',
       icon: KeyRound,
       tone: 'brand'
+    },
+    'Users.Passkeys.NotRecognized': {
+      title: 'Passkey not recognized',
+      message:
+        'This passkey is not linked to an account here. Try another passkey or sign in with your password.',
+      icon: KeyRound,
+      tone: 'warning'
+    },
+    'Users.Passkeys.Expired': {
+      title: 'Try again',
+      message: 'The passkey request expired before it was finished. Sign in with your passkey again.',
+      icon: KeyRound,
+      tone: 'brand'
     }
   };
 

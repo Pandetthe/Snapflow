@@ -1,13 +1,21 @@
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Auth.TwoFactorSignIn;
 using Snapflow.Common;
+using Snapflow.Presentation.Contracts;
 using Snapflow.Presentation.Extensions;
+using System.Text.Json;
 
 namespace Snapflow.Presentation.Endpoints.Auth;
 
 internal sealed class TwoFactorSignIn : IEndpoint
 {
-    public sealed record TwoFactorSignInRequest(string? Code, string? RecoveryCode, bool RememberDevice, string? TwoFactorToken);
+    public sealed record TwoFactorSignInRequest(
+        string? Code,
+        string? RecoveryCode,
+        JsonElement? PasskeyCredential,
+        string? PasskeyState,
+        bool RememberDevice,
+        string? TwoFactorToken);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -21,6 +29,8 @@ internal sealed class TwoFactorSignIn : IEndpoint
             var command = new TwoFactorSignInCommand(
                 request.Code,
                 request.RecoveryCode,
+                PasskeyCredentialJson.From(request.PasskeyCredential),
+                request.PasskeyState,
                 request.RememberDevice,
                 request.TwoFactorToken,
                 useCookies,

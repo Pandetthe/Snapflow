@@ -1,4 +1,4 @@
-﻿using Snapflow.Common;
+using Snapflow.Common;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Abstractions.Identity;
@@ -19,7 +19,21 @@ public interface ISignInManager
 
     Task SignOutExternalAsync();
 
-    Task<Result> TwoFactorSignInAsync(string? code, string? recoveryCode, bool rememberDevice, string? twoFactorToken, bool? useCookies, bool? useSessionCookies);
+    Task<Result> TwoFactorSignInAsync(
+        string? code,
+        string? recoveryCode,
+        string? passkeyCredential,
+        string? passkeyState,
+        bool rememberDevice,
+        string? twoFactorToken,
+        bool? useCookies,
+        bool? useSessionCookies);
+
+    Task<Result<PasskeyChallenge>> CreateTwoFactorPasskeyOptionsAsync(string? twoFactorToken);
+
+    Task<PasskeyChallenge> CreatePasskeySignInOptionsAsync();
+
+    Task<Result> PasskeySignInAsync(string credentialJson, string state, bool? useCookies, bool? useSessionCookies);
 
     Task RefreshSignInAsync(IUser user);
 }

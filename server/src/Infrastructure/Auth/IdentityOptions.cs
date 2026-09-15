@@ -13,4 +13,6 @@ public sealed class IdentityOptions
     public int RefreshExpiryMinutes { get; init; } = 10080;
 
     public string? CookieDomain { get; init; }
+
+    public string? PasskeyServerDomain { get; init; }
 }

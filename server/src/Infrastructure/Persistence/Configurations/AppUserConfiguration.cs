@@ -13,6 +13,8 @@ internal sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
 
         builder.HasIndex(u => u.Email).IsUnique();
 
+        builder.Property(u => u.PhoneNumber).Metadata.SetMaxLength(null);
+
         builder.Property(u => u.AvatarData)
             .HasColumnType("bytea");
 

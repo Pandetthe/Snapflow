@@ -9,7 +9,10 @@
   import DangerZone from '$lib/features/users/components/DangerZone.svelte';
   import TwoFactorSetupDialog from '$lib/features/users/components/TwoFactorSetupDialog.svelte';
   import TwoFactorManageDialog from '$lib/features/users/components/TwoFactorManageDialog.svelte';
+  import PasskeysDialog from '$lib/features/users/components/PasskeysDialog.svelte';
   import {
+    Fingerprint,
+    Plus,
     ShieldCheck,
     User as UserIcon,
     Mail,
@@ -32,6 +35,7 @@
   let isEditingEmail = $state(false);
   let isEditingPassword = $state(false);
   let isEditingTwoFactor = $state(false);
+  let isEditingPasskeys = $state(false);
 </script>
 
 <svelte:head>
@@ -180,6 +184,44 @@
                   bind:open={isEditingPassword}
                   email={data.user?.email ?? ''}
                   {usersService}
+                />
+              </div>
+            {/if}
+
+            {#if data.passkeys}
+              <div class="my-5 h-px bg-gray-100 dark:bg-gray-800"></div>
+              <div>
+                <div class="flex items-center justify-between gap-4">
+                  <div class="flex min-w-0 items-center gap-3">
+                    <Fingerprint size={15} class="shrink-0 text-gray-400" />
+                    <div class="min-w-0">
+                      <p class="text-xs text-gray-400 dark:text-gray-500">Passkeys</p>
+                      <p class="text-sm font-medium text-gray-900 dark:text-white">
+                        {#if data.passkeys.length === 0}
+                          <span class="text-gray-400 dark:text-gray-500">None</span>
+                        {:else}
+                          {data.passkeys.length}
+                          {data.passkeys.length === 1 ? 'passkey' : 'passkeys'}
+                        {/if}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    onclick={() => {
+                      isEditingPasskeys = true;
+                    }}
+                    startIcon={data.passkeys.length === 0 ? Plus : Settings2}
+                  >
+                    {data.passkeys.length === 0 ? 'Add' : 'Manage'}
+                  </Button>
+                </div>
+                <PasskeysDialog
+                  bind:open={isEditingPasskeys}
+                  {usersService}
+                  passkeys={data.passkeys}
+                  onChange={invalidateAll}
                 />
               </div>
             {/if}

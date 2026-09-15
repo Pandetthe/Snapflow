@@ -52,10 +52,15 @@ public static class ResultHelper
     {
         if (result.Error is TwoFactorRequiredError twoFactor)
         {
-            return new Dictionary<string, object?>
+            var extensions = new Dictionary<string, object?>
             {
-                { "twoFactorToken", twoFactor.TwoFactorToken }
+                { "passkeyAvailable", twoFactor.PasskeyAvailable }
             };
+
+            if (twoFactor.TwoFactorToken is not null)
+                extensions.Add("twoFactorToken", twoFactor.TwoFactorToken);
+
+            return extensions;
         }
 
         if (result.Error is not ValidationError validationError)

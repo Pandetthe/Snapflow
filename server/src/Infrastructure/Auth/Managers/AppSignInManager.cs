@@ -22,7 +22,9 @@ internal sealed class AppSignInManager(
     IHttpContextAccessor httpContextAccessor,
     TimeProvider timeProvider,
     ExternalProviderRegistry providerRegistry,
-    IDataProtectionProvider dataProtectionProvider) : ISignInManager
+    IDataProtectionProvider dataProtectionProvider,
+    IPasskeyHandler<AppUser> passkeyHandler,
+    PasskeyStateProtector passkeyStateProtector) : ISignInManager
 {
     private static readonly TimeSpan TwoFactorTokenLifetime = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan RememberDeviceTokenLifetime = TimeSpan.FromDays(14);
@@ -38,6 +40,9 @@ internal sealed class AppSignInManager(
     private sealed record PendingTwoFactor(string UserId, string SecurityStamp, string? LoginProvider);
 
     private sealed record RememberedDevice(string UserId, string SecurityStamp);
+
+    private HttpContext Context => httpContextAccessor.HttpContext
+        ?? throw new InvalidOperationException("Signing in requires an HTTP request.");
 
     private static AppUser EnsureIsAppUser(IUser user)
     {
@@ -70,8 +75,8 @@ internal sealed class AppSignInManager(
             if (await IsDeviceRememberedAsync(user, rememberDeviceToken))
                 return await CompleteRememberedSignInAsync(user, loginProvider, useCookieScheme, isPersistent);
 
-            if (!useCookieScheme)
-                return Result.Failure(new TwoFactorRequiredError(await CreateTwoFactorTokenAsync(user, loginProvider)));
+            string? twoFactorToken = useCookieScheme ? null : await CreateTwoFactorTokenAsync(user, loginProvider);
+            return Result.Failure(new TwoFactorRequiredError(twoFactorToken, await HasPasskeysAsync(user)));
         }
 
         return MapSignInResult(result);
@@ -192,32 +197,28 @@ internal sealed class AppSignInManager(
         }
     }
 
-    public async Task<Result> TwoFactorSignInAsync(string? code, string? recoveryCode, bool rememberDevice, string? twoFactorToken, bool? useCookies, bool? useSessionCookies)
+    public async Task<Result> TwoFactorSignInAsync(
+        string? code,
+        string? recoveryCode,
+        string? passkeyCredential,
+        string? passkeyState,
+        bool rememberDevice,
+        string? twoFactorToken,
+        bool? useCookies,
+        bool? useSessionCookies)
     {
         var useCookieScheme = (useCookies == true) || (useSessionCookies == true);
         var isPersistent = (useCookies == true) && (useSessionCookies != true);
 
-        if (!string.IsNullOrEmpty(twoFactorToken))
-        {
-            UserManager<AppUser> userManager = signInManager.UserManager;
-            PendingTwoFactor? pending = Unprotect<PendingTwoFactor>(_twoFactorProtector, twoFactorToken);
-            AppUser? tokenUser = pending is null ? null : await userManager.FindByIdAsync(pending.UserId);
-
-            if (pending is null || tokenUser is null || tokenUser.IsDeleted
-                || !string.Equals(await userManager.GetSecurityStampAsync(tokenUser) ?? string.Empty, pending.SecurityStamp, StringComparison.Ordinal))
-            {
-                return Result.Failure(TwoFactorErrors.SignInExpired);
-            }
-
-            return await VerifyCodeAndSignInAsync(tokenUser, pending.LoginProvider, code, recoveryCode, rememberDevice, useCookieScheme, isPersistent);
-        }
-
-        AppUser? pendingUser = await signInManager.GetTwoFactorAuthenticationUserAsync();
-        if (pendingUser is null)
+        (AppUser? user, string? loginProvider) = await FindPendingTwoFactorAsync(twoFactorToken);
+        if (user is null)
             return Result.Failure(TwoFactorErrors.SignInExpired);
 
-        if (!useCookieScheme)
-            return await VerifyCodeAndSignInAsync(pendingUser, loginProvider: null, code, recoveryCode, rememberDevice, useCookieScheme, isPersistent);
+        if (!string.IsNullOrWhiteSpace(passkeyCredential))
+            return await VerifyPasskeyAndSignInAsync(user, loginProvider, passkeyCredential, passkeyState ?? string.Empty, rememberDevice, useCookieScheme, isPersistent);
+
+        if (!string.IsNullOrEmpty(twoFactorToken) || !useCookieScheme)
+            return await VerifyCodeAndSignInAsync(user, loginProvider, code, recoveryCode, rememberDevice, useCookieScheme, isPersistent);
 
         signInManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
 
@@ -233,6 +234,70 @@ internal sealed class AppSignInManager(
             : Result.Failure(TwoFactorErrors.InvalidCode);
     }
 
+    public async Task<Result<PasskeyChallenge>> CreateTwoFactorPasskeyOptionsAsync(string? twoFactorToken)
+    {
+        (AppUser? user, _) = await FindPendingTwoFactorAsync(twoFactorToken);
+        if (user is null)
+            return Result.Failure<PasskeyChallenge>(TwoFactorErrors.SignInExpired);
+
+        if (!await HasPasskeysAsync(user))
+            return Result.Failure<PasskeyChallenge>(PasskeyErrors.NoneRegistered);
+
+        PasskeyRequestOptionsResult options = await passkeyHandler.MakeRequestOptionsAsync(user, Context);
+        string userId = await signInManager.UserManager.GetUserIdAsync(user);
+
+        return new PasskeyChallenge(
+            options.RequestOptionsJson,
+            passkeyStateProtector.Protect(PasskeyStateProtector.TwoFactor, userId, options.AssertionState));
+    }
+
+    public async Task<PasskeyChallenge> CreatePasskeySignInOptionsAsync()
+    {
+        PasskeyRequestOptionsResult options = await passkeyHandler.MakeRequestOptionsAsync(null, Context);
+
+        return new PasskeyChallenge(
+            options.RequestOptionsJson,
+            passkeyStateProtector.Protect(PasskeyStateProtector.SignIn, null, options.AssertionState));
+    }
+
+    public async Task<Result> PasskeySignInAsync(string credentialJson, string state, bool? useCookies, bool? useSessionCookies)
+    {
+        var useCookieScheme = (useCookies == true) || (useSessionCookies == true);
+        var isPersistent = (useCookies == true) && (useSessionCookies != true);
+        UserManager<AppUser> userManager = signInManager.UserManager;
+
+        PasskeyCeremony? ceremony = await passkeyStateProtector.ConsumeAsync(state, PasskeyStateProtector.SignIn);
+        if (ceremony is null)
+            return Result.Failure(PasskeyErrors.Expired);
+
+        PasskeyAssertionResult<AppUser> assertion = await passkeyHandler.PerformAssertionAsync(new PasskeyAssertionContext
+        {
+            HttpContext = Context,
+            CredentialJson = credentialJson,
+            AssertionState = ceremony.State
+        });
+
+        if (!assertion.Succeeded)
+            return Result.Failure(PasskeyErrors.NotRecognized);
+
+        AppUser user = assertion.User;
+        if (user.IsDeleted)
+            return Result.Failure(UserErrors.AccountDeleted);
+        if (!await signInManager.CanSignInAsync(user))
+            return Result.Failure(UserErrors.SignInNotAllowed);
+        if (await userManager.IsLockedOutAsync(user))
+            return Result.Failure(UserErrors.SignInLockedOut);
+
+        await userManager.AddOrUpdatePasskeyAsync(user, assertion.Passkey);
+        await SignOutPendingTwoFactorAsync();
+
+        signInManager.AuthenticationScheme = useCookieScheme ? IdentityConstants.ApplicationScheme : IdentityConstants.BearerScheme;
+        await signInManager.SignInWithClaimsAsync(user, isPersistent, [new Claim("amr", "mfa")]);
+        FixHttpResponseStatus(useCookieScheme);
+
+        return Result.Success();
+    }
+
     public async Task RefreshSignInAsync(IUser user)
     {
         if (httpContextAccessor.HttpContext is not { } context)
@@ -244,6 +309,31 @@ internal sealed class AppSignInManager(
 
         signInManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
         await signInManager.RefreshSignInAsync(EnsureIsAppUser(user));
+    }
+
+    private async Task<(AppUser? User, string? LoginProvider)> FindPendingTwoFactorAsync(string? twoFactorToken)
+    {
+        if (!string.IsNullOrEmpty(twoFactorToken))
+        {
+            UserManager<AppUser> userManager = signInManager.UserManager;
+            PendingTwoFactor? pending = Unprotect<PendingTwoFactor>(_twoFactorProtector, twoFactorToken);
+            AppUser? tokenUser = pending is null ? null : await userManager.FindByIdAsync(pending.UserId);
+
+            if (pending is null || tokenUser is null || tokenUser.IsDeleted
+                || !string.Equals(await userManager.GetSecurityStampAsync(tokenUser) ?? string.Empty, pending.SecurityStamp, StringComparison.Ordinal))
+            {
+                return (null, null);
+            }
+
+            return (tokenUser, pending.LoginProvider);
+        }
+
+        AppUser? cookieUser = await signInManager.GetTwoFactorAuthenticationUserAsync();
+        if (cookieUser is null)
+            return (null, null);
+
+        AuthenticateResult pendingCookie = await Context.AuthenticateAsync(IdentityConstants.TwoFactorUserIdScheme);
+        return (cookieUser, pendingCookie.Principal?.FindFirstValue(ClaimTypes.AuthenticationMethod));
     }
 
     private async Task<Result> VerifyCodeAndSignInAsync(
@@ -286,10 +376,57 @@ internal sealed class AppSignInManager(
             }
         }
 
-        await userManager.ResetAccessFailedCountAsync(user);
+        return await CompleteTwoFactorSignInAsync(user, loginProvider, rememberDevice && !usesRecoveryCode, useCookieScheme, isPersistent);
+    }
+
+    private async Task<Result> VerifyPasskeyAndSignInAsync(
+        AppUser user,
+        string? loginProvider,
+        string credentialJson,
+        string state,
+        bool rememberDevice,
+        bool useCookieScheme,
+        bool isPersistent)
+    {
+        UserManager<AppUser> userManager = signInManager.UserManager;
+
+        if (!providerRegistry.PasswordAuthenticationEnabled)
+            return Result.Failure(AuthenticationErrors.PasswordAuthenticationDisabled);
+
+        if (await userManager.IsLockedOutAsync(user))
+            return Result.Failure(UserErrors.SignInLockedOut);
+
+        string userId = await userManager.GetUserIdAsync(user);
+        PasskeyCeremony? ceremony = await passkeyStateProtector.ConsumeAsync(state, PasskeyStateProtector.TwoFactor);
+        if (ceremony is null || !string.Equals(ceremony.UserId, userId, StringComparison.Ordinal))
+            return Result.Failure(PasskeyErrors.Expired);
+
+        PasskeyAssertionResult<AppUser> assertion = await passkeyHandler.PerformAssertionAsync(new PasskeyAssertionContext
+        {
+            HttpContext = Context,
+            CredentialJson = credentialJson,
+            AssertionState = ceremony.State
+        });
+
+        if (!assertion.Succeeded || assertion.User.Id != user.Id)
+            return Result.Failure(PasskeyErrors.NotRecognized);
+
+        await userManager.AddOrUpdatePasskeyAsync(user, assertion.Passkey);
+
+        return await CompleteTwoFactorSignInAsync(user, loginProvider, rememberDevice, useCookieScheme, isPersistent);
+    }
+
+    private async Task<Result> CompleteTwoFactorSignInAsync(
+        AppUser user,
+        string? loginProvider,
+        bool rememberDevice,
+        bool useCookieScheme,
+        bool isPersistent)
+    {
+        await signInManager.UserManager.ResetAccessFailedCountAsync(user);
         await SignOutPendingTwoFactorAsync();
 
-        if (rememberDevice && !usesRecoveryCode)
+        if (rememberDevice)
         {
             if (useCookieScheme)
                 await signInManager.RememberTwoFactorClientAsync(user);
@@ -331,6 +468,10 @@ internal sealed class AppSignInManager(
             await context.SignOutAsync(IdentityConstants.TwoFactorUserIdScheme);
         }
     }
+
+    private async Task<bool> HasPasskeysAsync(AppUser user) =>
+        providerRegistry.PasswordAuthenticationEnabled
+        && (await signInManager.UserManager.GetPasskeysAsync(user)).Count > 0;
 
     private async Task<bool> IsDeviceRememberedAsync(AppUser user, string? rememberDeviceToken)
     {

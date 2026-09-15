@@ -2,6 +2,7 @@ import type { Response as ApiResponseType } from '$lib/core/types/api';
 import type { Response as AppResponse } from '$lib/core/types/app';
 import { BaseService } from '$lib/core/base.service';
 import type { RequestEvent, ServerLoadEvent } from '@sveltejs/kit';
+import type { PasskeyJson, PasskeyOptions } from '$lib/features/auth/passkeys';
 
 export enum AvatarType {
   Gravatar = 'gravatar',
@@ -35,6 +36,13 @@ export interface AuthenticatorSetup {
 
 export interface RecoveryCodesResponse {
   recoveryCodes: string[];
+}
+
+export interface Passkey {
+  id: string;
+  name: string;
+  createdAt: string;
+  isBackedUp: boolean;
 }
 
 export class UsersService extends BaseService {
@@ -163,6 +171,44 @@ export class UsersService extends BaseService {
         body: JSON.stringify(body),
         headers: { 'Content-Type': 'application/json' }
       })
+    );
+  }
+
+  async getPasskeys(event?: RequestEvent | ServerLoadEvent): Promise<AppResponse<Passkey[]>> {
+    return this.handleResponse<Passkey[]>(
+      this.apiClient.fetch('/me/passkeys', { method: 'GET' }, event)
+    );
+  }
+
+  async createPasskeyOptions(): Promise<AppResponse<PasskeyOptions>> {
+    return this.handleResponse<PasskeyOptions>(
+      this.apiClient.fetch('/me/passkeys/options', { method: 'POST' })
+    );
+  }
+
+  async addPasskey(body: { credential: PasskeyJson; state: string; name?: string }): Promise<AppResponse<Passkey>> {
+    return this.handleResponse<Passkey>(
+      this.apiClient.fetch('/me/passkeys', {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+  }
+
+  async renamePasskey(id: string, body: { name: string }): Promise<AppResponse<void>> {
+    return this.handleResponse(
+      this.apiClient.fetch(`/me/passkeys/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+  }
+
+  async removePasskey(id: string): Promise<AppResponse<void>> {
+    return this.handleResponse(
+      this.apiClient.fetch(`/me/passkeys/${encodeURIComponent(id)}`, { method: 'DELETE' })
     );
   }
 

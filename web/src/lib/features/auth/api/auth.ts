@@ -1,6 +1,7 @@
 import type { ApiClient, ApiEvent, ProblemDetails, Response } from '$lib/core/types/api';
 import { env } from '$env/dynamic/public';
 import logger from '$lib/logger';
+import type { PasskeyJson, PasskeyOptions } from '../passkeys';
 
 export type ExternalProviderType = 'google' | 'microsoft' | 'facebook' | 'github' | 'oidc' | 'saml';
 
@@ -29,8 +30,16 @@ export const localOnlyProviders: AuthProviders = {
 export interface TwoFactorSigninRequest {
   code?: string;
   recoveryCode?: string;
+  passkeyCredential?: PasskeyJson;
+  passkeyState?: string;
   rememberMe: boolean;
   rememberDevice: boolean;
+}
+
+export interface PasskeySigninRequest {
+  credential: PasskeyJson;
+  state: string;
+  rememberMe: boolean;
 }
 
 export interface LdapSigninRequest {
@@ -140,6 +149,50 @@ export class AuthService {
     const { rememberMe, ...payload } = data;
     const response = await this.apiClient.fetch(
       `/auth/sign-in/two-factor?useCookies=true&useSessionCookies=${!rememberMe}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+    if (!response.ok) {
+      return await this.#handleBadResponse(response);
+    }
+    return { ok: true };
+  }
+
+  async twoFactorPasskeyOptions(): Promise<Response<PasskeyOptions>> {
+    const response = await this.apiClient.fetch('/auth/sign-in/two-factor/passkey/options', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: '{}'
+    });
+
+    if (!response.ok) {
+      return await this.#handleBadResponse(response);
+    }
+    return { ok: true, ...((await response.json()) as PasskeyOptions) };
+  }
+
+  async passkeySignInOptions(): Promise<Response<PasskeyOptions>> {
+    const response = await this.apiClient.fetch('/auth/sign-in/passkey/options', {
+      method: 'POST'
+    });
+
+    if (!response.ok) {
+      return await this.#handleBadResponse(response);
+    }
+    return { ok: true, ...((await response.json()) as PasskeyOptions) };
+  }
+
+  async passkeySignIn(data: PasskeySigninRequest): Promise<Response> {
+    const { rememberMe, ...payload } = data;
+    const response = await this.apiClient.fetch(
+      `/auth/sign-in/passkey?useCookies=true&useSessionCookies=${!rememberMe}`,
       {
         method: 'POST',
         headers: {

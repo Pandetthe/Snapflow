@@ -5,6 +5,8 @@ namespace Snapflow.Application.Auth.TwoFactorSignIn;
 public sealed record TwoFactorSignInCommand(
     string? Code,
     string? RecoveryCode,
+    string? PasskeyCredential,
+    string? PasskeyState,
     bool RememberDevice,
     string? TwoFactorToken,
     bool? UseCookies,

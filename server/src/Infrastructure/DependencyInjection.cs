@@ -217,10 +217,38 @@ public static class DependencyInjection
                     options.Password.RequireUppercase = Domain.Users.UserOptions.RequireUppercaseInPassword;
                     options.Password.RequireDigit = Domain.Users.UserOptions.RequireDigitInPassword;
                     options.Password.RequireNonAlphanumeric = Domain.Users.UserOptions.RequireNonAlphanumericInPassword;
+                    options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
                 })
                 .AddSignInManager()
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
+
+            services.AddOptions<IdentityPasskeyOptions>()
+                .Configure<Microsoft.Extensions.Options.IOptions<ServicesOptions>>((options, servicesOptions) =>
+                {
+                    options.UserVerificationRequirement = "required";
+                    options.ResidentKeyRequirement = "required";
+
+                    if (!string.IsNullOrWhiteSpace(identityOptions.PasskeyServerDomain))
+                    {
+                        options.ServerDomain = identityOptions.PasskeyServerDomain;
+                    }
+
+                    string[] allowedOrigins = [.. new[] { servicesOptions.Value.WebUrl, servicesOptions.Value.ApiUrl }
+                        .Concat(servicesOptions.Value.AllowedOrigins ?? [])
+                        .Where(origin => !string.IsNullOrWhiteSpace(origin))
+                        .Select(origin => origin.TrimEnd('/'))];
+
+                    if (allowedOrigins.Length > 0)
+                    {
+                        options.ValidateOrigin = context => ValueTask.FromResult(
+                            !context.CrossOrigin
+                            && allowedOrigins.Contains(context.Origin.TrimEnd('/'), StringComparer.OrdinalIgnoreCase));
+                    }
+                });
+
+            services.AddDistributedMemoryCache();
+            services.AddSingleton<PasskeyStateProtector>();
 
             services.Configure<SecurityStampValidatorOptions>(options =>
                 options.ValidationInterval = TimeSpan.FromMinutes(2));
@@ -332,6 +360,7 @@ public static class DependencyInjection
 
             services.AddScoped<IUserManager, AppUserManager>();
             services.AddScoped<ISignInManager, AppSignInManager>();
+            services.AddScoped<IPasskeyManager, AppPasskeyManager>();
             services.AddScoped<IUserContext, AppUserContext>();
             services.AddScoped<IAuthEmailSender, AuthEmailSender>();
         }
