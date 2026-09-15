@@ -367,6 +367,7 @@ export function createBoardState(
         const list = s.lists.find((l) => l.id === payload.id);
         if (list) {
           list.title = payload.title;
+          list.width = payload.width;
           markChanged('list', payload.id, payload.updatedBy, 'edited');
           break;
         }
