@@ -8,12 +8,14 @@ namespace Snapflow.Application.Users.Me.GetMe;
 
 internal sealed class MeHandler(
     IUserContext userContext,
+    IUserManager userManager,
     IAvatarService avatarService) : IQueryHandler<MeQuery, MeResponse>
 {
     public async Task<Result<MeResponse>> Handle(MeQuery query, CancellationToken cancellationToken = default)
     {
         IUser user = await userContext.GetUserAsync();
-        
-        return new MeResponse(user.Id, user.UserName, user.Email, avatarService.GenerateAvatarUrl(user.Id), user.AvatarType);
+        bool emailConfirmed = await userManager.IsEmailConfirmedAsync(user);
+
+        return new MeResponse(user.Id, user.UserName, user.Email, emailConfirmed, avatarService.GenerateAvatarUrl(user.Id), user.AvatarType);
     }
 }
