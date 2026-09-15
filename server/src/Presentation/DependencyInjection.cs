@@ -14,6 +14,7 @@ using Snapflow.Infrastructure.Persistence;
 using Snapflow.Presentation.Caching;
 using Snapflow.Presentation.Common;
 using Snapflow.Presentation.Endpoints;
+using Snapflow.Presentation.Hubs.Board;
 using Snapflow.Presentation.Middlewares;
 using StackExchange.Redis;
 using System.ComponentModel;
@@ -122,6 +123,8 @@ public static class DependencyInjection
                 return Task.CompletedTask;
             });
         });
+
+        services.AddSingleton<BoardConnectionRegistry>();
 
         services.AddSingleton<UserOutputCachePolicy>();
         services.AddSingleton<BoardOutputCachePolicy>();

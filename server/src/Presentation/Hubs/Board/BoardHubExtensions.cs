@@ -80,7 +80,37 @@ internal static class BoardHubExtensions
     }
 
     public static int GetBoardId(this HubCallerContext context) =>
-        context.Items.TryGetValue("BoardId", out var boardIdObj) && boardIdObj is int boardId
+        context.TryGetBoardId(out var boardId)
             ? boardId
             : throw new InvalidOperationException("BoardId not found in HubCallerContext items.");
+
+    public static bool TryGetBoardId(this HubCallerContext context, out int boardId)
+    {
+        if (context.Items.TryGetValue("BoardId", out var boardIdObj) && boardIdObj is int value)
+        {
+            boardId = value;
+            return true;
+        }
+
+        boardId = 0;
+        return false;
+    }
+
+    public static HubCallerContext SetUserId(this HubCallerContext context, int userId)
+    {
+        context.Items["UserId"] = userId;
+        return context;
+    }
+
+    public static bool TryGetUserId(this HubCallerContext context, out int userId)
+    {
+        if (context.Items.TryGetValue("UserId", out var userIdObj) && userIdObj is int value)
+        {
+            userId = value;
+            return true;
+        }
+
+        userId = 0;
+        return false;
+    }
 }

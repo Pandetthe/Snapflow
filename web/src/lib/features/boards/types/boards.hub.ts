@@ -9,6 +9,7 @@ export interface BoardsHubEvents {
   BoardSnapshot: (payload: BoardSnapshotEventPayload) => void;
   BoardUpdated: (payload: BoardUpdatedEventPayload) => void;
   BoardDeleted: () => void;
+  RemovedFromBoard: () => void;
   YourRoleChanged: (oldRole: MemberRole, newRole: MemberRole) => void;
   SwimlaneCreated: (payload: SwimlaneCreatedEventPayload) => void;
   SwimlaneUpdated: (payload: SwimlaneUpdatedEventPayload) => void;

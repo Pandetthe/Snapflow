@@ -12,6 +12,7 @@ namespace Snapflow.Presentation.Hubs.Board;
 [Authorize(BoardPermissions.Boards.View)]
 public sealed partial class BoardHub(
     IServiceScopeFactory scopeFactory,
+    BoardConnectionRegistry connectionRegistry,
     ILogger<BoardHub> logger) : Hub<IBoardHubClient>
 {
     public override async Task OnConnectedAsync()
@@ -37,6 +38,14 @@ public sealed partial class BoardHub(
         if (!string.IsNullOrEmpty(userIdString))
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, $"{boardId}-{userIdString}", Context.ConnectionAborted);
+
+            // Noted so the connection can be taken out of the board group if the user is removed
+            // from the board; the group itself cannot be enumerated.
+            if (int.TryParse(userIdString, out var userId))
+            {
+                Context.SetUserId(userId);
+                connectionRegistry.Add(boardId, userId, Context.ConnectionId);
+            }
         }
 
         // Loaded after joining the board groups, so no change made meanwhile is missed: the client applies
@@ -54,6 +63,16 @@ public sealed partial class BoardHub(
 
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Connection {ConnectionId} connected to board {BoardId}.", Context.ConnectionId, boardId);
+    }
+
+    public override Task OnDisconnectedAsync(Exception? exception)
+    {
+        if (Context.TryGetBoardId(out var boardId) && Context.TryGetUserId(out var userId))
+        {
+            connectionRegistry.Remove(boardId, userId, Context.ConnectionId);
+        }
+
+        return base.OnDisconnectedAsync(exception);
     }
 
     // Combines the board and its members from their own queries; Application slices do not share queries.

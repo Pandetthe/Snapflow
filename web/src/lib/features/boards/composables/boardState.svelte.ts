@@ -16,6 +16,8 @@ import type {
   CardMovedEventPayload
 } from '../types/boards.hub';
 import { startElementFlight, type ElementFlight } from '../animations/elementFlight';
+import { goto } from '$app/navigation';
+import { resolve } from '$app/paths';
 
 export type MovableKind = 'card' | 'list' | 'swimlane';
 
@@ -530,7 +532,12 @@ export function createBoardState(
     });
 
     on('BoardDeleted', () => {
-      window.location.href = '/boards/';
+      leaveBoard('Web.BoardDeleted', 'This board was deleted.');
+    });
+
+    // Not buffered behind the snapshot: losing access is worth acting on right away.
+    h.on('RemovedFromBoard', () => {
+      if (hub === h) leaveBoard('Web.RemovedFromBoard', 'You were removed from this board.');
     });
 
     on('YourRoleChanged', (_oldRole, newRole) => {
@@ -547,6 +554,13 @@ export function createBoardState(
       pendingEvents = [];
       connectionState = 'reconnecting';
     });
+  }
+
+  /** Sends the user back to their boards, telling them why the board went away. */
+  function leaveBoard(code: string, message: string) {
+    errorStore.addError(code, message);
+    // invalidateAll so the boards page is loaded again without this board.
+    goto(resolve('/boards'), { invalidateAll: true });
   }
 
   const hubUnavailable = {

@@ -97,5 +97,8 @@ public interface IBoardHubClient
 
     Task MemberRemoved(int userId, CancellationToken cancellationToken = default);
 
+    // Sent to the removed member's own connections, just before they leave the board's group.
+    Task RemovedFromBoard(CancellationToken cancellationToken = default);
+
     Task YourRoleChanged(MemberRole oldRole, MemberRole newRole, CancellationToken cancellationToken = default);
 }
