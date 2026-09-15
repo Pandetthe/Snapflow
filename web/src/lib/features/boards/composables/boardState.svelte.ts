@@ -7,6 +7,7 @@ import type {
 import type { Response } from '$lib/core/types/app';
 import { BoardsHub } from '../hub/boards.hub';
 import { errorStore } from '$lib/ui/stores/error.svelte';
+import { noticeStore } from '$lib/ui/stores/notice.svelte';
 import { triggerHaptic } from '$lib/ui/utils';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import { tick } from 'svelte';
@@ -532,12 +533,12 @@ export function createBoardState(
     });
 
     on('BoardDeleted', () => {
-      leaveBoard('Web.BoardDeleted', 'This board was deleted.');
+      leaveBoard('Board deleted', 'This board was deleted, so it is no longer on your list.');
     });
 
     // Not buffered behind the snapshot: losing access is worth acting on right away.
     h.on('RemovedFromBoard', () => {
-      if (hub === h) leaveBoard('Web.RemovedFromBoard', 'You were removed from this board.');
+      if (hub === h) leaveBoard('Removed from board', 'You no longer have access to this board.');
     });
 
     on('YourRoleChanged', (_oldRole, newRole) => {
@@ -556,9 +557,12 @@ export function createBoardState(
     });
   }
 
-  /** Sends the user back to their boards, telling them why the board went away. */
-  function leaveBoard(code: string, message: string) {
-    errorStore.addError(code, message);
+  /**
+   * Sends the user back to their boards, telling them why the board went away. Nothing failed
+   * here, so this is a notice rather than an error; the notice outlives the navigation.
+   */
+  function leaveBoard(title: string, message: string) {
+    noticeStore.add(title, message);
     // invalidateAll so the boards page is loaded again without this board.
     goto(resolve('/boards'), { invalidateAll: true });
   }

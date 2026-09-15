@@ -31,17 +31,10 @@
     return typeof v === 'string' && v.trim().length > 0;
   }
 
-  function onOpenChange(open: boolean) {
-    isOpen = open;
-    if (!open) {
-      errors = [];
-    }
-  }
 </script>
 
 <ResponsiveAlertDialog
   bind:open={isOpen}
-  onOpenChange={onOpenChange}
   size="md"
   {desktopMode}
   {mobileMode}

@@ -3,11 +3,12 @@
   import { onNavigate } from '$app/navigation';
   import '../app.css';
   import favicon from '$lib/assets/favicon.svg';
-  import { AppHeader, ErrorModal } from '$lib/ui/components';
+  import { AppHeader, ErrorModal, NoticeModal } from '$lib/ui/components';
   import { errorStore } from '$lib/ui/stores/error.svelte';
+  import { noticeStore, type AppNotice } from '$lib/ui/stores/notice.svelte';
   import type { AppError } from '$lib/core/types/app.js';
   import { theme } from '$lib/ui/stores/theme';
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { pwaInfo } from 'virtual:pwa-info';
   let { children, data } = $props();
 
@@ -53,11 +54,28 @@
   let showErrorModal = $state(false);
   let modalErrors = $state([] as AppError[]);
 
+  // The modal keeps its errors after it closes, so it does not empty itself while it animates
+  // away; a new batch replaces them here instead. Errors arriving while it is open pile on.
   $effect(() => {
     if (errorStore.errors.length > 0) {
-      modalErrors = [...modalErrors, ...errorStore.errors];
-      showErrorModal = true;
+      const incoming = errorStore.errors;
+      untrack(() => {
+        modalErrors = showErrorModal ? [...modalErrors, ...incoming] : [...incoming];
+        showErrorModal = true;
+      });
       errorStore.reset();
+    }
+  });
+
+  let showNoticeModal = $state(false);
+  let currentNotice = $state<AppNotice | undefined>(undefined);
+
+  // Shown one at a time, and from the layout, so a notice survives the navigation that raised it.
+  $effect(() => {
+    if (noticeStore.notices.length > 0) {
+      currentNotice = noticeStore.notices[0];
+      showNoticeModal = true;
+      noticeStore.reset();
     }
   });
 
@@ -89,5 +107,7 @@
     {@render children()}
 
     <ErrorModal bind:isOpen={showErrorModal} bind:errors={modalErrors} />
+
+    <NoticeModal bind:isOpen={showNoticeModal} bind:notice={currentNotice} />
   </main>
 </div>
