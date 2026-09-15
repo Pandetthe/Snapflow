@@ -1,6 +1,5 @@
 ﻿using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Snapflow.Common;
 using Snapflow.Infrastructure.Common;
@@ -24,15 +23,9 @@ internal sealed class DispatchDomainEventsInterceptor(
     {
         if (eventData.Context is not null)
         {
-            ChangeTracker changeTracker = eventData.Context.ChangeTracker;
-
-            // An entity taken out of a parent's collection is only marked deleted once the changes
-            // are detected, and EF does not promise to have done that before this runs. Detecting is
-            // idempotent, and the guard keeps a context that opted out of it behaving as it asked.
-            if (changeTracker.AutoDetectChangesEnabled)
-                changeTracker.DetectChanges();
-
-            _deletedEntities.AddRange(changeTracker
+            // The save detects its changes before reaching here, so an entity taken out of a
+            // parent's collection already reads as deleted, just like one removed from its set.
+            _deletedEntities.AddRange(eventData.Context.ChangeTracker
                 .Entries<IEntity>()
                 .Where(entry => entry.State == EntityState.Deleted)
                 .Select(entry => entry.Entity));
