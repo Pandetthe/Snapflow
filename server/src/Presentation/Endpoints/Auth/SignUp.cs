@@ -23,6 +23,7 @@ internal sealed class SignUp : IEndpoint
 
             return result.Match(Results.NoContent, Results.Problem);
         })
+        .RequirePasswordAuthentication()
         .WithTags(EndpointTags.Auth);
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Options;
 using Snapflow.Domain.Users;
 using Snapflow.Infrastructure.Common;
+using Snapflow.Presentation.Extensions;
 
 
 // This endpoint serves a fallback HTML form for email confirmation
@@ -47,6 +48,7 @@ internal sealed class ResetPassword : IEndpoint
             });
             return Results.Content(rendered, "text/html; charset=utf-8");
         })
+        .RequirePasswordAuthentication()
         .WithTags(EndpointTags.Auth);
     }
 }

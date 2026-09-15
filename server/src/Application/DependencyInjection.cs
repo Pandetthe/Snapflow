@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Snapflow.Application.Abstractions.Behaviours;
 using Snapflow.Application.Abstractions.Messaging;
+using Snapflow.Application.Auth.External;
 using Snapflow.Application.Ranking;
 using Snapflow.Common;
 using Snapflow.Domain.Cards;
@@ -46,6 +47,7 @@ public static class DependencyInjection
         services.AddScoped<IEntityRankService<Swimlane>, SwimlaneRankService>();
         services.AddScoped<IEntityRankService<List>, ListRankService>();
         services.AddScoped<IEntityRankService<Card>, CardRankService>();
+        services.AddScoped<ExternalAccountSignIn>();
         return services;
     }
 }

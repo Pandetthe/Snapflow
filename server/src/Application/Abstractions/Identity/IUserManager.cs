@@ -40,4 +40,10 @@ public interface IUserManager
     Task<Result> AddToRoleAsync(IUser user, string role);
 
     Task<Result> RemoveFromRoleAsync(IUser user, string role);
+
+    Task<IUser?> FindByLoginAsync(string provider, string providerKey);
+
+    Task<Result> AddLoginAsync(IUser user, ExternalIdentity identity);
+
+    Task<Result<IUser>> CreateExternalAsync(ExternalIdentity identity, string userName);
 }

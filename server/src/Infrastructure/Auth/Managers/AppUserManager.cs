@@ -169,7 +169,7 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
 
         IdentityResult result = await userManager.AddToRoleAsync(appUser, role);
         if (!result.Succeeded)
-            return RoleChangeFailure(result);
+            return IdentityFailure(result);
 
         // Role claims baked into an existing cookie or token go stale; permission checks read the database,
         // but refreshing the stamp keeps role claims honest for anything relying on them.
@@ -186,18 +186,53 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
 
         IdentityResult result = await userManager.RemoveFromRoleAsync(appUser, role);
         if (!result.Succeeded)
-            return RoleChangeFailure(result);
+            return IdentityFailure(result);
 
         return await RefreshSecurityStampAsync(appUser);
     }
 
+    public async Task<IUser?> FindByLoginAsync(string provider, string providerKey) =>
+        await userManager.FindByLoginAsync(provider, providerKey);
+
+    public async Task<Result> AddLoginAsync(IUser user, ExternalIdentity identity)
+    {
+        IdentityResult result = await userManager.AddLoginAsync(EnsureIsAppUser(user), ToLoginInfo(identity));
+        return result.Succeeded ? Result.Success() : IdentityFailure(result);
+    }
+
+    public async Task<Result<IUser>> CreateExternalAsync(ExternalIdentity identity, string userName)
+    {
+        if (string.IsNullOrWhiteSpace(identity.Email))
+            throw new ArgumentException("An external account needs an email.", nameof(identity));
+
+        var user = AppUser.Create(identity.Email, userName);
+        user.EmailConfirmed = identity.EmailVerified;
+
+        IdentityResult created = await userManager.CreateAsync(user);
+        if (!created.Succeeded)
+        {
+            var errors = created.Errors.Select(e => new PropertyValidationError(GetPropertyName(e.Code), e.Code, e.Description)).ToArray();
+            return Result.ValidationFailure<IUser>(new ValidationError(errors));
+        }
+
+        IdentityResult linked = await userManager.AddLoginAsync(user, ToLoginInfo(identity));
+        if (linked.Succeeded)
+            return Result.Success<IUser>(user);
+
+        await userManager.DeleteAsync(user);
+        return IdentityFailure(linked);
+    }
+
+    private static UserLoginInfo ToLoginInfo(ExternalIdentity identity) =>
+        new(identity.Provider, identity.ProviderKey, identity.ProviderDisplayName);
+
     private async Task<Result> RefreshSecurityStampAsync(AppUser appUser)
     {
         IdentityResult result = await userManager.UpdateSecurityStampAsync(appUser);
-        return result.Succeeded ? Result.Success() : RoleChangeFailure(result);
+        return result.Succeeded ? Result.Success() : IdentityFailure(result);
     }
 
-    private static Result<IUser> RoleChangeFailure(IdentityResult result)
+    private static Result<IUser> IdentityFailure(IdentityResult result)
     {
         var errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
         return Result.ValidationFailure<IUser>(new ValidationError(errors));

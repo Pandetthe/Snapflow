@@ -31,6 +31,7 @@ internal sealed class SignIn : IEndpoint
             // Application returns data via asp.net authentication mechanisms
             return result.Match(Results.Empty, Results.Problem);
         })
+        .RequirePasswordAuthentication()
         .WithTags(EndpointTags.Auth);
     }
 }

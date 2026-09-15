@@ -20,6 +20,7 @@ using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Application.Abstractions.Services;
 using Snapflow.Infrastructure.Auth.Accessors;
 using Snapflow.Infrastructure.Auth.Entities;
+using Snapflow.Infrastructure.Auth.External;
 using Snapflow.Infrastructure.Auth.Managers;
 using Snapflow.Infrastructure.Auth.Services;
 using Snapflow.Infrastructure.Authorization;
@@ -241,11 +242,25 @@ public static class DependencyInjection
                 };
             });
 
-            services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme, options =>
-            {
-                options.BearerTokenExpiration = TimeSpan.FromMinutes(identityOptions.ExpiryMinutes);
-                options.RefreshTokenExpiration = TimeSpan.FromMinutes(identityOptions.RefreshExpiryMinutes);
-            });
+            services.AddOptions<AuthenticationProvidersOptions>()
+                .Bind(configuration.GetSection(AuthenticationProvidersOptions.SectionName))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+            AuthenticationProvidersOptions providersOptions = configuration.GetSection(AuthenticationProvidersOptions.SectionName).Get<AuthenticationProvidersOptions>()
+                                                              ?? new AuthenticationProvidersOptions();
+
+            services.AddAuthentication()
+                .AddBearerToken(IdentityConstants.BearerScheme, options =>
+                {
+                    options.BearerTokenExpiration = TimeSpan.FromMinutes(identityOptions.ExpiryMinutes);
+                    options.RefreshTokenExpiration = TimeSpan.FromMinutes(identityOptions.RefreshExpiryMinutes);
+                })
+                .AddExternalProviders(providersOptions);
+
+            services.AddSingleton<ExternalProviderRegistry>();
+            services.AddSingleton<IAuthenticationSettings>(sp => sp.GetRequiredService<ExternalProviderRegistry>());
+            services.AddSingleton<ILdapAuthenticator, LdapAuthenticator>();
             services.AddAuthorizationBuilder();
             services.AddAuthorization();
             services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();

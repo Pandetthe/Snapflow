@@ -91,6 +91,37 @@ public sealed class ServiceLinkBuilder(
         return uriBuilder.Uri;
     }
 
+    public Uri BuildExternalSignInCallbackLink() =>
+        BuildLink(options.Value.ApiUrl, "/auth/external/callback", query: null);
+
+    public Uri BuildWebLink(string path, string? query = null) =>
+        BuildLink(options.Value.WebUrl, path, query);
+
+    private Uri BuildLink(string configuredBaseUrl, string path, string? query)
+    {
+        UriBuilder uriBuilder;
+        if (string.IsNullOrEmpty(configuredBaseUrl))
+        {
+            var httpContext = httpContextAccessor.HttpContext
+                ?? throw new InvalidOperationException("No active HTTP context.");
+            uriBuilder = new UriBuilder
+            {
+                Scheme = httpContext.Request.Scheme,
+                Host = httpContext.Request.Host.Host,
+                Port = httpContext.Request.Host.Port ?? -1,
+            };
+        }
+        else
+        {
+            uriBuilder = new UriBuilder(configuredBaseUrl);
+        }
+
+        uriBuilder.Path = $"{uriBuilder.Path.TrimEnd('/')}{path}";
+        if (query is not null)
+            uriBuilder.Query = query;
+        return uriBuilder.Uri;
+    }
+
     public Uri BuildEmailConfirmationRedirect()
     {
         UriBuilder uriBuilder;

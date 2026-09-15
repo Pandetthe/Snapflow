@@ -7,6 +7,8 @@ using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Common;
 using Snapflow.Domain.Users;
 using Snapflow.Infrastructure.Auth.Entities;
+using Snapflow.Infrastructure.Auth.External;
+using System.Security.Claims;
 
 namespace Snapflow.Infrastructure.Auth.Managers;
 
@@ -14,7 +16,8 @@ internal sealed class AppSignInManager(
     SignInManager<AppUser> signInManager,
     IOptionsMonitor<BearerTokenOptions> bearerTokenOptions,
     IHttpContextAccessor httpContextAccessor,
-    TimeProvider timeProvider) : ISignInManager
+    TimeProvider timeProvider,
+    ExternalProviderRegistry providerRegistry) : ISignInManager
 {
     private static AppUser EnsureIsAppUser(IUser user)
     {
@@ -119,4 +122,55 @@ internal sealed class AppSignInManager(
     }
 
     public Task SignOutAsync() => SignOutFromAllConfiguredSchemesAsync();
+
+    public async Task<ExternalSignInTicket?> GetExternalSignInAsync()
+    {
+        ExternalLoginInfo? info = await signInManager.GetExternalLoginInfoAsync();
+        if (info is null)
+            return null;
+
+        ExternalProvider? provider = providerRegistry.FindRedirectProvider(info.LoginProvider);
+        if (provider is null)
+            return null;
+
+        string? email = FindFirstValue(info.Principal, provider.EmailClaimTypes);
+        bool emailVerified = email is not null && (provider.TrustEmail
+            || string.Equals(info.Principal.FindFirstValue(ExternalProviderRegistry.EmailVerifiedClaimType), "true", StringComparison.OrdinalIgnoreCase));
+        bool isPersistent = info.AuthenticationProperties?.Items.TryGetValue(ExternalProviderRegistry.PersistentItemKey, out string? persistent) == true
+            && persistent == "true";
+
+        var identity = new ExternalIdentity(
+            info.LoginProvider,
+            info.ProviderKey,
+            provider.DisplayName,
+            email,
+            emailVerified,
+            FindFirstValue(info.Principal, provider.NameClaimTypes));
+
+        return new ExternalSignInTicket(identity, isPersistent);
+    }
+
+    public async Task<Result> ExternalLoginSignInAsync(ExternalIdentity identity, bool? useCookies, bool? useSessionCookies)
+    {
+        var useCookieScheme = (useCookies == true) || (useSessionCookies == true);
+        var isPersistent = (useCookies == true) && (useSessionCookies != true);
+        signInManager.AuthenticationScheme = useCookieScheme ? IdentityConstants.ApplicationScheme : IdentityConstants.BearerScheme;
+
+        SignInResult result = await signInManager.ExternalLoginSignInAsync(identity.Provider, identity.ProviderKey, isPersistent, bypassTwoFactor: false);
+        FixHttpResponseStatus(useCookieScheme);
+        return MapSignInResult(result);
+    }
+
+    public async Task SignOutExternalAsync()
+    {
+        if (httpContextAccessor.HttpContext is { } context)
+        {
+            await context.SignOutAsync(IdentityConstants.ExternalScheme);
+        }
+    }
+
+    private static string? FindFirstValue(ClaimsPrincipal principal, IEnumerable<string> claimTypes) =>
+        claimTypes
+            .Select(principal.FindFirstValue)
+            .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
 }
