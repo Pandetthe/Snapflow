@@ -10,6 +10,7 @@
   import TwoFactorSetupDialog from '$lib/features/users/components/TwoFactorSetupDialog.svelte';
   import TwoFactorManageDialog from '$lib/features/users/components/TwoFactorManageDialog.svelte';
   import PasskeysDialog from '$lib/features/users/components/PasskeysDialog.svelte';
+  import LinkedAccountsSection from '$lib/features/users/components/LinkedAccountsSection.svelte';
   import {
     Fingerprint,
     Plus,
@@ -278,6 +279,16 @@
               </div>
             {/if}
           </section>
+        {/if}
+
+        {#if data.logins && (data.authProviders.providers.length > 0 || data.logins.length > 0)}
+          <LinkedAccountsSection
+            providers={data.authProviders.providers}
+            logins={data.logins}
+            ldapDisplayName={data.authProviders.ldap?.displayName ?? null}
+            {usersService}
+            onChange={invalidateAll}
+          />
         {/if}
 
         <DangerZone {usersService} />

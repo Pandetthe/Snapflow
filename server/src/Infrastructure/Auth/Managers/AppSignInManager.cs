@@ -151,9 +151,17 @@ internal sealed class AppSignInManager(
 
     public Task SignOutAsync() => SignOutFromAllConfiguredSchemesAsync();
 
-    public async Task<ExternalSignInTicket?> GetExternalSignInAsync()
+    public Task<ExternalSignInTicket?> GetExternalSignInAsync() => ReadExternalLoginAsync(expectedXsrf: null);
+
+    public async Task<ExternalIdentity?> GetExternalLinkAsync(IUser user)
     {
-        ExternalLoginInfo? info = await signInManager.GetExternalLoginInfoAsync();
+        string userId = await signInManager.UserManager.GetUserIdAsync(EnsureIsAppUser(user));
+        return (await ReadExternalLoginAsync(userId))?.Identity;
+    }
+
+    private async Task<ExternalSignInTicket?> ReadExternalLoginAsync(string? expectedXsrf)
+    {
+        ExternalLoginInfo? info = await signInManager.GetExternalLoginInfoAsync(expectedXsrf);
         if (info is null)
             return null;
 

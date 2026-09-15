@@ -19,4 +19,5 @@ public sealed class UserOptions
     public const int MaxPasskeyIdLength = 1400;
     public const int MaxPasskeyCredentialLength = 16384;
     public const int MaxPasskeyStateLength = 8192;
+    public const int MaxLoginProviderLength = 256;
 }

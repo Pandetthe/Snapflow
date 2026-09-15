@@ -45,6 +45,11 @@ export interface Passkey {
   isBackedUp: boolean;
 }
 
+export interface ExternalLogin {
+  provider: string;
+  displayName: string;
+}
+
 export class UsersService extends BaseService {
 
   async getMe(event?: RequestEvent | ServerLoadEvent): Promise<ApiResponseType<{ user: User }>> {
@@ -209,6 +214,18 @@ export class UsersService extends BaseService {
   async removePasskey(id: string): Promise<AppResponse<void>> {
     return this.handleResponse(
       this.apiClient.fetch(`/me/passkeys/${encodeURIComponent(id)}`, { method: 'DELETE' })
+    );
+  }
+
+  async getLogins(event?: RequestEvent | ServerLoadEvent): Promise<AppResponse<ExternalLogin[]>> {
+    return this.handleResponse<ExternalLogin[]>(
+      this.apiClient.fetch('/me/logins', { method: 'GET' }, event)
+    );
+  }
+
+  async removeLogin(provider: string): Promise<AppResponse<void>> {
+    return this.handleResponse(
+      this.apiClient.fetch(`/me/logins/${encodeURIComponent(provider)}`, { method: 'DELETE' })
     );
   }
 

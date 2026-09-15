@@ -202,6 +202,25 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
         return result.Succeeded ? Result.Success() : IdentityFailure(result);
     }
 
+    public async Task<IReadOnlyList<ExternalLoginDetails>> GetLoginsAsync(IUser user) =>
+        [.. (await userManager.GetLoginsAsync(EnsureIsAppUser(user)))
+            .Select(login => new ExternalLoginDetails(login.LoginProvider, login.ProviderDisplayName ?? login.LoginProvider))];
+
+    public async Task<Result> RemoveLoginAsync(IUser user, string provider)
+    {
+        AppUser appUser = EnsureIsAppUser(user);
+        UserLoginInfo? login = (await userManager.GetLoginsAsync(appUser))
+            .FirstOrDefault(l => string.Equals(l.LoginProvider, provider, StringComparison.Ordinal));
+        if (login is null)
+            return Result.Failure(ExternalLoginErrors.NotFound);
+
+        IdentityResult result = await userManager.RemoveLoginAsync(appUser, login.LoginProvider, login.ProviderKey);
+        return result.Succeeded ? Result.Success() : IdentityFailure(result);
+    }
+
+    public Task<bool> HasPasswordAsync(IUser user) =>
+        userManager.HasPasswordAsync(EnsureIsAppUser(user));
+
     public async Task<Result<IUser>> CreateExternalAsync(ExternalIdentity identity, string userName)
     {
         if (string.IsNullOrWhiteSpace(identity.Email))

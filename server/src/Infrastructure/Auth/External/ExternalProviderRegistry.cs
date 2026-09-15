@@ -54,6 +54,10 @@ public sealed class ExternalProviderRegistry : IAuthenticationSettings
 
     public ExternalProvider? FindRedirectProvider(string scheme) => _byScheme.GetValueOrDefault(scheme);
 
+    public bool IsLoginProviderAvailable(string provider) =>
+        FindRedirectProvider(provider) is not null
+        || (LdapEnabled && string.Equals(provider, LdapProvider, StringComparison.Ordinal));
+
     private static IEnumerable<ExternalProvider> BuildRedirectProviders(AuthenticationProvidersOptions options)
     {
         if (options.Google.Enabled)

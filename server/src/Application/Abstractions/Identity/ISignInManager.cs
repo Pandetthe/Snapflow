@@ -15,6 +15,8 @@ public interface ISignInManager
 
     Task<ExternalSignInTicket?> GetExternalSignInAsync();
 
+    Task<ExternalIdentity?> GetExternalLinkAsync(IUser user);
+
     Task<Result> ExternalLoginSignInAsync(ExternalIdentity identity, bool? useCookies, bool? useSessionCookies, string? rememberDeviceToken);
 
     Task SignOutExternalAsync();

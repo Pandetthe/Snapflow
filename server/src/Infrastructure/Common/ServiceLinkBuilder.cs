@@ -94,6 +94,9 @@ public sealed class ServiceLinkBuilder(
     public Uri BuildExternalSignInCallbackLink() =>
         BuildLink(options.Value.ApiUrl, "/auth/external/callback", query: null);
 
+    public Uri BuildExternalLinkCallbackLink() =>
+        BuildLink(options.Value.ApiUrl, "/me/logins/callback", query: null);
+
     public Uri BuildWebLink(string path, string? query = null) =>
         BuildLink(options.Value.WebUrl, path, query);
 

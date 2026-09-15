@@ -5,4 +5,6 @@ public interface IAuthenticationSettings
     bool PasswordAuthenticationEnabled { get; }
 
     bool ExternalSignUpEnabled { get; }
+
+    bool IsLoginProviderAvailable(string provider);
 }

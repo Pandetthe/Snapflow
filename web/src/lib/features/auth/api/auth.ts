@@ -48,9 +48,14 @@ export interface LdapSigninRequest {
   rememberMe: boolean;
 }
 
+const apiBaseUrl = () => (env.PUBLIC_API_BASE_URL || '').replace(/\/+$/, '');
+
 export function externalSignInUrl(scheme: string, rememberMe: boolean): string {
-  const base = (env.PUBLIC_API_BASE_URL || '').replace(/\/+$/, '');
-  return `${base}/auth/external/${encodeURIComponent(scheme)}?rememberMe=${rememberMe}`;
+  return `${apiBaseUrl()}/auth/external/${encodeURIComponent(scheme)}?rememberMe=${rememberMe}`;
+}
+
+export function externalLinkUrl(scheme: string): string {
+  return `${apiBaseUrl()}/me/logins/${encodeURIComponent(scheme)}`;
 }
 
 export interface SigninRequest {

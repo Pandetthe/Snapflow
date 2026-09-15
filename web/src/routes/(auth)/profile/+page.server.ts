@@ -5,16 +5,18 @@ import { apiClient } from '$lib/server/api.server.ts';
 
 export const load = async (event: ServerLoadEvent) => {
   const usersService = new UsersService(apiClient);
-  const [authProviders, twoFactor, passkeys] = await Promise.all([
+  const [authProviders, twoFactor, passkeys, logins] = await Promise.all([
     new AuthService(apiClient).getProviders(event),
     usersService.getTwoFactor(event),
-    usersService.getPasskeys(event)
+    usersService.getPasskeys(event),
+    usersService.getLogins(event)
   ]);
 
   return {
     user: event.locals.user,
     authProviders,
     twoFactor: twoFactor.ok ? twoFactor.value : null,
-    passkeys: authProviders.passwordSignIn && passkeys.ok ? passkeys.value : null
+    passkeys: authProviders.passwordSignIn && passkeys.ok ? passkeys.value : null,
+    logins: logins.ok ? logins.value : null
   };
 };
