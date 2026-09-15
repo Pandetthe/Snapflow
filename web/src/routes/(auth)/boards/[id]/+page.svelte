@@ -113,6 +113,15 @@
     }
   });
 
+  // The open card was deleted, here or by someone else: there is nothing left to show.
+  $effect(() => {
+    if (!cardModalOpen || !editingCard) return;
+    const id = editingCard.id;
+    if (!bs.board.swimlanes.some((s) => s.lists.some((l) => l.cards.some((c) => c.id === id)))) {
+      cardModalOpen = false;
+    }
+  });
+
   $effect(() => {
     recentBoards.add(data.board.id);
   });

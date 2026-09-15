@@ -1,0 +1,355 @@
+/*
+  Card description content (.markdown-content), the same in the editor and the read-only view.
+  Preflight strips lists, headings and code of their look, so every element is styled here.
+*/
+.markdown-content {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-gray-800);
+  overflow-wrap: anywhere;
+}
+
+:where(.dark) .markdown-content {
+  color: var(--color-gray-200);
+}
+
+.markdown-content > * + *,
+.markdown-content li > * + *,
+.markdown-content blockquote > * + * {
+  margin-top: 0.625em;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-gray-900);
+}
+
+:where(.dark) .markdown-content :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--color-white);
+}
+
+.markdown-content h1 {
+  font-size: 1.25rem;
+}
+
+.markdown-content h2 {
+  font-size: 1.125rem;
+}
+
+.markdown-content h3 {
+  font-size: 1rem;
+}
+
+.markdown-content :is(h1, h2, h3, h4, h5, h6):not(:first-child) {
+  margin-top: 1em;
+}
+
+.markdown-content strong {
+  font-weight: 600;
+}
+
+.markdown-content a {
+  color: var(--color-brand-500);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.markdown-content ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.markdown-content ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+
+.markdown-content li + li {
+  margin-top: 0.125em;
+}
+
+.markdown-content li::marker {
+  color: var(--color-gray-400);
+}
+
+.markdown-content ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.markdown-content ul[data-type='taskList'] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.markdown-content ul[data-type='taskList'] li > label {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  /* Centres the box on the first line (line-height 1.6) */
+  height: 1.6em;
+  user-select: none;
+}
+
+.markdown-content ul[data-type='taskList'] input[type='checkbox'] {
+  width: 0.875rem;
+  height: 0.875rem;
+  accent-color: var(--color-brand-500);
+  cursor: pointer;
+}
+
+/* Read-only view (MarkdownView): the static HTML has live checkboxes, ticking one would change nothing */
+.markdown-view ul[data-type='taskList'] input[type='checkbox'] {
+  pointer-events: none;
+}
+
+.markdown-content ul[data-type='taskList'] li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.markdown-content ul[data-type='taskList'] li[data-checked='true'] > div > p {
+  color: var(--color-gray-400);
+  text-decoration: line-through;
+}
+
+.markdown-content code {
+  padding: 0.1em 0.35em;
+  border-radius: 0.25rem;
+  background-color: var(--color-gray-100);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.85em;
+}
+
+:where(.dark) .markdown-content code {
+  background-color: rgb(255 255 255 / 0.08);
+}
+
+.markdown-content pre {
+  overflow-x: auto;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-gray-100);
+  line-height: 1.5;
+}
+
+:where(.dark) .markdown-content pre {
+  background-color: rgb(255 255 255 / 0.06);
+}
+
+.markdown-content pre code {
+  padding: 0;
+  background-color: transparent;
+}
+
+:where(.dark) .markdown-content pre code {
+  background-color: transparent;
+}
+
+.markdown-content blockquote {
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--color-gray-300);
+  color: var(--color-gray-600);
+}
+
+:where(.dark) .markdown-content blockquote {
+  border-left-color: var(--color-gray-600);
+  color: var(--color-gray-400);
+}
+
+.markdown-content hr {
+  border: 0;
+  border-top: 1px solid var(--color-gray-200);
+}
+
+:where(.dark) .markdown-content hr {
+  border-top-color: var(--color-gray-700);
+}
+
+/* Placeholder extension: the hint on an empty editor */
+.markdown-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--color-gray-400);
+  pointer-events: none;
+}
+
+:where(.dark) .markdown-content p.is-editor-empty:first-child::before {
+  color: rgb(255 255 255 / 0.3);
+}
+
+.markdown-content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+}
+
+/* YouTube extension: a wrapper div with the player iframe, sized to the content width */
+.markdown-content [data-youtube-video] iframe {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 0.5rem;
+  background-color: var(--color-gray-100);
+}
+
+:where(.dark) .markdown-content [data-youtube-video] iframe {
+  background-color: rgb(255 255 255 / 0.06);
+}
+
+/* Table extension: the editor wraps the table in .tableWrapper, the static HTML does not */
+.markdown-content .tableWrapper {
+  overflow-x: auto;
+}
+
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.markdown-content :is(th, td) {
+  position: relative;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--color-gray-200);
+  text-align: left;
+  vertical-align: top;
+}
+
+:where(.dark) .markdown-content :is(th, td) {
+  border-color: var(--color-gray-700);
+}
+
+.markdown-content th {
+  background-color: var(--color-gray-50);
+  font-weight: 600;
+}
+
+:where(.dark) .markdown-content th {
+  background-color: rgb(255 255 255 / 0.04);
+}
+
+.markdown-content :is(th, td) > * + * {
+  margin-top: 0.25em;
+}
+
+/* Cells selected across the table in the editor */
+.markdown-content .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: color-mix(in srgb, var(--color-brand-500) 12%, transparent);
+  pointer-events: none;
+}
+
+/* An image or video picked as a whole in the editor */
+.markdown-content .ProseMirror-selectednode {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+/*
+  A card on the board (Card.svelte): the description formatted, in full, in the small muted type the card used for
+  its excerpt. Later in the file than the rules above, so it wins at the same specificity.
+*/
+.card-description {
+  font-size: 11px;
+  line-height: 1.625;
+  color: var(--color-gray-500);
+}
+
+:where(.dark) .card-description {
+  color: var(--color-gray-400);
+}
+
+.card-description > * + *,
+.card-description li > * + *,
+.card-description blockquote > * + * {
+  margin-top: 0.125em;
+}
+
+.card-description :is(h1, h2, h3, h4, h5, h6),
+.card-description strong {
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--color-gray-700);
+}
+
+:where(.dark) .card-description :is(h1, h2, h3, h4, h5, h6),
+:where(.dark) .card-description strong {
+  color: var(--color-gray-300);
+}
+
+.card-description :is(h1, h2, h3, h4, h5, h6):not(:first-child) {
+  margin-top: 0.125em;
+}
+
+.card-description a {
+  text-decoration: none;
+}
+
+.card-description :is(ul, ol) {
+  padding-left: 0.875rem;
+}
+
+.card-description li + li {
+  margin-top: 0;
+}
+
+.card-description ul[data-type='taskList'] {
+  padding-left: 0;
+}
+
+.card-description ul[data-type='taskList'] li {
+  gap: 0.375rem;
+}
+
+.card-description ul[data-type='taskList'] li > label {
+  height: 1.625em;
+}
+
+.card-description ul[data-type='taskList'] input[type='checkbox'] {
+  width: 0.6875rem;
+  height: 0.6875rem;
+}
+
+.card-description code {
+  padding: 0 0.25em;
+  font-size: 0.95em;
+}
+
+.card-description pre {
+  padding: 0 0.375rem;
+  border-radius: 0.25rem;
+  line-height: inherit;
+}
+
+.card-description blockquote {
+  padding-left: 0.375rem;
+  border-left-width: 2px;
+}
+
+.card-description hr {
+  margin-block: 0.25em;
+}
+
+.card-description :is(img, [data-youtube-video] iframe) {
+  border-radius: 0.25rem;
+}
+
+.card-description :is(th, td) {
+  padding: 0 0.25rem;
+}

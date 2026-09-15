@@ -42,7 +42,9 @@ export const handle: Handle = async ({ event, resolve }) => {
     "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
-    `img-src 'self' data: ${apiCspUrl}`,
+    // Card descriptions show images from any web address and YouTube videos in the privacy-enhanced player.
+    `img-src 'self' data: https: ${apiCspUrl}`,
+    "frame-src https://www.youtube-nocookie.com",
     "object-src 'none'"
   ].join('; ');
 

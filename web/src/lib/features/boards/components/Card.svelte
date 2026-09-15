@@ -7,8 +7,11 @@
   import { dragHandle } from 'svelte-dnd-action';
   import { getContext } from 'svelte';
   import { getBoardUI } from '$lib/features/boards/context/board.context';
-  import { Button, UserAvatar } from '$lib/ui/components';
-  import { CalendarDays, GripVertical, Pencil } from 'lucide-svelte';
+  import { renderDescriptionHtml } from '$lib/features/boards/markdown/render';
+  import { summarizeDescription } from '$lib/features/boards/markdown/summary';
+  import '$lib/features/boards/styles/markdown.css';
+  import { UserAvatar } from '$lib/ui/components';
+  import { CalendarDays, GripVertical, ListChecks } from 'lucide-svelte';
   import MovedByIndicator from './MovedByIndicator.svelte';
   import TagChip from './TagChip.svelte';
 
@@ -29,6 +32,10 @@
     card.tagIds.map((id) => getBoard().tags.find((t) => t.id === id)).filter((t) => t !== undefined)
   );
 
+  // The description shows formatted but small (markdown.css), with the checklist as a count.
+  const descriptionHtml = $derived(renderDescriptionHtml(card.description));
+  const summary = $derived(summarizeDescription(card.description));
+
   const ui = getBoardUI();
 </script>
 
@@ -46,9 +53,10 @@
 
   <div class="board-item-bar flex items-start gap-1.5">
     {#if canManageCards}
+      <!-- relative z-10 keeps the handle above the title's click area, which covers the card -->
       <div
         use:dragHandle
-        class="card-drag-handle board-control touch-none focus-visible:outline-none {boardState ===
+        class="card-drag-handle board-control relative z-10 touch-none focus-visible:outline-none {boardState ===
         'connected'
           ? 'cursor-grab'
           : 'cursor-not-allowed opacity-40'}"
@@ -58,55 +66,57 @@
       </div>
     {/if}
 
-    <!-- py-0.5 centres the first line on the 24px controls -->
+    <!-- py-0.5 centres the first line on the 24px drag handle -->
     <h4
       class="min-w-0 flex-1 py-0.5 text-xs leading-relaxed font-medium wrap-break-word text-gray-800 dark:text-gray-100"
     >
-      {card.title}
-    </h4>
-
-    {#if canManageCards}
-      <Button
+      <!-- Stretched over the whole card, so the card opens wherever it is clicked; the focus ring is the card's (board-dnd.css) -->
+      <button
         type="button"
-        variant="ghost"
-        size="xs"
         onclick={() => ui.openCardModal(listId, card)}
-        disabled={boardState !== 'connected'}
-        startIcon={Pencil}
-        class="board-control"
-        title="Edit card"
+        class="cursor-pointer text-left after:absolute after:inset-0 after:rounded-lg after:content-[''] focus-visible:outline-none"
       >
-        <span class="sr-only">Edit card</span>
-      </Button>
-    {/if}
+        {card.title}
+      </button>
+    </h4>
   </div>
 
-  <!-- Body lines up with the title: control width (24px) + gap (6px) -->
-  {#if card.description}
-    <p
-      class="line-clamp-2 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400 {canManageCards
-        ? 'pl-7.5'
-        : ''}"
-    >
-      {card.description}
-    </p>
+  {#if descriptionHtml}
+    <div class="card-description markdown-content markdown-view">
+      <!-- eslint-disable-next-line svelte/no-at-html-tags -- Tiptap's static renderer escapes text and emits only schema nodes (markdown/render.ts) -->
+      {@html descriptionHtml}
+    </div>
   {/if}
 
   {#if tags.length > 0}
-    <div class="flex flex-wrap gap-1 {canManageCards ? 'pl-7.5' : ''}">
+    <div class="flex flex-wrap gap-1">
       {#each tags as tag (tag.id)}
         <TagChip {tag} size="xs" />
       {/each}
     </div>
   {/if}
 
-  <div class="flex items-center justify-between {canManageCards ? 'pl-7.5' : ''}">
+  <div class="flex items-center justify-between">
     <span title={card.createdBy.userName}>
       <UserAvatar src={card.createdBy.avatarUrl} name={card.createdBy.userName} size={18} />
     </span>
-    <div class="flex items-center gap-1 text-gray-400">
-      <CalendarDays class="h-3 w-3" />
-      <span class="text-[10px] tabular-nums">{new Date(card.createdAt).toLocaleDateString()}</span>
+    <div class="flex items-center gap-2 text-gray-400">
+      {#if summary.tasksTotal > 0}
+        <span
+          class="flex items-center gap-1 text-[10px] tabular-nums {summary.tasksDone ===
+          summary.tasksTotal
+            ? 'text-success-600 dark:text-success-500'
+            : ''}"
+          title="Checklist items done"
+        >
+          <ListChecks class="h-3 w-3" />
+          {summary.tasksDone}/{summary.tasksTotal}
+        </span>
+      {/if}
+      <span class="flex items-center gap-1 text-[10px] tabular-nums">
+        <CalendarDays class="h-3 w-3" />
+        {new Date(card.createdAt).toLocaleDateString()}
+      </span>
     </div>
   </div>
 </div>
