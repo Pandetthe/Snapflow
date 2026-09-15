@@ -26,6 +26,10 @@ internal sealed class PermissionProvider(IAppDbContext dbContext)
             BoardPermissions.Cards.Update,
             BoardPermissions.Cards.Delete,
             BoardPermissions.Cards.Move,
+            BoardPermissions.Tags.Create,
+            BoardPermissions.Tags.Update,
+            BoardPermissions.Tags.Delete,
+            BoardPermissions.Tags.Assign,
             BoardPermissions.Boards.Transfer
         },
         [MemberRole.Admin] = new()
@@ -43,7 +47,11 @@ internal sealed class PermissionProvider(IAppDbContext dbContext)
             BoardPermissions.Cards.Create,
             BoardPermissions.Cards.Update,
             BoardPermissions.Cards.Delete,
-            BoardPermissions.Cards.Move
+            BoardPermissions.Cards.Move,
+            BoardPermissions.Tags.Create,
+            BoardPermissions.Tags.Update,
+            BoardPermissions.Tags.Delete,
+            BoardPermissions.Tags.Assign
         },
         [MemberRole.Member] = new()
         {
@@ -51,7 +59,8 @@ internal sealed class PermissionProvider(IAppDbContext dbContext)
             BoardPermissions.Cards.Create,
             BoardPermissions.Cards.Update,
             BoardPermissions.Cards.Delete,
-            BoardPermissions.Cards.Move
+            BoardPermissions.Cards.Move,
+            BoardPermissions.Tags.Assign
         },
         [MemberRole.Viewer] = new()
         {

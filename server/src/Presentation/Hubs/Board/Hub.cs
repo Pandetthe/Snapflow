@@ -79,6 +79,7 @@ public sealed partial class BoardHub(
             board.Value.Title,
             board.Value.Description,
             board.Value.Swimlanes,
+            board.Value.Tags,
             details.Value.Members);
     }
 }

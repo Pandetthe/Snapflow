@@ -1,4 +1,4 @@
-﻿using Snapflow.Common;
+using Snapflow.Common;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Users;
@@ -28,40 +28,43 @@ public class Tag : Entity<int, Tag>
     public virtual IUser? DeletedBy { get; private set; }
     public bool IsDeleted { get; private set; }
 
-    public virtual HashSet<Card> Cards { get; private set; } = [];
+    public virtual ICollection<Card> Cards { get; private set; } = [];
 
-    public static Tag Create(int boardId, string title, TagColors color, int createdById, DateTimeOffset createdAt, string? connectionId = null)
+    public static Tag Create(int boardId, string title, TagColors color, IUser createdBy, DateTimeOffset createdAt, string? connectionId = null)
     {
         var tag = new Tag
         {
             BoardId = boardId,
             Title = title,
             Color = color,
-            CreatedById = createdById,
+            CreatedById = createdBy.Id,
             CreatedAt = createdAt
         };
 
-        tag.Raise(t => new TagCreatedDomainEvent(t.Id, t.BoardId, t.Title, connectionId));
+        tag.Raise(t => new TagCreatedDomainEvent(t.Id, t.BoardId, t.Title, t.Color,
+            createdBy.Id, createdBy.UserName, connectionId));
 
         return tag;
     }
 
-    public void Update(string title, TagColors color, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
+    public void Update(string title, TagColors color, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
     {
         Title = title;
         Color = color;
-        UpdatedById = updatedById;
+        UpdatedById = updatedBy.Id;
         UpdatedAt = updatedAt;
 
-        Raise(t => new TagUpdatedDomainEvent(t.Id, t.BoardId, t.Title, connectionId));
+        Raise(t => new TagUpdatedDomainEvent(t.Id, t.BoardId, t.Title, t.Color,
+            updatedBy.Id, updatedBy.UserName, connectionId));
     }
 
-    public void SoftDelete(int deletedById, DateTimeOffset deletedAt, string? connectionId = null)
+    public void SoftDelete(IUser deletedBy, DateTimeOffset deletedAt, string? connectionId = null)
     {
         IsDeleted = true;
-        DeletedById = deletedById;
+        DeletedById = deletedBy.Id;
         DeletedAt = deletedAt;
 
-        Raise(t => new TagDeletedDomainEvent(t.Id, t.BoardId, connectionId));
+        Raise(t => new TagDeletedDomainEvent(t.Id, t.BoardId,
+            deletedBy.Id, deletedBy.UserName, connectionId));
     }
 }

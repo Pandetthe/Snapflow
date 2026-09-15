@@ -1,6 +1,7 @@
 using FluentAssertions;
 using NSubstitute;
 using Snapflow.Domain.Cards;
+using Snapflow.Domain.Tags;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.UnitTests.Domain;
@@ -101,5 +102,66 @@ public sealed class CardTests
 
         card.DomainEvents.Select(e => e(card)).OfType<CardDeletedDomainEvent>().Should().ContainSingle()
             .Which.Should().Match<CardDeletedDomainEvent>(e => e.DeletedById == 3 && e.DeletedByUserName == "carol");
+    }
+
+    [Fact]
+    public void AddTag_Should_PutTagOnCard_And_RaiseEventWithActor()
+    {
+        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
+        var tag = Tag.Create(1, "Bug", TagColors.Red, CreateUser(), DateTimeOffset.UtcNow);
+        var addedBy = CreateUser(4, "dave");
+
+        var added = card.AddTag(tag, addedBy, "tag-conn");
+
+        added.Should().BeTrue();
+        card.Tags.Should().ContainSingle().Which.Should().BeSameAs(tag);
+
+        card.DomainEvents.Select(e => e(card)).OfType<CardTagAddedDomainEvent>().Should().ContainSingle()
+            .Which.Should().Match<CardTagAddedDomainEvent>(e =>
+                e.AddedById == 4 && e.AddedByUserName == "dave" && e.ConnectionId == "tag-conn");
+    }
+
+    [Fact]
+    public void AddTag_Should_DoNothing_When_TagIsAlreadyOnCard()
+    {
+        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
+        var tag = Tag.Create(1, "Bug", TagColors.Red, CreateUser(), DateTimeOffset.UtcNow);
+        card.AddTag(tag, CreateUser());
+
+        var added = card.AddTag(tag, CreateUser());
+
+        added.Should().BeFalse();
+        card.Tags.Should().ContainSingle();
+        card.DomainEvents.Select(e => e(card)).OfType<CardTagAddedDomainEvent>().Should().ContainSingle();
+    }
+
+    [Fact]
+    public void RemoveTag_Should_TakeTagOffCard_And_RaiseEventWithActor()
+    {
+        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
+        var tag = Tag.Create(1, "Bug", TagColors.Red, CreateUser(), DateTimeOffset.UtcNow);
+        card.AddTag(tag, CreateUser());
+        var removedBy = CreateUser(5, "erin");
+
+        var removed = card.RemoveTag(tag, removedBy, "untag-conn");
+
+        removed.Should().BeTrue();
+        card.Tags.Should().BeEmpty();
+
+        card.DomainEvents.Select(e => e(card)).OfType<CardTagRemovedDomainEvent>().Should().ContainSingle()
+            .Which.Should().Match<CardTagRemovedDomainEvent>(e =>
+                e.RemovedById == 5 && e.RemovedByUserName == "erin" && e.ConnectionId == "untag-conn");
+    }
+
+    [Fact]
+    public void RemoveTag_Should_DoNothing_When_TagIsNotOnCard()
+    {
+        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
+        var tag = Tag.Create(1, "Bug", TagColors.Red, CreateUser(), DateTimeOffset.UtcNow);
+
+        var removed = card.RemoveTag(tag, CreateUser());
+
+        removed.Should().BeFalse();
+        card.DomainEvents.Select(e => e(card)).OfType<CardTagRemovedDomainEvent>().Should().BeEmpty();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Snapflow.Application.Boards.GetById;
 using Snapflow.Application.Boards.GetDetails;
 using Snapflow.Domain.Members;
+using Snapflow.Domain.Tags;
 
 namespace Snapflow.Presentation.Hubs.Board;
 
@@ -8,7 +9,8 @@ public interface IBoardHubClient
 {
     // The whole board, sent to a connection when it connects or reconnects; it replaces the client's state.
     public sealed record BoardSnapshotPayload(int Id, string Title, string Description,
-        IReadOnlyList<GetBoardByIdResponse.SwimlaneDto> Swimlanes, IReadOnlyList<GetBoardDetailsMemberResponse> Members);
+        IReadOnlyList<GetBoardByIdResponse.SwimlaneDto> Swimlanes, IReadOnlyList<GetBoardByIdResponse.TagDto> Tags,
+        IReadOnlyList<GetBoardDetailsMemberResponse> Members);
 
     Task BoardSnapshot(BoardSnapshotPayload payload, CancellationToken cancellationToken = default);
 
@@ -73,11 +75,25 @@ public interface IBoardHubClient
 
     Task CardMoved(CardMovedPayload payload, CancellationToken cancellationToken = default);
 
-    Task TagCreated();
+    public sealed record TagCreatedPayload(int Id, string Title, TagColors Color, UserDto CreatedBy);
 
-    Task TagUpdated();
+    Task TagCreated(TagCreatedPayload payload, CancellationToken cancellationToken = default);
 
-    Task TagDeleted();
+    public sealed record TagUpdatedPayload(int Id, string Title, TagColors Color, UserDto UpdatedBy);
+
+    Task TagUpdated(TagUpdatedPayload payload, CancellationToken cancellationToken = default);
+
+    public sealed record TagDeletedPayload(int Id, UserDto DeletedBy);
+
+    Task TagDeleted(TagDeletedPayload payload, CancellationToken cancellationToken = default);
+
+    public sealed record CardTagAddedPayload(int CardId, int TagId, UserDto AddedBy);
+
+    Task CardTagAdded(CardTagAddedPayload payload, CancellationToken cancellationToken = default);
+
+    public sealed record CardTagRemovedPayload(int CardId, int TagId, UserDto RemovedBy);
+
+    Task CardTagRemoved(CardTagRemovedPayload payload, CancellationToken cancellationToken = default);
 
     Task MemberRemoved(int userId, CancellationToken cancellationToken = default);
 

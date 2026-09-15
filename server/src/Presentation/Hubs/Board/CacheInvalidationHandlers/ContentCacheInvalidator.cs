@@ -3,6 +3,7 @@ using Snapflow.Common;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
 using Snapflow.Domain.Swimlanes;
+using Snapflow.Domain.Tags;
 using Snapflow.Presentation.Caching;
 
 namespace Snapflow.Presentation.Hubs.Board.CacheInvalidationHandlers;
@@ -19,7 +20,12 @@ internal sealed class ContentCacheInvalidator(IOutputCacheStore store) :
     IDomainEventHandler<SwimlaneCreatedDomainEvent>,
     IDomainEventHandler<SwimlaneUpdatedDomainEvent>,
     IDomainEventHandler<SwimlaneMovedDomainEvent>,
-    IDomainEventHandler<SwimlaneDeletedDomainEvent>
+    IDomainEventHandler<SwimlaneDeletedDomainEvent>,
+    IDomainEventHandler<TagCreatedDomainEvent>,
+    IDomainEventHandler<TagUpdatedDomainEvent>,
+    IDomainEventHandler<TagDeletedDomainEvent>,
+    IDomainEventHandler<CardTagAddedDomainEvent>,
+    IDomainEventHandler<CardTagRemovedDomainEvent>
 {
     public Task Handle(CardCreatedDomainEvent e, CancellationToken ct) => Evict(e.BoardId, ct);
     public Task Handle(CardUpdatedDomainEvent e, CancellationToken ct) => Evict(e.BoardId, ct);
@@ -33,6 +39,11 @@ internal sealed class ContentCacheInvalidator(IOutputCacheStore store) :
     public Task Handle(SwimlaneUpdatedDomainEvent e, CancellationToken ct) => Evict(e.BoardId, ct);
     public Task Handle(SwimlaneMovedDomainEvent e, CancellationToken ct) => Evict(e.BoardId, ct);
     public Task Handle(SwimlaneDeletedDomainEvent e, CancellationToken ct) => Evict(e.BoardId, ct);
+    public Task Handle(TagCreatedDomainEvent e, CancellationToken ct) => Evict(e.BoardId, ct);
+    public Task Handle(TagUpdatedDomainEvent e, CancellationToken ct) => Evict(e.BoardId, ct);
+    public Task Handle(TagDeletedDomainEvent e, CancellationToken ct) => Evict(e.BoardId, ct);
+    public Task Handle(CardTagAddedDomainEvent e, CancellationToken ct) => Evict(e.BoardId, ct);
+    public Task Handle(CardTagRemovedDomainEvent e, CancellationToken ct) => Evict(e.BoardId, ct);
 
     private Task Evict(int boardId, CancellationToken ct) =>
         store.EvictByTagAsync(CacheTags.Board(boardId), ct).AsTask();

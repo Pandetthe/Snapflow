@@ -48,9 +48,18 @@ internal sealed class GetBoardByIdHandler(
                                         c.CreatedAt,
                                         UserDto.From(c.CreatedBy),
                                         c.UpdatedAt,
-                                        UserDto.From(c.UpdatedBy)))
+                                        UserDto.From(c.UpdatedBy),
+                                        c.Tags
+                                            .Where(t => !t.IsDeleted)
+                                            .Select(t => t.Id)
+                                            .ToList()))
                                     .ToList()))
                             .ToList()))
+                    .ToList(),
+                b.Tags
+                    .Where(t => !t.IsDeleted)
+                    .OrderBy(t => t.Title)
+                    .Select(t => new TagDto(t.Id, t.Title, t.Color))
                     .ToList()))
             .SingleOrDefaultAsync(cancellationToken);
 

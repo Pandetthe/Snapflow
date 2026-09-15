@@ -13,4 +13,6 @@ internal static class EndpointTags
     public const string Lists = "Lists";
 
     public const string Cards = "Cards";
+
+    public const string Tags = "Tags";
 }

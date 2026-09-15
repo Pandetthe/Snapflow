@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Snapflow.Domain.Tags;
 using static Snapflow.Application.Boards.GetById.GetBoardByIdResponse;
 
 namespace Snapflow.Application.Boards.GetById;
@@ -7,7 +8,8 @@ public sealed record GetBoardByIdResponse(
         int Id,
         string Title,
         string Description,
-        IReadOnlyList<SwimlaneDto> Swimlanes)
+        IReadOnlyList<SwimlaneDto> Swimlanes,
+        IReadOnlyList<TagDto> Tags)
 {
     public sealed record UserDto(int Id, string UserName)
     {
@@ -19,6 +21,9 @@ public sealed record GetBoardByIdResponse(
             user == null ? null : new UserDto(user.Id, user.UserName);
     }
 
+
+    // The board's tag definitions; cards carry only the ids.
+    public sealed record TagDto(int Id, string Title, TagColors Color);
 
     public sealed record SwimlaneDto(
         int Id,
@@ -42,5 +47,6 @@ public sealed record GetBoardByIdResponse(
         DateTimeOffset CreatedAt,
         UserDto CreatedBy,
         DateTimeOffset? UpdatedAt,
-        UserDto? UpdatedBy);
+        UserDto? UpdatedBy,
+        IReadOnlyList<int> TagIds);
 }

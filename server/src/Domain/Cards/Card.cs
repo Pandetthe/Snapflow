@@ -80,6 +80,29 @@ public class Card : Entity<int, Card>, IRankable
         Raise(c => new CardMovedDomainEvent(Id, BoardId, ListId, Rank, movedBy.Id, movedBy.UserName, connectionId));
     }
 
+    /// <summary>Puts a tag on the card. Returns false when the card already carries it.</summary>
+    public bool AddTag(Tag tag, IUser addedBy, string? connectionId = null)
+    {
+        if (Tags.Any(t => t.Id == tag.Id))
+            return false;
+
+        Tags.Add(tag);
+        Raise(c => new CardTagAddedDomainEvent(c.Id, tag.Id, c.BoardId, addedBy.Id, addedBy.UserName, connectionId));
+        return true;
+    }
+
+    /// <summary>Takes a tag off the card. Returns false when the card does not carry it.</summary>
+    public bool RemoveTag(Tag tag, IUser removedBy, string? connectionId = null)
+    {
+        Tag? existing = Tags.FirstOrDefault(t => t.Id == tag.Id);
+        if (existing == null)
+            return false;
+
+        Tags.Remove(existing);
+        Raise(c => new CardTagRemovedDomainEvent(c.Id, tag.Id, c.BoardId, removedBy.Id, removedBy.UserName, connectionId));
+        return true;
+    }
+
     public void SoftDelete(IUser deletedBy, DateTimeOffset deletedAt, string? connectionId = null)
     {
         IsDeleted = true;

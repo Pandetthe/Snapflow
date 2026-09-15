@@ -9,7 +9,7 @@ public sealed class VerticalSliceTests : Base
     [Fact]
     public void VerticalSlices_ShouldNot_Depend_On_Other_Slices()
     {
-        var slices = new[] { "Boards", "Cards", "Lists", "Swimlanes", "Users", "Auth", "Members", "Ranking" };
+        var slices = new[] { "Boards", "Cards", "Lists", "Swimlanes", "Users", "Auth", "Members", "Ranking", "Tags" };
 
         var failingSlices = new List<string>();
 

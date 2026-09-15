@@ -39,6 +39,19 @@ public static class BoardPermissions
         public const string Move = StartingPoint + "Move";
     }
 
+    public static class Tags
+    {
+        public const string Base = BoardPermissions.StartingPoint + "Tag";
+        public const string StartingPoint = Base + Separator;
+
+        public const string Create = StartingPoint + "Create";
+        public const string Update = StartingPoint + "Update";
+        public const string Delete = StartingPoint + "Delete";
+
+        // Putting a tag on a card and taking it off, as opposed to defining the board's tags.
+        public const string Assign = StartingPoint + "Assign";
+    }
+
     public static class Cards
     {
         public const string Base = BoardPermissions.StartingPoint + "Card";
