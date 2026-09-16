@@ -10,6 +10,8 @@ export interface BoardsHubEvents {
   BoardUpdated: (payload: BoardUpdatedEventPayload) => void;
   BoardDeleted: () => void;
   RemovedFromBoard: () => void;
+  ViewerJoined: (viewer: GetBoardByIdResponse.UserDto) => void;
+  ViewerLeft: (userId: number) => void;
   YourRoleChanged: (oldRole: MemberRole, newRole: MemberRole) => void;
   SwimlaneCreated: (payload: SwimlaneCreatedEventPayload) => void;
   SwimlaneUpdated: (payload: SwimlaneUpdatedEventPayload) => void;
@@ -39,6 +41,7 @@ export interface BoardSnapshotEventPayload {
   swimlanes: GetBoardByIdResponse.SwimlaneDto[];
   tags: GetBoardByIdResponse.TagDto[];
   members: GetBoardDetailsResponse.BoardMemberDto[];
+  viewers: GetBoardByIdResponse.UserDto[];
 }
 
 export interface BoardUpdatedEventPayload {

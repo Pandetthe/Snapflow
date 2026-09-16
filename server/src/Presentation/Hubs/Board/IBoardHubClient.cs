@@ -10,9 +10,13 @@ public interface IBoardHubClient
     // The whole board, sent to a connection when it connects or reconnects; it replaces the client's state.
     public sealed record BoardSnapshotPayload(int Id, string Title, string Description,
         IReadOnlyList<GetBoardByIdResponse.SwimlaneDto> Swimlanes, IReadOnlyList<GetBoardByIdResponse.TagDto> Tags,
-        IReadOnlyList<GetBoardDetailsMemberResponse> Members);
+        IReadOnlyList<GetBoardDetailsMemberResponse> Members, IReadOnlyList<UserDto> Viewers);
 
     Task BoardSnapshot(BoardSnapshotPayload payload, CancellationToken cancellationToken = default);
+
+    Task ViewerJoined(UserDto viewer, CancellationToken cancellationToken = default);
+
+    Task ViewerLeft(int userId, CancellationToken cancellationToken = default);
 
     public sealed record BoardUpdatedPayload(string Title, string Description);
 

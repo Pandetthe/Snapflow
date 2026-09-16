@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Boards.GetById;
@@ -35,6 +35,7 @@ public sealed partial class BoardHub(
         var userIdString = Context.UserIdentifier;
         await Groups.AddToGroupAsync(Context.ConnectionId, $"{boardId}", Context.ConnectionAborted);
 
+        int? joinedUserId = null;
         if (!string.IsNullOrEmpty(userIdString))
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, $"{boardId}-{userIdString}", Context.ConnectionAborted);
@@ -44,7 +45,8 @@ public sealed partial class BoardHub(
             if (int.TryParse(userIdString, out var userId))
             {
                 Context.SetUserId(userId);
-                connectionRegistry.Add(boardId, userId, Context.ConnectionId);
+                if (connectionRegistry.Add(boardId, userId, Context.ConnectionId))
+                    joinedUserId = userId;
             }
         }
 
@@ -61,18 +63,26 @@ public sealed partial class BoardHub(
         await base.OnConnectedAsync();
         await Clients.Caller.BoardSnapshot(snapshot, Context.ConnectionAborted);
 
+        if (joinedUserId is int joined && snapshot.Viewers.FirstOrDefault(v => v.Id == joined) is { } viewer)
+        {
+            await Clients
+                .GroupExcept(boardId, Context.ConnectionId)
+                .ViewerJoined(viewer, Context.ConnectionAborted);
+        }
+
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Connection {ConnectionId} connected to board {BoardId}.", Context.ConnectionId, boardId);
     }
 
-    public override Task OnDisconnectedAsync(Exception? exception)
+    public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        if (Context.TryGetBoardId(out var boardId) && Context.TryGetUserId(out var userId))
+        if (Context.TryGetBoardId(out var boardId) && Context.TryGetUserId(out var userId) &&
+            connectionRegistry.Remove(boardId, userId, Context.ConnectionId))
         {
-            connectionRegistry.Remove(boardId, userId, Context.ConnectionId);
+            await Clients.GroupExcept(boardId, Context.ConnectionId).ViewerLeft(userId);
         }
 
-        return base.OnDisconnectedAsync(exception);
+        await base.OnDisconnectedAsync(exception);
     }
 
     // Combines the board and its members from their own queries; Application slices do not share queries.
@@ -93,12 +103,19 @@ public sealed partial class BoardHub(
         if (!details.IsSuccess)
             return null;
 
+        IReadOnlyList<int> viewerIds = connectionRegistry.GetUserIds(boardId);
+        var viewers = details.Value.Members
+            .Where(m => viewerIds.Contains(m.Id))
+            .Select(m => new UserDto(m.Id, m.UserName, m.AvatarUrl ?? string.Empty))
+            .ToList();
+
         return new BoardSnapshotPayload(
             board.Value.Id,
             board.Value.Title,
             board.Value.Description,
             board.Value.Swimlanes,
             board.Value.Tags,
-            details.Value.Members);
+            details.Value.Members,
+            viewers);
     }
 }

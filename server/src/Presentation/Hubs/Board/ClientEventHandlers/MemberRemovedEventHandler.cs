@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using Snapflow.Common;
 using Snapflow.Domain.Members;
 
@@ -30,9 +30,16 @@ public sealed class MemberRemovedEventHandler(
             connectionRegistry.Remove(domainEvent.BoardId, domainEvent.UserId, connectionId);
         }
 
-        // The rest of the board updates its member list.
+        // The rest of the board updates its member list and stops showing them as a viewer.
         await hubContext.Clients
             .GroupExcept(domainEvent.BoardId, domainEvent.ConnectionId)
             .MemberRemoved(domainEvent.UserId, cancellationToken);
+
+        if (connectionIds.Count > 0)
+        {
+            await hubContext.Clients
+                .GroupExcept(domainEvent.BoardId, domainEvent.ConnectionId)
+                .ViewerLeft(domainEvent.UserId, cancellationToken);
+        }
     }
 }

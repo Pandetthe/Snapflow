@@ -183,6 +183,17 @@ export function createBoardState(
     apply();
   }
 
+  const viewerList = new SvelteMap<number, GetBoardByIdResponse.UserDto>();
+
+  const viewers = $derived.by(() => {
+    const all = [...viewerList.values()];
+    all.sort((a, b) => a.userName.localeCompare(b.userName));
+    return [
+      ...all.filter((v) => v.id === currentUserId),
+      ...all.filter((v) => v.id !== currentUserId)
+    ];
+  });
+
   const role = $derived<MemberRole>(members.find((m) => m.id === currentUserId)?.role ?? 'viewer');
   const canEditBoard = $derived(role === 'owner' || role === 'admin');
   const canManageSwimlanes = $derived(role === 'owner' || role === 'admin');
@@ -251,6 +262,8 @@ export function createBoardState(
       tags: snapshot.tags
     };
     members = snapshot.members;
+    viewerList.clear();
+    for (const viewer of snapshot.viewers) viewerList.set(viewer.id, viewer);
     sortAll();
     loaded = true;
     awaitingSnapshot = false;
@@ -267,6 +280,7 @@ export function createBoardState(
   ) {
     board = nextBoard;
     members = nextMembers;
+    viewerList.clear();
     loaded = false;
     awaitingSnapshot = true;
     pendingEvents = [];
@@ -292,6 +306,14 @@ export function createBoardState(
 
     h.on('BoardSnapshot', (snapshot) => {
       if (hub === h) applySnapshot(snapshot);
+    });
+
+    on('ViewerJoined', (viewer) => {
+      viewerList.set(viewer.id, viewer);
+    });
+
+    on('ViewerLeft', (userId) => {
+      viewerList.delete(userId);
     });
 
     on('BoardUpdated', (payload) => {
@@ -883,6 +905,9 @@ export function createBoardState(
     },
     get members() {
       return members;
+    },
+    get viewers() {
+      return viewers;
     },
     set members(v) {
       members = v;

@@ -12,6 +12,7 @@
   import SwimlaneModal from '$lib/features/boards/components/SwimlaneModal.svelte';
   import ListModal from '$lib/features/boards/components/ListModal.svelte';
   import CardModal from '$lib/features/boards/components/CardModal.svelte';
+  import BoardViewers from '$lib/features/boards/components/BoardViewers.svelte';
   import { setContext, tick, untrack } from 'svelte';
   import { setBoardUI } from '$lib/features/boards/context/board.context';
   import { BoardsHub } from '$lib/features/boards/hub/boards.hub';
@@ -240,7 +241,7 @@
   <div class="flex w-full flex-1 flex-col overflow-x-clip pb-12" data-board-page>
     <!-- Board header -->
     <div
-      class="relative w-full border-b border-gray-200/80 bg-white/95 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/95"
+      class="relative z-30 w-full border-b border-gray-200/80 bg-white/95 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/95"
     >
       <div class="flex w-full items-center gap-4 px-4 py-2.5 sm:px-6 lg:px-8">
         <GoBackButton href="/boards" hideTextOnMobile={true} />
@@ -257,6 +258,8 @@
             </p>
           {/if}
         </div>
+
+        <BoardViewers viewers={bs.viewers} currentUserId={data.user.id} />
 
         {#if bs.canEditBoard}
           <Button
