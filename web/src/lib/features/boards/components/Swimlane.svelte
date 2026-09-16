@@ -27,8 +27,11 @@
   } from '$lib/features/boards/composables/boardState.svelte';
   import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
   import {
+    forgetDraggedList,
     holdListZoneHeights,
-    releaseListZoneHeights
+    measureDraggedList,
+    releaseListZoneHeights,
+    sizeDraggedList
   } from '$lib/features/boards/animations/zoneHeights';
   import MovedByIndicator from './MovedByIndicator.svelte';
   import { storedToCss } from '$lib/features/boards/sizes';
@@ -55,8 +58,7 @@
   // List picked up with the keyboard, shown as selected until it is dropped.
   let keyboardMovedListId = $state<number | null>(null);
 
-  // While a list is dragged, every list zone holds its height and the zone the list hovers grows to fit it
-  const DRAGGED_LIST_HEIGHT_VAR = '--board-dragged-list-height';
+  let listZoneEl = $state<HTMLElement | null>(null);
 
   // The drop slot of the dragged list is in this swimlane.
   const receivingList = $derived(
@@ -78,14 +80,7 @@
     const { info } = e.detail;
     if (info.source === SOURCES.KEYBOARD) keyboardMovedListId = Number(info.id);
     if (info.trigger === TRIGGERS.DRAG_STARTED) {
-      const height = document
-        .querySelector(`[data-list-id="${info.id}"]`)
-        ?.getBoundingClientRect().height;
-      if (height)
-        document.documentElement.style.setProperty(
-          DRAGGED_LIST_HEIGHT_VAR,
-          `${Math.round(height)}px`
-        );
+      measureDraggedList(Number(info.id));
       holdListZoneHeights();
     }
     if (info.trigger === TRIGGERS.DRAG_STOPPED) endListDrag();
@@ -93,9 +88,13 @@
 
   function endListDrag() {
     keyboardMovedListId = null;
-    document.documentElement.style.removeProperty(DRAGGED_LIST_HEIGHT_VAR);
+    forgetDraggedList();
     releaseListZoneHeights();
   }
+
+  $effect(() => {
+    if (receivingList && listZoneEl) sizeDraggedList(listZoneEl);
+  });
 
   async function handleListFinalize(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
     swimlane.lists = e.detail.items;
@@ -218,6 +217,7 @@
           }}
           onconsider={handleListConsider}
           onfinalize={handleListFinalize}
+          bind:this={listZoneEl}
           data-board-zone="lists"
           data-empty={swimlane.lists.length === 0 || undefined}
           data-receiving={receivingList || undefined}
