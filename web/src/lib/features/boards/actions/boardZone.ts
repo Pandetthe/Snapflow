@@ -21,11 +21,6 @@ function createZone<T extends Item>(node: HTMLElement, options: BoardZoneOptions
     : dndzone(node, zoneOptionsOf(options));
 }
 
-/**
- * The board's zones, switchable between dragging by a handle and dragging the item itself.
- * `dragHandleZone` only wraps `dndzone` to gate it on a handle, so the two cannot share an
- * instance; flipping `useHandle` tears the zone down and builds the other one in its place.
- */
 export function boardZone<T extends Item>(
   node: HTMLElement,
   options: BoardZoneOptions<T>

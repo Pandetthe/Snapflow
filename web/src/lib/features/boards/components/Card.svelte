@@ -39,7 +39,6 @@
 
   const ui = getBoardUI();
 
-  // Without a handle the whole card is the drag surface (see boardZone).
   const surfaceDrag = $derived(canManageCards && $dragHandles === 'hidden');
 </script>
 
@@ -55,12 +54,6 @@
 >
   <MovedByIndicator move={recentMove} />
 
-  <!--
-    Opens the card wherever it is clicked. A plain element rather than a button, because without a
-    handle the card itself is the drag surface and dndzone refuses to start a drag on a nested
-    element that has a `value` — which every button has. Keyboard users get the real button on the
-    title below, so this one stays out of the accessibility tree.
-  -->
   <div
     class="absolute inset-0 rounded-lg"
     aria-hidden="true"
@@ -86,7 +79,6 @@
     <h4
       class="min-w-0 flex-1 py-0.5 text-xs leading-relaxed font-medium wrap-break-word text-gray-800 dark:text-gray-100"
     >
-      <!-- Carries the card's name for keyboard and screen readers; the focus ring is the card's (board-dnd.css) -->
       <button
         type="button"
         onclick={() => ui.openCardModal(listId, card)}
