@@ -1,6 +1,11 @@
 <script lang="ts">
-  import { FullLayout, GoBackButton, SegmentedControl, Switch } from '$lib/ui/components';
-  import SettingsSection from '$lib/features/users/components/SettingsSection.svelte';
+  import {
+    FullLayout,
+    GoBackButton,
+    SegmentedControl,
+    SettingsSection,
+    Switch
+  } from '$lib/ui/components';
   import { dragHandles, type DragHandleVisibility } from '$lib/features/boards/stores/dragHandles';
   import { swimlaneFolding } from '$lib/features/boards/stores/swimlaneFolding';
   import { triggerHaptic } from '$lib/ui/utils';

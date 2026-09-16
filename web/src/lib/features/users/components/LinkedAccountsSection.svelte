@@ -3,8 +3,7 @@
   import { replaceState } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { Link2, Unlink } from 'lucide-svelte';
-  import { AppDialog, Button } from '$lib/ui/components';
-  import SettingsSection from './SettingsSection.svelte';
+  import { AppDialog, Button, SettingsSection } from '$lib/ui/components';
   import SettingRow from './SettingRow.svelte';
   import { errorStore } from '$lib/ui/stores/error.svelte';
   import { triggerHaptic } from '$lib/ui/utils';

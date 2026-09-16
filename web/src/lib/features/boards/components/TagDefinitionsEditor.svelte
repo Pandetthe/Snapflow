@@ -12,7 +12,7 @@
   import { slideReveal } from '$lib/ui/utils';
   import type { Response } from '$lib/core/types/app';
   import { slide } from 'svelte/transition';
-  import { Check, Pencil, Plus, Tags as TagsIcon, Trash2, X } from 'lucide-svelte';
+  import { Check, Pencil, Plus, Trash2, X } from 'lucide-svelte';
 
   const MAX_TITLE_LENGTH = 20;
 
@@ -109,20 +109,8 @@
   }
 </script>
 
-<section
-  class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 sm:rounded-3xl sm:p-6 dark:border-gray-800 dark:bg-gray-900/50"
->
-  <div class="mb-6 flex items-start justify-between">
-    <div>
-      <h2 class="text-lg font-bold text-gray-900 dark:text-white">Tags</h2>
-      <p class="text-sm text-gray-600 dark:text-gray-400">
-        {tags.length} tag{tags.length === 1 ? '' : 's'} on this board
-      </p>
-    </div>
-    <TagsIcon class="h-5 w-5 text-gray-500" />
-  </div>
-
-  <div class="mb-6 space-y-3">
+<div class="space-y-6">
+  <div class="space-y-3">
     <InputTextField
       id="tag-title"
       name="tag-title"
@@ -218,4 +206,4 @@
       {/each}
     </ul>
   {/if}
-</section>
+</div>

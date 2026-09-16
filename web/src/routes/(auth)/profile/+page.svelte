@@ -1,9 +1,8 @@
 <script lang="ts">
   import { UsersService } from '$lib/features/users/api/users';
   import { apiClient } from '$lib/core/api.client';
-  import { FullLayout, GoBackButton, Button } from '$lib/ui/components';
+  import { FullLayout, GoBackButton, Button, SettingsSection } from '$lib/ui/components';
   import AvatarSection from '$lib/features/users/components/AvatarSection.svelte';
-  import SettingsSection from '$lib/features/users/components/SettingsSection.svelte';
   import SettingRow from '$lib/features/users/components/SettingRow.svelte';
   import ChangeUsernameDialog from '$lib/features/users/components/ChangeUsernameDialog.svelte';
   import ChangeEmailDialog from '$lib/features/users/components/ChangeEmailDialog.svelte';

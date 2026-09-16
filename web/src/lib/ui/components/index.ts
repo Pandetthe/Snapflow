@@ -26,6 +26,7 @@ export { default as AppHeader } from './layout/AppHeader.svelte';
 export { default as SplitLayout } from './layout/SplitLayout.svelte';
 export { default as FullLayout } from './layout/FullLayout.svelte';
 export { default as FullBleedLayout } from './layout/FullBleedLayout.svelte';
+export { default as SettingsSection } from './layout/SettingsSection.svelte';
 export { default as GoBackButton } from './navigation/GoBackButton.svelte';
 export { default as UserMenu } from './navigation/UserMenu.svelte';
 export { default as ErrorModal } from './feedback/ErrorModal.svelte';

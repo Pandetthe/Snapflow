@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { AppDialog, Button } from '$lib/ui/components';
-  import SettingsSection from './SettingsSection.svelte';
+  import { AppDialog, Button, SettingsSection } from '$lib/ui/components';
   import type { UsersService } from '../api/users';
   import { triggerHaptic } from '$lib/ui/utils';
   import { Trash2, TriangleAlert } from 'lucide-svelte';

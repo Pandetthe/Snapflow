@@ -1,6 +1,11 @@
 <script lang="ts">
-  import { Button, UserAvatar, SegmentedControl, Dropzone } from '$lib/ui/components';
-  import SettingsSection from './SettingsSection.svelte';
+  import {
+    Button,
+    UserAvatar,
+    SegmentedControl,
+    Dropzone,
+    SettingsSection
+  } from '$lib/ui/components';
   import { AvatarType, type UsersService } from '../api/users';
   import { avatarBust, bustAvatar } from '../avatarBust.svelte';
   import { errorStore } from '$lib/ui/stores/error.svelte';
