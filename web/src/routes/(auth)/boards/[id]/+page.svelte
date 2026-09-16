@@ -4,6 +4,7 @@
   import { type DndEvent, SOURCES, TRIGGERS } from 'svelte-dnd-action';
   import { boardZone } from '$lib/features/boards/actions/boardZone';
   import { dragHandles } from '$lib/features/boards/stores/dragHandles';
+  import { swimlaneFolding } from '$lib/features/boards/stores/swimlaneFolding';
   import Swimlane from '$lib/features/boards/components/Swimlane.svelte';
   import BoardSkeleton, {
     type SkeletonBand
@@ -178,7 +179,7 @@
     bs.board.swimlanes = [...e.detail.items];
     const { info } = e.detail;
     if (info.source === SOURCES.KEYBOARD) keyboardMovedSwimlaneId = Number(info.id);
-    if (info.trigger === TRIGGERS.DRAG_STARTED) foldSwimlanes(Number(info.id));
+    if (info.trigger === TRIGGERS.DRAG_STARTED && $swimlaneFolding) foldSwimlanes(Number(info.id));
     if (info.trigger === TRIGGERS.DRAG_STOPPED) endSwimlaneDrag();
   }
 

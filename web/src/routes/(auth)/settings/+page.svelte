@@ -1,27 +1,49 @@
 <script lang="ts">
-  import { FullLayout, GoBackButton, SegmentedControl } from '$lib/ui/components';
+  import { FullLayout, GoBackButton, SegmentedControl, Switch } from '$lib/ui/components';
   import SettingsSection from '$lib/features/users/components/SettingsSection.svelte';
   import { dragHandles, type DragHandleVisibility } from '$lib/features/boards/stores/dragHandles';
+  import { swimlaneFolding } from '$lib/features/boards/stores/swimlaneFolding';
   import { triggerHaptic } from '$lib/ui/utils';
-  import { Grip, GripVertical, LayoutGrid, MousePointer2, EyeOff } from 'lucide-svelte';
+  import {
+    FoldVertical,
+    Grip,
+    GripVertical,
+    LayoutGrid,
+    MousePointer2,
+    EyeOff
+  } from 'lucide-svelte';
   import { afterNavigate } from '$app/navigation';
+  import type { Icon as IconType } from 'lucide-svelte';
 
   let backHref = $state('/boards');
   afterNavigate(({ from }) => {
     backHref = from?.url.pathname ?? '/boards';
   });
 
-  const descriptions: Record<DragHandleVisibility, string> = {
+  const handleDescriptions: Record<DragHandleVisibility, string> = {
     always: 'The grip is always visible on cards, lists and swimlanes.',
     hover: 'The grip appears when you hover an item or focus its handle.',
     hidden: 'No grip at all — drag a card, list or swimlane by the item itself.'
   };
 
-  function select(next: DragHandleVisibility) {
+  function selectHandles(next: DragHandleVisibility) {
     dragHandles.set(next);
     triggerHaptic('selection');
   }
+
+  function toggleFolding(next: boolean) {
+    swimlaneFolding.set(next);
+    triggerHaptic('selection');
+  }
 </script>
+
+{#snippet settingIcon(Icon: typeof IconType)}
+  <div
+    class="flex size-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-400 dark:border-gray-800 dark:text-gray-500"
+  >
+    <Icon size={16} />
+  </div>
+{/snippet}
 
 <svelte:head>
   <title>Snapflow | Settings</title>
@@ -47,31 +69,44 @@
         title="Boards"
         description="How boards behave while you work in them."
       >
-        <div class="space-y-3">
-          <div class="flex items-center gap-3">
-            <div
-              class="flex size-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-400 dark:border-gray-800 dark:text-gray-500"
-            >
-              <GripVertical size={16} />
+        <div class="space-y-5">
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              {@render settingIcon(GripVertical)}
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-400">Drag handles</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {handleDescriptions[$dragHandles]}
+                </p>
+              </div>
             </div>
-            <div class="min-w-0 flex-1">
-              <p class="text-sm font-medium text-gray-900 dark:text-white">Drag handles</p>
-              <p class="text-xs text-gray-400 dark:text-gray-500">
-                {descriptions[$dragHandles]}
-              </p>
-            </div>
+
+            <SegmentedControl
+              size="xs"
+              options={[
+                { value: 'always', label: 'Always', icon: Grip },
+                { value: 'hover', label: 'On hover', icon: MousePointer2 },
+                { value: 'hidden', label: 'Hidden', icon: EyeOff }
+              ]}
+              value={$dragHandles}
+              onValueChange={selectHandles}
+            />
           </div>
 
-          <SegmentedControl
-            size="xs"
-            options={[
-              { value: 'always', label: 'Always', icon: Grip },
-              { value: 'hover', label: 'On hover', icon: MousePointer2 },
-              { value: 'hidden', label: 'Hidden', icon: EyeOff }
-            ]}
-            value={$dragHandles}
-            onValueChange={select}
-          />
+          <div class="h-px bg-gray-100 dark:bg-gray-800"></div>
+
+          <div class="flex items-start gap-3">
+            {@render settingIcon(FoldVertical)}
+            <div class="min-w-0 flex-1">
+              <Switch
+                label="Fold swimlanes while dragging"
+                helperText="Every swimlane collapses to its header, so the board fits on a few screens while you carry one."
+                checked={$swimlaneFolding}
+                onCheckedChange={toggleFolding}
+                class="w-full flex-row-reverse justify-between"
+              />
+            </div>
+          </div>
 
           <p class="text-xs text-gray-400 dark:text-gray-500">Saved in this browser only.</p>
         </div>
