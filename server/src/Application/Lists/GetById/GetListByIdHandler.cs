@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
@@ -8,10 +9,13 @@ using static Snapflow.Application.Lists.GetById.GetListByIdResponse;
 namespace Snapflow.Application.Lists.GetById;
 
 internal sealed class GetListByIdHandler(
-    IAppDbContext dbContext) : IQueryHandler<GetListByIdQuery, GetListByIdResponse>
+    IAppDbContext dbContext,
+    IBoardMembershipService membershipService) : IQueryHandler<GetListByIdQuery, GetListByIdResponse>
 {
     public async Task<Result<GetListByIdResponse>> Handle(GetListByIdQuery query, CancellationToken cancellationToken = default)
     {
+        bool isMember = await membershipService.IsMemberAsync(query.BoardId, cancellationToken);
+
         GetListByIdResponse? list = await dbContext.Lists
             .AsNoTracking()
             .Where(l => l.Id == query.Id && l.BoardId == query.BoardId && !l.IsDeleted)
@@ -23,9 +27,9 @@ internal sealed class GetListByIdHandler(
                 l.Rank,
                 l.Width,
                 l.CreatedAt,
-                UserDto.From(l.CreatedBy),
+                isMember ? UserDto.From(l.CreatedBy) : null,
                 l.UpdatedAt,
-                UserDto.From(l.UpdatedBy)))
+                isMember ? UserDto.From(l.UpdatedBy) : null))
             .SingleOrDefaultAsync(cancellationToken);
         if (list == null)
             return Result.Failure<GetListByIdResponse>(ListErrors.NotFound(query.Id));

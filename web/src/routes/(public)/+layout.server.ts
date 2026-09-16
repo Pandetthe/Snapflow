@@ -5,7 +5,7 @@ import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async (event) => {
   if (event.locals.session) {
-    throw redirect(303, '/boards');
+    throw redirect(303, '/');
   }
 
   return {

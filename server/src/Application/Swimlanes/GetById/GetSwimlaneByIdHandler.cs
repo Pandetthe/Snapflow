@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
@@ -8,11 +9,14 @@ using static Snapflow.Application.Swimlanes.GetById.GetSwimlaneByIdResponse;
 namespace Snapflow.Application.Swimlanes.GetById;
 
 internal sealed class GetSwimlaneByIdHandler(
-    IAppDbContext dbContext) : IQueryHandler<GetSwimlaneByIdQuery, GetSwimlaneByIdResponse>
+    IAppDbContext dbContext,
+    IBoardMembershipService membershipService) : IQueryHandler<GetSwimlaneByIdQuery, GetSwimlaneByIdResponse>
 {
     public async Task<Result<GetSwimlaneByIdResponse>> Handle(GetSwimlaneByIdQuery query,
         CancellationToken cancellationToken = default)
     {
+        bool isMember = await membershipService.IsMemberAsync(query.BoardId, cancellationToken);
+
         GetSwimlaneByIdResponse? swimlane = await dbContext.Swimlanes
             .AsNoTracking()
             .Where(s => !s.IsDeleted && s.Id == query.Id && s.BoardId == query.BoardId)
@@ -23,9 +27,9 @@ internal sealed class GetSwimlaneByIdHandler(
                 s.Rank,
                 s.Height,
                 s.CreatedAt,
-                UserDto.From(s.CreatedBy),
+                isMember ? UserDto.From(s.CreatedBy) : null,
                 s.UpdatedAt,
-                UserDto.From(s.UpdatedBy)))
+                isMember ? UserDto.From(s.UpdatedBy) : null))
             .SingleOrDefaultAsync(cancellationToken);
         if (swimlane == null)
             return Result.Failure<GetSwimlaneByIdResponse>(SwimlaneErrors.NotFound(query.Id));

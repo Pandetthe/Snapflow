@@ -11,7 +11,8 @@ internal sealed class Update : IEndpoint
     public sealed record UpdateBoardRequest(
         string Title,
         string Description,
-        IReadOnlyList<UpdateBoardMemberRequest>? Members = null);
+        IReadOnlyList<UpdateBoardMemberRequest>? Members = null,
+        BoardVisibility? Visibility = null);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -25,7 +26,8 @@ internal sealed class Update : IEndpoint
                 boardId,
                 request.Title,
                 request.Description,
-                request.Members);
+                request.Members,
+                request.Visibility);
 
             Result result = await handler.Handle(command, cancellationToken);
 
@@ -34,6 +36,8 @@ internal sealed class Update : IEndpoint
         .RequireAuthorization(BoardPermissions.Boards.Update)
         .WithTags(EndpointTags.Boards)
         .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

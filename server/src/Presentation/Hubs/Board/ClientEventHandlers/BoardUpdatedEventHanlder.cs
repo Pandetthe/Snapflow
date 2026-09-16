@@ -8,7 +8,6 @@ public sealed class BoardUpdatedEventHandler(
     IHubContext<BoardHub, IBoardHubClient> hubContext) : IDomainEventHandler<BoardUpdatedDomainEvent>
 {
     public Task Handle(BoardUpdatedDomainEvent domainEvent, CancellationToken cancellationToken) =>
-        hubContext.Clients
-            .Group(domainEvent.Id)
-            .BoardUpdated(new(domainEvent.Title, domainEvent.Description), cancellationToken);
+        hubContext.Clients.SendToBoard(domainEvent.Id, null, (clients, _) =>
+            clients.BoardUpdated(new(domainEvent.Title, domainEvent.Description), cancellationToken));
 }

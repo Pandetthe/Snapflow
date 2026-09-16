@@ -1,4 +1,5 @@
 import type {
+  BoardVisibility,
   GetBoardByIdResponse,
   GetBoardDetailsResponse,
   MemberRole,
@@ -8,6 +9,7 @@ import type {
 export interface BoardsHubEvents {
   BoardSnapshot: (payload: BoardSnapshotEventPayload) => void;
   BoardUpdated: (payload: BoardUpdatedEventPayload) => void;
+  BoardVisibilityChanged: (payload: BoardVisibilityChangedEventPayload) => void;
   BoardDeleted: () => void;
   RemovedFromBoard: () => void;
   ViewerJoined: (viewer: GetBoardByIdResponse.UserDto) => void;
@@ -38,10 +40,15 @@ export interface BoardSnapshotEventPayload {
   id: number;
   title: string;
   description: string;
+  visibility: BoardVisibility;
   swimlanes: GetBoardByIdResponse.SwimlaneDto[];
   tags: GetBoardByIdResponse.TagDto[];
   members: GetBoardDetailsResponse.BoardMemberDto[];
   viewers: GetBoardByIdResponse.UserDto[];
+}
+
+export interface BoardVisibilityChangedEventPayload {
+  visibility: BoardVisibility;
 }
 
 export interface BoardUpdatedEventPayload {
@@ -54,25 +61,25 @@ export interface SwimlaneCreatedEventPayload {
   title: string;
   rank: string;
   height: number | null;
-  createdBy: GetBoardByIdResponse.UserDto;
+  createdBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface SwimlaneUpdatedEventPayload {
   id: number;
   title: string;
   height: number | null;
-  updatedBy: GetBoardByIdResponse.UserDto;
+  updatedBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface SwimlaneMovedEventPayload {
   id: number;
   rank: string;
-  movedBy: GetBoardByIdResponse.UserDto;
+  movedBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface SwimlaneDeletedEventPayload {
   id: number;
-  deletedBy: GetBoardByIdResponse.UserDto;
+  deletedBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface ListCreatedEventPayload {
@@ -81,26 +88,26 @@ export interface ListCreatedEventPayload {
   title: string;
   rank: string;
   width: number | null;
-  createdBy: GetBoardByIdResponse.UserDto;
+  createdBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface ListUpdatedEventPayload {
   id: number;
   title: string;
   width: number | null;
-  updatedBy: GetBoardByIdResponse.UserDto;
+  updatedBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface ListMovedEventPayload {
   id: number;
   swimlaneId: number;
   rank: string;
-  movedBy: GetBoardByIdResponse.UserDto;
+  movedBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface ListDeletedEventPayload {
   id: number;
-  deletedBy: GetBoardByIdResponse.UserDto;
+  deletedBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface CardCreatedEventPayload {
@@ -110,21 +117,21 @@ export interface CardCreatedEventPayload {
   description: string;
   rank: string;
   createdAt: string;
-  createdBy: { id: number; userName: string; avatarUrl: string | null };
+  createdBy: { id: number; userName: string; avatarUrl: string | null } | null;
 }
 
 export interface CardUpdatedEventPayload {
   id: number;
   title: string;
   description: string;
-  updatedBy: GetBoardByIdResponse.UserDto;
+  updatedBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface CardMovedEventPayload {
   id: number;
   listId: number;
   rank: string;
-  movedBy: GetBoardByIdResponse.UserDto;
+  movedBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface CardLockedEventPayload {
@@ -137,38 +144,38 @@ export interface CardUnlockedEventPayload {
 
 export interface CardDeletedEventPayload {
   id: number;
-  deletedBy: GetBoardByIdResponse.UserDto;
+  deletedBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface TagCreatedEventPayload {
   id: number;
   title: string;
   color: TagColor;
-  createdBy: GetBoardByIdResponse.UserDto;
+  createdBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface TagUpdatedEventPayload {
   id: number;
   title: string;
   color: TagColor;
-  updatedBy: GetBoardByIdResponse.UserDto;
+  updatedBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface TagDeletedEventPayload {
   id: number;
-  deletedBy: GetBoardByIdResponse.UserDto;
+  deletedBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface CardTagAddedEventPayload {
   cardId: number;
   tagId: number;
-  addedBy: GetBoardByIdResponse.UserDto;
+  addedBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface CardTagRemovedEventPayload {
   cardId: number;
   tagId: number;
-  removedBy: GetBoardByIdResponse.UserDto;
+  removedBy: GetBoardByIdResponse.UserDto | null;
 }
 
 export interface MoveSwimlaneRequest {

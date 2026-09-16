@@ -29,9 +29,9 @@
   let { data } = $props();
   const usersService = new UsersService(apiClient);
 
-  let backHref = $state('/boards');
+  let backHref = $state('/');
   afterNavigate(({ from }) => {
-    backHref = from?.url.pathname ?? '/boards';
+    backHref = from?.url.pathname ?? '/';
   });
 
   let isEditingUsername = $state(false);

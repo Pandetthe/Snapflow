@@ -10,7 +10,7 @@ public sealed record GetSwimlaneByIdResponse(
     string Rank,
     int? Height,
     DateTimeOffset CreatedAt,
-    UserDto CreatedBy,
+    UserDto? CreatedBy,
     DateTimeOffset? UpdatedAt,
     UserDto? UpdatedBy)
 {

@@ -10,9 +10,10 @@ public sealed class ListDeletedEventHandler(
     IAvatarService avatarService) : IDomainEventHandler<ListDeletedDomainEvent>
 {
     public Task Handle(ListDeletedDomainEvent domainEvent, CancellationToken cancellationToken) =>
-        hubContext.Clients
-            .GroupExcept(domainEvent.BoardId, domainEvent.ConnectionId)
-            .ListDeleted(new(domainEvent.Id,
-                new(domainEvent.DeletedById, domainEvent.DeletedByUserName,
-                    avatarService.GenerateAvatarUrl(domainEvent.DeletedById))), cancellationToken);
+        hubContext.Clients.SendToBoard(domainEvent.BoardId, domainEvent.ConnectionId, (clients, showUsers) =>
+            clients.ListDeleted(new(domainEvent.Id,
+                showUsers
+                    ? new IBoardHubClient.UserDto(domainEvent.DeletedById, domainEvent.DeletedByUserName,
+                        avatarService.GenerateAvatarUrl(domainEvent.DeletedById))
+                    : null), cancellationToken));
 }

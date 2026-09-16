@@ -14,6 +14,12 @@ public sealed record BoardUpdatedDomainEvent(
     string Description,
     string? ConnectionId) : IDomainEvent;
 
+public sealed record BoardVisibilityChangedDomainEvent(
+    int Id,
+    BoardVisibility OldVisibility,
+    BoardVisibility NewVisibility,
+    string? ConnectionId) : IDomainEvent;
+
 public sealed record BoardDeletedDomainEvent(
     int Id,
     IReadOnlyList<int> MemberIds,

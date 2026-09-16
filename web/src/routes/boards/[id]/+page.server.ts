@@ -1,4 +1,4 @@
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { BoardsService } from '$lib/features/boards/api/boards.api';
 import { apiClient } from '$lib/server/api.server';
@@ -19,6 +19,10 @@ export const load: PageServerLoad = async (event) => {
 
   if (!detailsResult.ok) {
     if (isHiddenBoardStatus(detailsResult.problem?.status)) {
+      if (!event.locals.user) {
+        throw redirect(303, '/sign-in');
+      }
+
       throw error(404, formatErrorMessage('Board not found', detailsResult.problem?.detail));
     }
 
@@ -31,8 +35,15 @@ export const load: PageServerLoad = async (event) => {
     );
   }
 
-  const { id, title, description, members } = detailsResult.value;
-  const board: GetBoardByIdResponse.BoardDto = { id, title, description, swimlanes: [], tags: [] };
+  const { id, title, description, visibility, members } = detailsResult.value;
+  const board: GetBoardByIdResponse.BoardDto = {
+    id,
+    title,
+    description,
+    visibility,
+    swimlanes: [],
+    tags: []
+  };
 
-  return { board, members };
+  return { board, members, user: event.locals.user };
 };

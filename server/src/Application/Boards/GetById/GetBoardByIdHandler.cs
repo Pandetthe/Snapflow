@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Application.Abstractions.Services;
@@ -10,10 +11,13 @@ namespace Snapflow.Application.Boards.GetById;
 
 internal sealed class GetBoardByIdHandler(
     IAppDbContext context,
-    IAvatarService avatarService) : IQueryHandler<GetBoardByIdQuery, GetBoardByIdResponse>
+    IAvatarService avatarService,
+    IBoardMembershipService membershipService) : IQueryHandler<GetBoardByIdQuery, GetBoardByIdResponse>
 {
     public async Task<Result<GetBoardByIdResponse>> Handle(GetBoardByIdQuery query, CancellationToken cancellationToken = default)
     {
+        bool isMember = await membershipService.IsMemberAsync(query.Id, cancellationToken);
+
         GetBoardByIdResponse? board = await context.Boards
             .AsNoTracking()
             .Where(b => b.Id == query.Id && !b.IsDeleted)
@@ -21,6 +25,7 @@ internal sealed class GetBoardByIdHandler(
                 b.Id,
                 b.Title,
                 b.Description,
+                b.Visibility,
                 b.Swimlanes
                     .Where(s => !s.IsDeleted)
                     .OrderBy(s => s.Rank)
@@ -46,9 +51,9 @@ internal sealed class GetBoardByIdHandler(
                                         c.Description,
                                         c.Rank,
                                         c.CreatedAt,
-                                        UserDto.From(c.CreatedBy),
+                                        isMember ? UserDto.From(c.CreatedBy) : null,
                                         c.UpdatedAt,
-                                        UserDto.From(c.UpdatedBy),
+                                        isMember ? UserDto.From(c.UpdatedBy) : null,
                                         c.Tags
                                             .Where(t => !t.IsDeleted)
                                             .Select(t => t.Id)
@@ -68,7 +73,8 @@ internal sealed class GetBoardByIdHandler(
 
         foreach (CardDto card in board.Swimlanes.SelectMany(s => s.Lists).SelectMany(l => l.Cards))
         {
-            card.CreatedBy.AvatarUrl = avatarService.GenerateAvatarUrl(card.CreatedBy.Id);
+            if (card.CreatedBy != null)
+                card.CreatedBy.AvatarUrl = avatarService.GenerateAvatarUrl(card.CreatedBy.Id);
             if (card.UpdatedBy != null)
                 card.UpdatedBy.AvatarUrl = avatarService.GenerateAvatarUrl(card.UpdatedBy.Id);
         }

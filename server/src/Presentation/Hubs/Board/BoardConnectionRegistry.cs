@@ -14,6 +14,7 @@ namespace Snapflow.Presentation.Hubs.Board;
 public sealed class BoardConnectionRegistry
 {
     private readonly Dictionary<(int BoardId, int UserId), HashSet<string>> _connections = [];
+    private readonly Dictionary<int, Dictionary<string, bool>> _guestConnections = [];
     private readonly Lock _gate = new();
 
     /// <returns><see langword="true"/> when the user had nothing else open on the board.</returns>
@@ -47,12 +48,63 @@ public sealed class BoardConnectionRegistry
         }
     }
 
+    /// <returns><see langword="true"/> when the connection was still registered.</returns>
+    public bool TryRemoveConnection(int boardId, int userId, string connectionId)
+    {
+        lock (_gate)
+        {
+            if (!_connections.TryGetValue((boardId, userId), out var connectionIds) || !connectionIds.Remove(connectionId))
+                return false;
+
+            if (connectionIds.Count == 0)
+                _connections.Remove((boardId, userId));
+            return true;
+        }
+    }
+
     public IReadOnlyList<string> GetConnectionIds(int boardId, int userId)
     {
         lock (_gate)
         {
             return _connections.TryGetValue((boardId, userId), out var connectionIds)
                 ? [.. connectionIds]
+                : [];
+        }
+    }
+
+    public void AddGuest(int boardId, string connectionId, bool isAuthenticated)
+    {
+        lock (_gate)
+        {
+            if (!_guestConnections.TryGetValue(boardId, out var connections))
+            {
+                connections = [];
+                _guestConnections[boardId] = connections;
+            }
+
+            connections[connectionId] = isAuthenticated;
+        }
+    }
+
+    public bool RemoveGuest(int boardId, string connectionId)
+    {
+        lock (_gate)
+        {
+            if (!_guestConnections.TryGetValue(boardId, out var connections) || !connections.Remove(connectionId))
+                return false;
+
+            if (connections.Count == 0)
+                _guestConnections.Remove(boardId);
+            return true;
+        }
+    }
+
+    public IReadOnlyList<(string ConnectionId, bool IsAuthenticated)> GetGuests(int boardId)
+    {
+        lock (_gate)
+        {
+            return _guestConnections.TryGetValue(boardId, out var connections)
+                ? [.. connections.Select(c => (c.Key, c.Value))]
                 : [];
         }
     }

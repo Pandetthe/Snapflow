@@ -10,9 +10,10 @@ public sealed class ListUpdatedEventHandler(
     IAvatarService avatarService) : IDomainEventHandler<ListUpdatedDomainEvent>
 {
     public Task Handle(ListUpdatedDomainEvent domainEvent, CancellationToken cancellationToken) =>
-        hubContext.Clients
-            .GroupExcept(domainEvent.BoardId, domainEvent.ConnectionId)
-            .ListUpdated(new(domainEvent.Id, domainEvent.Title, domainEvent.Width,
-                new(domainEvent.UpdatedById, domainEvent.UpdatedByUserName,
-                    avatarService.GenerateAvatarUrl(domainEvent.UpdatedById))), cancellationToken);
+        hubContext.Clients.SendToBoard(domainEvent.BoardId, domainEvent.ConnectionId, (clients, showUsers) =>
+            clients.ListUpdated(new(domainEvent.Id, domainEvent.Title, domainEvent.Width,
+                showUsers
+                    ? new IBoardHubClient.UserDto(domainEvent.UpdatedById, domainEvent.UpdatedByUserName,
+                        avatarService.GenerateAvatarUrl(domainEvent.UpdatedById))
+                    : null), cancellationToken));
 }

@@ -32,10 +32,16 @@ export const load: PageServerLoad = async (event) => {
 
   // The board's tags come from their own endpoint; an unreachable one leaves the section empty
   // rather than failing the whole page.
-  const tagsResult = await new TagsService(apiClient).getTags(boardId, event);
+  const [tagsResult, visibilityOptionsResult] = await Promise.all([
+    new TagsService(apiClient).getTags(boardId, event),
+    new BoardsService(apiClient).getVisibilityOptions(event)
+  ]);
 
   return {
     board: result.value,
-    tags: tagsResult.ok ? tagsResult.value : []
+    tags: tagsResult.ok ? tagsResult.value : [],
+    visibilityOptions: visibilityOptionsResult.ok
+      ? visibilityOptionsResult.value
+      : { allowedVisibilities: [result.value.visibility] }
   };
 };

@@ -23,17 +23,19 @@
     TriangleAlert,
     LayoutDashboard,
     Tags as TagsIcon,
-    RotateCcw
+    RotateCcw,
+    Eye
   } from 'lucide-svelte';
   import { afterNavigate, goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import type { Pathname } from '$app/types';
-  import type { MemberRole } from '$lib/features/boards/types/boards.api';
+  import type { BoardVisibility, MemberRole } from '$lib/features/boards/types/boards.api';
   import { fade, slide, fly } from 'svelte/transition';
   import { untrack } from 'svelte';
   import TransferOwnershipModal from '$lib/features/boards/components/TransferOwnershipModal.svelte';
   import DeleteBoardModal from '$lib/features/boards/components/DeleteBoardModal.svelte';
   import TagDefinitionsEditor from '$lib/features/boards/components/TagDefinitionsEditor.svelte';
+  import VisibilitySelector from '$lib/features/boards/components/VisibilitySelector.svelte';
 
   let { data } = $props();
   const board = $derived.by(() => data.board);
@@ -51,9 +53,11 @@
     avatarUrl: string | null;
   };
 
-  let backHref = $state<Pathname>('/boards');
+  let backHref = $state<Pathname>('/');
 
   let tags = $state(untrack(() => data.tags));
+
+  let visibility = $state<BoardVisibility>(untrack(() => data.board.visibility));
 
   let searchQuery = $state('');
   let searchResults = $state<SearchUserDto[]>([]);
@@ -99,7 +103,7 @@
   );
 
   afterNavigate(({ from }) => {
-    backHref = (from?.url.pathname.replace(/\/edit$/, '') ?? '/boards') as Pathname;
+    backHref = (from?.url.pathname.replace(/\/edit$/, '') ?? '/') as Pathname;
   });
 
   const form = createForm({
@@ -137,7 +141,8 @@
       return await boardsService.updateBoard(board.id, {
         title: values.title.trim(),
         description: values.description.trim(),
-        members
+        members,
+        visibility
       });
     },
     onSuccess: () => {
@@ -156,19 +161,22 @@
     untrack(() => ({
       title: data.board.title || '',
       description: data.board.description || '',
-      members: memberSignature(toSelectedMembers(data.board.members))
+      members: memberSignature(toSelectedMembers(data.board.members)),
+      visibility: data.board.visibility
     }))
   );
 
   const isDirty = $derived(
     form.values.title !== baseline.title ||
       form.values.description !== baseline.description ||
-      memberSignature(selectedMembers) !== baseline.members
+      memberSignature(selectedMembers) !== baseline.members ||
+      visibility !== baseline.visibility
   );
 
   function discardChanges() {
     form.reset({ title: baseline.title, description: baseline.description });
     selectedMembers = toSelectedMembers(data.board.members);
+    visibility = baseline.visibility;
     searchQuery = '';
     searchResults = [];
     searchError = '';
@@ -186,10 +194,12 @@
       });
 
       selectedMembers = toSelectedMembers(board.members);
+      visibility = board.visibility;
       baseline = {
         title: board.title || '',
         description: board.description || '',
-        members: memberSignature(selectedMembers)
+        members: memberSignature(selectedMembers),
+        visibility: board.visibility
       };
 
       tags = data.tags;
@@ -272,7 +282,7 @@
       const response = await boardsService.deleteBoard(board.id);
 
       if (response.ok) {
-        window.location.href = '/boards';
+        window.location.href = '/';
         return;
       }
 
@@ -390,6 +400,13 @@
         </div>
       </SettingsSection>
 
+      <SettingsSection icon={Eye} title="Visibility" description="Who can open this board.">
+        <VisibilitySelector
+          bind:value={visibility}
+          allowedVisibilities={data.visibilityOptions.allowedVisibilities}
+        />
+      </SettingsSection>
+
       <SettingsSection
         icon={Users}
         title="Team"
@@ -500,9 +517,9 @@
       >
         <p class="text-xs text-gray-600 sm:text-sm dark:text-gray-400">
           {#if isDirty}
-            Board details and team have unsaved changes.
+            Board settings have unsaved changes.
           {:else}
-            Board details and team are up to date.
+            Board settings are up to date.
           {/if}
         </p>
 

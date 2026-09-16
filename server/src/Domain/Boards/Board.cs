@@ -14,6 +14,7 @@ public class Board : Entity<int, Board>
     
     public string Title { get; private set; } = null!;
     public string Description { get; private set; } = "";
+    public BoardVisibility Visibility { get; private set; } = BoardVisibility.Private;
 
     public DateTimeOffset CreatedAt { get; private set; }
     public int CreatedById { get; private set; }
@@ -34,12 +35,13 @@ public class Board : Entity<int, Board>
     public virtual ICollection<Card> Cards { get; private set; } = [];
     public virtual ICollection<Tag> Tags { get; private set; } = [];
 
-    public static Board Create(string title, string description, int createdById, DateTimeOffset createdAt, string? connectionId = null)
+    public static Board Create(string title, string description, BoardVisibility visibility, int createdById, DateTimeOffset createdAt, string? connectionId = null)
     {
         var board = new Board
         {
             Title = title,
             Description = description,
+            Visibility = visibility,
             CreatedById = createdById,
             CreatedAt = createdAt
         };
@@ -59,6 +61,19 @@ public class Board : Entity<int, Board>
         UpdatedAt = updatedAt;
 
         Raise(b => new BoardUpdatedDomainEvent(b.Id, b.Title, b.Description, connectionId));
+    }
+
+    public void ChangeVisibility(BoardVisibility visibility, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
+    {
+        if (Visibility == visibility)
+            return;
+
+        var oldVisibility = Visibility;
+        Visibility = visibility;
+        UpdatedById = updatedById;
+        UpdatedAt = updatedAt;
+
+        Raise(b => new BoardVisibilityChangedDomainEvent(b.Id, oldVisibility, b.Visibility, connectionId));
     }
 
     public void SoftDelete(int deletedById, DateTimeOffset deletedAt, string? connectionId = null)

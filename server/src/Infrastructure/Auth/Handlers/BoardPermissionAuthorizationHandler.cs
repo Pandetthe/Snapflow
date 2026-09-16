@@ -16,16 +16,14 @@ internal sealed class BoardPermissionAuthorizationHandler(
         AuthorizationHandlerContext context,
         BoardPermissionRequirement requirement)
     {
-        if (context.User.Identity?.IsAuthenticated != true)
-            return;
         if (!TryGetBoardId(context, out int boardId))
         {
             logger.LogWarning("Authorization failed: Missing or invalid boardId.");
             return;
         }
 
-        int userId = userContext.UserId;
-        HashSet<string> permissions = await permissionProvider.GetForUserIdAsync(userId, boardId);
+        int? userId = context.User.Identity?.IsAuthenticated == true ? userContext.UserId : null;
+        IReadOnlySet<string> permissions = await permissionProvider.GetForUserIdAsync(userId, boardId);
 
         if (permissions.Contains(requirement.Permission))
             context.Succeed(requirement);

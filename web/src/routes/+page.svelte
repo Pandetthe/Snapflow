@@ -1,164 +1,28 @@
 <script lang="ts">
-  import { Button } from 'bits-ui';
   import { FullLayout } from '$lib/ui/components';
+  import BoardsOverview from '$lib/features/boards/components/BoardsOverview.svelte';
+  import PublicBoards from '$lib/features/boards/components/PublicBoards.svelte';
+  import LastRefreshed from '$lib/features/boards/components/LastRefreshed.svelte';
+  import HomeIntro from '$lib/features/home/components/HomeIntro.svelte';
 
   let { data } = $props();
-
-  const version = __APP_VERSION__;
 </script>
 
 <svelte:head>
-  <title>Snapflow | Simple kanban for teams</title>
+  <title>{data.user ? 'Snapflow | Boards' : 'Snapflow | Simple kanban for teams'}</title>
 </svelte:head>
 
 <FullLayout>
-  <div class="flex flex-1 items-center justify-center py-6 sm:px-4 sm:py-12">
-    <div class="w-full max-w-4xl text-center">
-      <div class="mb-10 duration-700 animate-in fade-in-0 slide-in-from-bottom-4 sm:mb-16">
-        <h1
-          class="mb-4 bg-linear-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-5xl leading-tight font-bold text-transparent sm:mb-6 sm:text-7xl"
-        >
-          Snapflow
-        </h1>
-        <p
-          class="mx-auto max-w-2xl text-lg leading-relaxed font-light text-gray-600 sm:text-2xl dark:text-gray-300"
-        >
-          Simple, open-source kanban application that helps teams collaborate effectively
-        </p>
-      </div>
-
-      <div
-        class="mb-10 transform rounded-2xl border border-yellow-200 bg-linear-to-r from-yellow-50 to-orange-50 p-5 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:mb-12 sm:p-8 dark:border-yellow-800 dark:from-yellow-900/20 dark:to-orange-900/20"
-      >
-        <div class="mb-4 flex items-center justify-start sm:mb-6 sm:justify-center">
-          <div class="relative">
-            <div
-              class="flex h-12 w-12 animate-pulse items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30"
-            >
-              <svg
-                class="h-7 w-7 text-yellow-600 dark:text-yellow-400"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </div>
-          </div>
-          <h2
-            class="ml-3 text-left text-xl font-bold text-yellow-800 sm:ml-4 sm:text-2xl dark:text-yellow-200"
-          >
-            Under Reconstruction
-          </h2>
-        </div>
-        <p
-          class="mx-auto mb-6 max-w-2xl text-left text-base leading-relaxed text-yellow-700 sm:mb-8 sm:text-center sm:text-lg dark:text-yellow-300"
-        >
-          Our application is currently being rebuilt with exciting new features and improvements.
-          We're working hard to bring you a better experience with enhanced functionality and
-          beautiful design.
-        </p>
-
-        <!-- Action Buttons with Enhanced Styling -->
-        <div class="flex flex-col justify-center gap-3 sm:flex-row sm:gap-6">
-          {#if data?.isAuthenticated}
-            <Button.Root
-              href="/boards"
-              class="inline-flex transform items-center justify-center rounded-xl border-2 border-green-300 bg-linear-to-r from-green-50 to-green-100 px-8 py-4 font-semibold text-green-700 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-xl dark:border-green-600 dark:from-green-900/30 dark:to-green-800/30 dark:text-green-300"
-            >
-              <svg class="mr-3 h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  d="M3 3h14a1 1 0 011 1v12a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1zm2 3v8h4V6H5zm6 0v8h4V6h-4z"
-                />
-              </svg>
-              Check my boards
-            </Button.Root>
-          {:else}
-            <Button.Root
-              href="/sign-up"
-              class="inline-flex transform items-center justify-center rounded-xl border-2 border-blue-300 bg-linear-to-r from-blue-50 to-blue-100 px-8 py-4 font-semibold text-blue-700 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-xl dark:border-blue-600 dark:from-blue-900/30 dark:to-blue-800/30 dark:text-blue-300"
-            >
-              <svg class="mr-3 h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"
-                />
-              </svg>
-              Create test account
-            </Button.Root>
-            <Button.Root
-              href="/sign-in"
-              class="inline-flex transform items-center justify-center rounded-xl border-2 border-gray-300 bg-white px-8 py-4 font-semibold text-gray-700 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-xl dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
-            >
-              <svg class="mr-3 h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fill-rule="evenodd"
-                  d="M3 3a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3 4a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm0 4a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm0 4a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-              Sign in
-            </Button.Root>
-          {/if}
-        </div>
-      </div>
-
-      <!-- Additional Info with Cards -->
-      <div class="mx-auto grid max-w-3xl gap-6 md:grid-cols-2">
-        <div
-          class="rounded-xl bg-white p-5 text-left shadow-md transition-all duration-300 hover:shadow-lg sm:p-6 dark:bg-gray-800"
-        >
-          <div class="mb-4 flex items-center">
-            <div
-              class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30"
-            >
-              <svg
-                class="h-6 w-6 text-blue-600 dark:text-blue-400"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"
-                />
-              </svg>
-            </div>
-            <h3 class="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Documentation</h3>
-          </div>
-          <p class="leading-relaxed text-gray-600 dark:text-gray-300">
-            Help us document our application to help other users understand how to use it.
-          </p>
-        </div>
-
-        <div
-          class="rounded-xl bg-white p-5 text-left shadow-md transition-all duration-300 hover:shadow-lg sm:p-6 dark:bg-gray-800"
-        >
-          <div class="mb-4 flex items-center">
-            <div
-              class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30"
-            >
-              <svg
-                class="h-6 w-6 text-green-600 dark:text-green-400"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-                />
-              </svg>
-            </div>
-            <h3 class="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Contribute</h3>
-          </div>
-          <p class="leading-relaxed text-gray-600 dark:text-gray-300">
-            Help us improve Snapflow by reporting issues or contributing to our codebase.
-          </p>
-        </div>
-      </div>
-
-      <p class="mt-12 font-mono text-sm text-gray-400 dark:text-gray-500">
-        v{version}
-      </p>
-    </div>
-  </div>
+  {#if data.user && data.boards}
+    <BoardsOverview
+      boards={data.boards}
+      publicBoards={data.publicBoards}
+      refreshTime={data.refreshTime}
+      user={data.user}
+    />
+  {:else}
+    <HomeIntro />
+    <PublicBoards boards={data.publicBoards} />
+    <LastRefreshed refreshTime={data.refreshTime} />
+  {/if}
 </FullLayout>

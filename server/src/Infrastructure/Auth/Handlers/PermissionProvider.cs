@@ -1,12 +1,18 @@
 using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Persistence;
+using Snapflow.Application.Abstractions.Services;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Members;
 
 namespace Snapflow.Infrastructure.Authorization;
 
-internal sealed class PermissionProvider(IAppDbContext dbContext)
+internal sealed class PermissionProvider(IAppDbContext dbContext, IBoardVisibilityPolicy visibilityPolicy)
 {
+    private static readonly HashSet<string> _nonMemberPermissions =
+    [
+        BoardPermissions.Boards.View
+    ];
+
     private static readonly Dictionary<MemberRole, HashSet<string>> _permissionsByRole = new()
     {
         [MemberRole.Owner] = new()
@@ -30,7 +36,8 @@ internal sealed class PermissionProvider(IAppDbContext dbContext)
             BoardPermissions.Tags.Update,
             BoardPermissions.Tags.Delete,
             BoardPermissions.Tags.Assign,
-            BoardPermissions.Boards.Transfer
+            BoardPermissions.Boards.Transfer,
+            BoardPermissions.Boards.ChangeVisibility
         },
         [MemberRole.Admin] = new()
         {
@@ -67,15 +74,26 @@ internal sealed class PermissionProvider(IAppDbContext dbContext)
             BoardPermissions.Boards.View,
         },
     };
-    public async Task<HashSet<string>> GetForUserIdAsync(int userId, int boardId)
+    public async Task<IReadOnlySet<string>> GetForUserIdAsync(int? userId, int boardId)
     {
-        MemberRole? role = await dbContext.Members
+        if (userId is not null)
+        {
+            MemberRole? role = await dbContext.Members
+                .AsNoTracking()
+                .Where(m => m.UserId == userId && m.BoardId == boardId)
+                .Select(m => (MemberRole?)m.Role)
+                .SingleOrDefaultAsync();
+            if (role.HasValue && _permissionsByRole.TryGetValue(role.Value, out var permissions))
+                return permissions;
+        }
+
+        BoardVisibility? visibility = await dbContext.Boards
             .AsNoTracking()
-            .Where(m => m.UserId == userId && m.BoardId == boardId)
-            .Select(m => (MemberRole?)m.Role)
+            .Where(b => b.Id == boardId && !b.IsDeleted)
+            .Select(b => (BoardVisibility?)b.Visibility)
             .SingleOrDefaultAsync();
-        if (role.HasValue && _permissionsByRole.TryGetValue(role.Value, out var permissions))
-            return permissions;
-        return [];
+        if (visibility.HasValue && visibilityPolicy.CanNonMemberView(visibility.Value, userId is not null))
+            return _nonMemberPermissions;
+        return new HashSet<string>();
     }
 }

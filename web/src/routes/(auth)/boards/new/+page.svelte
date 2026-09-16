@@ -13,7 +13,8 @@
   import RoleSelector from '$lib/features/boards/components/RoleSelector.svelte';
   import { createForm, itemIn, itemOut, slideReveal } from '$lib/ui/utils';
   import { Plus, Users, X, UserPlus } from 'lucide-svelte';
-  import type { MemberRole } from '$lib/features/boards/types/boards.api';
+  import type { BoardVisibility, MemberRole } from '$lib/features/boards/types/boards.api';
+  import VisibilitySelector from '$lib/features/boards/components/VisibilitySelector.svelte';
   import { fade, slide, fly } from 'svelte/transition';
 
   const boardsService = new BoardsService(apiClient);
@@ -38,8 +39,9 @@
   }));
 
   let selectedMembers = $state<SelectedMember[]>([]);
+  let visibility = $state<BoardVisibility>('private');
 
-  const backHref = '/boards';
+  const backHref = '/';
   const selectedMembersCount = $derived(selectedMembers.length + 1);
 
   const searchExcludedIds = $derived.by(() => [
@@ -78,7 +80,8 @@
       return await boardsService.createBoard({
         title: values.title.trim(),
         description: values.description.trim(),
-        members: members.length > 0 ? members : undefined
+        members: members.length > 0 ? members : undefined,
+        visibility
       });
     },
     onSuccess: (response) => {
@@ -198,6 +201,14 @@
               helperText={`${form.values.description.length}/500`}
               class="resize-none"
             />
+
+            <div class="space-y-2">
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-400">Visibility</p>
+              <VisibilitySelector
+                bind:value={visibility}
+                allowedVisibilities={data.visibilityOptions.allowedVisibilities}
+              />
+            </div>
 
             <div
               class="flex flex-col-reverse gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between"

@@ -45,7 +45,7 @@
   const currentTheme = $derived(themeOptions.find((o) => o.value === $theme) ?? themeOptions[2]);
 
   const navItems = [
-    { href: '/boards', icon: Folders, text: 'Boards' },
+    { href: '/', icon: Folders, text: 'Boards' },
     { href: '/profile', icon: UserIcon, text: 'Edit profile' }
   ];
 
@@ -54,6 +54,7 @@
   const selectedClass = 'bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white';
 
   function isCurrent(href: string) {
+    if (href === '/') return page.url.pathname === '/' || page.url.pathname.startsWith('/boards/');
     return page.url.pathname === href || page.url.pathname.startsWith(`${href}/`);
   }
 

@@ -1,6 +1,7 @@
 ﻿using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Boards.Create;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 using Snapflow.Domain.Members;
 using Snapflow.Presentation.Extensions;
 
@@ -13,7 +14,8 @@ internal sealed class Create : IEndpoint
     public sealed record CreateBoardRequest(
         string Title,
         string Description,
-        IReadOnlyList<CreateBoardMemberDto>? Members = null);
+        IReadOnlyList<CreateBoardMemberDto>? Members = null,
+        BoardVisibility Visibility = BoardVisibility.Private);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -23,7 +25,7 @@ internal sealed class Create : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var members = request.Members?.Select(m => new CreateBoardMemberRequest(m.UserId, m.Role)).ToList();
-            var command = new CreateBoardCommand(request.Title, request.Description, members);
+            var command = new CreateBoardCommand(request.Title, request.Description, members, request.Visibility);
 
             Result<int> result = await handler.Handle(command, cancellationToken);
 

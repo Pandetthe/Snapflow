@@ -2,6 +2,7 @@
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
+using Snapflow.Application.Abstractions.Services;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Members;
@@ -12,6 +13,7 @@ namespace Snapflow.Application.Boards.Create;
 internal sealed class CreateBoardHandler(
     IAppDbContext dbContext,
     IUserContext userContext,
+    IBoardVisibilityPolicy visibilityPolicy,
     TimeProvider timeProvider) : ICommandHandler<CreateBoardCommand, int>
 {
     public async Task<Result<int>> Handle(CreateBoardCommand command, CancellationToken cancellationToken = default)
@@ -21,9 +23,13 @@ internal sealed class CreateBoardHandler(
         if (!userExists)
             return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
 
+        if (!visibilityPolicy.IsAllowed(command.Visibility))
+            return Result.Failure<int>(BoardErrors.VisibilityNotAllowed(command.Visibility));
+
         var board = Board.Create(
             command.Title,
             command.Description,
+            command.Visibility,
             userContext.UserId,
             timeProvider.GetUtcNow(),
             userContext.ConnectionId);

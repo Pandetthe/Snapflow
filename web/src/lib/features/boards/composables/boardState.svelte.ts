@@ -50,7 +50,7 @@ const LEAVING_ITEM_DURATION_MS = 1250;
 export function createBoardState(
   initialBoard: GetBoardByIdResponse.BoardDto,
   initialMembers: GetBoardDetailsResponse.BoardMemberDto[],
-  currentUserId: number
+  currentUserId: number | null
 ) {
   let board = $state(initialBoard);
   let members = $state(initialMembers);
@@ -65,9 +65,10 @@ export function createBoardState(
   function markChanged(
     kind: MovableKind,
     id: number,
-    user: GetBoardByIdResponse.UserDto,
+    user: GetBoardByIdResponse.UserDto | null,
     action: BoardAction
   ) {
+    if (!user) return;
     const mapKey = `${kind}:${id}`;
     const key = ++recentMoveKey;
     recentMoves.set(mapKey, {
@@ -119,7 +120,7 @@ export function createBoardState(
   async function animateRemoteMove(
     kind: MovableKind,
     id: number,
-    user: GetBoardByIdResponse.UserDto,
+    user: GetBoardByIdResponse.UserDto | null,
     apply: () => boolean
   ) {
     const key = `${kind}:${id}`;
@@ -168,7 +169,7 @@ export function createBoardState(
   async function animateRemoteDelete(
     kind: MovableKind,
     id: number,
-    user: GetBoardByIdResponse.UserDto,
+    user: GetBoardByIdResponse.UserDto | null,
     apply: () => void
   ) {
     const key = `${kind}:${id}`;
@@ -194,6 +195,7 @@ export function createBoardState(
     ];
   });
 
+  const isMember = $derived(members.some((m) => m.id === currentUserId));
   const role = $derived<MemberRole>(members.find((m) => m.id === currentUserId)?.role ?? 'viewer');
   const canEditBoard = $derived(role === 'owner' || role === 'admin');
   const canManageSwimlanes = $derived(role === 'owner' || role === 'admin');
@@ -258,6 +260,7 @@ export function createBoardState(
       id: snapshot.id,
       title: snapshot.title,
       description: snapshot.description,
+      visibility: snapshot.visibility,
       swimlanes: snapshot.swimlanes,
       tags: snapshot.tags
     };
@@ -555,6 +558,10 @@ export function createBoardState(
       markChanged('card', payload.cardId, payload.removedBy, 'edited');
     });
 
+    on('BoardVisibilityChanged', (payload) => {
+      board.visibility = payload.visibility;
+    });
+
     on('BoardDeleted', () => {
       leaveBoard('Board deleted', 'This board was deleted, so it is no longer on your list.');
     });
@@ -587,7 +594,7 @@ export function createBoardState(
   function leaveBoard(title: string, message: string) {
     noticeStore.add(title, message);
     // invalidateAll so the boards page is loaded again without this board.
-    goto(resolve('/boards'), { invalidateAll: true });
+    goto(resolve('/'), { invalidateAll: true });
   }
 
   const hubUnavailable = {
@@ -920,6 +927,9 @@ export function createBoardState(
     },
     set connectionState(v) {
       connectionState = v;
+    },
+    get isMember() {
+      return isMember;
     },
     get role() {
       return role;

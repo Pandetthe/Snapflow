@@ -20,19 +20,25 @@
   import { errorStore } from '$lib/ui/stores/error.svelte';
   import { recentBoards } from '$lib/features/boards/stores/recent';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
-  import { Button, FullBleedLayout, GoBackButton, LoadingDots } from '$lib/ui/components';
+  import {
+    Button,
+    EmptyState,
+    FullBleedLayout,
+    GoBackButton,
+    LoadingDots
+  } from '$lib/ui/components';
   import { placeholderOut, triggerHaptic } from '$lib/ui/utils';
-  import { Folders, Pencil, Plus, Loader2 } from 'lucide-svelte';
+  import { Globe, LayoutGrid, Link, Pencil, Plus, Loader2 } from 'lucide-svelte';
   import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
   import { foldSwimlanes, unfoldSwimlanes } from '$lib/features/boards/animations/swimlaneFold';
   import '$lib/features/boards/styles/board-dnd.css';
 
   let { data } = $props();
 
-  const bs = untrack(() => createBoardState(data.board, data.members, data.user.id));
+  const bs = untrack(() => createBoardState(data.board, data.members, data.user?.id ?? null));
 
   $effect(() => {
-    recentBoards.configure(data.user.id);
+    if (data.user) recentBoards.configure(data.user.id);
   });
 
   let hub = $state<BoardsHub | null>(null);
@@ -92,6 +98,13 @@
   let swimlaneModalOpen = $state(false);
   let editingSwimlane: GetBoardByIdResponse.SwimlaneDto | undefined = $state(undefined);
 
+  const showAddSwimlane = $derived(bs.canManageSwimlanes && bs.board.swimlanes.length > 0);
+
+  function openNewSwimlane() {
+    editingSwimlane = undefined;
+    swimlaneModalOpen = true;
+  }
+
   let listModalOpen = $state(false);
   let targetSwimlaneId: number | null = $state(null);
   let editingList: GetBoardByIdResponse.ListDto | undefined = $state(undefined);
@@ -127,7 +140,7 @@
   });
 
   $effect(() => {
-    recentBoards.add(data.board.id);
+    if (bs.isMember) recentBoards.add(data.board.id);
   });
 
   $effect(() => {
@@ -244,7 +257,7 @@
       class="relative z-30 w-full border-b border-gray-200/80 bg-white/95 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/95"
     >
       <div class="flex w-full items-center gap-4 px-4 py-2.5 sm:px-6 lg:px-8">
-        <GoBackButton href="/boards" hideTextOnMobile={true} />
+        <GoBackButton href="/" hideTextOnMobile={true} />
 
         <div class="min-w-0 flex-1">
           <h1
@@ -259,7 +272,26 @@
           {/if}
         </div>
 
-        <BoardViewers viewers={bs.viewers} currentUserId={data.user.id} />
+        {#if bs.board.visibility !== 'private'}
+          <span
+            class="hidden shrink-0 items-center gap-1 rounded-full border border-gray-200 px-2 py-0.5 text-xs text-gray-500 sm:flex dark:border-gray-700 dark:text-gray-400"
+            title={bs.board.visibility === 'public'
+              ? 'Anyone can find and view this board'
+              : 'Anyone with the link can view this board'}
+          >
+            {#if bs.board.visibility === 'public'}
+              <Globe class="h-3 w-3" />
+              Public
+            {:else}
+              <Link class="h-3 w-3" />
+              Link only
+            {/if}
+          </span>
+        {/if}
+
+        {#if bs.isMember && data.user}
+          <BoardViewers viewers={bs.viewers} currentUserId={data.user.id} />
+        {/if}
 
         {#if bs.canEditBoard}
           <Button
@@ -294,19 +326,26 @@
           inert={loadPhase === 'morphing'}
         >
           {#if bs.board.swimlanes.length === 0}
-            <div class="flex flex-col items-center justify-center px-4 py-16 text-center">
-              <div
-                class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800"
-              >
-                <Folders class="h-7 w-7 text-gray-400" />
-              </div>
-              <h2 class="mb-1.5 text-base font-semibold text-gray-900 dark:text-white">
-                No swimlanes yet
-              </h2>
-              <p class="max-w-xs text-sm text-gray-500 dark:text-gray-400">
-                Create your first swimlane to start organizing this board.
-              </p>
-            </div>
+            <EmptyState
+              icon={LayoutGrid}
+              title="No swimlanes yet"
+              description={bs.canManageSwimlanes
+                ? 'Add your first swimlane to start organizing this board.'
+                : 'Nothing has been added to this board yet.'}
+              class="mx-4 mt-6 sm:mx-6 lg:mx-8"
+            >
+              {#if bs.canManageSwimlanes}
+                <Button
+                  variant="primary"
+                  startIcon={Plus}
+                  haptic="light"
+                  onclick={openNewSwimlane}
+                  disabled={bs.connectionState !== 'connected'}
+                >
+                  Add swimlane
+                </Button>
+              {/if}
+            </EmptyState>
           {/if}
 
           <div class="relative flex w-full flex-1 flex-col">
@@ -330,7 +369,7 @@
               onfinalize={handleSwimlaneFinalize}
               data-board-zone="swimlanes"
               data-empty={bs.board.swimlanes.length === 0 || undefined}
-              class="flex flex-col {bs.canManageSwimlanes ? '-mb-14 pb-14' : ''}"
+              class="flex flex-col {showAddSwimlane ? '-mb-14 pb-14' : ''}"
             >
               {#each bs.board.swimlanes as swimlane, index (swimlane.id)}
                 <div
@@ -346,16 +385,13 @@
               {/each}
             </section>
 
-            {#if bs.canManageSwimlanes}
+            {#if showAddSwimlane}
               <div class="relative z-10 px-5 py-2">
                 <Button
                   type="button"
                   variant="ghost"
                   startIcon={Plus}
-                  onclick={() => {
-                    editingSwimlane = undefined;
-                    swimlaneModalOpen = true;
-                  }}
+                  onclick={openNewSwimlane}
                   disabled={bs.connectionState !== 'connected'}
                   aria-label="Add swimlane"
                   class="h-9 justify-start gap-1.5 rounded-lg px-3 text-xs font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-700/60 dark:hover:text-gray-300"

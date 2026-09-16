@@ -16,6 +16,12 @@ export namespace GetBoardsResponse {
   }
 }
 
+export interface PublicBoardDto {
+  id: number;
+  title: string;
+  description: string;
+}
+
 export type TagColor =
   'red' | 'green' | 'blue' | 'yellow' | 'purple' | 'orange' | 'pink' | 'teal' | 'gray';
 
@@ -31,11 +37,14 @@ export const TAG_COLORS: TagColor[] = [
   'gray'
 ];
 
+export type BoardVisibility = 'private' | 'unlisted' | 'public';
+
 export namespace GetBoardByIdResponse {
   export interface BoardDto {
     id: number;
     title: string;
     description: string;
+    visibility: BoardVisibility;
     swimlanes: SwimlaneDto[];
     tags: TagDto[];
   }
@@ -79,7 +88,7 @@ export namespace GetBoardByIdResponse {
     description: string;
     rank: string;
     createdAt: string;
-    createdBy: UserDto;
+    createdBy: UserDto | null;
     updatedAt: string | null;
     updatedBy: UserDto | null;
     tagIds: number[];
@@ -91,6 +100,7 @@ export namespace GetBoardDetailsResponse {
     id: number;
     title: string;
     description: string;
+    visibility: BoardVisibility;
     members: BoardMemberDto[];
   }
 
@@ -109,6 +119,7 @@ export interface CreateBoardRequest {
   title: string;
   description: string;
   members?: CreateBoardMemberRequest[] | null;
+  visibility: BoardVisibility;
 }
 
 export type MemberRole = 'owner' | 'admin' | 'member' | 'viewer';
@@ -122,6 +133,15 @@ export interface UpdateBoardRequest {
   title: string;
   description: string;
   members: CreateBoardMemberRequest[];
+  visibility: BoardVisibility;
+}
+
+export interface BoardVisibilityOptionsResponse {
+  allowedVisibilities: BoardVisibility[];
+}
+
+export interface ChangeBoardVisibilityRequest {
+  visibility: BoardVisibility;
 }
 
 export interface IdResponse {

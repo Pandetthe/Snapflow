@@ -19,6 +19,9 @@ internal sealed class CreateBoardValidator : AbstractValidator<CreateBoardComman
             .MaximumLength(BoardOptions.MaxDescriptionLength)
             .WithMessage($"Description must not exceed {BoardOptions.MaxDescriptionLength} characters.");
 
+        RuleFor(b => b.Visibility)
+            .IsInEnum().WithMessage("Visibility is not valid.");
+
         RuleForEach(b => b.Members)
             .ChildRules(member =>
             {

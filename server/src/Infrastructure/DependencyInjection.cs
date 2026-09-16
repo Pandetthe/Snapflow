@@ -33,6 +33,7 @@ using Snapflow.Infrastructure.Mailing.Templates;
 using Snapflow.Infrastructure.Persistence;
 using Snapflow.Infrastructure.Persistence.Interceptors;
 using Snapflow.Infrastructure.Avatars;
+using Snapflow.Infrastructure.Boards;
 using AuthIdentityOptions = Snapflow.Infrastructure.Auth.IdentityOptions;
 
 
@@ -80,6 +81,7 @@ public static class DependencyInjection
             services.AddAuthInternal(configuration, environment);
             services.AddMailingInternal(configuration);
             services.AddAvatarInternal(configuration);
+            services.AddBoardsInternal(configuration);
 
             services.AddScoped<DomainEventsBuffer>();
             services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
@@ -359,6 +361,8 @@ public static class DependencyInjection
             services.AddScoped<SystemPermissionProvider>();
             services.AddScoped<IAuthorizationHandler, SystemPermissionAuthorizationHandler>();
             services.AddScoped<ISystemPermissionService, SystemPermissionService>();
+            services.AddScoped<IBoardMembershipService, BoardMembershipService>();
+            services.AddScoped<IBoardPermissionService, BoardPermissionService>();
 
             services.AddScoped<IUserManager, AppUserManager>();
             services.AddScoped<ISignInManager, AppSignInManager>();
@@ -383,6 +387,13 @@ public static class DependencyInjection
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
             services.Configure<ServicesOptions>(configuration.GetSection(ServicesOptions.SectionName));
+        }
+
+        private void AddBoardsInternal(IConfiguration configuration)
+        {
+            services.AddOptions<BoardVisibilityOptions>()
+                .Bind(configuration.GetSection(BoardVisibilityOptions.SectionName));
+            services.AddSingleton<IBoardVisibilityPolicy, BoardVisibilityPolicy>();
         }
 
         private void AddAvatarInternal(IConfiguration configuration)

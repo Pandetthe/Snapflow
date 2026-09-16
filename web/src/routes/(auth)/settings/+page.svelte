@@ -20,9 +20,9 @@
   import { afterNavigate } from '$app/navigation';
   import type { Icon as IconType } from 'lucide-svelte';
 
-  let backHref = $state('/boards');
+  let backHref = $state('/');
   afterNavigate(({ from }) => {
-    backHref = from?.url.pathname ?? '/boards';
+    backHref = from?.url.pathname ?? '/';
   });
 
   const handleDescriptions: Record<DragHandleVisibility, string> = {

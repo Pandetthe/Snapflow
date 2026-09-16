@@ -8,7 +8,6 @@ public sealed class BoardDeletedEventHandler(
     IHubContext<BoardHub, IBoardHubClient> hubContext) : IDomainEventHandler<BoardDeletedDomainEvent>
 {
     public Task Handle(BoardDeletedDomainEvent domainEvent, CancellationToken cancellationToken) =>
-        hubContext.Clients
-            .GroupExcept(domainEvent.Id, domainEvent.ConnectionId)
-            .BoardDeleted(cancellationToken);
+        hubContext.Clients.SendToBoard(domainEvent.Id, domainEvent.ConnectionId, (clients, _) =>
+            clients.BoardDeleted(cancellationToken));
 }

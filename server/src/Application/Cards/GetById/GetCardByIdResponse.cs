@@ -12,7 +12,7 @@ public sealed record GetCardByIdResponse(
     string Description,
     string Rank,
     DateTimeOffset CreatedAt,
-    UserDto CreatedBy,
+    UserDto? CreatedBy,
     DateTimeOffset? UpdatedAt,
     UserDto? UpdatedBy)
 {

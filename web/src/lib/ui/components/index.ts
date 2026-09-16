@@ -29,6 +29,7 @@ export { default as FullBleedLayout } from './layout/FullBleedLayout.svelte';
 export { default as SettingsSection } from './layout/SettingsSection.svelte';
 export { default as GoBackButton } from './navigation/GoBackButton.svelte';
 export { default as UserMenu } from './navigation/UserMenu.svelte';
+export { default as EmptyState } from './feedback/EmptyState.svelte';
 export { default as ErrorModal } from './feedback/ErrorModal.svelte';
 export { default as NoticeModal } from './feedback/NoticeModal.svelte';
 export { default as ResponsiveDialog } from './dialogs/ResponsiveDialog.svelte';

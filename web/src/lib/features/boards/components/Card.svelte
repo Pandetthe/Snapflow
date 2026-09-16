@@ -105,9 +105,13 @@
   {/if}
 
   <div class="flex items-center justify-between">
-    <span title={card.createdBy.userName}>
-      <UserAvatar src={card.createdBy.avatarUrl} name={card.createdBy.userName} size={18} />
-    </span>
+    {#if card.createdBy}
+      <span title={card.createdBy.userName}>
+        <UserAvatar src={card.createdBy.avatarUrl} name={card.createdBy.userName} size={18} />
+      </span>
+    {:else}
+      <span></span>
+    {/if}
     <div class="flex items-center gap-2 text-gray-400">
       {#if summary.tasksTotal > 0}
         <span

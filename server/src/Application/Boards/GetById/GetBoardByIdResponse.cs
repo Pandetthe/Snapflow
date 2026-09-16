@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Snapflow.Domain.Boards;
 using Snapflow.Domain.Tags;
 using static Snapflow.Application.Boards.GetById.GetBoardByIdResponse;
 
@@ -8,6 +9,7 @@ public sealed record GetBoardByIdResponse(
         int Id,
         string Title,
         string Description,
+        BoardVisibility Visibility,
         IReadOnlyList<SwimlaneDto> Swimlanes,
         IReadOnlyList<TagDto> Tags)
 {
@@ -45,7 +47,7 @@ public sealed record GetBoardByIdResponse(
         string Description,
         string Rank,
         DateTimeOffset CreatedAt,
-        UserDto CreatedBy,
+        UserDto? CreatedBy,
         DateTimeOffset? UpdatedAt,
         UserDto? UpdatedBy,
         IReadOnlyList<int> TagIds);

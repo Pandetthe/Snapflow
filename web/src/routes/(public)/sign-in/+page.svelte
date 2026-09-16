@@ -94,7 +94,7 @@
   function goToBoards() {
     redirecting = true;
     setTimeout(() => {
-      window.location.href = '/boards';
+      window.location.href = '/';
     }, 300);
   }
 

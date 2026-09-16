@@ -10,10 +10,11 @@ public sealed class SwimlaneCreatedEventHandler(
     IAvatarService avatarService) : IDomainEventHandler<SwimlaneCreatedDomainEvent>
 {
     public Task Handle(SwimlaneCreatedDomainEvent domainEvent, CancellationToken cancellationToken) =>
-        hubContext.Clients
-            .GroupExcept(domainEvent.BoardId, domainEvent.ConnectionId)
-            .SwimlaneCreated(new(domainEvent.Id, domainEvent.Title,
+        hubContext.Clients.SendToBoard(domainEvent.BoardId, domainEvent.ConnectionId, (clients, showUsers) =>
+            clients.SwimlaneCreated(new(domainEvent.Id, domainEvent.Title,
                 domainEvent.Height, domainEvent.Rank,
-                new(domainEvent.CreatedById, domainEvent.CreatedByUserName,
-                    avatarService.GenerateAvatarUrl(domainEvent.CreatedById))), cancellationToken);
+                showUsers
+                    ? new IBoardHubClient.UserDto(domainEvent.CreatedById, domainEvent.CreatedByUserName,
+                        avatarService.GenerateAvatarUrl(domainEvent.CreatedById))
+                    : null), cancellationToken));
 }

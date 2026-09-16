@@ -202,10 +202,16 @@
         <dl class="space-y-4 text-xs">
           <div>
             <dt class="font-medium text-gray-500 dark:text-gray-400">Created</dt>
-            <dd class="mt-1.5 flex min-w-0 items-center gap-2 text-gray-800 dark:text-gray-200">
-              <UserAvatar src={card.createdBy.avatarUrl} name={card.createdBy.userName} size={20} />
-              <span class="truncate">{card.createdBy.userName}</span>
-            </dd>
+            {#if card.createdBy}
+              <dd class="mt-1.5 flex min-w-0 items-center gap-2 text-gray-800 dark:text-gray-200">
+                <UserAvatar
+                  src={card.createdBy.avatarUrl}
+                  name={card.createdBy.userName}
+                  size={20}
+                />
+                <span class="truncate">{card.createdBy.userName}</span>
+              </dd>
+            {/if}
             <dd class="mt-1 text-gray-500 tabular-nums dark:text-gray-400">
               <time datetime={card.createdAt}>{formatDate(card.createdAt)}</time>
             </dd>

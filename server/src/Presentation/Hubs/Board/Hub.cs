@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
+using Snapflow.Application.Abstractions.Services;
 using Snapflow.Application.Boards.GetById;
 using Snapflow.Application.Boards.GetDetails;
 using Snapflow.Common;
@@ -13,6 +15,7 @@ namespace Snapflow.Presentation.Hubs.Board;
 public sealed partial class BoardHub(
     IServiceScopeFactory scopeFactory,
     BoardConnectionRegistry connectionRegistry,
+    IBoardVisibilityPolicy visibilityPolicy,
     ILogger<BoardHub> logger) : Hub<IBoardHubClient>
 {
     public override async Task OnConnectedAsync()
@@ -33,11 +36,18 @@ public sealed partial class BoardHub(
         }
         Context.SetBoardId(boardId);
         var userIdString = Context.UserIdentifier;
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"{boardId}", Context.ConnectionAborted);
 
+        bool isMember = await IsMemberAsync(boardId, Context.ConnectionAborted);
         int? joinedUserId = null;
-        if (!string.IsNullOrEmpty(userIdString))
+        if (!isMember)
         {
+            Context.SetGuest();
+            await Groups.AddToGroupAsync(Context.ConnectionId, BoardHubExtensions.GuestsGroupName(boardId), Context.ConnectionAborted);
+            connectionRegistry.AddGuest(boardId, Context.ConnectionId, !string.IsNullOrEmpty(userIdString));
+        }
+        else if (!string.IsNullOrEmpty(userIdString))
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"{boardId}", Context.ConnectionAborted);
             await Groups.AddToGroupAsync(Context.ConnectionId, $"{boardId}-{userIdString}", Context.ConnectionAborted);
 
             // Noted so the connection can be taken out of the board group if the user is removed
@@ -52,10 +62,28 @@ public sealed partial class BoardHub(
 
         // Loaded after joining the board groups, so no change made meanwhile is missed: the client applies
         // the changes that reach it before the snapshot on top of it.
-        BoardSnapshotPayload? snapshot = await LoadSnapshotAsync(boardId, Context.ConnectionAborted);
+        BoardSnapshotPayload? snapshot = await LoadSnapshotAsync(boardId, isMember, Context.ConnectionAborted);
         if (snapshot is null)
         {
             logger.LogWarning("Connection {ConnectionId} aborted: board {BoardId} could not be loaded.", Context.ConnectionId, boardId);
+            Context.Abort();
+            return;
+        }
+
+        if (isMember && Context.TryGetUserId(out var memberId) && snapshot.Members.All(m => m.Id != memberId))
+        {
+            logger.LogWarning("Connection {ConnectionId} aborted: user {UserId} is no longer a member of board {BoardId}.", Context.ConnectionId, memberId, boardId);
+            if (connectionRegistry.TryRemoveConnection(boardId, memberId, Context.ConnectionId))
+                await Clients.Caller.RemovedFromBoard(Context.ConnectionAborted);
+            Context.Abort();
+            return;
+        }
+
+        if (!isMember && !visibilityPolicy.CanNonMemberView(snapshot.Visibility, !string.IsNullOrEmpty(userIdString)))
+        {
+            logger.LogWarning("Connection {ConnectionId} aborted: board {BoardId} is no longer open to non-members.", Context.ConnectionId, boardId);
+            if (connectionRegistry.RemoveGuest(boardId, Context.ConnectionId))
+                await Clients.Caller.RemovedFromBoard(Context.ConnectionAborted);
             Context.Abort();
             return;
         }
@@ -76,6 +104,9 @@ public sealed partial class BoardHub(
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
+        if (Context.IsGuest() && Context.TryGetBoardId(out var guestBoardId))
+            connectionRegistry.RemoveGuest(guestBoardId, Context.ConnectionId);
+
         if (Context.TryGetBoardId(out var boardId) && Context.TryGetUserId(out var userId) &&
             connectionRegistry.Remove(boardId, userId, Context.ConnectionId))
         {
@@ -86,7 +117,14 @@ public sealed partial class BoardHub(
     }
 
     // Combines the board and its members from their own queries; Application slices do not share queries.
-    private async Task<BoardSnapshotPayload?> LoadSnapshotAsync(int boardId, CancellationToken cancellationToken)
+    private async Task<bool> IsMemberAsync(int boardId, CancellationToken cancellationToken)
+    {
+        await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+        var membershipService = scope.ServiceProvider.GetRequiredService<IBoardMembershipService>();
+        return await membershipService.IsMemberAsync(boardId, cancellationToken);
+    }
+
+    private async Task<BoardSnapshotPayload?> LoadSnapshotAsync(int boardId, bool isMember, CancellationToken cancellationToken)
     {
         await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
         var boardHandler = scope.ServiceProvider
@@ -103,7 +141,7 @@ public sealed partial class BoardHub(
         if (!details.IsSuccess)
             return null;
 
-        IReadOnlyList<int> viewerIds = connectionRegistry.GetUserIds(boardId);
+        IReadOnlyList<int> viewerIds = isMember ? connectionRegistry.GetUserIds(boardId) : [];
         var viewers = details.Value.Members
             .Where(m => viewerIds.Contains(m.Id))
             .Select(m => new UserDto(m.Id, m.UserName, m.AvatarUrl ?? string.Empty))
@@ -113,6 +151,7 @@ public sealed partial class BoardHub(
             board.Value.Id,
             board.Value.Title,
             board.Value.Description,
+            board.Value.Visibility,
             board.Value.Swimlanes,
             board.Value.Tags,
             details.Value.Members,

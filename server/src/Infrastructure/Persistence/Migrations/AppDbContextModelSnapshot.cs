@@ -266,6 +266,10 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("updated_by_id");
 
+                    b.Property<int>("Visibility")
+                        .HasColumnType("integer")
+                        .HasColumnName("visibility");
+
                     b.HasKey("Id")
                         .HasName("pk_boards");
 

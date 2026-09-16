@@ -11,7 +11,7 @@ public sealed record GetListByIdResponse(
     string Rank,
     int? Width,
     DateTimeOffset CreatedAt,
-    UserDto CreatedBy,
+    UserDto? CreatedBy,
     DateTimeOffset? UpdatedAt,
     UserDto? UpdatedBy)
 {

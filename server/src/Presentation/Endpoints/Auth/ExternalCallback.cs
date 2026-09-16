@@ -17,7 +17,7 @@ internal sealed class ExternalCallback : IEndpoint
             Result result = await handler.Handle(new ExternalSignInCommand(), cancellationToken);
 
             Uri target = result.IsSuccess
-                ? serviceLinkBuilder.BuildWebLink("/boards")
+                ? serviceLinkBuilder.BuildWebLink("/")
                 : serviceLinkBuilder.BuildWebLink("/sign-in", $"error={Uri.EscapeDataString(result.Error.Code)}");
 
             return Results.Redirect(target.ToString());

@@ -10,6 +10,7 @@ public static class ResultHelper
         {
             ErrorType.Validation => error.Code,
             ErrorType.Unauthorized => error.Code,
+            ErrorType.Forbidden => error.Code,
             ErrorType.Problem => error.Code,
             ErrorType.NotFound => error.Code,
             ErrorType.Conflict => error.Code,
@@ -21,6 +22,7 @@ public static class ResultHelper
         {
             ErrorType.Validation => error.Description,
             ErrorType.Unauthorized => error.Description,
+            ErrorType.Forbidden => error.Description,
             ErrorType.Problem => error.Description,
             ErrorType.NotFound => error.Description,
             ErrorType.Conflict => error.Description,
@@ -32,6 +34,7 @@ public static class ResultHelper
         {
             ErrorType.Validation => "https://tools.ietf.org/html/rfc7231#section-6.5.1",
             ErrorType.Unauthorized => "https://tools.ietf.org/html/rfc7235#section-3.1",
+            ErrorType.Forbidden => "https://tools.ietf.org/html/rfc7231#section-6.5.3",
             ErrorType.Problem => "https://tools.ietf.org/html/rfc7231#section-6.5.1",
             ErrorType.NotFound => "https://tools.ietf.org/html/rfc7231#section-6.5.4",
             ErrorType.Conflict => "https://tools.ietf.org/html/rfc7231#section-6.5.8",
@@ -43,6 +46,7 @@ public static class ResultHelper
         {
             ErrorType.Validation or ErrorType.Problem => StatusCodes.Status400BadRequest,
             ErrorType.Unauthorized => StatusCodes.Status401Unauthorized,
+            ErrorType.Forbidden => StatusCodes.Status403Forbidden,
             ErrorType.NotFound => StatusCodes.Status404NotFound,
             ErrorType.Conflict => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError

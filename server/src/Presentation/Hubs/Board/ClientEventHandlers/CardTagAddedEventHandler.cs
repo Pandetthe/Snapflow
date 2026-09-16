@@ -10,9 +10,10 @@ public sealed class CardTagAddedEventHandler(
     IAvatarService avatarService) : IDomainEventHandler<CardTagAddedDomainEvent>
 {
     public Task Handle(CardTagAddedDomainEvent domainEvent, CancellationToken cancellationToken) =>
-        hubContext.Clients
-            .GroupExcept(domainEvent.BoardId, domainEvent.ConnectionId)
-            .CardTagAdded(new(domainEvent.CardId, domainEvent.TagId,
-                new(domainEvent.AddedById, domainEvent.AddedByUserName,
-                    avatarService.GenerateAvatarUrl(domainEvent.AddedById))), cancellationToken);
+        hubContext.Clients.SendToBoard(domainEvent.BoardId, domainEvent.ConnectionId, (clients, showUsers) =>
+            clients.CardTagAdded(new(domainEvent.CardId, domainEvent.TagId,
+                showUsers
+                    ? new IBoardHubClient.UserDto(domainEvent.AddedById, domainEvent.AddedByUserName,
+                        avatarService.GenerateAvatarUrl(domainEvent.AddedById))
+                    : null), cancellationToken));
 }

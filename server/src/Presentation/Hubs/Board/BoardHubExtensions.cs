@@ -16,6 +16,18 @@ internal static class BoardHubExtensions
     public static IBoardHubClient Group(this IHubClients<IBoardHubClient> clients, int boardId, int userId) =>
         clients.Group($"{boardId}-{userId}");
 
+    public static string GuestsGroupName(int boardId) => $"{boardId}-guests";
+
+    public static IBoardHubClient Guests(this IHubClients<IBoardHubClient> clients, int boardId) =>
+        clients.Group(GuestsGroupName(boardId));
+
+    public static async Task SendToBoard(this IHubClients<IBoardHubClient> clients, int boardId,
+        string? excludedConnectionId, Func<IBoardHubClient, bool, Task> send)
+    {
+        await send(clients.GroupExcept(boardId, excludedConnectionId), true);
+        await send(clients.Guests(boardId), false);
+    }
+
     public static IBoardHubClient GroupExcept(this IHubClients<IBoardHubClient> clients, int boardId, params string?[] excludedConnectionIds)
     {
         var groupName = $"{boardId}";
@@ -101,6 +113,15 @@ internal static class BoardHubExtensions
         context.Items["UserId"] = userId;
         return context;
     }
+
+    public static HubCallerContext SetGuest(this HubCallerContext context)
+    {
+        context.Items["Guest"] = true;
+        return context;
+    }
+
+    public static bool IsGuest(this HubCallerContext context) =>
+        context.Items.TryGetValue("Guest", out var guest) && guest is true;
 
     public static bool TryGetUserId(this HubCallerContext context, out int userId)
     {
