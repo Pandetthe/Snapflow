@@ -8,6 +8,7 @@
   } from '$lib/ui/components';
   import { dragHandles, type DragHandleVisibility } from '$lib/features/boards/stores/dragHandles';
   import { swimlaneFolding } from '$lib/features/boards/stores/swimlaneFolding';
+  import { theme } from '$lib/ui/stores/theme';
   import { triggerHaptic } from '$lib/ui/utils';
   import {
     FoldVertical,
@@ -15,7 +16,11 @@
     GripVertical,
     LayoutGrid,
     MousePointer2,
-    EyeOff
+    EyeOff,
+    Monitor,
+    Moon,
+    Palette,
+    Sun
   } from 'lucide-svelte';
   import { afterNavigate } from '$app/navigation';
   import type { Icon as IconType } from 'lucide-svelte';
@@ -30,6 +35,25 @@
     hover: 'The grip appears when you hover an item or focus its handle.',
     hidden: 'No grip at all — drag a card, list or swimlane by the item itself.'
   };
+
+  type ThemeMode = 'light' | 'dark' | 'system';
+
+  const themeDescriptions: Record<ThemeMode, string> = {
+    light: 'Snapflow always uses the light theme.',
+    dark: 'Snapflow always uses the dark theme.',
+    system: 'Snapflow follows the light or dark setting of your device.'
+  };
+
+  const themeIcons: Record<ThemeMode, typeof IconType> = {
+    light: Sun,
+    dark: Moon,
+    system: Monitor
+  };
+
+  function selectTheme(next: ThemeMode) {
+    theme.set(next);
+    triggerHaptic('selection');
+  }
 
   function selectHandles(next: DragHandleVisibility) {
     dragHandles.set(next);
@@ -69,6 +93,39 @@
     </header>
 
     <div class="space-y-6">
+      <SettingsSection
+        icon={Palette}
+        title="Appearance"
+        description="How Snapflow looks on this device."
+      >
+        <div class="space-y-5">
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              {@render settingIcon(themeIcons[$theme])}
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-400">Theme</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {themeDescriptions[$theme]}
+                </p>
+              </div>
+            </div>
+
+            <SegmentedControl
+              size="xs"
+              options={[
+                { value: 'light', label: 'Light', icon: Sun },
+                { value: 'dark', label: 'Dark', icon: Moon },
+                { value: 'system', label: 'System', icon: Monitor }
+              ]}
+              value={$theme}
+              onValueChange={selectTheme}
+            />
+          </div>
+
+          <p class="text-xs text-gray-400 dark:text-gray-500">Saved in this browser only.</p>
+        </div>
+      </SettingsSection>
+
       <SettingsSection
         icon={LayoutGrid}
         title="Boards"

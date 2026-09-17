@@ -9,7 +9,8 @@
     Sun,
     Moon,
     Monitor,
-    Github
+    Github,
+    SlidersHorizontal
   } from 'lucide-svelte';
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
@@ -46,7 +47,8 @@
 
   const navItems = [
     { href: '/', icon: Folders, text: 'Boards' },
-    { href: '/profile', icon: UserIcon, text: 'Edit profile' }
+    { href: '/profile', icon: UserIcon, text: 'Edit profile' },
+    { href: '/settings', icon: SlidersHorizontal, text: 'Settings' }
   ];
 
   const rowClass =
@@ -120,7 +122,9 @@
       <div class="hidden min-w-0 items-center justify-end gap-2 md:flex">
         <div class="flex shrink-0 items-center gap-2">
           <GithubButton />
-          <ThemeToggle />
+          {#if !user}
+            <ThemeToggle />
+          {/if}
         </div>
 
         <div
@@ -239,26 +243,28 @@
               <ExternalLink size={14} class="text-gray-400 dark:text-gray-500" />
             </Button>
           </li>
-          <li class={rowClass}>
-            <currentTheme.icon size={16} />
-            <span class="flex-1">Theme</span>
-            <ToggleGroup.Root
-              type="single"
-              bind:value={() => $theme, (mode) => mode && theme.set(mode as ThemeMode)}
-              aria-label="Theme"
-              class="flex items-center gap-0.5 rounded-lg border border-gray-200 p-0.5 dark:border-gray-800"
-            >
-              {#each themeOptions as option (option.value)}
-                <ToggleGroup.Item
-                  value={option.value}
-                  aria-label={option.label}
-                  class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-gray-500 transition hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 active:scale-95 data-[state=on]:bg-gray-100 data-[state=on]:text-gray-900 dark:text-gray-400 dark:hover:text-white dark:data-[state=on]:bg-white/10 dark:data-[state=on]:text-white"
-                >
-                  <option.icon size={16} />
-                </ToggleGroup.Item>
-              {/each}
-            </ToggleGroup.Root>
-          </li>
+          {#if !user}
+            <li class={rowClass}>
+              <currentTheme.icon size={16} />
+              <span class="flex-1">Theme</span>
+              <ToggleGroup.Root
+                type="single"
+                bind:value={() => $theme, (mode) => mode && theme.set(mode as ThemeMode)}
+                aria-label="Theme"
+                class="flex items-center gap-0.5 rounded-lg border border-gray-200 p-0.5 dark:border-gray-800"
+              >
+                {#each themeOptions as option (option.value)}
+                  <ToggleGroup.Item
+                    value={option.value}
+                    aria-label={option.label}
+                    class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-gray-500 transition hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 active:scale-95 data-[state=on]:bg-gray-100 data-[state=on]:text-gray-900 dark:text-gray-400 dark:hover:text-white dark:data-[state=on]:bg-white/10 dark:data-[state=on]:text-white"
+                  >
+                    <option.icon size={16} />
+                  </ToggleGroup.Item>
+                {/each}
+              </ToggleGroup.Root>
+            </li>
+          {/if}
         </ul>
       </nav>
 
