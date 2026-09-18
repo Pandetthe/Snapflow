@@ -17,6 +17,7 @@ import type {
   CardMovedEventPayload
 } from '../types/boards.hub';
 import { startElementFlight, type ElementFlight } from '../animations/elementFlight';
+import { CHANGE_FEEDBACK_MS, ITEM_LEAVE_MS } from '../animations/motion';
 import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 
@@ -41,11 +42,10 @@ export type IsNew = (kind: MovableKind, id: number) => boolean;
 
 export type IsLeaving = (kind: MovableKind, id: number) => boolean;
 
-const RECENT_MOVE_DURATION_MS = 2500;
-
 const NEW_ITEM_DURATION_MS = 700;
 
-const LEAVING_ITEM_DURATION_MS = 1250;
+// A deleted element shows who deleted it for as long as any other change reads, then leaves.
+const LEAVING_ITEM_DURATION_MS = CHANGE_FEEDBACK_MS + ITEM_LEAVE_MS;
 
 export function createBoardState(
   initialBoard: GetBoardByIdResponse.BoardDto,
@@ -80,7 +80,7 @@ export function createBoardState(
     });
     setTimeout(() => {
       if (recentMoves.get(mapKey)?.key === key) recentMoves.delete(mapKey);
-    }, RECENT_MOVE_DURATION_MS);
+    }, CHANGE_FEEDBACK_MS);
   }
 
   const getRecentMove: GetRecentMove = (kind, id) => recentMoves.get(`${kind}:${id}`);

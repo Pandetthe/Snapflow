@@ -67,7 +67,7 @@
 
 <style>
   .moved-by-ring {
-    animation: moved-by-ring 1800ms ease-in-out forwards;
+    animation: moved-by-ring var(--board-change-feedback) ease-in-out forwards;
   }
 
   /* Fades in instead of starting at full strength, then eases out */

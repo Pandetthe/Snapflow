@@ -17,6 +17,21 @@ html:has([data-board-page]) {
   scrollbar-gutter: auto;
 }
 
+:root {
+  /*
+    How long an element shows that someone added, edited, moved or deleted it, whatever the action.
+    Must be equal to CHANGE_FEEDBACK_MS in animations/motion.ts.
+  */
+  --board-change-feedback: 2500ms;
+  /*
+    The leave that follows it: the element fades, then its slot closes a moment later.
+    How long it runs past the feedback must be equal to ITEM_LEAVE_MS in animations/motion.ts.
+  */
+  --board-leave-item: 220ms;
+  --board-leave-block: 280ms;
+  --board-leave-block-delay: calc(var(--board-change-feedback) + 200ms);
+}
+
 [data-board-item] {
   --board-accent: var(--color-brand-500);
   /* Always present but transparent, so the focus/selected ring fades like on other controls (app.css) */
@@ -269,7 +284,8 @@ html:has([data-board-page]) {
   clip-path: inset(-1rem -1rem 0 -1rem);
   min-height: 0;
   pointer-events: none;
-  animation: board-leave-block 280ms var(--ease-flow) 900ms both;
+  animation: board-leave-block var(--board-leave-block) var(--ease-flow)
+    var(--board-leave-block-delay) both;
 }
 
 [data-board-slot='list'].board-leave {
@@ -279,7 +295,8 @@ html:has([data-board-page]) {
 }
 
 [data-board-slot].board-leave > [data-board-item] {
-  animation: board-leave-item 220ms cubic-bezier(0.4, 0, 1, 1) 700ms both;
+  animation: board-leave-item var(--board-leave-item) cubic-bezier(0.4, 0, 1, 1)
+    var(--board-change-feedback) both;
 }
 
 @keyframes board-leave-block {
