@@ -18,6 +18,16 @@ describe('UserAvatar', () => {
     await expect.poll(() => skeletonIn(container)).toBeNull();
   });
 
+  it('shows an avatar it has loaded before without the skeleton', async () => {
+    const first = render(UserAvatar, { props: { src: IMAGE, name: 'Ann Lee' } });
+    await expect.poll(() => skeletonIn(first.container)).toBeNull();
+
+    const { container } = render(UserAvatar, { props: { src: IMAGE, name: 'Ann Lee' } });
+
+    expect(skeletonIn(container)).toBeNull();
+    expect(imageIn(container)?.classList.contains('opacity-0')).toBe(false);
+  });
+
   it('falls back to the initials when the image is broken', async () => {
     const { container } = render(UserAvatar, { props: { src: BROKEN, name: 'Ann Lee' } });
 

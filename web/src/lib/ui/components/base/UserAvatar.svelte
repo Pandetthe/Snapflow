@@ -1,3 +1,13 @@
+<script module lang="ts">
+  /**
+   * Avatars already shown on this page, held by the element that loaded them so the browser keeps the
+   * decoded image. A later avatar with the same address is shown right away, without the skeleton:
+   * Firefox reports a cached image as not complete and resolves `decode()` only a moment later, which
+   * left the board's "someone changed this" label with a skeleton for most of the time it was up.
+   */
+  const shownAvatars = new Map<string, HTMLImageElement>();
+</script>
+
 <script lang="ts">
   import { cn, placeholderOut } from '$lib/ui/utils';
   import { fade } from 'svelte/transition';
@@ -18,20 +28,25 @@
   let failedSrc = $state<string | null>(null);
 
   const showImage = $derived(Boolean(src) && failedSrc !== src);
-  const loaded = $derived(loadedSrc === src);
+  const loaded = $derived(loadedSrc === src || (src != null && shownAvatars.has(src)));
 
   const watchImage: Action<HTMLImageElement, string> = (node, imageSrc) => {
     let current = imageSrc;
 
+    function markLoaded(watched: string) {
+      loadedSrc = watched;
+      if (!shownAvatars.has(watched)) shownAvatars.set(watched, node);
+    }
+
     function check() {
       const watched = current;
-      if (node.complete && node.naturalWidth > 0) {
-        loadedSrc = watched;
+      if (shownAvatars.has(watched) || (node.complete && node.naturalWidth > 0)) {
+        markLoaded(watched);
         return;
       }
       node.decode().then(
         () => {
-          if (current === watched) loadedSrc = watched;
+          if (current === watched) markLoaded(watched);
         },
         () => {
           if (current === watched && node.complete && node.naturalWidth === 0) failedSrc = watched;
@@ -39,7 +54,7 @@
       );
     }
 
-    const onLoad = () => (loadedSrc = current);
+    const onLoad = () => markLoaded(current);
     const onError = () => (failedSrc = current);
     node.addEventListener('load', onLoad);
     node.addEventListener('error', onError);
@@ -98,6 +113,7 @@
       use:watchImage={src}
       {src}
       alt={name}
+      decoding="sync"
       class="h-full w-full object-cover transition-opacity duration-200"
       class:opacity-0={!loaded}
     />
