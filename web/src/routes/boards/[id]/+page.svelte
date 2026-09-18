@@ -352,7 +352,9 @@
             <!-- The drop area reaches under "Add swimlane" via padding cancelled by a negative margin -->
             <section
               use:boardZone={{
-                useHandle: $dragHandles !== 'hidden',
+                // Always by a handle: with the grip hidden the swimlane's bar is the handle, so dragging
+                // from the body cannot fight the lists and cards inside it.
+                useHandle: true,
                 items: bs.board.swimlanes,
                 flipDurationMs: LAYOUT_FLIP_MS,
                 type: 'swimlanes',

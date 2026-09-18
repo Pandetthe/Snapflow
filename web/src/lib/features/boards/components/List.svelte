@@ -177,8 +177,17 @@
 
   <!-- List header; the list does not clip its overflow (the moved-by label sits on its edge), so the parts round their own corners -->
   <div
-    class="board-item-bar flex h-10 shrink-0 items-center gap-1.5 rounded-t-[11px] border-b border-gray-200 bg-gray-100/80 px-2 dark:border-gray-700/60 dark:bg-gray-800/90"
+    class="board-item-bar relative flex h-10 shrink-0 items-center gap-1.5 rounded-t-[11px] border-b border-gray-200 bg-gray-100/80 px-2 dark:border-gray-700/60 dark:bg-gray-800/90"
   >
+    {#if canManageLists && $dragHandles === 'hidden'}
+      <!-- No grip to grab, so the bar itself picks the list up; its buttons sit above this -->
+      <div
+        use:dragHandle
+        class="absolute inset-0 touch-none rounded-t-[11px] focus-visible:outline-none"
+        aria-label="Drag list"
+      ></div>
+    {/if}
+
     {#if canManageLists && $dragHandles !== 'hidden'}
       <div
         use:dragHandle
@@ -192,6 +201,7 @@
       </div>
     {/if}
 
+    <!-- The title and the count stay under the bar's drag surface, so the bar can be grabbed by them -->
     <h3 class="min-w-0 flex-1 truncate text-xs font-semibold text-gray-700 dark:text-gray-200">
       {list.title}
     </h3>
@@ -207,7 +217,7 @@
         disabled={boardState !== 'connected'}
         aria-label="Edit list"
         startIcon={Pencil}
-        class="board-control"
+        class="board-control relative z-10"
         title="Edit list"
       >
         <span class="sr-only">Edit list</span>

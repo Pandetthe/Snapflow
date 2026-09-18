@@ -245,6 +245,15 @@
         <div class="relative h-full w-full" data-board-slot="list" animate:flip={layoutFlip}></div>
       {/each}
     </div>
+    {#if canManageSwimlanes && $dragHandles === 'hidden'}
+      <!-- No grip to grab, so the bar itself picks the swimlane up; its buttons sit above this -->
+      <div
+        use:dragHandle
+        class="absolute inset-0 touch-none focus-visible:outline-none"
+        aria-label="Drag swimlane"
+      ></div>
+    {/if}
+
     {#if canManageSwimlanes && $dragHandles !== 'hidden'}
       <div
         use:dragHandle
@@ -258,6 +267,7 @@
       </div>
     {/if}
 
+    <!-- The title and the count stay under the bar's drag surface, so the bar can be grabbed by them -->
     <h2 class="min-w-0 flex-1 truncate text-sm font-semibold text-gray-800 dark:text-gray-100">
       {swimlane.title}
     </h2>
@@ -272,7 +282,7 @@
         disabled={boardState !== 'connected'}
         onclick={() => ui.openSwimlaneModal(swimlane)}
         startIcon={Pencil}
-        class="board-control"
+        class="board-control relative z-10"
         title="Edit swimlane"
       >
         <span class="sr-only">Edit swimlane</span>
@@ -294,7 +304,9 @@
         -->
         <section
           use:boardZone={{
-            useHandle: $dragHandles !== 'hidden',
+            // Always by a handle: with the grip hidden the list's bar is the handle, so dragging from the
+            // body cannot fight the cards inside it.
+            useHandle: true,
             items: swimlane.lists,
             flipDurationMs: LAYOUT_FLIP_MS,
             type: 'lists',
