@@ -47,12 +47,17 @@
   <div class="flex shrink-0 items-center" aria-label={summary}>
     <span class="sr-only" role="status">{summary}</span>
     <div class="flex items-center -space-x-2">
-      {#each shown as viewer (viewer.id)}
+      <!--
+        The avatars overlap, so each one is stacked above the one to its right (the row is dealt like a hand
+        of cards) and the one under the pointer comes in front of them all, ring and all.
+      -->
+      {#each shown as viewer, index (viewer.id)}
         <div
           animate:flip={{ duration: 200, easing: cubicOut }}
           in:scale={pop}
           out:scale={pop}
-          class="group/viewer relative hover:z-10"
+          style:--viewer-z={shown.length - index}
+          class="group/viewer relative z-[var(--viewer-z)] hover:z-20"
         >
           <div class="transition-transform duration-150 group-hover/viewer:-translate-y-0.5">
             <UserAvatar
@@ -73,7 +78,7 @@
       {/each}
 
       {#if overflow.length > 0}
-        <div in:scale={pop} out:scale={pop} class="group/viewer relative hover:z-10">
+        <div in:scale={pop} out:scale={pop} class="group/viewer relative z-0 hover:z-20">
           <span
             class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600 ring-2 ring-gray-300 ring-offset-2 ring-offset-white dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:ring-offset-gray-900"
           >
