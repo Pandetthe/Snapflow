@@ -10,7 +10,7 @@
   import { boardZone } from '$lib/features/boards/actions/boardZone';
   import { dragHandles } from '$lib/features/boards/stores/dragHandles';
   import List from './List.svelte';
-  import { getContext } from 'svelte';
+  import { getContext, tick } from 'svelte';
   import { getBoardUI } from '$lib/features/boards/context/board.context';
   import { BoardsHub } from '$lib/features/boards/hub/boards.hub';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
@@ -33,6 +33,11 @@
     releaseListZoneHeights,
     sizeDraggedList
   } from '$lib/features/boards/animations/zoneHeights';
+  import {
+    dragPointerX,
+    forgetDragPointer,
+    trackDragPointer
+  } from '$lib/features/boards/dragPointer';
   import MovedByIndicator from './MovedByIndicator.svelte';
   import { storedToCss } from '$lib/features/boards/sizes';
 
@@ -82,6 +87,7 @@
     if (info.trigger === TRIGGERS.DRAG_STARTED) {
       measureDraggedList(Number(info.id));
       holdListZoneHeights();
+      trackDragPointer();
     }
     if (info.trigger === TRIGGERS.DRAG_STOPPED) endListDrag();
   }
@@ -90,6 +96,67 @@
     keyboardMovedListId = null;
     forgetDraggedList();
     releaseListZoneHeights();
+    forgetDragPointer();
+  }
+
+  /** The list of this swimlane that a drop at `x` belongs before, or null for the end of the row. */
+  function listAfter(x: number | null) {
+    if (x === null) return null;
+    for (const list of swimlane.lists) {
+      const el = listZoneEl?.querySelector(`[data-list-id="${list.id}"]`);
+      if (!el) continue;
+      const rect = el.getBoundingClientRect();
+      if (x < rect.left + rect.width / 2) return list.id;
+    }
+    return null;
+  }
+
+  async function moveListHere(list: GetBoardByIdResponse.ListDto, beforeId: number | null) {
+    const at =
+      beforeId === null
+        ? swimlane.lists.length
+        : swimlane.lists.findIndex((l) => l.id === beforeId);
+    const next = [...swimlane.lists];
+    next.splice(at === -1 ? next.length : at, 0, list);
+    swimlane.lists = next;
+
+    const res = await hub?.moveList({ id: list.id, swimlaneId: swimlane.id, beforeId });
+
+    if (res && res.ok) {
+      const moved = swimlane.lists.find((l) => l.id === list.id);
+      if (moved && res.value?.rank) moved.rank = res.value.rank;
+    } else {
+      errorStore.addError('Web.MoveListFailed', 'Failed to move list');
+    }
+    swimlane.lists.sort((a, b) => a.rank.localeCompare(b.rank));
+    swimlane.lists = [...swimlane.lists];
+  }
+
+  // The header bar takes a list like the swimlane's body does: the list it holds while one is dragged over
+  // it is the drop slot, and on drop the list joins this swimlane where the pointer points along the bar.
+  let headerDrop = $state<GetBoardByIdResponse.ListDto[]>([]);
+
+  function handleHeaderConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
+    headerDrop = e.detail.items;
+  }
+
+  async function handleHeaderFinalize(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
+    const { info } = e.detail;
+    const id = Number(info.id);
+    const dropped = e.detail.items.find((l) => l.id === id);
+    headerDrop = [];
+
+    if (info.trigger !== TRIGGERS.DROPPED_INTO_ZONE || !dropped) return;
+
+    // Read where the drop landed before ending the drag, which forgets the pointer.
+    const beforeId = listAfter(dragPointerX());
+    if (info.source === SOURCES.POINTER) endListDrag();
+
+    triggerHaptic('success');
+    // The zone the list came from is told right after this handler; putting the list back only once that has
+    // happened keeps its swimlane, when the list came from this one, from moving the same list a second time.
+    await tick();
+    await moveListHere(dropped, beforeId);
   }
 
   $effect(() => {
@@ -152,8 +219,32 @@
 
   <!-- Header band — always visible, even when collapsed during drag -->
   <div
-    class="swimlane-header board-item-bar flex h-11 shrink-0 items-center gap-1.5 bg-gray-50 px-3 dark:bg-gray-800/70"
+    class="swimlane-header board-item-bar relative flex h-11 shrink-0 items-center gap-1.5 bg-gray-50 px-3 dark:bg-gray-800/70"
   >
+    <!-- Takes a list dropped on the bar; empty and invisible until one is dragged over it -->
+    <div
+      use:boardZone={{
+        useHandle: false,
+        items: headerDrop,
+        flipDurationMs: LAYOUT_FLIP_MS,
+        type: 'lists',
+        dropTargetStyle: {},
+        dropTargetClasses: [],
+        morphDisabled: true,
+        useCursorForDetection: true,
+        zoneTabIndex: -1,
+        dragDisabled: true
+      }}
+      onconsider={handleHeaderConsider}
+      onfinalize={handleHeaderFinalize}
+      data-board-zone="lists-header"
+      class="pointer-events-none absolute inset-0 z-20"
+      aria-hidden="true"
+    >
+      {#each headerDrop as list (list.id)}
+        <div class="relative h-full w-full" data-board-slot="list" animate:flip={layoutFlip}></div>
+      {/each}
+    </div>
     {#if canManageSwimlanes && $dragHandles !== 'hidden'}
       <div
         use:dragHandle
