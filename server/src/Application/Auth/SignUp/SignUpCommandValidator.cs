@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Auth.SignUp;
@@ -26,9 +26,9 @@ internal sealed class SignUpCommandValidator : AbstractValidator<SignUpCommand>
             .WithMessage($"Password must be at least {UserOptions.MinPasswordLength} characters long.")
             .MaximumLength(UserOptions.MaxPasswordLength)
             .WithMessage($"Password must not exceed {UserOptions.MaxPasswordLength} characters.")
-            .Matches(@"[a-z]").WithMessage("Password must contain at least one lowercase letter.")
+            .Matches(@"[a-z]").WithMessage("Password must contain at least one lowercase English letter.")
             .When(_ => UserOptions.RequireLowercaseInPassword)
-            .Matches(@"[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
+            .Matches(@"[A-Z]").WithMessage("Password must contain at least one uppercase English letter.")
             .When(_ => UserOptions.RequireUppercaseInPassword)
             .Matches(@"\d").WithMessage("Password must contain at least one number.")
             .When(_ => UserOptions.RequireDigitInPassword)

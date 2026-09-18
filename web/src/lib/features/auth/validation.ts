@@ -15,8 +15,9 @@ export function validateUsername(value: string): string | undefined {
     return `Username must be at least ${authConfig.userName.minLength} characters.`;
   if (trimmed.length > authConfig.userName.maxLength)
     return `Username must be less than ${authConfig.userName.maxLength} characters.`;
+  // Spelled out as English letters: the rule is a-z and A-Z, so an accented letter such as Ł is not one.
   if (!/^[a-zA-Z0-9_]+$/.test(trimmed))
-    return 'Username can only contain letters, numbers, and underscores.';
+    return 'Username can only contain English letters, numbers, and underscores.';
 }
 
 export function validatePassword(value: string): string | undefined {
@@ -26,9 +27,9 @@ export function validatePassword(value: string): string | undefined {
   if (value.length > authConfig.password.maxLength)
     return `Password must be less than ${authConfig.password.maxLength} characters.`;
   if (authConfig.password.requireLowercase && !/[a-z]/.test(value))
-    return 'Password must contain at least one lowercase letter.';
+    return 'Password must contain at least one lowercase English letter.';
   if (authConfig.password.requireUppercase && !/[A-Z]/.test(value))
-    return 'Password must contain at least one uppercase letter.';
+    return 'Password must contain at least one uppercase English letter.';
   if (authConfig.password.requireDigit && !/\d/.test(value))
     return 'Password must contain at least one digit.';
   if (authConfig.password.requireNonAlphanumeric && !/[^a-zA-Z0-9]/.test(value))

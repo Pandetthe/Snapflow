@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Auth.ResetPassword;
@@ -21,9 +21,9 @@ internal sealed class ResetPasswordCommandValidator : AbstractValidator<ResetPas
             .WithMessage($"New password must be at least {UserOptions.MinPasswordLength} characters long.")
             .MaximumLength(UserOptions.MaxPasswordLength)
             .WithMessage($"New password must not exceed {UserOptions.MaxPasswordLength} characters.")
-            .Matches(@"[a-z]").WithMessage("New password must contain at least one lowercase letter.")
+            .Matches(@"[a-z]").WithMessage("New password must contain at least one lowercase English letter.")
             .When(_ => UserOptions.RequireLowercaseInPassword)
-            .Matches(@"[A-Z]").WithMessage("New password must contain at least one uppercase letter.")
+            .Matches(@"[A-Z]").WithMessage("New password must contain at least one uppercase English letter.")
             .When(_ => UserOptions.RequireUppercaseInPassword)
             .Matches(@"\d").WithMessage("New password must contain at least one number.")
             .When(_ => UserOptions.RequireDigitInPassword)
