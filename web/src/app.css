@@ -161,6 +161,13 @@
   html {
     scrollbar-gutter: stable;
   }
+  /*
+    Pages whose content reaches the window edge: the reserved space would show as an empty strip beside
+    them. The board page has its own copy of this rule (features/boards/styles/board-dnd.css).
+  */
+  html:has([data-full-bleed-page]) {
+    scrollbar-gutter: auto;
+  }
   html,
   body {
     @apply relative z-1 bg-white font-outfit font-normal text-text-main transition-colors duration-300;
