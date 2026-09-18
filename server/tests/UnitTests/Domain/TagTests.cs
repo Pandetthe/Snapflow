@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using NSubstitute;
 using Snapflow.Domain.Tags;
 using Snapflow.Domain.Users;
@@ -58,6 +58,20 @@ public sealed class TagTests
             .Which.Should().Match<TagUpdatedDomainEvent>(e =>
                 e.Title == newTitle && e.Color == newColor &&
                 e.UpdatedById == 2 && e.UpdatedByUserName == "bob" && e.ConnectionId == "new-conn");
+    }
+
+    [Fact]
+    public void Update_Should_ChangeNothing_When_TitleAndColourAreTheSame()
+    {
+        var tag = Tag.Create(1, "Title", TagColors.Blue, CreateUser(), DateTimeOffset.UtcNow);
+        tag.ClearDomainEvents();
+
+        var changed = tag.Update("Title", TagColors.Blue, CreateUser(2, "bob"), DateTimeOffset.UtcNow, "new-conn");
+
+        changed.Should().BeFalse();
+        tag.UpdatedById.Should().BeNull();
+        tag.UpdatedAt.Should().BeNull();
+        tag.DomainEvents.Should().BeEmpty();
     }
 
     [Fact]

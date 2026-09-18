@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
@@ -29,12 +29,15 @@ internal sealed class UpdateCardHandler(
 
         DateTimeOffset updatedAt = timeProvider.GetUtcNow();
 
-        card.Update(
+        bool changed = card.Update(
             command.Title,
             command.Description,
             user,
             updatedAt,
             userContext.ConnectionId);
+
+        if (!changed)
+            return new UpdateCardResponse(null, null);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

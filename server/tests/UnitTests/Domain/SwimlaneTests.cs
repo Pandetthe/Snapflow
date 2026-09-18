@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using NSubstitute;
 using Snapflow.Domain.Swimlanes;
 using Snapflow.Domain.Users;
@@ -58,6 +58,20 @@ public sealed class SwimlaneTests
         swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneUpdatedDomainEvent>().Should().ContainSingle()
             .Which.Should().Match<SwimlaneUpdatedDomainEvent>(e =>
                 e.UpdatedById == 2 && e.UpdatedByUserName == "bob" && e.ConnectionId == "new-conn");
+    }
+
+    [Fact]
+    public void Update_Should_ChangeNothing_When_TitleAndHeightAreTheSame()
+    {
+        var swimlane = Swimlane.Create(1, "Title", 100, "rank", CreateUser(), DateTimeOffset.UtcNow);
+        swimlane.ClearDomainEvents();
+
+        var changed = swimlane.Update("Title", 100, CreateUser(2, "bob"), DateTimeOffset.UtcNow, "new-conn");
+
+        changed.Should().BeFalse();
+        swimlane.UpdatedById.Should().BeNull();
+        swimlane.UpdatedAt.Should().BeNull();
+        swimlane.DomainEvents.Should().BeEmpty();
     }
 
     [Fact]

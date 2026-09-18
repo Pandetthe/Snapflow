@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
@@ -29,12 +29,15 @@ internal sealed class UpdateListHandler(
 
         DateTimeOffset updatedAt = timeProvider.GetUtcNow();
 
-        list.Update(
+        bool changed = list.Update(
             command.Title,
             command.Width,
             user,
             updatedAt,
             userContext.ConnectionId);
+
+        if (!changed)
+            return new UpdateListResponse(null, null);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

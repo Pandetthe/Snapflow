@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
@@ -29,12 +29,15 @@ internal sealed class UpdateSwimlaneHandler(
 
         DateTimeOffset updatedAt = timeProvider.GetUtcNow();
 
-        swimlane.Update(
+        bool changed = swimlane.Update(
             command.Title,
             command.Height,
             user,
             updatedAt,
             userContext.ConnectionId);
+
+        if (!changed)
+            return new UpdateSwimlaneResponse(null, null);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

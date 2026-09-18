@@ -59,14 +59,19 @@ public class Card : Entity<int, Card>, IRankable
         return card;
     }
 
-    public void Update(string title, string description, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
+    /// <summary>Changes the card. Returns false, leaving it untouched, when it already reads that way.</summary>
+    public bool Update(string title, string description, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
     {
+        if (Title == title && Description == description)
+            return false;
+
         Title = title;
         Description = description;
         UpdatedById = updatedBy.Id;
         UpdatedAt = updatedAt;
 
         Raise(c => new CardUpdatedDomainEvent(Id, BoardId, Title, Description, updatedBy.Id, updatedBy.UserName, connectionId));
+        return true;
     }
 
     public void Move(int listId, int swimlaneId, string rank, IUser movedBy, DateTimeOffset updatedAt, string? connectionId = null)

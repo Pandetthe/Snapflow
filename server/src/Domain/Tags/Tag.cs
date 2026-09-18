@@ -1,4 +1,4 @@
-using Snapflow.Common;
+﻿using Snapflow.Common;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Users;
@@ -47,8 +47,12 @@ public class Tag : Entity<int, Tag>
         return tag;
     }
 
-    public void Update(string title, TagColors color, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
+    /// <summary>Changes the tag. Returns false, leaving it untouched, when it already reads that way.</summary>
+    public bool Update(string title, TagColors color, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
     {
+        if (Title == title && Color == color)
+            return false;
+
         Title = title;
         Color = color;
         UpdatedById = updatedBy.Id;
@@ -56,6 +60,7 @@ public class Tag : Entity<int, Tag>
 
         Raise(t => new TagUpdatedDomainEvent(t.Id, t.BoardId, t.Title, t.Color,
             updatedBy.Id, updatedBy.UserName, connectionId));
+        return true;
     }
 
     public void SoftDelete(IUser deletedBy, DateTimeOffset deletedAt, string? connectionId = null)

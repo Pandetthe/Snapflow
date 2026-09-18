@@ -54,14 +54,19 @@ public class Swimlane : Entity<int, Swimlane>, IRankable
         return swimlane;
     }
 
-    public void Update(string title, int? height, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
+    /// <summary>Changes the swimlane. Returns false, leaving it untouched, when it already reads that way.</summary>
+    public bool Update(string title, int? height, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
     {
+        if (Title == title && Height == height)
+            return false;
+
         Title = title;
         Height = height;
         UpdatedById = updatedBy.Id;
         UpdatedAt = updatedAt;
 
         Raise(s => new SwimlaneUpdatedDomainEvent(s.Id, s.BoardId, s.Title, s.Height, updatedBy.Id, updatedBy.UserName, connectionId));
+        return true;
     }
 
     public void Move(string rank, IUser movedBy, DateTimeOffset updatedAt, string? connectionId = null)

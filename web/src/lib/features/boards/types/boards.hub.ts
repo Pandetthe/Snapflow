@@ -257,12 +257,13 @@ export interface CreateSwimlaneResponse {
 }
 
 export interface UpdateSwimlaneResponse {
-  updatedAt: string;
+  // Both are null when the edit changed nothing, so the server stamped nobody on it.
+  updatedAt: string | null;
   updatedBy: {
     id: number;
     userName: string;
     avatarUrl: string | null;
-  };
+  } | null;
 }
 
 export interface CreateListResponse {
@@ -277,12 +278,13 @@ export interface CreateListResponse {
 }
 
 export interface UpdateListResponse {
-  updatedAt: string;
+  // Both are null when the edit changed nothing, so the server stamped nobody on it.
+  updatedAt: string | null;
   updatedBy: {
     id: number;
     userName: string;
     avatarUrl: string | null;
-  };
+  } | null;
 }
 
 export interface CreateCardResponse {
@@ -297,12 +299,13 @@ export interface CreateCardResponse {
 }
 
 export interface UpdateCardResponse {
-  updatedAt: string;
+  // Both are null when the edit changed nothing, so the server stamped nobody on it.
+  updatedAt: string | null;
   updatedBy: {
     id: number;
     userName: string;
     avatarUrl: string | null;
-  };
+  } | null;
 }
 
 export interface CreateTagHubRequest {
@@ -340,9 +343,10 @@ export interface CreateTagHubResponse {
 }
 
 export interface UpdateTagHubResponse {
-  updatedAt: string;
+  // Both are null when the edit changed nothing, so the server stamped nobody on it.
+  updatedAt: string | null;
   updatedBy: {
     id: number;
     userName: string;
-  };
+  } | null;
 }

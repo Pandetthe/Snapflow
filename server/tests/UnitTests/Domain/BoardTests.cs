@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Members;
 
@@ -45,6 +45,20 @@ public sealed class BoardTests
         board.UpdatedAt.Should().Be(now);
         
         board.DomainEvents.Select(e => e(board)).Should().Contain(e => e is BoardUpdatedDomainEvent);
+    }
+
+    [Fact]
+    public void Update_Should_ChangeNothing_When_TitleAndDescriptionAreTheSame()
+    {
+        var board = Board.Create("Title", "Desc", BoardVisibility.Private, 1, DateTimeOffset.UtcNow);
+        board.ClearDomainEvents();
+
+        var changed = board.Update("Title", "Desc", 2, DateTimeOffset.UtcNow, "new-conn");
+
+        changed.Should().BeFalse();
+        board.UpdatedById.Should().BeNull();
+        board.UpdatedAt.Should().BeNull();
+        board.DomainEvents.Should().BeEmpty();
     }
 
     [Fact]

@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using NSubstitute;
 using Snapflow.Domain.Lists;
 using Snapflow.Domain.Users;
@@ -60,6 +60,20 @@ public sealed class ListTests
         list.DomainEvents.Select(e => e(list)).OfType<ListUpdatedDomainEvent>().Should().ContainSingle()
             .Which.Should().Match<ListUpdatedDomainEvent>(e =>
                 e.UpdatedById == 2 && e.UpdatedByUserName == "bob" && e.ConnectionId == "new-conn");
+    }
+
+    [Fact]
+    public void Update_Should_ChangeNothing_When_TitleAndWidthAreTheSame()
+    {
+        var list = List.Create(1, 2, "Title", 300, "rank", CreateUser(), DateTimeOffset.UtcNow);
+        list.ClearDomainEvents();
+
+        var changed = list.Update("Title", 300, CreateUser(2, "bob"), DateTimeOffset.UtcNow, "new-conn");
+
+        changed.Should().BeFalse();
+        list.UpdatedById.Should().BeNull();
+        list.UpdatedAt.Should().BeNull();
+        list.DomainEvents.Should().BeEmpty();
     }
 
     [Fact]

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
@@ -34,7 +34,10 @@ internal sealed class UpdateTagHandler(
 
         DateTimeOffset updatedAt = timeProvider.GetUtcNow();
 
-        tag.Update(command.Title, command.Color, user, updatedAt, userContext.ConnectionId);
+        bool changed = tag.Update(command.Title, command.Color, user, updatedAt, userContext.ConnectionId);
+
+        if (!changed)
+            return new UpdateTagResponse(null, null);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

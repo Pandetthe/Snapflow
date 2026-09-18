@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using NSubstitute;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Tags;
@@ -64,6 +64,20 @@ public sealed class CardTests
         card.DomainEvents.Select(e => e(card)).OfType<CardUpdatedDomainEvent>().Should().ContainSingle()
             .Which.Should().Match<CardUpdatedDomainEvent>(e =>
                 e.UpdatedById == 2 && e.UpdatedByUserName == "bob" && e.ConnectionId == "new-conn");
+    }
+
+    [Fact]
+    public void Update_Should_ChangeNothing_When_TitleAndDescriptionAreTheSame()
+    {
+        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
+        card.ClearDomainEvents();
+
+        var changed = card.Update("Title", "Desc", CreateUser(2, "bob"), DateTimeOffset.UtcNow, "new-conn");
+
+        changed.Should().BeFalse();
+        card.UpdatedById.Should().BeNull();
+        card.UpdatedAt.Should().BeNull();
+        card.DomainEvents.Should().BeEmpty();
     }
 
     [Fact]

@@ -57,14 +57,19 @@ public class List : Entity<int, List>, IRankable
         return list;
     }
 
-    public void Update(string title, int? width, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
+    /// <summary>Changes the list. Returns false, leaving it untouched, when it already reads that way.</summary>
+    public bool Update(string title, int? width, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
     {
+        if (Title == title && Width == width)
+            return false;
+
         Title = title;
         Width = width;
         UpdatedById = updatedBy.Id;
         UpdatedAt = updatedAt;
 
         Raise(l => new ListUpdatedDomainEvent(l.Id, l.BoardId, l.Title, l.Width, updatedBy.Id, updatedBy.UserName, connectionId));
+        return true;
     }
 
     public void Move(int swimlaneId, string rank, IUser movedBy, DateTimeOffset updatedAt, string? connectionId = null)

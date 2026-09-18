@@ -1,4 +1,4 @@
-using Snapflow.Common;
+﻿using Snapflow.Common;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
 using Snapflow.Domain.Members;
@@ -53,14 +53,19 @@ public class Board : Entity<int, Board>
         return board;
     }
 
-    public void Update(string title, string description, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
+    /// <summary>Changes the board. Returns false, leaving it untouched, when it already reads that way.</summary>
+    public bool Update(string title, string description, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
     {
+        if (Title == title && Description == description)
+            return false;
+
         Title = title;
         Description = description;
         UpdatedById = updatedById;
         UpdatedAt = updatedAt;
 
         Raise(b => new BoardUpdatedDomainEvent(b.Id, b.Title, b.Description, connectionId));
+        return true;
     }
 
     public void ChangeVisibility(BoardVisibility visibility, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
