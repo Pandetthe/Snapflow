@@ -10,6 +10,7 @@ import { readFileSync } from 'node:fs';
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
 const stripAnsi = (str: string) =>
+  // eslint-disable-next-line no-control-regex -- ANSI escape sequences are control characters by definition
   str.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-?]*[ -/]*[@-~]/g, '');
 
 const createCustomLogger = () => {

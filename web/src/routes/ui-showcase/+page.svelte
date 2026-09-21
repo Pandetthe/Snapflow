@@ -141,7 +141,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-              {#each ['p-xs', 'o-xs', 'p-sm', 'o-sm', 'p-md', 'o-md', 'p-lg', 'o-lg'] as const as combination}
+              {#each ['p-xs', 'o-xs', 'p-sm', 'o-sm', 'p-md', 'o-md', 'p-lg', 'o-lg'] as const as combination (combination)}
                 {@const [vCode, sCode] = combination.split('-')}
                 {@const variant = vCode === 'p' ? 'primary' : 'outline'}
                 {@const size = sCode as 'xs' | 'sm' | 'md' | 'lg'}
@@ -731,7 +731,7 @@
           <Select label="Empty" placeholder="Select Option" options={selectOptions} />
 
           <Select
-            value={'monochrome'}
+            value="monochrome"
             label="Prefilled"
             placeholder="Select Option"
             options={selectOptions}
@@ -744,7 +744,7 @@
             allowDeselect
           />
           <Select
-            value={'monochrome'}
+            value="monochrome"
             label="Prefilled deselectable"
             placeholder="Select Option"
             options={selectOptions}
@@ -754,7 +754,7 @@
           <Select label="Disabled" placeholder="Select Option" options={selectOptions} disabled />
 
           <Select
-            value={'monochrome'}
+            value="monochrome"
             label="Prefilled disabled"
             placeholder="Select Option"
             options={selectOptions}
@@ -820,7 +820,7 @@
           />
 
           <Select
-            value={'monochrome'}
+            value="monochrome"
             label="Prefilled with error"
             placeholder="Select Option"
             options={selectOptions}
@@ -835,7 +835,7 @@
             error="Example error message"
           />
           <Select
-            value={'monochrome'}
+            value="monochrome"
             label="Prefilled deselectable with error"
             placeholder="Select Option"
             options={selectOptions}
@@ -852,7 +852,7 @@
           />
 
           <Select
-            value={'monochrome'}
+            value="monochrome"
             label="Prefilled disabled with error"
             placeholder="Select Option"
             options={selectOptions}

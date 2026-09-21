@@ -59,7 +59,7 @@
       class="rounded-xl border border-gray-100 bg-gray-50/50 p-3 dark:border-gray-800 dark:bg-white/5"
     >
       <ul class="grid grid-cols-1 gap-x-3 gap-y-1.5 sm:grid-cols-2">
-        {#each [{ met: passwordRequirements.length, text: `Min. ${authConfig.password.minLength} chars` }, { met: passwordRequirements.lowercase, text: 'Lowercase', hide: !authConfig.password.requireLowercase }, { met: passwordRequirements.uppercase, text: 'Uppercase', hide: !authConfig.password.requireUppercase }, { met: passwordRequirements.digit, text: 'Number', hide: !authConfig.password.requireDigit }, { met: passwordRequirements.nonAlphanumeric, text: 'Special', hide: !authConfig.password.requireNonAlphanumeric }].filter((r) => !r.hide) as req}
+        {#each [{ met: passwordRequirements.length, text: `Min. ${authConfig.password.minLength} chars` }, { met: passwordRequirements.lowercase, text: 'Lowercase', hide: !authConfig.password.requireLowercase }, { met: passwordRequirements.uppercase, text: 'Uppercase', hide: !authConfig.password.requireUppercase }, { met: passwordRequirements.digit, text: 'Number', hide: !authConfig.password.requireDigit }, { met: passwordRequirements.nonAlphanumeric, text: 'Special', hide: !authConfig.password.requireNonAlphanumeric }].filter((r) => !r.hide) as req (req.text)}
           <li class="flex items-center gap-1.5 text-[11px]">
             <div
               class="flex h-3.5 w-3.5 items-center justify-center rounded-full {req.met

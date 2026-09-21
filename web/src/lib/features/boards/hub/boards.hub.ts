@@ -5,7 +5,6 @@ import type {
   Response,
   ProblemDetails,
   ValidationProblemDetails,
-  IdResponse,
   RankResponse
 } from '$lib/core/types/app';
 import type {
@@ -28,18 +27,6 @@ import type {
   UpdateListResponse,
   CreateCardResponse,
   UpdateCardResponse,
-  SwimlaneCreatedEventPayload,
-  SwimlaneUpdatedEventPayload,
-  SwimlaneMovedEventPayload,
-  SwimlaneDeletedEventPayload,
-  ListCreatedEventPayload,
-  ListUpdatedEventPayload,
-  ListMovedEventPayload,
-  ListDeletedEventPayload,
-  CardCreatedEventPayload,
-  CardUpdatedEventPayload,
-  CardMovedEventPayload,
-  CardDeletedEventPayload,
   CreateTagHubRequest,
   UpdateTagHubRequest,
   DeleteTagRequest,
@@ -48,6 +35,12 @@ import type {
   CreateTagHubResponse,
   UpdateTagHubResponse
 } from '$lib/features/boards/types/boards.hub';
+
+interface HubEnvelope<T> {
+  statusCode: number;
+  value?: T;
+  problemDetails?: ProblemDetails | ValidationProblemDetails;
+}
 
 export class BoardsHub {
   private connection: HubConnection;
@@ -71,8 +64,8 @@ export class BoardsHub {
   }
 
   on<E extends keyof BoardsHubEvents>(event: E, callback: BoardsHubEvents[E]) {
-    this.connection.on(event, callback as any);
-    return () => this.connection.off(event, callback as any);
+    this.connection.on(event, callback);
+    return () => this.connection.off(event, callback);
   }
 
   onClose(callback: (error?: Error) => void) {
@@ -89,7 +82,7 @@ export class BoardsHub {
 
   private async handleResponse<T = void>(
     method: string,
-    promise: Promise<any>
+    promise: Promise<HubEnvelope<T> | null | undefined>
   ): Promise<Response<T>> {
     logger.debug({ method }, 'BoardsHub: Awaiting response');
     try {
@@ -109,10 +102,10 @@ export class BoardsHub {
       let validationProblem: ValidationProblemDetails | undefined;
 
       if (res.problemDetails) {
-        if (res.problemDetails.errors && Array.isArray(res.problemDetails.errors)) {
-          validationProblem = res.problemDetails as ValidationProblemDetails;
+        if ('errors' in res.problemDetails && Array.isArray(res.problemDetails.errors)) {
+          validationProblem = res.problemDetails;
         } else {
-          problem = res.problemDetails as ProblemDetails;
+          problem = res.problemDetails;
         }
       }
 

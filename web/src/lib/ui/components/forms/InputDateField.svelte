@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { DatePicker } from 'bits-ui';
+  import { DatePicker, type SegmentPart } from 'bits-ui';
   import { parseDate, today, getLocalTimeZone } from '@internationalized/date';
   import { CalendarDays, ChevronLeft, ChevronRight, X, type Icon as IconType } from 'lucide-svelte';
   import { cn, slideReveal } from '$lib/ui/utils';
@@ -107,11 +107,11 @@
     return leftIconDecorated ? 'pl-14' : 'pl-11';
   });
 
-  function orderDateSegments(
-    segments: Array<{ part: any; value: string }>,
-    order: readonly DateSegmentPart[]
-  ) {
-    const segmentByPart = new Map<string, { part: any; value: string }>();
+  type DateSegment = { part: SegmentPart; value: string };
+
+  function orderDateSegments(segments: DateSegment[], order: readonly DateSegmentPart[]) {
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity -- local lookup, never read reactively
+    const segmentByPart = new Map<string, DateSegment>();
 
     for (const segment of segments) {
       if (segment.part !== 'literal') {
@@ -121,7 +121,7 @@
 
     return order
       .map((part) => segmentByPart.get(part))
-      .filter((segment): segment is { part: any; value: string } => Boolean(segment));
+      .filter((segment): segment is DateSegment => Boolean(segment));
   }
 
   function toDateValue(rawValue: string) {
@@ -465,7 +465,7 @@
               {/each}
             {:else if viewMode === 'months'}
               <div class="grid h-full grid-cols-3 gap-2 py-2">
-                {#each monthNames as monthName, i}
+                {#each monthNames as monthName, i (monthName)}
                   <button
                     type="button"
                     class={cn(
@@ -485,8 +485,7 @@
               </div>
             {:else if viewMode === 'years'}
               <div class="grid h-full grid-cols-3 gap-2 py-2">
-                {#each Array(12) as _, i}
-                  {@const y = startYear + i}
+                {#each Array.from({ length: 12 }, (_, i) => startYear + i) as y (y)}
                   <button
                     type="button"
                     class={cn(

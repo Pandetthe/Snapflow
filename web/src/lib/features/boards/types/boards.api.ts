@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-namespace */
 export namespace GetBoardsResponse {
   export interface UserDto {
     id: number;

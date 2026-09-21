@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
   import { onMount } from 'svelte';
   import { authConfig } from '$lib/config/auth';
   import { AuthService } from '$lib/features/auth/api/auth';
@@ -510,7 +511,7 @@
           />
           {#if !ldapMode}
             <a
-              href="/forgot-password"
+              href={resolve('/forgot-password')}
               class="rounded-sm text-sm whitespace-nowrap text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-brand-400 dark:hover:text-brand-500"
             >
               Forgot password?
@@ -552,7 +553,7 @@
       <p class="text-center text-sm font-normal text-gray-800 sm:text-start dark:text-gray-100">
         Don't have an account?
         <a
-          href="/sign-up"
+          href={resolve('/sign-up')}
           class="rounded-sm text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-brand-400 dark:hover:text-brand-500"
         >
           Sign up

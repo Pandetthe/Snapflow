@@ -1,17 +1,12 @@
 import type { ApiClient } from '$lib/core/types/api';
-import type { RequestEvent, ServerLoadEvent } from '@sveltejs/kit';
 import { env } from '$env/dynamic/public';
 import logger from '$lib/logger';
 import { apiRequestCounter, apiRequestDuration } from '$lib/metrics';
 
 class ClientApiClient implements ApiClient {
-  async fetch(
-    path: string | undefined,
-    init: RequestInit,
-    event?: RequestEvent | ServerLoadEvent
-  ): Promise<Response> {
+  async fetch(path: string | undefined, init: RequestInit): Promise<Response> {
     const start = Date.now();
-    let base = env.PUBLIC_API_BASE_URL || '';
+    const base = env.PUBLIC_API_BASE_URL || '';
 
     const cleanBase = base.replace(/\/+$/, '');
     const cleanPath = (path ?? '').replace(/^\/+/, '');

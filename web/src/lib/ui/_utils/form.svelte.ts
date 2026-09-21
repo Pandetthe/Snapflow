@@ -29,7 +29,8 @@ function getSuccessPayload<TResponse>(response: FormResponse<TResponse>): TRespo
     return response.value as TResponse;
   }
 
-  const { ok: _ok, ...rest } = response;
+  const rest = { ...response } as Partial<FormResponse<TResponse>>;
+  delete rest.ok;
   return rest as TResponse;
 }
 
@@ -111,7 +112,7 @@ function getProblemDetails(response: unknown): ApiProblemDetails | null {
 export function createForm<TValues extends Record<string, unknown>, TResponse = unknown>(
   config: FormConfig<TValues, TResponse>
 ) {
-  let formState = $state({
+  const formState = $state({
     values: { ...config.initialValues },
     serverErrors: {} as ValidationErrors<TValues>,
     isSubmitting: false,

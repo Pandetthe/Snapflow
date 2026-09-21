@@ -1,6 +1,6 @@
 <script lang="ts">
   import { AlertDialog } from 'bits-ui';
-  import { onMount } from 'svelte';
+  import { onMount, type Snippet } from 'svelte';
   import { DialogBehavior, type DialogBehaviorOptions } from './dialogBehavior.svelte.js';
 
   let {
@@ -11,7 +11,7 @@
   }: DialogBehaviorOptions & {
     open: boolean;
     onOpenChange?: (open: boolean) => void;
-    children: any;
+    children: Snippet;
   } = $props();
 
   const behavior = new DialogBehavior({ ...options, zIndex: 'z-[60]' });

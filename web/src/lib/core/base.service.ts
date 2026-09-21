@@ -11,9 +11,9 @@ export abstract class BaseService {
       const response = await promise;
 
       if (response.ok) {
-        if (response.status === 204) return { ok: true, value: undefined as any };
+        if (response.status === 204) return { ok: true, value: undefined as T };
         const text = await response.text();
-        const value = text ? (JSON.parse(text) as T) : (undefined as any);
+        const value = text ? (JSON.parse(text) as T) : (undefined as T);
         return { ok: true, value };
       }
 

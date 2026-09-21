@@ -1,11 +1,11 @@
-import pino from 'pino';
+import pino, { type TransportTargetOptions } from 'pino';
 import { browser, dev } from '$app/environment';
 import { trace, context } from '@opentelemetry/api';
 
 const isServer = !browser;
 const otlpEnabled = isServer && !!process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
 
-const targets: any[] = [];
+const targets: TransportTargetOptions[] = [];
 
 if (dev) {
   targets.push({

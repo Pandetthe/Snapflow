@@ -49,6 +49,7 @@
       {id}
       disabled={isDisabled}
       aria-readonly={isReadonly}
+      aria-required={isRequired}
       onpointerdown={preventReadonlyInteraction}
       onclick={preventReadonlyInteraction}
       onkeydown={preventReadonlyInteraction}

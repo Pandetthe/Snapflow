@@ -2,30 +2,31 @@
   import { Button as BitsButton } from 'bits-ui';
   import type { Icon as IconType } from 'lucide-svelte';
   import type { Snippet } from 'svelte';
+  import type { HTMLAnchorAttributes, HTMLAttributes } from 'svelte/elements';
   import { LoaderCircle } from 'lucide-svelte';
   import { cn, haptics, type HapticPreset } from '$lib/ui/utils';
   import { LoadingDots } from '$lib/ui/components';
   import type { Variant, Size } from '$lib/ui/types';
 
-  interface Props {
-    [key: string]: any;
-    variant?: Variant;
-    size?: Size;
-    startIcon?: typeof IconType;
-    endIcon?: typeof IconType;
-    children?: Snippet;
-    class?: string;
-    id?: string;
-    href?: string;
-    type?: 'button' | 'submit' | 'reset';
-    disabled?: boolean;
-    haptic?: HapticPreset | number | number[];
-    isLoading?: boolean;
-    loadingText?: string;
-    onclick?: (
-      e: MouseEvent & { currentTarget: HTMLButtonElement | HTMLAnchorElement }
-    ) => void | HapticPreset | Promise<void | HapticPreset>;
-  }
+  type Props = Omit<HTMLAttributes<HTMLElement>, 'class' | 'onclick'> &
+    Pick<HTMLAnchorAttributes, 'target' | 'rel' | 'download'> & {
+      variant?: Variant;
+      size?: Size;
+      startIcon?: typeof IconType;
+      endIcon?: typeof IconType;
+      children?: Snippet;
+      class?: string;
+      id?: string;
+      href?: string;
+      type?: 'button' | 'submit' | 'reset';
+      disabled?: boolean;
+      haptic?: HapticPreset | number | number[];
+      isLoading?: boolean;
+      loadingText?: string;
+      onclick?: (
+        e: MouseEvent & { currentTarget: HTMLButtonElement | HTMLAnchorElement }
+      ) => void | HapticPreset | Promise<void | HapticPreset>;
+    };
 
   let {
     class: className,
@@ -116,6 +117,7 @@
   }
 </script>
 
+<!-- eslint-disable svelte/no-navigation-without-resolve -->
 {#if href}
   <a
     {id}

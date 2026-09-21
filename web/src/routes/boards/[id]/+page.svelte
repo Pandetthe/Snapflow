@@ -3,7 +3,6 @@
   import { fade } from 'svelte/transition';
   import { type DndEvent, SOURCES, TRIGGERS } from 'svelte-dnd-action';
   import { boardZone } from '$lib/features/boards/actions/boardZone';
-  import { dragHandles } from '$lib/features/boards/stores/dragHandles';
   import { swimlaneFolding } from '$lib/features/boards/stores/swimlaneFolding';
   import Swimlane from '$lib/features/boards/components/Swimlane.svelte';
   import BoardSkeleton, {

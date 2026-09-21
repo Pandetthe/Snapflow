@@ -1,8 +1,10 @@
 import { createAddHookMessageChannel } from 'import-in-the-middle';
 import { register } from 'node:module';
 
-if (!(globalThis as any).__OTEL_INITIALIZED__) {
-  (globalThis as any).__OTEL_INITIALIZED__ = true;
+const otelGlobal = globalThis as typeof globalThis & { __OTEL_INITIALIZED__?: boolean };
+
+if (!otelGlobal.__OTEL_INITIALIZED__) {
+  otelGlobal.__OTEL_INITIALIZED__ = true;
 
   const { registerOptions } = createAddHookMessageChannel();
   register('import-in-the-middle/hook.mjs', import.meta.url, registerOptions);

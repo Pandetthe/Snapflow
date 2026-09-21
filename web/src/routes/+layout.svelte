@@ -7,7 +7,6 @@
   import { errorStore } from '$lib/ui/stores/error.svelte';
   import { noticeStore, type AppNotice } from '$lib/ui/stores/notice.svelte';
   import type { AppError } from '$lib/core/types/app.js';
-  import { theme } from '$lib/ui/stores/theme';
   import { onMount, untrack } from 'svelte';
   import { pwaInfo } from 'virtual:pwa-info';
   let { children, data } = $props();
@@ -39,7 +38,6 @@
     });
   });
 
-  const themeColor = $derived($theme === 'dark' ? '#111827' : '#f9fafb');
   const webManifestLink = $derived(pwaInfo ? pwaInfo.webManifest.linkTag : '');
 
   const publicRoutes = [
@@ -84,6 +82,7 @@
 
 <svelte:head>
   <link rel="icon" href={favicon} />
+  <!-- eslint-disable-next-line svelte/no-at-html-tags -->
   {@html webManifestLink}
 </svelte:head>
 

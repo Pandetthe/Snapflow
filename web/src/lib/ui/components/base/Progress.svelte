@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Progress } from 'bits-ui';
+  import type { ComponentProps } from 'svelte';
   import { cn } from '$lib/ui/utils';
   import { Tween } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
@@ -17,7 +18,7 @@
     showValue = false,
     indeterminate = false,
     ...rest
-  }: {
+  }: ComponentProps<typeof Progress.Root> & {
     value?: number | null;
     max?: number;
     variant?: Variant;
@@ -26,7 +27,6 @@
     label?: string;
     showValue?: boolean;
     indeterminate?: boolean;
-    [key: string]: any;
   } = $props();
 
   const effectiveValue = $derived(indeterminate || value === null ? null : value);

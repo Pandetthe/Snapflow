@@ -5,6 +5,7 @@
    * Firefox reports a cached image as not complete and resolves `decode()` only a moment later, which
    * left the board's "someone changed this" label with a skeleton for most of the time it was up.
    */
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity -- module-level cache, never read reactively
   const shownAvatars = new Map<string, HTMLImageElement>();
 </script>
 

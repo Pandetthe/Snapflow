@@ -294,7 +294,7 @@
     </div>
 
     {#if view === 'hours'}
-      {#each hourOptions as { val, radius }}
+      {#each hourOptions as { val, radius } (val)}
         {@const pos = getPosition(val, true, radius)}
         <div
           class={cn(
@@ -307,7 +307,7 @@
         </div>
       {/each}
     {:else}
-      {#each minuteOptions as { val, radius }}
+      {#each minuteOptions as { val, radius } (val)}
         {@const pos = getPosition(val, false, radius)}
         <div
           class={cn(

@@ -289,7 +289,7 @@
               </Select.ScrollUpButton>
             </div>
             <Select.Viewport class={viewportClass}>
-              {#each options as option}
+              {#each options as option (option.value)}
                 <Select.Item
                   value={option.value}
                   label={option.label}
@@ -355,7 +355,7 @@
               </Select.ScrollUpButton>
             </div>
             <Select.Viewport class={viewportClass}>
-              {#each options as option}
+              {#each options as option (option.value)}
                 <Select.Item
                   value={option.value}
                   label={option.label}

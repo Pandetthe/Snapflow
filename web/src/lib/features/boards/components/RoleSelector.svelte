@@ -38,8 +38,6 @@
     viewer: 'Viewer'
   };
 
-  import { untrack } from 'svelte';
-
   const options = $derived([
     ...(allowTransferOwnership ? [{ value: 'transfer_owner', label: 'Give ownership' }] : []),
     { value: 'admin', label: 'Admin' },
@@ -48,11 +46,7 @@
   ]);
 
   let open = $state(false);
-  let internalValue = $state(untrack(() => role));
-
-  $effect(() => {
-    internalValue = role;
-  });
+  let internalValue = $derived(role);
 
   function handleValueChange(nextValue: string) {
     if (nextValue === 'transfer_owner') {
@@ -103,7 +97,7 @@
       sideOffset={4}
     >
       <Select.Viewport class="p-1">
-        {#each options as option}
+        {#each options as option (option.value)}
           <Select.Item
             value={option.value}
             class={cn(
