@@ -1,9 +1,4 @@
-import type {
-  GetBoardByIdResponse,
-  GetBoardDetailsResponse,
-  MemberRole,
-  TagColor
-} from '../types/boards.api';
+import type { GetBoardByIdResponse, GetBoardDetailsResponse, TagColor } from '../types/boards.api';
 import type { Result } from '$lib/core/types/app';
 import { BoardsHub } from '../hub/boards.hub';
 import { errorStore } from '$lib/ui/stores/error.svelte';
@@ -20,6 +15,8 @@ import { startElementFlight, type ElementFlight } from '../animations/elementFli
 import { CHANGE_FEEDBACK_MS, ITEM_LEAVE_MS } from '../animations/motion';
 import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
+import { boardPermissions } from '../state/boardPermissions';
+import * as tree from '../state/boardTree';
 
 export type MovableKind = 'card' | 'list' | 'swimlane';
 
@@ -195,61 +192,16 @@ export function createBoardState(
     ];
   });
 
-  const isMember = $derived(members.some((m) => m.id === currentUserId));
-  const role = $derived<MemberRole>(members.find((m) => m.id === currentUserId)?.role ?? 'viewer');
-  const canEditBoard = $derived(role === 'owner' || role === 'admin');
-  const canManageSwimlanes = $derived(role === 'owner' || role === 'admin');
-  const canManageLists = $derived(role === 'owner' || role === 'admin');
-  const canManageCards = $derived(role !== 'viewer');
-  // Defining the board's tags is an admin job; putting one on a card is not.
-  const canManageTags = $derived(role === 'owner' || role === 'admin');
-  const canAssignTags = $derived(role !== 'viewer');
+  const permissions = $derived(boardPermissions(members, currentUserId));
 
-  function sortSwimlanes() {
-    board.swimlanes.sort((a, b) => a.rank.localeCompare(b.rank));
-    board.swimlanes = [...board.swimlanes];
-  }
-
-  function sortLists(swimlane: GetBoardByIdResponse.SwimlaneDto) {
-    swimlane.lists.sort((a, b) => a.rank.localeCompare(b.rank));
-    swimlane.lists = [...swimlane.lists];
-  }
-
-  function sortCards(list: GetBoardByIdResponse.ListDto) {
-    list.cards.sort((a, b) => a.rank.localeCompare(b.rank));
-    list.cards = [...list.cards];
-  }
-
-  function sortTags() {
-    board.tags.sort((a, b) => a.title.localeCompare(b.title));
-    board.tags = [...board.tags];
-  }
-
-  /** Every card that carries the tag, so an edit or a delete reaches all of them. */
-  function forEachCardWithTag(tagId: number, apply: (card: GetBoardByIdResponse.CardDto) => void) {
-    for (const s of board.swimlanes)
-      for (const l of s.lists) for (const c of l.cards) if (c.tagIds.includes(tagId)) apply(c);
-  }
-
-  function findCard(cardId: number): GetBoardByIdResponse.CardDto | undefined {
-    for (const s of board.swimlanes)
-      for (const l of s.lists) {
-        const card = l.cards.find((c) => c.id === cardId);
-        if (card) return card;
-      }
-    return undefined;
-  }
-
-  function sortAll() {
-    board.swimlanes.sort((a, b) => a.rank.localeCompare(b.rank));
-    for (const s of board.swimlanes) {
-      sortLists(s);
-      for (const l of s.lists) {
-        sortCards(l);
-      }
-    }
-    board.tags.sort((a, b) => a.title.localeCompare(b.title));
-  }
+  const sortSwimlanes = () => tree.sortSwimlanes(board);
+  const sortLists = tree.sortLists;
+  const sortCards = tree.sortCards;
+  const sortTags = () => tree.sortTags(board);
+  const sortAll = () => tree.sortAll(board);
+  const findCard = (cardId: number) => tree.findCard(board, cardId);
+  const forEachCardWithTag = (tagId: number, apply: (card: GetBoardByIdResponse.CardDto) => void) =>
+    tree.forEachCardWithTag(board, tagId, apply);
 
   let loaded = $state(false);
   let awaitingSnapshot = true;
@@ -929,28 +881,28 @@ export function createBoardState(
       connectionState = v;
     },
     get isMember() {
-      return isMember;
+      return permissions.isMember;
     },
     get role() {
-      return role;
+      return permissions.role;
     },
     get canEditBoard() {
-      return canEditBoard;
+      return permissions.canEditBoard;
     },
     get canManageSwimlanes() {
-      return canManageSwimlanes;
+      return permissions.canManageSwimlanes;
     },
     get canManageLists() {
-      return canManageLists;
+      return permissions.canManageLists;
     },
     get canManageCards() {
-      return canManageCards;
+      return permissions.canManageCards;
     },
     get canManageTags() {
-      return canManageTags;
+      return permissions.canManageTags;
     },
     get canAssignTags() {
-      return canAssignTags;
+      return permissions.canAssignTags;
     },
     getRecentMove,
     isInFlight,
