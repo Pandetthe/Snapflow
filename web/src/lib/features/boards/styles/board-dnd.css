@@ -455,7 +455,14 @@ section[data-board-zone='swimlanes'][data-folded] [data-board-item='swimlane'] >
     scale 280ms var(--ease-flow);
 }
 
-section:is([data-board-zone='lists'], [data-board-zone='swimlanes']).board-drop-target {
+/*
+  The drop area takes the free space beside it, so a drop past the last item still lands in the zone. A zone
+  already spanning its swimlane ([data-fill]) is skipped: growing it on top of its full width would push it
+  to twice the swimlane and raise a scrollbar that has nothing to scroll to.
+*/
+section:is([data-board-zone='lists'], [data-board-zone='swimlanes']).board-drop-target:not(
+    [data-fill]
+  ) {
   flex-grow: 1;
 }
 
