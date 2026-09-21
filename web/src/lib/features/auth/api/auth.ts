@@ -1,4 +1,6 @@
-import type { ApiClient, ApiEvent, ProblemDetails, Response } from '$lib/core/types/api';
+import type { ApiEvent } from '$lib/core/types/api';
+import type { Response } from '$lib/core/types/app';
+import { BaseService } from '$lib/core/base.service';
 import { env } from '$env/dynamic/public';
 import logger from '$lib/logger';
 import type { PasskeyJson, PasskeyOptions } from '../passkeys';
@@ -84,40 +86,22 @@ export interface ResetPasswordRequest {
   newPassword: string;
 }
 
-export class AuthService {
-  constructor(private apiClient: ApiClient) {
-    this.apiClient = apiClient;
+export class AuthService extends BaseService {
+  private json(path: string, payload?: unknown): Promise<globalThis.Response> {
+    return this.apiClient.fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload ?? {})
+    });
   }
 
-  async #handleBadResponse<T>(response: globalThis.Response): Promise<Response<T>> {
-    try {
-      const error = (await response.json()) as ProblemDetails & { ok: false };
-      error.ok = false;
-      if ((error.status || 500) >= 500) logger.error({ error }, 'Server error');
-      return error;
-    } catch (err) {
-      logger.error({ err }, 'Error parsing response');
-      return { ok: false };
-    }
+  private signInPath(path: string, rememberMe: boolean): string {
+    return `${path}?useCookies=true&useSessionCookies=${!rememberMe}`;
   }
 
-  async signIn(data: SigninRequest): Promise<Response> {
+  signIn(data: SigninRequest): Promise<Response> {
     const { rememberMe, ...payload } = data;
-    const response = await this.apiClient.fetch(
-      `/auth/sign-in?useCookies=true&useSessionCookies=${!rememberMe}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      }
-    );
-
-    if (!response.ok) {
-      return await this.#handleBadResponse(response);
-    }
-    return { ok: true };
+    return this.handleResponse(this.json(this.signInPath('/auth/sign-in', rememberMe), payload));
   }
 
   async getProviders(event?: ApiEvent): Promise<AuthProviders> {
@@ -133,158 +117,54 @@ export class AuthService {
     return localOnlyProviders;
   }
 
-  async ldapSignIn(data: LdapSigninRequest): Promise<Response> {
+  ldapSignIn(data: LdapSigninRequest): Promise<Response> {
     const { rememberMe, ...payload } = data;
-    const response = await this.apiClient.fetch(
-      `/auth/ldap/sign-in?useCookies=true&useSessionCookies=${!rememberMe}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      }
+    return this.handleResponse(
+      this.json(this.signInPath('/auth/ldap/sign-in', rememberMe), payload)
     );
-
-    if (!response.ok) {
-      return await this.#handleBadResponse(response);
-    }
-    return { ok: true };
   }
 
-  async twoFactorSignIn(data: TwoFactorSigninRequest): Promise<Response> {
+  twoFactorSignIn(data: TwoFactorSigninRequest): Promise<Response> {
     const { rememberMe, ...payload } = data;
-    const response = await this.apiClient.fetch(
-      `/auth/sign-in/two-factor?useCookies=true&useSessionCookies=${!rememberMe}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      }
+    return this.handleResponse(
+      this.json(this.signInPath('/auth/sign-in/two-factor', rememberMe), payload)
     );
-
-    if (!response.ok) {
-      return await this.#handleBadResponse(response);
-    }
-    return { ok: true };
   }
 
-  async twoFactorPasskeyOptions(): Promise<Response<PasskeyOptions>> {
-    const response = await this.apiClient.fetch('/auth/sign-in/two-factor/passkey/options', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: '{}'
-    });
-
-    if (!response.ok) {
-      return await this.#handleBadResponse(response);
-    }
-    return { ok: true, ...((await response.json()) as PasskeyOptions) };
+  twoFactorPasskeyOptions(): Promise<Response<PasskeyOptions>> {
+    return this.handleResponse(this.json('/auth/sign-in/two-factor/passkey/options'));
   }
 
-  async passkeySignInOptions(): Promise<Response<PasskeyOptions>> {
-    const response = await this.apiClient.fetch('/auth/sign-in/passkey/options', {
-      method: 'POST'
-    });
-
-    if (!response.ok) {
-      return await this.#handleBadResponse(response);
-    }
-    return { ok: true, ...((await response.json()) as PasskeyOptions) };
+  passkeySignInOptions(): Promise<Response<PasskeyOptions>> {
+    return this.handleResponse(
+      this.apiClient.fetch('/auth/sign-in/passkey/options', { method: 'POST' })
+    );
   }
 
-  async passkeySignIn(data: PasskeySigninRequest): Promise<Response> {
+  passkeySignIn(data: PasskeySigninRequest): Promise<Response> {
     const { rememberMe, ...payload } = data;
-    const response = await this.apiClient.fetch(
-      `/auth/sign-in/passkey?useCookies=true&useSessionCookies=${!rememberMe}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      }
+    return this.handleResponse(
+      this.json(this.signInPath('/auth/sign-in/passkey', rememberMe), payload)
     );
-
-    if (!response.ok) {
-      return await this.#handleBadResponse(response);
-    }
-    return { ok: true };
   }
 
-  async signOut(): Promise<Response> {
-    const response = await this.apiClient.fetch(`/auth/sign-out`, {
-      method: 'POST'
-    });
-
-    if (!response.ok) {
-      return await this.#handleBadResponse(response);
-    }
-    return { ok: true };
+  signOut(): Promise<Response> {
+    return this.handleResponse(this.apiClient.fetch('/auth/sign-out', { method: 'POST' }));
   }
 
-  async signUp(data: SignupRequest): Promise<Response> {
-    const response = await this.apiClient.fetch(`/auth/sign-up`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    });
-
-    if (!response.ok) {
-      return await this.#handleBadResponse(response);
-    }
-    return { ok: true };
+  signUp(data: SignupRequest): Promise<Response> {
+    return this.handleResponse(this.json('/auth/sign-up', data));
   }
 
-  async forgotPassword(data: ForgotPasswordRequest): Promise<Response> {
-    const response = await this.apiClient.fetch(`/auth/forgot-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    });
-
-    if (!response.ok) {
-      return await this.#handleBadResponse(response);
-    }
-
-    return { ok: true };
+  forgotPassword(data: ForgotPasswordRequest): Promise<Response> {
+    return this.handleResponse(this.json('/auth/forgot-password', data));
   }
 
-  async resetPassword(data: ResetPasswordRequest): Promise<Response> {
-    const response = await this.apiClient.fetch(`/auth/reset-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    });
-
-    if (!response.ok) {
-      return await this.#handleBadResponse(response);
-    }
-    return { ok: true };
+  resetPassword(data: ResetPasswordRequest): Promise<Response> {
+    return this.handleResponse(this.json('/auth/reset-password', data));
   }
 
-  async resendEmailConfirmation(data: ResendEmailConfirmationRequest): Promise<Response> {
-    const response = await this.apiClient.fetch(`/auth/resend-confirmation-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    });
-
-    if (!response.ok) {
-      return await this.#handleBadResponse(response);
-    }
-    return { ok: true };
+  resendEmailConfirmation(data: ResendEmailConfirmationRequest): Promise<Response> {
+    return this.handleResponse(this.json('/auth/resend-confirmation-email', data));
   }
 }

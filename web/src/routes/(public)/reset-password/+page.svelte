@@ -11,7 +11,7 @@
   } from '$lib/ui/components';
   import { Lock } from 'lucide-svelte';
   import { createForm } from '$lib/ui/_utils/form.svelte';
-  import type { ProblemDetails } from '$lib/core/types/api';
+  import type { ProblemDetails } from '$lib/core/types/app';
   import ResetPasswordModal from '$lib/features/auth/components/ResetPasswordModal.svelte';
   import PasswordStrength from '$lib/features/auth/components/PasswordStrength.svelte';
   import { validatePassword, validatePasswordConfirm } from '$lib/features/auth/validation';

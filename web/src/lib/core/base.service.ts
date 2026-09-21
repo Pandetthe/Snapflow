@@ -1,5 +1,6 @@
 import type { ApiClient } from '$lib/core/types/api';
 import type { Response, ProblemDetails, ValidationProblemDetails } from '$lib/core/types/app';
+import logger from '$lib/logger';
 
 export abstract class BaseService {
   constructor(protected apiClient: ApiClient) {}
@@ -54,14 +55,19 @@ export abstract class BaseService {
         };
       }
 
+      if (response.status >= 500) {
+        logger.error({ status: response.status, problem }, 'Server error');
+      }
+
       return { ok: false, problem, validationProblem };
     } catch (err) {
+      logger.error({ err }, 'Failed to reach the API');
       return {
         ok: false,
         problem: {
-          status: 500,
-          title: 'Network Error',
-          detail: err instanceof Error ? err.message : String(err)
+          status: 503,
+          title: 'Web.ConnectionProblem',
+          detail: 'Problem with connection to the server'
         }
       };
     }

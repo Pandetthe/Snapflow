@@ -1,112 +1,16 @@
 import { triggerHaptic } from './haptics';
 import { errorStore } from '$lib/ui/stores/error.svelte';
-import type {
-  Response as ApiResponse,
-  ProblemDetails as ApiProblemDetails
-} from '$lib/core/types/api';
-import type {
-  Response as HubResponse,
-  ValidationError,
-  ProblemDetails as HubProblemDetails
-} from '$lib/core/types/app';
-import type { AppError } from '$lib/core/types/app';
+import type { AppError, ProblemDetails, Response, ValidationError } from '$lib/core/types/app';
 
 type ValidationErrors<TValues> = Partial<Record<keyof TValues, string>>;
-type FormResponse<T = unknown> = ApiResponse<T> | HubResponse<T>;
-type ValidationErrorShape = Pick<ValidationError, 'propertyName' | 'code' | 'description'>;
 
 export interface FormConfig<TValues extends Record<string, unknown>, TResponse = unknown> {
   initialValues: TValues;
   validate?: (values: TValues) => ValidationErrors<TValues>;
-  onSubmit: (values: TValues) => Promise<FormResponse<TResponse>>;
+  onSubmit: (values: TValues) => Promise<Response<TResponse>>;
   onSuccess?: (response: TResponse) => void;
-  onError?: (problem: ApiProblemDetails) => boolean | void;
-  mapValidationError?: (err: ValidationErrorShape) => ValidationErrorShape;
-}
-
-function getSuccessPayload<TResponse>(response: FormResponse<TResponse>): TResponse {
-  if ('value' in response) {
-    return response.value as TResponse;
-  }
-
-  const rest = { ...response } as Partial<FormResponse<TResponse>>;
-  delete rest.ok;
-  return rest as TResponse;
-}
-
-function isValidationErrorArray(value: unknown): value is ValidationErrorShape[] {
-  return (
-    Array.isArray(value) &&
-    value.every(
-      (item) =>
-        typeof item === 'object' &&
-        item !== null &&
-        'propertyName' in item &&
-        'code' in item &&
-        'description' in item
-    )
-  );
-}
-
-function getHubValidationErrors(response: unknown): ValidationErrorShape[] | null {
-  if (
-    typeof response === 'object' &&
-    response !== null &&
-    'validationProblem' in response &&
-    typeof response.validationProblem === 'object' &&
-    response.validationProblem !== null &&
-    'errors' in response.validationProblem &&
-    isValidationErrorArray(response.validationProblem.errors)
-  ) {
-    return response.validationProblem.errors;
-  }
-
-  return null;
-}
-
-function getApiValidationErrors(response: unknown): ValidationErrorShape[] | null {
-  if (
-    typeof response === 'object' &&
-    response !== null &&
-    'errors' in response &&
-    isValidationErrorArray(response.errors)
-  ) {
-    return response.errors;
-  }
-
-  return null;
-}
-
-function getProblemDetails(response: unknown): ApiProblemDetails | null {
-  if (typeof response !== 'object' || response === null) {
-    return null;
-  }
-
-  if ('problem' in response && typeof response.problem === 'object' && response.problem !== null) {
-    const problem = response.problem as HubProblemDetails;
-    return {
-      type: problem.type ?? null,
-      title: problem.title ?? null,
-      status: problem.status ?? null,
-      detail: problem.detail ?? null,
-      instance: problem.instance ?? null,
-      traceId: ''
-    };
-  }
-
-  if ('title' in response || 'detail' in response || 'status' in response) {
-    const apiProblem = response as Partial<ApiProblemDetails>;
-    return {
-      type: apiProblem.type ?? null,
-      title: apiProblem.title ?? null,
-      status: apiProblem.status ?? null,
-      detail: apiProblem.detail ?? null,
-      instance: apiProblem.instance ?? null,
-      traceId: apiProblem.traceId ?? ''
-    };
-  }
-
-  return null;
+  onError?: (problem: ProblemDetails) => boolean | void;
+  mapValidationError?: (err: ValidationError) => ValidationError;
 }
 
 export function createForm<TValues extends Record<string, unknown>, TResponse = unknown>(
@@ -157,7 +61,7 @@ export function createForm<TValues extends Record<string, unknown>, TResponse = 
     formState.serverErrors[field] = message;
   }
 
-  function handleValidationErrors(validationErrors: ValidationErrorShape[]) {
+  function handleValidationErrors(validationErrors: ValidationError[]) {
     resetErrors();
     if (config.mapValidationError) {
       validationErrors = validationErrors.map(config.mapValidationError);
@@ -206,40 +110,29 @@ export function createForm<TValues extends Record<string, unknown>, TResponse = 
     try {
       const response = await config.onSubmit(formState.values);
 
-      if (!response || !response.ok) {
+      if (!response?.ok) {
         triggerHaptic('error');
 
-        const hubValidationErrors = getHubValidationErrors(response);
+        const validationErrors = response?.validationProblem?.errors;
+        if (validationErrors) {
+          handleValidationErrors(validationErrors);
+          return 'error';
+        }
 
-        if (hubValidationErrors) {
-          handleValidationErrors(hubValidationErrors);
-        } else {
-          const apiValidationErrors = getApiValidationErrors(response);
+        const problem = response?.problem;
+        if (!problem) {
+          errorStore.addError(null, 'Problem with connection to the server');
+          return 'error';
+        }
 
-          if (apiValidationErrors) {
-            handleValidationErrors(apiValidationErrors);
-            return 'error';
-          }
-
-          const problem = getProblemDetails(response);
-
-          if (problem) {
-            const handled = config.onError ? config.onError(problem) : false;
-
-            if (!handled) {
-              errorStore.addError(problem.title ?? null, problem.detail ?? null);
-            }
-          } else {
-            errorStore.addError(null, 'Problem with connection to the server');
-          }
+        if (!config.onError?.(problem)) {
+          errorStore.addError(problem.title ?? null, problem.detail ?? null);
         }
         return 'error';
       }
 
       triggerHaptic('success');
-      if (config.onSuccess) {
-        config.onSuccess(getSuccessPayload(response));
-      }
+      config.onSuccess?.(response.value);
       return 'success';
     } catch (err) {
       triggerHaptic('error');

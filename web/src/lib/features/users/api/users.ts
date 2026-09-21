@@ -1,5 +1,4 @@
-import type { Response as ApiResponseType } from '$lib/core/types/api';
-import type { Response as AppResponse } from '$lib/core/types/app';
+import type { Response } from '$lib/core/types/app';
 import { BaseService } from '$lib/core/base.service';
 import type { RequestEvent, ServerLoadEvent } from '@sveltejs/kit';
 import type { PasskeyJson, PasskeyOptions } from '$lib/features/auth/passkeys';
@@ -52,29 +51,15 @@ export interface ExternalLogin {
 }
 
 export class UsersService extends BaseService {
-  async getMe(event?: RequestEvent | ServerLoadEvent): Promise<ApiResponseType<{ user: User }>> {
-    const response = await this.apiClient.fetch('/me', { method: 'GET' }, event);
-
-    if (!response.ok) {
-      return {
-        ok: false,
-        problem: {
-          status: response.status,
-          title: response.statusText || 'Error',
-          detail: null
-        }
-      } as ApiResponseType<{ user: User }>;
-    }
-
-    const user = (await response.json()) as User;
-    return { ok: true, user };
+  getMe(event?: RequestEvent | ServerLoadEvent): Promise<Response<User>> {
+    return this.handleResponse(this.apiClient.fetch('/me', { method: 'GET' }, event));
   }
 
   async searchUsers(
     name: string,
     excludedIds: number[] = [],
     event?: RequestEvent | ServerLoadEvent
-  ): Promise<AppResponse<SearchUserDto[]>> {
+  ): Promise<Response<SearchUserDto[]>> {
     const params = new URLSearchParams({ name });
 
     for (const excludedId of excludedIds) {
@@ -101,7 +86,7 @@ export class UsersService extends BaseService {
     return { ok: true, value: users };
   }
 
-  async requestEmailChange(body: { newEmail: string }): Promise<AppResponse<void>> {
+  async requestEmailChange(body: { newEmail: string }): Promise<Response<void>> {
     return this.handleResponse(
       this.apiClient.fetch('/me/email', {
         method: 'POST',
@@ -111,7 +96,7 @@ export class UsersService extends BaseService {
     );
   }
 
-  async updateProfile(body: { userName: string }): Promise<AppResponse<void>> {
+  async updateProfile(body: { userName: string }): Promise<Response<void>> {
     return this.handleResponse(
       this.apiClient.fetch('/me', {
         method: 'PATCH',
@@ -124,7 +109,7 @@ export class UsersService extends BaseService {
   async changePassword(body: {
     currentPassword: string;
     newPassword: string;
-  }): Promise<AppResponse<void>> {
+  }): Promise<Response<void>> {
     return this.handleResponse(
       this.apiClient.fetch('/me/password', {
         method: 'PUT',
@@ -136,13 +121,13 @@ export class UsersService extends BaseService {
 
   async getPasswordStatus(
     event?: RequestEvent | ServerLoadEvent
-  ): Promise<AppResponse<{ hasPassword: boolean }>> {
+  ): Promise<Response<{ hasPassword: boolean }>> {
     return this.handleResponse<{ hasPassword: boolean }>(
       this.apiClient.fetch('/me/password', { method: 'GET' }, event)
     );
   }
 
-  async setPassword(body: { newPassword: string }): Promise<AppResponse<void>> {
+  async setPassword(body: { newPassword: string }): Promise<Response<void>> {
     return this.handleResponse(
       this.apiClient.fetch('/me/password', {
         method: 'POST',
@@ -152,27 +137,25 @@ export class UsersService extends BaseService {
     );
   }
 
-  async updateAvatar(formData: FormData): Promise<AppResponse<void>> {
+  async updateAvatar(formData: FormData): Promise<Response<void>> {
     return this.handleResponse(
       this.apiClient.fetch('/me/avatar', { method: 'PUT', body: formData })
     );
   }
 
-  async getTwoFactor(
-    event?: RequestEvent | ServerLoadEvent
-  ): Promise<AppResponse<TwoFactorStatus>> {
+  async getTwoFactor(event?: RequestEvent | ServerLoadEvent): Promise<Response<TwoFactorStatus>> {
     return this.handleResponse<TwoFactorStatus>(
       this.apiClient.fetch('/me/two-factor', { method: 'GET' }, event)
     );
   }
 
-  async setupAuthenticator(): Promise<AppResponse<AuthenticatorSetup>> {
+  async setupAuthenticator(): Promise<Response<AuthenticatorSetup>> {
     return this.handleResponse<AuthenticatorSetup>(
       this.apiClient.fetch('/me/two-factor/authenticator', { method: 'POST' })
     );
   }
 
-  async enableTwoFactor(body: { code: string }): Promise<AppResponse<RecoveryCodesResponse>> {
+  async enableTwoFactor(body: { code: string }): Promise<Response<RecoveryCodesResponse>> {
     return this.handleResponse<RecoveryCodesResponse>(
       this.apiClient.fetch('/me/two-factor/enable', {
         method: 'POST',
@@ -182,10 +165,7 @@ export class UsersService extends BaseService {
     );
   }
 
-  async disableTwoFactor(body: {
-    code?: string;
-    recoveryCode?: string;
-  }): Promise<AppResponse<void>> {
+  async disableTwoFactor(body: { code?: string; recoveryCode?: string }): Promise<Response<void>> {
     return this.handleResponse(
       this.apiClient.fetch('/me/two-factor/disable', {
         method: 'POST',
@@ -195,9 +175,7 @@ export class UsersService extends BaseService {
     );
   }
 
-  async regenerateRecoveryCodes(body: {
-    code: string;
-  }): Promise<AppResponse<RecoveryCodesResponse>> {
+  async regenerateRecoveryCodes(body: { code: string }): Promise<Response<RecoveryCodesResponse>> {
     return this.handleResponse<RecoveryCodesResponse>(
       this.apiClient.fetch('/me/two-factor/recovery-codes', {
         method: 'POST',
@@ -207,13 +185,13 @@ export class UsersService extends BaseService {
     );
   }
 
-  async getPasskeys(event?: RequestEvent | ServerLoadEvent): Promise<AppResponse<Passkey[]>> {
+  async getPasskeys(event?: RequestEvent | ServerLoadEvent): Promise<Response<Passkey[]>> {
     return this.handleResponse<Passkey[]>(
       this.apiClient.fetch('/me/passkeys', { method: 'GET' }, event)
     );
   }
 
-  async createPasskeyOptions(): Promise<AppResponse<PasskeyOptions>> {
+  async createPasskeyOptions(): Promise<Response<PasskeyOptions>> {
     return this.handleResponse<PasskeyOptions>(
       this.apiClient.fetch('/me/passkeys/options', { method: 'POST' })
     );
@@ -223,7 +201,7 @@ export class UsersService extends BaseService {
     credential: PasskeyJson;
     state: string;
     name?: string;
-  }): Promise<AppResponse<Passkey>> {
+  }): Promise<Response<Passkey>> {
     return this.handleResponse<Passkey>(
       this.apiClient.fetch('/me/passkeys', {
         method: 'POST',
@@ -233,7 +211,7 @@ export class UsersService extends BaseService {
     );
   }
 
-  async renamePasskey(id: string, body: { name: string }): Promise<AppResponse<void>> {
+  async renamePasskey(id: string, body: { name: string }): Promise<Response<void>> {
     return this.handleResponse(
       this.apiClient.fetch(`/me/passkeys/${encodeURIComponent(id)}`, {
         method: 'PATCH',
@@ -243,25 +221,25 @@ export class UsersService extends BaseService {
     );
   }
 
-  async removePasskey(id: string): Promise<AppResponse<void>> {
+  async removePasskey(id: string): Promise<Response<void>> {
     return this.handleResponse(
       this.apiClient.fetch(`/me/passkeys/${encodeURIComponent(id)}`, { method: 'DELETE' })
     );
   }
 
-  async getLogins(event?: RequestEvent | ServerLoadEvent): Promise<AppResponse<ExternalLogin[]>> {
+  async getLogins(event?: RequestEvent | ServerLoadEvent): Promise<Response<ExternalLogin[]>> {
     return this.handleResponse<ExternalLogin[]>(
       this.apiClient.fetch('/me/logins', { method: 'GET' }, event)
     );
   }
 
-  async removeLogin(provider: string): Promise<AppResponse<void>> {
+  async removeLogin(provider: string): Promise<Response<void>> {
     return this.handleResponse(
       this.apiClient.fetch(`/me/logins/${encodeURIComponent(provider)}`, { method: 'DELETE' })
     );
   }
 
-  async deleteAccount(): Promise<AppResponse<void>> {
+  async deleteAccount(): Promise<Response<void>> {
     return this.handleResponse(this.apiClient.fetch('/me', { method: 'DELETE' }));
   }
 }

@@ -16,8 +16,8 @@ export const handle: Handle = async ({ event, resolve }) => {
     try {
       const result = await new UsersService(apiClient).getMe(event);
       if (result.ok) {
-        event.locals.user = result.user;
-      } else if ('status' in result && result.status === 401) {
+        event.locals.user = result.value;
+      } else if (result.problem?.status === 401) {
         event.locals.session = null;
         const cookieDomain = privateEnv.COOKIE_DOMAIN || undefined;
         event.cookies.delete('Snapflow.Auth.Cookie', { path: '/', domain: cookieDomain });

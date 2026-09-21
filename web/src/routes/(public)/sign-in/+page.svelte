@@ -3,7 +3,7 @@
   import { onMount } from 'svelte';
   import { authConfig } from '$lib/config/auth';
   import { AuthService } from '$lib/features/auth/api/auth';
-  import type { ProblemDetails } from '$lib/core/types/api';
+  import type { ProblemDetails } from '$lib/core/types/app';
   import { apiClient } from '$lib/core/api.client';
   import {
     Button,
@@ -88,10 +88,6 @@
     showSignInInfo(new URLSearchParams(window.location.search).get('error'));
   });
 
-  function problemOf(response: { ok: false }): ProblemDetails | null {
-    return 'title' in response ? (response as unknown as ProblemDetails) : null;
-  }
-
   function goToBoards() {
     redirecting = true;
     setTimeout(() => {
@@ -109,11 +105,11 @@
     if (!options.ok || controller.signal.aborted) return;
 
     try {
-      const credential = await getPasskey(options.options, {
+      const credential = await getPasskey(options.value.options, {
         autofill: true,
         signal: controller.signal
       });
-      await completePasskeySignIn(credential, options.state);
+      await completePasskeySignIn(credential, options.value.state);
     } catch (error) {
       if (!isPasskeyDismissed(error)) {
         showSignInInfo('Users.Passkeys.NotRecognized');
@@ -135,7 +131,7 @@
     }
 
     passkeyPending = false;
-    const problem = problemOf(response);
+    const problem = response.problem;
     if (!showSignInInfo(problem?.title)) {
       errorStore.addError(
         problem?.title ?? null,
@@ -154,7 +150,7 @@
       const options = await authService.passkeySignInOptions();
       if (!options.ok) {
         passkeyPending = false;
-        const problem = problemOf(options);
+        const problem = options.problem;
         if (!showSignInInfo(problem?.title)) {
           errorStore.addError(
             problem?.title ?? null,
@@ -164,8 +160,8 @@
         return;
       }
 
-      const credential = await getPasskey(options.options);
-      await completePasskeySignIn(credential, options.state);
+      const credential = await getPasskey(options.value.options);
+      await completePasskeySignIn(credential, options.value.state);
     } catch (error) {
       passkeyPending = false;
       if (!isPasskeyDismissed(error)) {
@@ -175,8 +171,7 @@
     }
   }
 
-  function showTwoFactorPasskeyProblem(response: { ok: false }) {
-    const problem = problemOf(response);
+  function showTwoFactorPasskeyProblem(problem: ProblemDetails | undefined) {
     if (
       problem?.title === 'Users.Passkeys.NotRecognized' ||
       problem?.title === 'Users.Passkeys.Expired'
@@ -204,14 +199,14 @@
       const options = await authService.twoFactorPasskeyOptions();
       if (!options.ok) {
         twoFactorPasskeyPending = false;
-        showTwoFactorPasskeyProblem(options);
+        showTwoFactorPasskeyProblem(options.problem);
         return;
       }
 
-      const credential = await getPasskey(options.options);
+      const credential = await getPasskey(options.value.options);
       const response = await authService.twoFactorSignIn({
         passkeyCredential: credential,
-        passkeyState: options.state,
+        passkeyState: options.value.state,
         rememberMe: form.values.rememberMe,
         rememberDevice: twoFactorForm.values.rememberDevice
       });
@@ -222,7 +217,7 @@
       }
 
       twoFactorPasskeyPending = false;
-      showTwoFactorPasskeyProblem(response);
+      showTwoFactorPasskeyProblem(response.problem);
     } catch (error) {
       twoFactorPasskeyPending = false;
       if (!isPasskeyDismissed(error)) {
