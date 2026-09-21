@@ -355,8 +355,10 @@
     <ScrollArea.Viewport class="flex min-h-0 w-full flex-1 flex-col rounded-[inherit]">
       <div class="flex min-h-0 flex-1 px-3 py-3">
         <!--
-          The drop area reaches under "Add list" via padding cancelled by a negative margin, so dropping
-          right after the last list (or into an empty swimlane) is easy to hit without changing the layout.
+          The drop area reaches under "Add list" so dropping right after the last list is easy to hit; how it
+          does that, and how it spans the swimlane while it holds the only slot, is in styles/board-dnd.css.
+          Neither may be a class that changes here: the library adds .board-drop-target to this element, and
+          Svelte rewriting the class attribute would wipe it, along with everything that class drives.
         -->
         <section
           use:boardZone={{
@@ -381,9 +383,7 @@
           data-empty={swimlane.lists.length === 0 || undefined}
           data-receiving={receivingList || undefined}
           data-fill={fillsSwimlane || undefined}
-          class="flex min-h-9 items-stretch gap-3 self-stretch {fillsSwimlane
-            ? '-mr-[100%] w-full'
-            : '-mr-28 pr-28'}"
+          class="flex min-h-9 items-stretch gap-3 self-stretch"
         >
           {#each swimlane.lists as list, index (list.id)}
             <div

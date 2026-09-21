@@ -363,10 +363,24 @@ section[data-board-zone] {
 */
 section[data-board-zone='lists'] {
   interpolate-size: allow-keywords;
+  /* Reaches under "Add list" via padding cancelled by a negative margin, without changing the layout */
+  margin-right: -7rem;
+  padding-right: 7rem;
   transition:
     height 280ms var(--ease-flow),
     min-height 280ms var(--ease-flow),
     flex-grow 0s 150ms;
+}
+
+/*
+  A zone holding nothing but the drop slot spans its swimlane. It keeps that width while a list hovers it:
+  shrinking to the slot would move the zone out from under the cursor, dropping the slot and growing back
+  in a loop.
+*/
+section[data-board-zone='lists'][data-fill] {
+  width: 100%;
+  margin-right: -100%;
+  padding-right: 0;
 }
 
 section[data-board-zone='lists'].board-drop-target {
