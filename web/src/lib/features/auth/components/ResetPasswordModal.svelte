@@ -22,8 +22,10 @@
     mobileMode?: 'modal' | 'drawer';
     desktopPlacement?: 'center' | 'trigger';
     mobilePlacement?: 'center' | 'trigger';
-    desktopAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
-    mobileAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    desktopAnimation?:
+      'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    mobileAnimation?:
+      'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
     mobileDrawerSide?: 'top' | 'right' | 'bottom' | 'left';
     triggerElement?: HTMLElement | null;
   }>();
@@ -39,7 +41,8 @@
   > = {
     success: {
       title: 'Password reset successful!',
-      message: 'Your password has been successfully updated. You can now sign in with your new password.',
+      message:
+        'Your password has been successfully updated. You can now sign in with your new password.',
       icon: Check,
       tone: 'success'
     },

@@ -90,16 +90,12 @@
           <LeftIcon size={18} />
         </span>
       {:else}
-        <div
-          class="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400 transition-colors"
-        >
+        <div class="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400 transition-colors">
           <LeftIcon size={18} />
         </div>
       {/if}
     {:else if type === 'search'}
-      <div
-        class="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400 transition-colors"
-      >
+      <div class="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400 transition-colors">
         <Search size={18} />
       </div>
     {/if}
@@ -121,8 +117,8 @@
           ? 'border-error-500 text-gray-800 placeholder:text-gray-400 hover:border-error-500 hover:bg-error-50/30 dark:border-error-500 dark:bg-transparent dark:text-white/90 dark:placeholder:text-white/30 dark:hover:border-error-500 dark:hover:bg-error-500/10'
           : 'border-gray-300 text-gray-800 placeholder:text-gray-400 hover:border-brand-500 hover:bg-black/3 dark:border-gray-700 dark:bg-transparent dark:text-white/90 dark:placeholder:text-white/30 dark:hover:border-brand-500 dark:hover:bg-white/6',
         hasError
-          ? 'focus-visible:border-transparent dark:focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-error-500 focus-visible:outline-offset-2'
-          : 'focus-visible:border-transparent dark:focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2',
+          ? 'focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error-500 dark:focus-visible:border-transparent'
+          : 'focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:focus-visible:border-transparent',
         'disabled:cursor-not-allowed disabled:bg-gray-50/50 disabled:opacity-80 dark:disabled:bg-gray-900/50',
         isReadonly &&
           !isDisabled &&
@@ -141,14 +137,14 @@
       <button
         type="button"
         class={cn(
-          'absolute top-1/2 right-4 -translate-y-1/2 transition-all duration-200 flex items-center justify-center',
-          'h-11 w-11 min-w-11 min-h-11 rounded-lg outline-none',
-          'focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2',
+          'absolute top-1/2 right-4 flex -translate-y-1/2 items-center justify-center transition-all duration-200',
+          'h-11 min-h-11 w-11 min-w-11 rounded-lg outline-none',
+          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500',
           isDisabled || isReadonly
             ? 'cursor-not-allowed text-gray-400 dark:text-gray-600'
             : hasError
               ? 'cursor-pointer text-error-500 hover:text-error-600 focus-visible:ring-error-500 dark:text-error-400 dark:hover:text-error-300'
-              : 'cursor-pointer text-gray-500 hover:text-brand-500 active:scale-95 group-focus-within:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 dark:group-focus-within:text-brand-500'
+              : 'cursor-pointer text-gray-500 group-focus-within:text-brand-500 hover:text-brand-500 active:scale-95 dark:text-gray-400 dark:group-focus-within:text-brand-500 dark:hover:text-brand-400'
         )}
         onclick={() => (showPassword = !showPassword)}
         aria-label={showPassword ? 'Hide password' : 'Show password'}
@@ -164,9 +160,7 @@
       <span
         class={cn(
           'absolute top-1/2 right-4 -translate-y-1/2 transition-colors',
-          hasError
-            ? 'text-error-500 dark:text-error-400'
-            : 'text-gray-500 dark:text-gray-400'
+          hasError ? 'text-error-500 dark:text-error-400' : 'text-gray-500 dark:text-gray-400'
         )}
       >
         {#if isLoading}
@@ -180,7 +174,10 @@
 
   {#if helperText && !hasError}
     <div transition:slide={slideReveal}>
-      <span id={helperTextId} class={cn("text-xs text-gray-600 dark:text-gray-400", helperTextClass)}>
+      <span
+        id={helperTextId}
+        class={cn('text-xs text-gray-600 dark:text-gray-400', helperTextClass)}
+      >
         {helperText}
       </span>
     </div>
@@ -194,10 +191,10 @@
 </div>
 
 <style>
-  input[type="search"]::-webkit-search-decoration,
-  input[type="search"]::-webkit-search-cancel-button,
-  input[type="search"]::-webkit-search-results-button,
-  input[type="search"]::-webkit-search-results-decoration {
+  input[type='search']::-webkit-search-decoration,
+  input[type='search']::-webkit-search-cancel-button,
+  input[type='search']::-webkit-search-results-button,
+  input[type='search']::-webkit-search-results-decoration {
     display: none;
   }
 </style>

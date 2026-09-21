@@ -18,8 +18,10 @@
     mobileMode?: 'modal' | 'drawer';
     desktopPlacement?: 'center' | 'trigger';
     mobilePlacement?: 'center' | 'trigger';
-    desktopAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
-    mobileAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    desktopAnimation?:
+      'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    mobileAnimation?:
+      'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
     mobileDrawerSide?: 'top' | 'right' | 'bottom' | 'left';
     triggerElement?: HTMLElement | null;
   }>();

@@ -2,13 +2,23 @@
   import { authConfig } from '$lib/config/auth';
   import { AuthService } from '$lib/features/auth/api/auth';
   import { apiClient } from '$lib/core/api.client';
-  import { Button as AppButton, GoBackButton, InputTextField, SplitLayout } from '$lib/ui/components';
+  import {
+    Button as AppButton,
+    GoBackButton,
+    InputTextField,
+    SplitLayout
+  } from '$lib/ui/components';
   import { Mail, Lock, User } from 'lucide-svelte';
   import { createForm } from '$lib/ui/_utils/form.svelte';
   import SignUpModal from '$lib/features/auth/components/SignUpModal.svelte';
   import ExternalProviderButtons from '$lib/features/auth/components/ExternalProviderButtons.svelte';
   import PasswordStrength from '$lib/features/auth/components/PasswordStrength.svelte';
-  import { validateEmail, validateUsername, validatePassword, validatePasswordConfirm } from '$lib/features/auth/validation';
+  import {
+    validateEmail,
+    validateUsername,
+    validatePassword,
+    validatePasswordConfirm
+  } from '$lib/features/auth/validation';
 
   const authService = new AuthService(apiClient);
 
@@ -61,9 +71,7 @@
 
 <SplitLayout>
   {#snippet header()}
-    <GoBackButton
-      href="/"
-    />
+    <GoBackButton href="/" />
   {/snippet}
 
   <div class="mb-3 sm:mb-8">
@@ -82,83 +90,83 @@
   {/if}
 
   {#if auth.passwordSignIn}
-  <form onsubmit={form.handleSubmit} novalidate class="space-y-5">
-    <InputTextField
-      id="email"
-      name="email"
-      type="email"
-      label="Email address"
-      placeholder="Enter your email"
-      autocomplete="username"
-      bind:value={form.values.email}
-      error={form.errors.email}
-      leftIcon={Mail}
-      maxlength={authConfig.email.maxLength}
-    />
-
-    <InputTextField
-      id="username"
-      name="username"
-      type="text"
-      label="User name"
-      placeholder="Choose a username"
-      autocomplete="nickname"
-      bind:value={form.values.userName}
-      error={form.errors.userName}
-      leftIcon={User}
-      minlength={authConfig.userName.minLength}
-      maxlength={authConfig.userName.maxLength}
-    />
-
-    <div class="space-y-2">
+    <form onsubmit={form.handleSubmit} novalidate class="space-y-5">
       <InputTextField
-        id="password"
-        name="password"
-        type="password"
-        label="Password"
-        placeholder="Create a password"
-        autocomplete="new-password"
-        bind:value={form.values.password}
-        error={form.errors.password}
-        leftIcon={Lock}
-        showPasswordToggle={true}
-        minlength={authConfig.password.minLength}
-        maxlength={authConfig.password.maxLength}
+        id="email"
+        name="email"
+        type="email"
+        label="Email address"
+        placeholder="Enter your email"
+        autocomplete="username"
+        bind:value={form.values.email}
+        error={form.errors.email}
+        leftIcon={Mail}
+        maxlength={authConfig.email.maxLength}
       />
 
-      <PasswordStrength password={form.values.password} />
-    </div>
+      <InputTextField
+        id="username"
+        name="username"
+        type="text"
+        label="User name"
+        placeholder="Choose a username"
+        autocomplete="nickname"
+        bind:value={form.values.userName}
+        error={form.errors.userName}
+        leftIcon={User}
+        minlength={authConfig.userName.minLength}
+        maxlength={authConfig.userName.maxLength}
+      />
 
-    <InputTextField
-      id="repeatPassword"
-      name="repeatPassword"
-      type="password"
-      label="Confirm password"
-      placeholder="Confirm your password"
-      autocomplete="new-password"
-      bind:value={form.values.repeatPassword}
-      leftIcon={Lock}
-      showPasswordToggle={true}
-      error={form.errors.repeatPassword}
-      helperText={passwordsMatch && !form.errors.repeatPassword ? 'Passwords match' : undefined}
-      helperTextClass="text-green-600 dark:text-green-400"
-    />
+      <div class="space-y-2">
+        <InputTextField
+          id="password"
+          name="password"
+          type="password"
+          label="Password"
+          placeholder="Create a password"
+          autocomplete="new-password"
+          bind:value={form.values.password}
+          error={form.errors.password}
+          leftIcon={Lock}
+          showPasswordToggle={true}
+          minlength={authConfig.password.minLength}
+          maxlength={authConfig.password.maxLength}
+        />
 
-    <AppButton
-      type="submit"
-      disabled={form.isSubmitting ||
-        !form.values.email ||
-        !form.values.userName ||
-        !form.values.password ||
-        !form.values.repeatPassword ||
-        form.values.password !== form.values.repeatPassword}
-      class="w-full justify-center"
-      isLoading={form.isSubmitting}
-      loadingText="Creating account"
-    >
-      Create account
-    </AppButton>
-  </form>
+        <PasswordStrength password={form.values.password} />
+      </div>
+
+      <InputTextField
+        id="repeatPassword"
+        name="repeatPassword"
+        type="password"
+        label="Confirm password"
+        placeholder="Confirm your password"
+        autocomplete="new-password"
+        bind:value={form.values.repeatPassword}
+        leftIcon={Lock}
+        showPasswordToggle={true}
+        error={form.errors.repeatPassword}
+        helperText={passwordsMatch && !form.errors.repeatPassword ? 'Passwords match' : undefined}
+        helperTextClass="text-green-600 dark:text-green-400"
+      />
+
+      <AppButton
+        type="submit"
+        disabled={form.isSubmitting ||
+          !form.values.email ||
+          !form.values.userName ||
+          !form.values.password ||
+          !form.values.repeatPassword ||
+          form.values.password !== form.values.repeatPassword}
+        class="w-full justify-center"
+        isLoading={form.isSubmitting}
+        loadingText="Creating account"
+      >
+        Create account
+      </AppButton>
+    </form>
   {:else if !offerProviders}
     <p class="text-sm text-gray-600 dark:text-gray-300">
       New accounts cannot be created here. Sign in with your organization's account instead.
@@ -170,7 +178,7 @@
       Already have an account?
       <a
         href="/sign-in"
-        class="rounded-sm text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 dark:text-brand-400 dark:hover:text-brand-500"
+        class="rounded-sm text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-brand-400 dark:hover:text-brand-500"
       >
         Sign in
       </a>

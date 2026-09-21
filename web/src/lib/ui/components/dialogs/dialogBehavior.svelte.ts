@@ -4,7 +4,8 @@ export type DialogMode = 'modal' | 'drawer';
 export type DialogPlacement = 'center' | 'trigger';
 export type DialogSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 export type DrawerSide = 'top' | 'right' | 'bottom' | 'left';
-export type DialogAnimation = 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+export type DialogAnimation =
+  'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
 
 /** Drawer snapping back or sliding away after a drag, with the app's ease-flow curve. */
 const DRAG_SETTLE_MS = 280;
@@ -45,7 +46,11 @@ const ENTER =
 const EXIT =
   'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:duration-200 data-[state=closed]:ease-in';
 
-function getAnimationClasses(animation: DialogAnimation, mode: DialogMode, drawerSide: DrawerSide): string {
+function getAnimationClasses(
+  animation: DialogAnimation,
+  mode: DialogMode,
+  drawerSide: DrawerSide
+): string {
   if (animation === 'none') return '';
 
   // A drawer travels in from its edge, whatever animation was picked for the modal form.
@@ -183,7 +188,10 @@ export class DialogBehavior {
         ? this.useTriggerPosition
           ? 'translate-x-0 translate-y-0 rounded-2xl p-5 sm:p-6'
           : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl p-5 sm:p-6'
-        : cn('w-full max-w-none p-6 pb-12 sm:p-8 sm:pb-14', getDrawerSideClasses(this.activeDrawerSide)),
+        : cn(
+            'w-full max-w-none p-6 pb-12 sm:p-8 sm:pb-14',
+            getDrawerSideClasses(this.activeDrawerSide)
+          ),
       this.contentClass
     );
   }

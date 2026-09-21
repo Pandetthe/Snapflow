@@ -301,7 +301,9 @@
                 {part}
                 class={cn(
                   'rounded-md px-1 py-0.5 text-sm text-gray-800 transition-colors focus:bg-black/5 focus-visible:ring-1 focus-visible:outline-none aria-[valuetext=Empty]:text-gray-400 data-invalid:text-error-500 dark:text-white/90 dark:focus:bg-white/10 dark:aria-[valuetext=Empty]:text-white/30',
-                  hasError ? 'focus-visible:ring-error-500 dark:focus-visible:ring-error-500' : 'focus-visible:ring-brand-500 dark:focus-visible:ring-brand-500',
+                  hasError
+                    ? 'focus-visible:ring-error-500 dark:focus-visible:ring-error-500'
+                    : 'focus-visible:ring-brand-500 dark:focus-visible:ring-brand-500',
                   !isReadonly && 'cursor-text hover:bg-black/5 dark:hover:bg-white/10',
                   isReadonly && 'cursor-default'
                 )}
@@ -325,9 +327,10 @@
                   hasError
                     ? 'text-error-500 focus-visible:ring-error-500'
                     : 'text-gray-500 focus-visible:ring-brand-500 dark:text-gray-400',
-                  !isTriggerDisabled && (hasError
-                    ? 'cursor-pointer hover:text-error-600 active:scale-95 dark:hover:text-error-300'
-                    : 'cursor-pointer hover:text-brand-500 active:scale-95 dark:hover:text-brand-400'),
+                  !isTriggerDisabled &&
+                    (hasError
+                      ? 'cursor-pointer hover:text-error-600 active:scale-95 dark:hover:text-error-300'
+                      : 'cursor-pointer hover:text-brand-500 active:scale-95 dark:hover:text-brand-400'),
                   isTriggerDisabled && 'cursor-not-allowed opacity-50'
                 )}
                 onclick={clearDate}
@@ -511,13 +514,18 @@
 
   {#if helperText && !hasError}
     <div transition:slide={slideReveal}>
-      <span id={helperTextId} class={cn("text-xs text-gray-500 dark:text-gray-400", helperTextClass)}>
+      <span
+        id={helperTextId}
+        class={cn('text-xs text-gray-500 dark:text-gray-400', helperTextClass)}
+      >
         {helperText}
       </span>
-    </div>  {/if}
+    </div>
+  {/if}
 
   {#if hasError}
     <div transition:slide={slideReveal}>
       <span id={errorTextId} class="text-xs font-medium text-error-500">{errorText}</span>
-    </div>  {/if}
+    </div>
+  {/if}
 </div>

@@ -44,7 +44,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     "font-src 'self' https://fonts.gstatic.com",
     // Card descriptions show images from any web address and YouTube videos in the privacy-enhanced player.
     `img-src 'self' data: https: ${apiCspUrl}`,
-    "frame-src https://www.youtube-nocookie.com",
+    'frame-src https://www.youtube-nocookie.com',
     "object-src 'none'"
   ].join('; ');
 

@@ -26,10 +26,13 @@
 </script>
 
 {#if password}
-  <div transition:slide={slideReveal} class="mt-2 animate-in fade-in duration-200">
+  <div transition:slide={slideReveal} class="mt-2 duration-200 animate-in fade-in">
     <div class="mb-1.5">
       <div class="mb-1 flex items-center justify-between">
-        <span class="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-bold">Strength</span>
+        <span
+          class="text-[10px] font-bold tracking-wider text-gray-500 uppercase dark:text-gray-400"
+          >Strength</span
+        >
         <span
           class="text-xs font-bold {passwordStrength < 40
             ? 'text-red-500'
@@ -40,7 +43,7 @@
           {passwordStrengthText}
         </span>
       </div>
-      <div class="h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+      <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
         <div
           class="h-full rounded-full transition-all duration-500 {passwordStrength < 40
             ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]'
@@ -52,22 +55,31 @@
       </div>
     </div>
 
-    <div class="rounded-xl border border-gray-100 bg-gray-50/50 p-3 dark:border-gray-800 dark:bg-white/5">
+    <div
+      class="rounded-xl border border-gray-100 bg-gray-50/50 p-3 dark:border-gray-800 dark:bg-white/5"
+    >
       <ul class="grid grid-cols-1 gap-x-3 gap-y-1.5 sm:grid-cols-2">
-        {#each [
-          { met: passwordRequirements.length, text: `Min. ${authConfig.password.minLength} chars` },
-          { met: passwordRequirements.lowercase, text: 'Lowercase', hide: !authConfig.password.requireLowercase },
-          { met: passwordRequirements.uppercase, text: 'Uppercase', hide: !authConfig.password.requireUppercase },
-          { met: passwordRequirements.digit, text: 'Number', hide: !authConfig.password.requireDigit },
-          { met: passwordRequirements.nonAlphanumeric, text: 'Special', hide: !authConfig.password.requireNonAlphanumeric }
-        ].filter(r => !r.hide) as req}
+        {#each [{ met: passwordRequirements.length, text: `Min. ${authConfig.password.minLength} chars` }, { met: passwordRequirements.lowercase, text: 'Lowercase', hide: !authConfig.password.requireLowercase }, { met: passwordRequirements.uppercase, text: 'Uppercase', hide: !authConfig.password.requireUppercase }, { met: passwordRequirements.digit, text: 'Number', hide: !authConfig.password.requireDigit }, { met: passwordRequirements.nonAlphanumeric, text: 'Special', hide: !authConfig.password.requireNonAlphanumeric }].filter((r) => !r.hide) as req}
           <li class="flex items-center gap-1.5 text-[11px]">
-            <div class="flex h-3.5 w-3.5 items-center justify-center rounded-full {req.met ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-400'}">
+            <div
+              class="flex h-3.5 w-3.5 items-center justify-center rounded-full {req.met
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-200 text-gray-400 dark:bg-gray-700'}"
+            >
               <svg class="h-2 w-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
-            <span class={req.met ? 'text-gray-700 dark:text-gray-300 font-medium' : 'text-gray-400 dark:text-gray-500'}>
+            <span
+              class={req.met
+                ? 'font-medium text-gray-700 dark:text-gray-300'
+                : 'text-gray-400 dark:text-gray-500'}
+            >
               {req.text}
             </span>
           </li>

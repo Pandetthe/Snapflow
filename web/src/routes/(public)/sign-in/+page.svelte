@@ -136,7 +136,10 @@
     passkeyPending = false;
     const problem = problemOf(response);
     if (!showSignInInfo(problem?.title)) {
-      errorStore.addError(problem?.title ?? null, problem?.detail ?? 'Signing in with a passkey failed.');
+      errorStore.addError(
+        problem?.title ?? null,
+        problem?.detail ?? 'Signing in with a passkey failed.'
+      );
     }
     startPasskeyAutofill();
   }
@@ -152,7 +155,10 @@
         passkeyPending = false;
         const problem = problemOf(options);
         if (!showSignInInfo(problem?.title)) {
-          errorStore.addError(problem?.title ?? null, problem?.detail ?? 'Signing in with a passkey failed.');
+          errorStore.addError(
+            problem?.title ?? null,
+            problem?.detail ?? 'Signing in with a passkey failed.'
+          );
         }
         return;
       }
@@ -170,7 +176,10 @@
 
   function showTwoFactorPasskeyProblem(response: { ok: false }) {
     const problem = problemOf(response);
-    if (problem?.title === 'Users.Passkeys.NotRecognized' || problem?.title === 'Users.Passkeys.Expired') {
+    if (
+      problem?.title === 'Users.Passkeys.NotRecognized' ||
+      problem?.title === 'Users.Passkeys.Expired'
+    ) {
       twoFactorCodeError = 'The passkey could not be used. Try again or enter a code.';
       return;
     }
@@ -178,7 +187,10 @@
       leaveTwoFactorStep();
     }
     if (!showSignInInfo(problem?.title)) {
-      errorStore.addError(problem?.title ?? null, problem?.detail ?? 'Signing in with a passkey failed.');
+      errorStore.addError(
+        problem?.title ?? null,
+        problem?.detail ?? 'Signing in with a passkey failed.'
+      );
     }
   }
 
@@ -332,9 +344,7 @@
 
 <SplitLayout>
   {#snippet header()}
-    <GoBackButton
-      href="/"
-    />
+    <GoBackButton href="/" />
   {/snippet}
 
   <div class="mb-3 sm:mb-8">
@@ -425,14 +435,14 @@
       <div class="flex items-center justify-between gap-4 text-sm">
         <button
           type="button"
-          class="rounded-sm text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 dark:text-brand-400 dark:hover:text-brand-500"
+          class="rounded-sm text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-brand-400 dark:hover:text-brand-500"
           onclick={toggleRecoveryCode}
         >
           {useRecoveryCode ? 'Use the authenticator app' : 'Use a recovery code'}
         </button>
         <button
           type="button"
-          class="rounded-sm text-gray-500 underline underline-offset-2 transition-all duration-200 hover:text-gray-700 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 dark:text-gray-400 dark:hover:text-gray-200"
+          class="rounded-sm text-gray-500 underline underline-offset-2 transition-all duration-200 hover:text-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-gray-400 dark:hover:text-gray-200"
           onclick={leaveTwoFactorStep}
         >
           Back to sign in
@@ -440,101 +450,101 @@
       </div>
     </form>
   {:else}
-  {#if auth.providers.length > 0}
-    <ExternalProviderButtons
-      providers={auth.providers}
-      rememberMe={form.values.rememberMe}
-      action="Sign in"
-      showDivider={showForm}
-    />
-    {#if !showForm}
-      <div class="mt-5">
-        <Checkbox bind:checked={form.values.rememberMe} label="Keep me logged in" />
-      </div>
+    {#if auth.providers.length > 0}
+      <ExternalProviderButtons
+        providers={auth.providers}
+        rememberMe={form.values.rememberMe}
+        action="Sign in"
+        showDivider={showForm}
+      />
+      {#if !showForm}
+        <div class="mt-5">
+          <Checkbox bind:checked={form.values.rememberMe} label="Keep me logged in" />
+        </div>
+      {/if}
     {/if}
-  {/if}
 
-  {#if showForm}
-    {#if auth.passwordSignIn && auth.ldap}
-      <SegmentedControl
-        class="mb-5"
-        options={[
-          { value: 'ldap', label: auth.ldap.displayName },
-          { value: 'email', label: 'Email' }
-        ]}
-        bind:value={signInMethod}
-        onValueChange={() => (form.errors.email = undefined)}
-      />
-    {/if}
-    <form onsubmit={form.handleSubmit} novalidate class="space-y-5">
-      <InputTextField
-        id="email"
-        name={ldapMode ? 'username' : 'email'}
-        type={ldapMode ? 'text' : 'email'}
-        label={ldapMode ? 'User name' : 'Email'}
-        placeholder={ldapMode ? 'Enter your user name' : 'info@example.com'}
-        autocomplete={ldapMode ? 'username' : 'username webauthn'}
-        bind:value={form.values.email}
-        error={form.errors.email}
-        leftIcon={ldapMode ? User : Mail}
-        maxlength={authConfig.email.maxLength}
-      />
-
-      <InputTextField
-        id="password"
-        name="password"
-        type="password"
-        label="Password"
-        placeholder="Enter your password"
-        autocomplete="current-password"
-        bind:value={form.values.password}
-        error={form.errors.password}
-        leftIcon={Lock}
-        showPasswordToggle={true}
-      />
-      <div class="flex items-center justify-between">
-        <Checkbox
-          bind:checked={form.values.rememberMe}
-          error={form.errors.rememberMe}
-          label="Keep me logged in"
+    {#if showForm}
+      {#if auth.passwordSignIn && auth.ldap}
+        <SegmentedControl
+          class="mb-5"
+          options={[
+            { value: 'ldap', label: auth.ldap.displayName },
+            { value: 'email', label: 'Email' }
+          ]}
+          bind:value={signInMethod}
+          onValueChange={() => (form.errors.email = undefined)}
         />
-        {#if !ldapMode}
-          <a
-            href="/forgot-password"
-            class="rounded-sm text-sm whitespace-nowrap text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 dark:text-brand-400 dark:hover:text-brand-500"
-          >
-            Forgot password?
-          </a>
-        {/if}
-      </div>
-      <Button
-        type="submit"
-        variant="primary"
-        size="md"
-        class="w-full justify-center"
-        disabled={!form.values.email || !form.values.password || form.isSubmitting}
-        isLoading={form.isSubmitting}
-        loadingText="Signing in"
-      >
-        Sign in
-      </Button>
-    </form>
-  {/if}
+      {/if}
+      <form onsubmit={form.handleSubmit} novalidate class="space-y-5">
+        <InputTextField
+          id="email"
+          name={ldapMode ? 'username' : 'email'}
+          type={ldapMode ? 'text' : 'email'}
+          label={ldapMode ? 'User name' : 'Email'}
+          placeholder={ldapMode ? 'Enter your user name' : 'info@example.com'}
+          autocomplete={ldapMode ? 'username' : 'username webauthn'}
+          bind:value={form.values.email}
+          error={form.errors.email}
+          leftIcon={ldapMode ? User : Mail}
+          maxlength={authConfig.email.maxLength}
+        />
 
-  {#if auth.passwordSignIn && passkeySupported}
-    <Button
-      variant="outline"
-      size="md"
-      class="mt-3 w-full justify-center"
-      startIcon={Fingerprint}
-      disabled={passkeyPending}
-      isLoading={passkeyPending}
-      loadingText="Signing in"
-      onclick={signInWithPasskey}
-    >
-      Sign in with a passkey
-    </Button>
-  {/if}
+        <InputTextField
+          id="password"
+          name="password"
+          type="password"
+          label="Password"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          bind:value={form.values.password}
+          error={form.errors.password}
+          leftIcon={Lock}
+          showPasswordToggle={true}
+        />
+        <div class="flex items-center justify-between">
+          <Checkbox
+            bind:checked={form.values.rememberMe}
+            error={form.errors.rememberMe}
+            label="Keep me logged in"
+          />
+          {#if !ldapMode}
+            <a
+              href="/forgot-password"
+              class="rounded-sm text-sm whitespace-nowrap text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-brand-400 dark:hover:text-brand-500"
+            >
+              Forgot password?
+            </a>
+          {/if}
+        </div>
+        <Button
+          type="submit"
+          variant="primary"
+          size="md"
+          class="w-full justify-center"
+          disabled={!form.values.email || !form.values.password || form.isSubmitting}
+          isLoading={form.isSubmitting}
+          loadingText="Signing in"
+        >
+          Sign in
+        </Button>
+      </form>
+    {/if}
+
+    {#if auth.passwordSignIn && passkeySupported}
+      <Button
+        variant="outline"
+        size="md"
+        class="mt-3 w-full justify-center"
+        startIcon={Fingerprint}
+        disabled={passkeyPending}
+        isLoading={passkeyPending}
+        loadingText="Signing in"
+        onclick={signInWithPasskey}
+      >
+        Sign in with a passkey
+      </Button>
+    {/if}
   {/if}
 
   {#snippet footer()}
@@ -543,7 +553,7 @@
         Don't have an account?
         <a
           href="/sign-up"
-          class="rounded-sm text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 dark:text-brand-400 dark:hover:text-brand-500"
+          class="rounded-sm text-brand-500 underline underline-offset-2 transition-all duration-200 hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-brand-400 dark:hover:text-brand-500"
         >
           Sign up
         </a>

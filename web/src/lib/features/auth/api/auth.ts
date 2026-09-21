@@ -111,7 +111,8 @@ export class AuthService {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
-      });
+      }
+    );
 
     if (!response.ok) {
       return await this.#handleBadResponse(response);
@@ -142,7 +143,8 @@ export class AuthService {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
-      });
+      }
+    );
 
     if (!response.ok) {
       return await this.#handleBadResponse(response);
@@ -160,7 +162,8 @@ export class AuthService {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
-      });
+      }
+    );
 
     if (!response.ok) {
       return await this.#handleBadResponse(response);
@@ -204,7 +207,8 @@ export class AuthService {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
-      });
+      }
+    );
 
     if (!response.ok) {
       return await this.#handleBadResponse(response);

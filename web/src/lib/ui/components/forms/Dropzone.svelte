@@ -228,8 +228,8 @@
         ? 'border-error-500 bg-transparent hover:border-error-500 hover:bg-error-50/30 dark:border-error-500 dark:hover:border-error-500 dark:hover:bg-error-500/10'
         : 'border-gray-300 bg-transparent hover:border-brand-500 hover:bg-black/3 dark:border-gray-700 dark:hover:border-brand-500 dark:hover:bg-white/6',
       hasError
-        ? 'focus-visible:border-transparent dark:focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-error-500 focus-visible:outline-offset-2'
-        : 'focus-visible:border-transparent dark:focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2',
+        ? 'focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error-500 dark:focus-visible:border-transparent'
+        : 'focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:focus-visible:border-transparent',
       isDragActive && 'border-brand-500 bg-brand-50/40 dark:bg-brand-500/10',
       hasError && isDragActive && 'border-error-500 bg-error-50/40 dark:bg-error-500/10',
       isReadonly && !isDisabled && 'cursor-default',

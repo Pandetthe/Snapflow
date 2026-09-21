@@ -33,13 +33,25 @@ export abstract class BaseService {
               problem = data;
             }
           } else {
-            problem = { status: response.status, title: response.statusText || 'Error', detail: body.trim() };
+            problem = {
+              status: response.status,
+              title: response.statusText || 'Error',
+              detail: body.trim()
+            };
           }
         } else {
-          problem = { status: response.status, title: response.statusText || 'Error', detail: null };
+          problem = {
+            status: response.status,
+            title: response.statusText || 'Error',
+            detail: null
+          };
         }
       } catch {
-        problem = { status: response.status, title: response.statusText || 'Error', detail: 'Failed to parse error response' };
+        problem = {
+          status: response.status,
+          title: response.statusText || 'Error',
+          detail: 'Failed to parse error response'
+        };
       }
 
       return { ok: false, problem, validationProblem };

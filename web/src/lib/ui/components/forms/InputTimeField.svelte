@@ -351,7 +351,10 @@
 
   {#if helperText && !hasError}
     <div transition:slide={slideReveal}>
-      <span id={helperTextId} class={cn("text-xs text-gray-500 dark:text-gray-400", helperTextClass)}>
+      <span
+        id={helperTextId}
+        class={cn('text-xs text-gray-500 dark:text-gray-400', helperTextClass)}
+      >
         {helperText}
       </span>
     </div>

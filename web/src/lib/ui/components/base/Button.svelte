@@ -17,7 +17,7 @@
     class?: string;
     id?: string;
     href?: string;
-    type?: "button" | "submit" | "reset";
+    type?: 'button' | 'submit' | 'reset';
     disabled?: boolean;
     haptic?: HapticPreset | number | number[];
     isLoading?: boolean;
@@ -56,8 +56,7 @@
       'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 active:bg-gray-100 focus-visible:border-transparent dark:focus-visible:border-transparent disabled:bg-gray-50/50 dark:bg-gray-800/60 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700/70 dark:active:bg-gray-700 dark:hover:text-white dark:disabled:bg-gray-800/30',
     ghost:
       'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white',
-    danger:
-      'bg-error-500 text-white hover:bg-error-600 active:bg-error-700 disabled:bg-error-300',
+    danger: 'bg-error-500 text-white hover:bg-error-600 active:bg-error-700 disabled:bg-error-300',
     success:
       'bg-success-500 text-white hover:bg-success-600 active:bg-success-700 disabled:bg-success-300'
   };
@@ -122,7 +121,7 @@
     {id}
     href={isDisabled ? undefined : href}
     class={cn(
-      'inline-flex cursor-pointer items-center justify-center rounded-lg font-medium whitespace-nowrap transition focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2',
+      'inline-flex cursor-pointer items-center justify-center rounded-lg font-medium whitespace-nowrap transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500',
       sizeClasses[size],
       resolvedVariantClass,
       !isDisabled && 'active:scale-95',
@@ -161,7 +160,7 @@
     {type}
     disabled={isDisabled}
     class={cn(
-      'inline-flex cursor-pointer items-center justify-center rounded-lg font-medium whitespace-nowrap transition focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+      'inline-flex cursor-pointer items-center justify-center rounded-lg font-medium whitespace-nowrap transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:cursor-not-allowed disabled:opacity-50',
       sizeClasses[size],
       resolvedVariantClass,
       !isDisabled && 'active:scale-95',

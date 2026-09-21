@@ -5,7 +5,14 @@
   import { apiClient } from '$lib/core/api.client';
   import { errorStore } from '$lib/ui/stores/error.svelte';
   import type { Icon as IconType } from 'lucide-svelte';
-  import { ShieldAlert, KeyRound, CircleX, MailCheck, MailQuestionMark, UserX } from 'lucide-svelte';
+  import {
+    ShieldAlert,
+    KeyRound,
+    CircleX,
+    MailCheck,
+    MailQuestionMark,
+    UserX
+  } from 'lucide-svelte';
 
   let {
     open = $bindable(false),
@@ -27,8 +34,10 @@
     mobileMode?: 'modal' | 'drawer';
     desktopPlacement?: 'center' | 'trigger';
     mobilePlacement?: 'center' | 'trigger';
-    desktopAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
-    mobileAnimation?: 'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    desktopAnimation?:
+      'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
+    mobileAnimation?:
+      'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
     mobileDrawerSide?: 'top' | 'right' | 'bottom' | 'left';
     triggerElement?: HTMLElement | null;
   }>();
@@ -113,7 +122,8 @@
     },
     'Users.External.ConfirmationSent': {
       title: 'Confirm your email',
-      message: 'Your account was created. Open the link we sent to your email address, then sign in again.',
+      message:
+        'Your account was created. Open the link we sent to your email address, then sign in again.',
       icon: MailCheck,
       tone: 'brand'
     },
@@ -125,7 +135,8 @@
     },
     'Users.TwoFactor.SignInExpired': {
       title: 'Sign in again',
-      message: 'The sign-in expired before the code was entered. Sign in again to get a new chance.',
+      message:
+        'The sign-in expired before the code was entered. Sign in again to get a new chance.',
       icon: KeyRound,
       tone: 'brand'
     },
@@ -138,7 +149,8 @@
     },
     'Users.Passkeys.Expired': {
       title: 'Try again',
-      message: 'The passkey request expired before it was finished. Sign in with your passkey again.',
+      message:
+        'The passkey request expired before it was finished. Sign in with your passkey again.',
       icon: KeyRound,
       tone: 'brand'
     }

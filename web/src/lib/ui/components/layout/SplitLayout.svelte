@@ -54,13 +54,20 @@
           </p>
         </div>
 
-        <div 
+        <div
           class="pointer-events-none absolute inset-0 opacity-20"
           style="mask-image: radial-gradient(ellipse at top right, black 10%, transparent 50%), radial-gradient(ellipse at bottom left, black 10%, transparent 50%); -webkit-mask-image: radial-gradient(ellipse at top right, black 10%, transparent 50%), radial-gradient(ellipse at bottom left, black 10%, transparent 50%);"
         >
           <svg class="h-full w-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <pattern id="grid" width="64" height="64" x="50%" y="50%" patternUnits="userSpaceOnUse">
+              <pattern
+                id="grid"
+                width="64"
+                height="64"
+                x="50%"
+                y="50%"
+                patternUnits="userSpaceOnUse"
+              >
                 <path d="M 64 0 L 0 0 0 64" fill="none" stroke="white" stroke-width="1" />
               </pattern>
             </defs>

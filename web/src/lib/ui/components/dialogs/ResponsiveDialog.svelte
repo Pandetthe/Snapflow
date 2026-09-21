@@ -44,7 +44,7 @@
     >
       {#if behavior.activeMode === 'drawer' && behavior.activeDrawerSide === 'bottom'}
         <div
-          class="flex w-full cursor-grab justify-center pb-6 pt-2 active:cursor-grabbing"
+          class="flex w-full cursor-grab justify-center pt-2 pb-6 active:cursor-grabbing"
           ontouchstart={behavior.handleHandleTouchStart}
           ontouchmove={behavior.handleHandleTouchMove}
           ontouchend={() => behavior.handleHandleTouchEnd(() => handleOpenChange(false))}

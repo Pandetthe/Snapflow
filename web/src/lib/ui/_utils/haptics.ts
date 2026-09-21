@@ -1,10 +1,23 @@
 import { WebHaptics } from 'web-haptics';
 import { browser } from '$app/environment';
 
-export type HapticPreset = 'success' | 'warning' | 'error' | 'light' | 'medium' | 'heavy' | 'soft' | 'rigid' | 'selection' | 'nudge' | 'buzz';
-export const haptics = browser ? new WebHaptics({
-  debug: true
-}) : null;
+export type HapticPreset =
+  | 'success'
+  | 'warning'
+  | 'error'
+  | 'light'
+  | 'medium'
+  | 'heavy'
+  | 'soft'
+  | 'rigid'
+  | 'selection'
+  | 'nudge'
+  | 'buzz';
+export const haptics = browser
+  ? new WebHaptics({
+      debug: true
+    })
+  : null;
 
 /**
  * Triggers haptic feedback using the global singleton instance.

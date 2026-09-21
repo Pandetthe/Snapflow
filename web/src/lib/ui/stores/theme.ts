@@ -13,9 +13,9 @@ function getInitialTheme(): Theme {
 
 function applyTheme(theme: Theme) {
   if (typeof window === 'undefined') return;
-  
+
   document.documentElement.setAttribute('data-theme', theme);
-  
+
   if (theme === 'system') {
     const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     document.documentElement.classList.toggle('dark', systemDark);

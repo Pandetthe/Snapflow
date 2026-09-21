@@ -173,7 +173,8 @@ export function createForm<TValues extends Record<string, unknown>, TResponse = 
           if (!formState.serverErrors[fieldKey]) {
             formState.serverErrors[fieldKey] = err.description;
           } else {
-            formState.serverErrors[fieldKey] = `${formState.serverErrors[fieldKey]}. ${err.description}`;
+            formState.serverErrors[fieldKey] =
+              `${formState.serverErrors[fieldKey]}. ${err.description}`;
           }
         } else {
           generalErrors.push({ code: err.code, description: err.description });
@@ -257,10 +258,18 @@ export function createForm<TValues extends Record<string, unknown>, TResponse = 
   }
 
   return {
-    get values() { return formState.values; },
-    set values(v) { formState.values = v; },
-    get errors() { return errors; },
-    get isSubmitting() { return formState.isSubmitting; },
+    get values() {
+      return formState.values;
+    },
+    set values(v) {
+      formState.values = v;
+    },
+    get errors() {
+      return errors;
+    },
+    get isSubmitting() {
+      return formState.isSubmitting;
+    },
     handleSubmit,
     setError,
     resetErrors,

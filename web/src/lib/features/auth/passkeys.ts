@@ -38,7 +38,8 @@ function toBase64Url(buffer: ArrayBuffer | null | undefined): string | null {
 
 function toDescriptors(descriptors: unknown): PublicKeyCredentialDescriptor[] | undefined {
   return (descriptors as CredentialDescriptorJson[] | undefined)?.map(
-    (descriptor) => ({ ...descriptor, id: toBuffer(descriptor.id) }) as PublicKeyCredentialDescriptor
+    (descriptor) =>
+      ({ ...descriptor, id: toBuffer(descriptor.id) }) as PublicKeyCredentialDescriptor
   );
 }
 
@@ -129,7 +130,9 @@ export async function passkeyAutofillSupported(): Promise<boolean> {
 }
 
 export async function createPasskey(options: PasskeyJson): Promise<PasskeyJson> {
-  const credential = await navigator.credentials.create({ publicKey: parseCreationOptions(options) });
+  const credential = await navigator.credentials.create({
+    publicKey: parseCreationOptions(options)
+  });
   if (!credential) {
     throw new DOMException('No passkey was created.', 'NotAllowedError');
   }
@@ -153,7 +156,8 @@ export async function getPasskey(
 
 export function isPasskeyDismissed(error: unknown): boolean {
   return (
-    error instanceof DOMException && (error.name === 'NotAllowedError' || error.name === 'AbortError')
+    error instanceof DOMException &&
+    (error.name === 'NotAllowedError' || error.name === 'AbortError')
   );
 }
 

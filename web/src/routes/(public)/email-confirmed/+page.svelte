@@ -10,9 +10,7 @@
 
 <SplitLayout>
   {#snippet header()}
-    <GoBackButton
-      href="/"
-    />
+    <GoBackButton href="/" />
   {/snippet}
 
   <div class="flex flex-1 flex-col items-center justify-center text-center">
@@ -49,5 +47,3 @@
     </div>
   </div>
 </SplitLayout>
-
-

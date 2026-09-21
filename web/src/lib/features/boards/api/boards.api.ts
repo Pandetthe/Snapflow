@@ -14,7 +14,6 @@ import type {
 } from '$lib/features/boards/types/boards.api';
 
 export class BoardsService extends BaseService {
-
   getBoards(event?: ApiEvent): Promise<Response<GetBoardsResponse.BoardDto[]>> {
     return this.handleResponse(this.apiClient.fetch('boards', { method: 'GET' }, event));
   }
@@ -33,8 +32,13 @@ export class BoardsService extends BaseService {
     return this.handleResponse(this.apiClient.fetch(`/boards/${id}`, { method: 'GET' }, event));
   }
 
-  getBoardDetails(id: number, event?: ApiEvent): Promise<Response<GetBoardDetailsResponse.BoardDto>> {
-    return this.handleResponse(this.apiClient.fetch(`/boards/${id}/details`, { method: 'GET' }, event));
+  getBoardDetails(
+    id: number,
+    event?: ApiEvent
+  ): Promise<Response<GetBoardDetailsResponse.BoardDto>> {
+    return this.handleResponse(
+      this.apiClient.fetch(`/boards/${id}/details`, { method: 'GET' }, event)
+    );
   }
 
   createBoard(request: CreateBoardRequest): Promise<Response<IdResponse>> {

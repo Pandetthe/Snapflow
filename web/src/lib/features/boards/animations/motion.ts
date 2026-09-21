@@ -1,6 +1,7 @@
 import { cubicOut } from 'svelte/easing';
 
-const reduceMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reduceMotion =
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /**
  * Siblings making room for, or closing the gap after, a moved swimlane, list or card.

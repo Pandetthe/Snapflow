@@ -20,9 +20,7 @@ export interface ValidationProblemDetails extends ProblemDetails {
 }
 
 export type ErrorResponse =
-  | ({ ok: false } & ProblemDetails)
-  | ({ ok: false } & ValidationProblemDetails)
-  | { ok: false };
+  ({ ok: false } & ProblemDetails) | ({ ok: false } & ValidationProblemDetails) | { ok: false };
 
 export type SuccessResponse<T> = [T] extends [void] ? { ok: true } : { ok: true } & T;
 

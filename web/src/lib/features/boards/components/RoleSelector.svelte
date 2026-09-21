@@ -77,17 +77,20 @@
 >
   <Select.Trigger
     class={cn(
-      'group inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold whitespace-nowrap rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 w-22',
+      'group inline-flex w-22 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none',
       showArrow ? 'justify-between' : 'justify-center',
       variantClassMap[role] || variantClassMap.member,
-      disabled && 'opacity-50 cursor-not-allowed',
-      !disabled && 'hover:opacity-80 active:scale-95 cursor-pointer',
+      disabled && 'cursor-not-allowed opacity-50',
+      !disabled && 'cursor-pointer hover:opacity-80 active:scale-95',
       className
     )}
   >
     <span>{labelMap[role] || 'Unknown'}</span>
     {#if showArrow}
-      <ChevronDown size={12} class="shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 opacity-70" />
+      <ChevronDown
+        size={12}
+        class="shrink-0 opacity-70 transition-transform duration-200 group-data-[state=open]:rotate-180"
+      />
     {/if}
   </Select.Trigger>
 
@@ -104,10 +107,10 @@
           <Select.Item
             value={option.value}
             class={cn(
-              "flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm outline-none transition-colors cursor-pointer",
-              option.value === 'transfer_owner' 
-                ? "text-amber-700 hover:bg-amber-50 data-highlighted:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-500/10 dark:data-highlighted:bg-amber-500/10 font-medium mb-1 border-b border-gray-100 dark:border-gray-800 pb-2"
-                : "text-gray-700 hover:bg-gray-100 data-highlighted:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 dark:data-highlighted:bg-gray-800"
+              'flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition-colors outline-none',
+              option.value === 'transfer_owner'
+                ? 'mb-1 border-b border-gray-100 pb-2 font-medium text-amber-700 hover:bg-amber-50 data-highlighted:bg-amber-50 dark:border-gray-800 dark:text-amber-400 dark:hover:bg-amber-500/10 dark:data-highlighted:bg-amber-500/10'
+                : 'text-gray-700 hover:bg-gray-100 data-highlighted:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 dark:data-highlighted:bg-gray-800'
             )}
           >
             {option.label}

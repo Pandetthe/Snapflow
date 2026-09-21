@@ -36,6 +36,9 @@ export function validatePassword(value: string): string | undefined {
     return 'Password must contain at least one special character.';
 }
 
-export function validatePasswordConfirm(password: string, repeatPassword: string): string | undefined {
+export function validatePasswordConfirm(
+  password: string,
+  repeatPassword: string
+): string | undefined {
   if (repeatPassword && password !== repeatPassword) return 'Passwords do not match.';
 }
