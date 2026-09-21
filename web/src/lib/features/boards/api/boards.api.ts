@@ -1,5 +1,5 @@
 import type { ApiEvent } from '$lib/core/types/api';
-import type { Response } from '$lib/core/types/app';
+import type { Result } from '$lib/core/types/app';
 import { BaseService } from '$lib/core/base.service';
 import type {
   BoardVisibilityOptionsResponse,
@@ -14,34 +14,31 @@ import type {
 } from '$lib/features/boards/types/boards.api';
 
 export class BoardsService extends BaseService {
-  getBoards(event?: ApiEvent): Promise<Response<GetBoardsResponse.BoardDto[]>> {
+  getBoards(event?: ApiEvent): Promise<Result<GetBoardsResponse.BoardDto[]>> {
     return this.handleResponse(this.apiClient.fetch('boards', { method: 'GET' }, event));
   }
 
-  getPublicBoards(event?: ApiEvent): Promise<Response<PublicBoardDto[]>> {
+  getPublicBoards(event?: ApiEvent): Promise<Result<PublicBoardDto[]>> {
     return this.handleResponse(this.apiClient.fetch('boards/public', { method: 'GET' }, event));
   }
 
-  getVisibilityOptions(event?: ApiEvent): Promise<Response<BoardVisibilityOptionsResponse>> {
+  getVisibilityOptions(event?: ApiEvent): Promise<Result<BoardVisibilityOptionsResponse>> {
     return this.handleResponse(
       this.apiClient.fetch('boards/visibility-options', { method: 'GET' }, event)
     );
   }
 
-  getBoard(id: number, event?: ApiEvent): Promise<Response<GetBoardByIdResponse.BoardDto>> {
+  getBoard(id: number, event?: ApiEvent): Promise<Result<GetBoardByIdResponse.BoardDto>> {
     return this.handleResponse(this.apiClient.fetch(`/boards/${id}`, { method: 'GET' }, event));
   }
 
-  getBoardDetails(
-    id: number,
-    event?: ApiEvent
-  ): Promise<Response<GetBoardDetailsResponse.BoardDto>> {
+  getBoardDetails(id: number, event?: ApiEvent): Promise<Result<GetBoardDetailsResponse.BoardDto>> {
     return this.handleResponse(
       this.apiClient.fetch(`/boards/${id}/details`, { method: 'GET' }, event)
     );
   }
 
-  createBoard(request: CreateBoardRequest): Promise<Response<IdResponse>> {
+  createBoard(request: CreateBoardRequest): Promise<Result<IdResponse>> {
     return this.handleResponse(
       this.apiClient.fetch('boards', {
         method: 'POST',
@@ -53,7 +50,7 @@ export class BoardsService extends BaseService {
     );
   }
 
-  updateBoard(id: number, request: UpdateBoardRequest): Promise<Response> {
+  updateBoard(id: number, request: UpdateBoardRequest): Promise<Result> {
     return this.handleResponse(
       this.apiClient.fetch(`boards/${id}`, {
         method: 'PATCH',
@@ -65,7 +62,7 @@ export class BoardsService extends BaseService {
     );
   }
 
-  changeOwner(id: number, request: { userId: number }): Promise<Response> {
+  changeOwner(id: number, request: { userId: number }): Promise<Result> {
     return this.handleResponse(
       this.apiClient.fetch(`boards/${id}/change-owner`, {
         method: 'POST',
@@ -77,7 +74,7 @@ export class BoardsService extends BaseService {
     );
   }
 
-  changeVisibility(id: number, request: ChangeBoardVisibilityRequest): Promise<Response> {
+  changeVisibility(id: number, request: ChangeBoardVisibilityRequest): Promise<Result> {
     return this.handleResponse(
       this.apiClient.fetch(`boards/${id}/visibility`, {
         method: 'PUT',
@@ -89,7 +86,7 @@ export class BoardsService extends BaseService {
     );
   }
 
-  deleteBoard(id: number): Promise<Response> {
+  deleteBoard(id: number): Promise<Result> {
     return this.handleResponse(
       this.apiClient.fetch(`boards/${id}`, {
         method: 'DELETE'

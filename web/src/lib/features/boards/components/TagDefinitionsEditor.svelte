@@ -10,7 +10,7 @@
   } from '$lib/features/boards/types/boards.api';
   import { tagChipClass, tagSwatchClass } from '$lib/features/boards/tagColors';
   import { slideReveal } from '$lib/ui/utils';
-  import type { Response } from '$lib/core/types/app';
+  import type { Result } from '$lib/core/types/app';
   import { slide } from 'svelte/transition';
   import { Check, Pencil, Plus, Trash2, X } from 'lucide-svelte';
 
@@ -34,11 +34,7 @@
     trimmedTitle.length > 0 && trimmedTitle.length <= MAX_TITLE_LENGTH && !isSaving
   );
 
-  function reportFailure(
-    fallbackTitle: string,
-    fallbackDetail: string,
-    response: Response<unknown>
-  ) {
+  function reportFailure(fallbackTitle: string, fallbackDetail: string, response: Result<unknown>) {
     errorStore.addError(
       response.problem?.title ?? fallbackTitle,
       response.problem?.detail ?? fallbackDetail

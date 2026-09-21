@@ -21,7 +21,7 @@ export interface ValidationProblemDetails extends ProblemDetails {
   errors: ValidationError[];
 }
 
-export type Response<T = void> =
+export type Result<T = void> =
   | { ok: true; value: T; problem?: never; validationProblem?: never }
   | {
       ok: false;

@@ -2,7 +2,7 @@
   import { KeyRound, RefreshCw, ShieldOff } from 'lucide-svelte';
   import { AppDialog, Button, CodeInput } from '$lib/ui/components';
   import { createForm } from '$lib/ui/utils';
-  import type { Response as AppResponse } from '$lib/core/types/app';
+  import type { Result } from '$lib/core/types/app';
   import type { RecoveryCodesResponse, UsersService } from '../api/users';
   import RecoveryCodes from './RecoveryCodes.svelte';
 
@@ -41,7 +41,7 @@
       }
       return errors;
     },
-    onSubmit: async (values): Promise<AppResponse<RecoveryCodesResponse | undefined>> => {
+    onSubmit: async (values): Promise<Result<RecoveryCodesResponse | undefined>> => {
       const code = values.code.trim();
       if (action === 'regenerate') {
         return usersService.regenerateRecoveryCodes({ code });

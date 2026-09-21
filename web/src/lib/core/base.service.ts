@@ -1,13 +1,11 @@
 import type { ApiClient } from '$lib/core/types/api';
-import type { Response, ProblemDetails, ValidationProblemDetails } from '$lib/core/types/app';
+import type { Result, ProblemDetails, ValidationProblemDetails } from '$lib/core/types/app';
 import logger from '$lib/logger';
 
 export abstract class BaseService {
   constructor(protected apiClient: ApiClient) {}
 
-  protected async handleResponse<T = void>(
-    promise: Promise<globalThis.Response>
-  ): Promise<Response<T>> {
+  protected async handleResponse<T = void>(promise: Promise<Response>): Promise<Result<T>> {
     try {
       const response = await promise;
 

@@ -1,5 +1,5 @@
 import type { ApiEvent } from '$lib/core/types/api';
-import type { Response } from '$lib/core/types/app';
+import type { Result } from '$lib/core/types/app';
 import { BaseService } from '$lib/core/base.service';
 import type {
   CreateTagRequest,
@@ -10,13 +10,13 @@ import type {
 } from '$lib/features/boards/types/boards.api';
 
 export class TagsService extends BaseService {
-  getTags(boardId: number, event?: ApiEvent): Promise<Response<GetBoardByIdResponse.TagDto[]>> {
+  getTags(boardId: number, event?: ApiEvent): Promise<Result<GetBoardByIdResponse.TagDto[]>> {
     return this.handleResponse(
       this.apiClient.fetch(`boards/${boardId}/tags`, { method: 'GET' }, event)
     );
   }
 
-  createTag(boardId: number, request: CreateTagRequest): Promise<Response<CreateTagResponse>> {
+  createTag(boardId: number, request: CreateTagRequest): Promise<Result<CreateTagResponse>> {
     return this.handleResponse(
       this.apiClient.fetch(`boards/${boardId}/tags`, {
         method: 'POST',
@@ -32,7 +32,7 @@ export class TagsService extends BaseService {
     boardId: number,
     tagId: number,
     request: UpdateTagRequest
-  ): Promise<Response<UpdateTagResponse>> {
+  ): Promise<Result<UpdateTagResponse>> {
     return this.handleResponse(
       this.apiClient.fetch(`boards/${boardId}/tags/${tagId}`, {
         method: 'PATCH',
@@ -44,7 +44,7 @@ export class TagsService extends BaseService {
     );
   }
 
-  deleteTag(boardId: number, tagId: number): Promise<Response> {
+  deleteTag(boardId: number, tagId: number): Promise<Result> {
     return this.handleResponse(
       this.apiClient.fetch(`boards/${boardId}/tags/${tagId}`, { method: 'DELETE' })
     );

@@ -1,5 +1,5 @@
 import type { ApiEvent } from '$lib/core/types/api';
-import type { Response } from '$lib/core/types/app';
+import type { Result } from '$lib/core/types/app';
 import { BaseService } from '$lib/core/base.service';
 import { env } from '$env/dynamic/public';
 import logger from '$lib/logger';
@@ -87,7 +87,7 @@ export interface ResetPasswordRequest {
 }
 
 export class AuthService extends BaseService {
-  private json(path: string, payload?: unknown): Promise<globalThis.Response> {
+  private json<TBody>(path: string, payload?: TBody): Promise<Response> {
     return this.apiClient.fetch(path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -99,7 +99,7 @@ export class AuthService extends BaseService {
     return `${path}?useCookies=true&useSessionCookies=${!rememberMe}`;
   }
 
-  signIn(data: SigninRequest): Promise<Response> {
+  signIn(data: SigninRequest): Promise<Result> {
     const { rememberMe, ...payload } = data;
     return this.handleResponse(this.json(this.signInPath('/auth/sign-in', rememberMe), payload));
   }
@@ -117,54 +117,54 @@ export class AuthService extends BaseService {
     return localOnlyProviders;
   }
 
-  ldapSignIn(data: LdapSigninRequest): Promise<Response> {
+  ldapSignIn(data: LdapSigninRequest): Promise<Result> {
     const { rememberMe, ...payload } = data;
     return this.handleResponse(
       this.json(this.signInPath('/auth/ldap/sign-in', rememberMe), payload)
     );
   }
 
-  twoFactorSignIn(data: TwoFactorSigninRequest): Promise<Response> {
+  twoFactorSignIn(data: TwoFactorSigninRequest): Promise<Result> {
     const { rememberMe, ...payload } = data;
     return this.handleResponse(
       this.json(this.signInPath('/auth/sign-in/two-factor', rememberMe), payload)
     );
   }
 
-  twoFactorPasskeyOptions(): Promise<Response<PasskeyOptions>> {
+  twoFactorPasskeyOptions(): Promise<Result<PasskeyOptions>> {
     return this.handleResponse(this.json('/auth/sign-in/two-factor/passkey/options'));
   }
 
-  passkeySignInOptions(): Promise<Response<PasskeyOptions>> {
+  passkeySignInOptions(): Promise<Result<PasskeyOptions>> {
     return this.handleResponse(
       this.apiClient.fetch('/auth/sign-in/passkey/options', { method: 'POST' })
     );
   }
 
-  passkeySignIn(data: PasskeySigninRequest): Promise<Response> {
+  passkeySignIn(data: PasskeySigninRequest): Promise<Result> {
     const { rememberMe, ...payload } = data;
     return this.handleResponse(
       this.json(this.signInPath('/auth/sign-in/passkey', rememberMe), payload)
     );
   }
 
-  signOut(): Promise<Response> {
+  signOut(): Promise<Result> {
     return this.handleResponse(this.apiClient.fetch('/auth/sign-out', { method: 'POST' }));
   }
 
-  signUp(data: SignupRequest): Promise<Response> {
+  signUp(data: SignupRequest): Promise<Result> {
     return this.handleResponse(this.json('/auth/sign-up', data));
   }
 
-  forgotPassword(data: ForgotPasswordRequest): Promise<Response> {
+  forgotPassword(data: ForgotPasswordRequest): Promise<Result> {
     return this.handleResponse(this.json('/auth/forgot-password', data));
   }
 
-  resetPassword(data: ResetPasswordRequest): Promise<Response> {
+  resetPassword(data: ResetPasswordRequest): Promise<Result> {
     return this.handleResponse(this.json('/auth/reset-password', data));
   }
 
-  resendEmailConfirmation(data: ResendEmailConfirmationRequest): Promise<Response> {
+  resendEmailConfirmation(data: ResendEmailConfirmationRequest): Promise<Result> {
     return this.handleResponse(this.json('/auth/resend-confirmation-email', data));
   }
 }

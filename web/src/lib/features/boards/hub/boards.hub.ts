@@ -2,7 +2,7 @@ import { HubConnectionBuilder, type HubConnection } from '@microsoft/signalr';
 import { env } from '$env/dynamic/public';
 import logger from '$lib/logger';
 import type {
-  Response,
+  Result,
   ProblemDetails,
   ValidationProblemDetails,
   RankResponse
@@ -83,13 +83,13 @@ export class BoardsHub {
   private async handleResponse<T = void>(
     method: string,
     promise: Promise<HubEnvelope<T> | null | undefined>
-  ): Promise<Response<T>> {
+  ): Promise<Result<T>> {
     logger.debug({ method }, 'BoardsHub: Awaiting response');
     try {
       const res = await promise;
       logger.debug({ method, res }, 'BoardsHub: Received response');
       if (res === null || res === undefined) {
-        return { ok: true } as Response<T>;
+        return { ok: true } as Result<T>;
       }
 
       const ok = res.statusCode >= 200 && res.statusCode < 300;
@@ -131,21 +131,21 @@ export class BoardsHub {
     }
   }
 
-  createSwimlane(request: CreateSwimlaneRequest): Promise<Response<CreateSwimlaneResponse>> {
+  createSwimlane(request: CreateSwimlaneRequest): Promise<Result<CreateSwimlaneResponse>> {
     return this.handleResponse<CreateSwimlaneResponse>(
       'CreateSwimlane',
       this.connection.invoke('CreateSwimlane', request)
     );
   }
 
-  updateSwimlane(request: UpdateSwimlaneRequest): Promise<Response<UpdateSwimlaneResponse>> {
+  updateSwimlane(request: UpdateSwimlaneRequest): Promise<Result<UpdateSwimlaneResponse>> {
     return this.handleResponse<UpdateSwimlaneResponse>(
       'UpdateSwimlane',
       this.connection.invoke('UpdateSwimlane', request)
     );
   }
 
-  moveSwimlane(request: MoveSwimlaneRequest): Promise<Response<RankResponse>> {
+  moveSwimlane(request: MoveSwimlaneRequest): Promise<Result<RankResponse>> {
     logger.debug({ request }, 'BoardsHub: Invoking MoveSwimlane');
     return this.handleResponse<RankResponse>(
       'MoveSwimlane',
@@ -153,83 +153,83 @@ export class BoardsHub {
     );
   }
 
-  deleteSwimlane(request: DeleteSwimlaneRequest): Promise<Response> {
+  deleteSwimlane(request: DeleteSwimlaneRequest): Promise<Result> {
     return this.handleResponse('DeleteSwimlane', this.connection.invoke('DeleteSwimlane', request));
   }
 
-  createList(request: CreateListRequest): Promise<Response<CreateListResponse>> {
+  createList(request: CreateListRequest): Promise<Result<CreateListResponse>> {
     return this.handleResponse<CreateListResponse>(
       'CreateList',
       this.connection.invoke('CreateList', request)
     );
   }
 
-  updateList(request: UpdateListRequest): Promise<Response<UpdateListResponse>> {
+  updateList(request: UpdateListRequest): Promise<Result<UpdateListResponse>> {
     return this.handleResponse<UpdateListResponse>(
       'UpdateList',
       this.connection.invoke('UpdateList', request)
     );
   }
 
-  moveList(request: MoveListRequest): Promise<Response<RankResponse>> {
+  moveList(request: MoveListRequest): Promise<Result<RankResponse>> {
     return this.handleResponse<RankResponse>(
       'MoveList',
       this.connection.invoke('MoveList', request)
     );
   }
 
-  deleteList(request: DeleteListRequest): Promise<Response> {
+  deleteList(request: DeleteListRequest): Promise<Result> {
     return this.handleResponse('DeleteList', this.connection.invoke('DeleteList', request));
   }
 
-  createCard(request: CreateCardRequest): Promise<Response<CreateCardResponse>> {
+  createCard(request: CreateCardRequest): Promise<Result<CreateCardResponse>> {
     return this.handleResponse<CreateCardResponse>(
       'CreateCard',
       this.connection.invoke('CreateCard', request)
     );
   }
 
-  updateCard(request: UpdateCardRequest): Promise<Response<UpdateCardResponse>> {
+  updateCard(request: UpdateCardRequest): Promise<Result<UpdateCardResponse>> {
     return this.handleResponse<UpdateCardResponse>(
       'UpdateCard',
       this.connection.invoke('UpdateCard', request)
     );
   }
 
-  moveCard(request: MoveCardRequest): Promise<Response<RankResponse>> {
+  moveCard(request: MoveCardRequest): Promise<Result<RankResponse>> {
     return this.handleResponse<RankResponse>(
       'MoveCard',
       this.connection.invoke('MoveCard', request)
     );
   }
 
-  deleteCard(request: DeleteCardRequest): Promise<Response> {
+  deleteCard(request: DeleteCardRequest): Promise<Result> {
     return this.handleResponse('DeleteCard', this.connection.invoke('DeleteCard', request));
   }
 
-  createTag(request: CreateTagHubRequest): Promise<Response<CreateTagHubResponse>> {
+  createTag(request: CreateTagHubRequest): Promise<Result<CreateTagHubResponse>> {
     return this.handleResponse<CreateTagHubResponse>(
       'CreateTag',
       this.connection.invoke('CreateTag', request)
     );
   }
 
-  updateTag(request: UpdateTagHubRequest): Promise<Response<UpdateTagHubResponse>> {
+  updateTag(request: UpdateTagHubRequest): Promise<Result<UpdateTagHubResponse>> {
     return this.handleResponse<UpdateTagHubResponse>(
       'UpdateTag',
       this.connection.invoke('UpdateTag', request)
     );
   }
 
-  deleteTag(request: DeleteTagRequest): Promise<Response> {
+  deleteTag(request: DeleteTagRequest): Promise<Result> {
     return this.handleResponse('DeleteTag', this.connection.invoke('DeleteTag', request));
   }
 
-  addTagToCard(request: AddTagToCardRequest): Promise<Response> {
+  addTagToCard(request: AddTagToCardRequest): Promise<Result> {
     return this.handleResponse('AddTagToCard', this.connection.invoke('AddTagToCard', request));
   }
 
-  removeTagFromCard(request: RemoveTagFromCardRequest): Promise<Response> {
+  removeTagFromCard(request: RemoveTagFromCardRequest): Promise<Result> {
     return this.handleResponse(
       'RemoveTagFromCard',
       this.connection.invoke('RemoveTagFromCard', request)

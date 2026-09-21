@@ -1,7 +1,7 @@
 <script lang="ts">
   import { AppDialog, Button, InputTextField, UserAvatar } from '$lib/ui/components';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
-  import type { Response } from '$lib/core/types/app';
+  import type { Result } from '$lib/core/types/app';
   import { createForm } from '$lib/ui/utils';
   import { getContext, untrack } from 'svelte';
   import { Check, Pencil } from 'lucide-svelte';
@@ -38,7 +38,7 @@
       'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
     mobileDrawerSide?: 'top' | 'right' | 'bottom' | 'left';
     triggerElement?: HTMLElement | null;
-    onConfirm: (title: string, description: string, tagIds: number[]) => Promise<Response<unknown>>;
+    onConfirm: (title: string, description: string, tagIds: number[]) => Promise<Result<unknown>>;
     onDelete?: (id: number) => Promise<boolean>;
   } = $props();
 

@@ -1,13 +1,13 @@
 import { triggerHaptic } from './haptics';
 import { errorStore } from '$lib/ui/stores/error.svelte';
-import type { AppError, ProblemDetails, Response, ValidationError } from '$lib/core/types/app';
+import type { AppError, ProblemDetails, Result, ValidationError } from '$lib/core/types/app';
 
 type ValidationErrors<TValues> = Partial<Record<keyof TValues, string>>;
 
 export interface FormConfig<TValues extends Record<string, unknown>, TResponse = unknown> {
   initialValues: TValues;
   validate?: (values: TValues) => ValidationErrors<TValues>;
-  onSubmit: (values: TValues) => Promise<Response<TResponse>>;
+  onSubmit: (values: TValues) => Promise<Result<TResponse>>;
   onSuccess?: (response: TResponse) => void;
   onError?: (problem: ProblemDetails) => boolean | void;
   mapValidationError?: (err: ValidationError) => ValidationError;

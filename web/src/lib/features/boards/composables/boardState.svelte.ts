@@ -4,7 +4,7 @@ import type {
   MemberRole,
   TagColor
 } from '../types/boards.api';
-import type { Response } from '$lib/core/types/app';
+import type { Result } from '$lib/core/types/app';
 import { BoardsHub } from '../hub/boards.hub';
 import { errorStore } from '$lib/ui/stores/error.svelte';
 import { noticeStore } from '$lib/ui/stores/notice.svelte';
@@ -606,7 +606,7 @@ export function createBoardState(
     editingSwimlane: GetBoardByIdResponse.SwimlaneDto | undefined,
     title: string,
     height: number | null
-  ): Promise<Response<unknown>> {
+  ): Promise<Result<unknown>> {
     if (!hub) return hubUnavailable;
     if (editingSwimlane) {
       const res = await hub.updateSwimlane({ id: editingSwimlane.id, title, height });
@@ -660,7 +660,7 @@ export function createBoardState(
     targetSwimlaneId: number | null,
     title: string,
     width: number | null
-  ): Promise<Response<unknown>> {
+  ): Promise<Result<unknown>> {
     if (!hub) return hubUnavailable;
     if (!editingList && !targetSwimlaneId)
       return {
@@ -739,7 +739,7 @@ export function createBoardState(
     title: string,
     description: string,
     tagIds: number[] = []
-  ): Promise<Response<unknown>> {
+  ): Promise<Result<unknown>> {
     if (!hub) return hubUnavailable;
     if (!editingCard && !targetListId)
       return {
@@ -820,7 +820,7 @@ export function createBoardState(
     editingTag: GetBoardByIdResponse.TagDto | undefined,
     title: string,
     color: TagColor
-  ): Promise<Response<unknown>> {
+  ): Promise<Result<unknown>> {
     if (!hub) return hubUnavailable;
     if (editingTag) {
       const res = await hub.updateTag({ id: editingTag.id, title, color });

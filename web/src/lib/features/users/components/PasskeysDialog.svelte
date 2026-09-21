@@ -8,7 +8,7 @@
     isPasskeyDismissed,
     passkeysSupported
   } from '$lib/features/auth/passkeys';
-  import type { Response as AppResponse } from '$lib/core/types/app';
+  import type { Result } from '$lib/core/types/app';
   import { triggerHaptic } from '$lib/ui/utils';
   import type { Passkey, UsersService } from '../api/users';
 
@@ -40,7 +40,7 @@
   let notice = $state<string | null>(null);
   let changed = false;
 
-  function problemText(response: AppResponse<unknown>, fallback: string): string {
+  function problemText(response: Result<unknown>, fallback: string): string {
     if (response.ok) return fallback;
     return (
       response.validationProblem?.errors[0]?.description ?? response.problem?.detail ?? fallback

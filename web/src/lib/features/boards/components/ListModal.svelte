@@ -2,7 +2,7 @@
   import { AppDialog, Button, InputTextField } from '$lib/ui/components';
   import { slide } from 'svelte/transition';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
-  import type { Response } from '$lib/core/types/app';
+  import type { Result } from '$lib/core/types/app';
   import { createForm, slideReveal } from '$lib/ui/utils';
   import { fromRem, toRem } from '$lib/features/boards/sizes';
 
@@ -36,7 +36,7 @@
       'fade-zoom' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'none';
     mobileDrawerSide?: 'top' | 'right' | 'bottom' | 'left';
     triggerElement?: HTMLElement | null;
-    onConfirm: (title: string, width: number | null) => Promise<Response<unknown>>;
+    onConfirm: (title: string, width: number | null) => Promise<Result<unknown>>;
     onDelete?: (id: number) => Promise<boolean>;
   } = $props();
 
