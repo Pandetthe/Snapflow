@@ -81,7 +81,9 @@
   );
 
   function handleListConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
-    swimlane.lists = e.detail.items;
+    // The row's own slot takes over from the one the bar opened, which the zone still holds when the drag
+    // comes straight off the bar into the row.
+    swimlane.lists = withoutBarSlot(e.detail.items);
     const { info } = e.detail;
     if (info.source === SOURCES.KEYBOARD) keyboardMovedListId = Number(info.id);
     if (info.trigger === TRIGGERS.DRAG_STARTED) {
@@ -94,21 +96,10 @@
 
   function endListDrag() {
     keyboardMovedListId = null;
+    clearBarSlot();
     forgetDraggedList();
     releaseListZoneHeights();
     forgetDragPointer();
-  }
-
-  /** The list of this swimlane that a drop at `x` belongs before, or null for the end of the row. */
-  function listAfter(x: number | null) {
-    if (x === null) return null;
-    for (const list of swimlane.lists) {
-      const el = listZoneEl?.querySelector(`[data-list-id="${list.id}"]`);
-      if (!el) continue;
-      const rect = el.getBoundingClientRect();
-      if (x < rect.left + rect.width / 2) return list.id;
-    }
-    return null;
   }
 
   async function moveListHere(list: GetBoardByIdResponse.ListDto, beforeId: number | null) {
@@ -132,13 +123,67 @@
     swimlane.lists = [...swimlane.lists];
   }
 
-  // The header bar takes a list like the swimlane's body does: the list it holds while one is dragged over
-  // it is the drop slot, and on drop the list joins this swimlane where the pointer points along the bar.
+  // The header bar takes the drag because the row below is out of the pointer's reach, but a slot spanning the
+  // bar says nothing about where the list would go. So the bar keeps its own slot blank and hands the job to
+  // this swimlane's row: while a list hovers the bar, the row holds a copy of it marked the way the library
+  // marks its own drop slot, which is what makes the row open, style and animate the gap like any other.
   let headerDrop = $state<GetBoardByIdResponse.ListDto[]>([]);
+
+  const BAR_SLOT_PROPERTY = 'snapflowBarSlot';
+
+  function isBarSlot(list: GetBoardByIdResponse.ListDto) {
+    return (list as unknown as Record<string, unknown>)[BAR_SLOT_PROPERTY] === true;
+  }
+
+  function withoutBarSlot(lists: GetBoardByIdResponse.ListDto[]) {
+    return lists.some(isBarSlot) ? lists.filter((l) => !isBarSlot(l)) : lists;
+  }
+
+  function clearBarSlot() {
+    if (swimlane.lists.some(isBarSlot)) swimlane.lists = withoutBarSlot(swimlane.lists);
+  }
+
+  /** Opens the slot where the pointer points along the bar, leaving it be while the pointer is over it. */
+  function placeBarSlot() {
+    const dragged = headerDrop[0];
+    const x = dragPointerX();
+    if (!dragged || x === null || !listZoneEl) return;
+
+    // Measured off the zone's children, so the slot's own width counts towards where the next one belongs.
+    const rows = [...listZoneEl.children];
+    const at = swimlane.lists.findIndex(isBarSlot);
+    const found = rows.findIndex((row) => {
+      const rect = row.getBoundingClientRect();
+      return x < rect.left + rect.width / 2;
+    });
+    // Past the last list is one end of the row, no slot yet is the other; both must not read as the same index.
+    const over = found === -1 ? rows.length : found;
+    if (over === at) return;
+
+    const rest = withoutBarSlot(swimlane.lists);
+    const to = at !== -1 && over > at ? over - 1 : over;
+    if (to === at) return;
+
+    rest.splice(to, 0, {
+      ...dragged,
+      [BAR_SLOT_PROPERTY]: true,
+      [SHADOW_ITEM_MARKER_PROPERTY_NAME]: true
+    } as unknown as GetBoardByIdResponse.ListDto);
+    swimlane.lists = rest;
+  }
 
   function handleHeaderConsider(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
     headerDrop = e.detail.items;
+    if (headerDrop.length === 0) clearBarSlot();
+    else placeBarSlot();
   }
+
+  // The bar's zone only reports the list entering and leaving it, so the pointer carries the slot along the row.
+  $effect(() => {
+    if (headerDrop.length === 0) return;
+    window.addEventListener('pointermove', placeBarSlot, { passive: true });
+    return () => window.removeEventListener('pointermove', placeBarSlot);
+  });
 
   async function handleHeaderFinalize(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
     const { info } = e.detail;
@@ -146,10 +191,14 @@
     const dropped = e.detail.items.find((l) => l.id === id);
     headerDrop = [];
 
+    // The slot stands where the list belongs, so the list after it is the one the drop lands before.
+    const at = swimlane.lists.findIndex(isBarSlot);
+    const rest = withoutBarSlot(swimlane.lists);
+    const beforeId = at === -1 ? null : (rest[at]?.id ?? null);
+    swimlane.lists = rest;
+
     if (info.trigger !== TRIGGERS.DROPPED_INTO_ZONE || !dropped) return;
 
-    // Read where the drop landed before ending the drag, which forgets the pointer.
-    const beforeId = listAfter(dragPointerX());
     if (info.source === SOURCES.POINTER) endListDrag();
 
     triggerHaptic('success');
@@ -164,7 +213,7 @@
   });
 
   async function handleListFinalize(e: CustomEvent<DndEvent<GetBoardByIdResponse.ListDto>>) {
-    swimlane.lists = e.detail.items;
+    swimlane.lists = withoutBarSlot(e.detail.items);
     const { info } = e.detail;
     if (info.source === SOURCES.POINTER) endListDrag();
     else if (info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER) keyboardMovedListId = null;
@@ -221,7 +270,13 @@
   <div
     class="swimlane-header board-item-bar relative flex h-11 shrink-0 items-center gap-1.5 bg-gray-50 px-3 dark:bg-gray-800/70"
   >
-    <!-- Takes a list dropped on the bar; empty and invisible until one is dragged over it -->
+    <!--
+      Takes a list dropped on the bar; empty and invisible until one is dragged over it. It reaches over the
+      padding above and below the bar (py-3 of the rows either side of it, and the border between swimlanes):
+      a dragged list that is in no zone at all is sent back to where it started, so a strip the rows do not
+      cover would throw the drop slot back to the list's old place every time the pointer crossed it on its
+      way to the bar.
+    -->
     <div
       use:boardZone={{
         useHandle: false,
@@ -238,11 +293,12 @@
       onconsider={handleHeaderConsider}
       onfinalize={handleHeaderFinalize}
       data-board-zone="lists-header"
-      class="pointer-events-none absolute inset-0 z-20"
+      class="pointer-events-none absolute -top-[13px] right-0 -bottom-3 left-0 z-20"
       aria-hidden="true"
     >
+      <!-- The gap the drop lands in is opened by the row below, so the bar's own slot stays blank -->
       {#each headerDrop as list (list.id)}
-        <div class="relative h-full w-full" data-board-slot="list" animate:flip={layoutFlip}></div>
+        <div class="relative h-full w-full" animate:flip={layoutFlip}></div>
       {/each}
     </div>
     {#if canManageSwimlanes && $dragHandles === 'hidden'}
