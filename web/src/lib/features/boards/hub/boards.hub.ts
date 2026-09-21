@@ -131,7 +131,6 @@ export class BoardsHub {
     }
   }
 
-  // Commands
   createSwimlane(request: CreateSwimlaneRequest): Promise<Response<CreateSwimlaneResponse>> {
     return this.handleResponse<CreateSwimlaneResponse>(
       'CreateSwimlane',

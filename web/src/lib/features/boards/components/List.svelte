@@ -175,7 +175,7 @@
 >
   <MovedByIndicator move={recentMove} rounded="rounded-xl" />
 
-  <!-- List header; the list does not clip its overflow (the moved-by label sits on its edge), so the parts round their own corners -->
+  <!-- The list does not clip its overflow (the moved-by label sits on its edge), so the parts round their own corners -->
   <div
     class="board-item-bar relative flex h-10 shrink-0 items-center gap-1.5 rounded-t-[11px] border-b border-gray-200 bg-gray-100/80 px-2 dark:border-gray-700/60 dark:bg-gray-800/90"
   >
@@ -225,7 +225,6 @@
     {/if}
   </div>
 
-  <!-- Cards area -->
   <ScrollArea.Root
     class="list-scroll-area relative flex-1 overflow-hidden rounded-b-[11px]"
     type="auto"

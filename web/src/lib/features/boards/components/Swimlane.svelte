@@ -150,7 +150,7 @@
 >
   <MovedByIndicator move={recentMove} rounded="rounded-none" />
 
-  <!-- Header band — always visible, even when collapsed during drag -->
+  <!-- Always visible, even when the swimlane is collapsed during a drag -->
   <div
     class="swimlane-header board-item-bar relative flex h-11 shrink-0 items-center gap-1.5 bg-gray-50 px-3 dark:bg-gray-800/70"
   >
@@ -199,8 +199,8 @@
     {/if}
   </div>
 
-  <!-- Content area — hidden when this swimlane is being dragged -->
-  <!-- Flex column so the viewport gets a definite height and an empty list zone can fill the swimlane -->
+  <!-- Hidden while this swimlane is dragged. Flex column so the viewport gets a definite height and
+       an empty list zone can fill the swimlane -->
   <ScrollArea.Root
     class="swimlane-content swimlane-scroll-area relative flex flex-1 flex-col overflow-hidden bg-white/60 dark:bg-gray-900/40"
     type="auto"
