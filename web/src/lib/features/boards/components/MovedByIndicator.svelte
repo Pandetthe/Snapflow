@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { BoardAction, RecentMove } from '$lib/features/boards/composables/boardState.svelte';
+  import type { BoardAction, RecentMove } from '$lib/features/boards/state/boardPresence.svelte';
   import { cubicInOut, cubicOut } from 'svelte/easing';
   import type { TransitionConfig } from 'svelte/transition';
   import { UserAvatar } from '$lib/ui/components';

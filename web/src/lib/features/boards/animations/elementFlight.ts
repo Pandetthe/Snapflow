@@ -1,4 +1,4 @@
-import type { MovableKind } from '../composables/boardState.svelte';
+import type { MovableKind } from '../state/boardTypes';
 
 export interface ElementFlight {
   /** Animates the ghost to the element's current (new) position; the ghost holds its final pose until released. */
