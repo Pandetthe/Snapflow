@@ -366,10 +366,18 @@ section[data-board-zone='lists'] {
   /* Reaches under "Add list" via padding cancelled by a negative margin, without changing the layout */
   margin-right: -7rem;
   padding-right: 7rem;
+  /*
+    Everything that reshapes the row waits out the "Add list" fade (150ms, below). The reshaping itself is
+    instant, but it drags the button along with it and then covers it, so doing it first would take the
+    button away mid-fade instead of letting it go quietly.
+  */
   transition:
     height 280ms var(--ease-flow),
     min-height 280ms var(--ease-flow),
-    flex-grow 0s 150ms;
+    flex-grow 0s 150ms,
+    width 0s 150ms,
+    margin-right 0s 150ms,
+    padding-right 0s 150ms;
 }
 
 /*
@@ -449,18 +457,23 @@ section[data-board-zone='swimlanes'][data-folded] [data-board-item='swimlane'] >
 
 section:is([data-board-zone='lists'], [data-board-zone='swimlanes']).board-drop-target {
   flex-grow: 1;
-  transition-delay: 1ms;
 }
 
-section:is([data-board-zone='lists'], [data-board-zone='swimlanes']).board-drop-target + * {
-  transition-duration: 0ms;
-}
-
+/*
+  The "Add …" next to a zone fades out as soon as an item of its type is picked up, and back in once the drop
+  has settled. Same timing for swimlanes, lists and cards: the zones that grow into its place used to drop it
+  without the fade, which read as a glitch next to the ones that faded.
+*/
 section[data-board-zone] + * {
   transition: opacity 150ms ease-out 150ms;
 }
 
-section[data-board-zone].board-drop-target + * {
+section[data-board-zone].board-drop-target + *,
+/*
+  The zone stops being a drop target on release, but keeps the slot until the drop animation hands it back as
+  a real item. The button waits that out too, so it comes back to a row that has finished moving.
+*/
+section[data-board-zone]:has(> [data-is-dnd-shadow-item-internal]) + * {
   opacity: 0;
   pointer-events: none;
   transition-delay: 0ms;
