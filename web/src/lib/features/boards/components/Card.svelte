@@ -1,13 +1,8 @@
 <script lang="ts">
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
-  import type {
-    GetRecentMove,
-    IsInFlight
-  } from '$lib/features/boards/composables/boardState.svelte';
   import { dragHandle } from 'svelte-dnd-action';
   import { dragHandles } from '$lib/features/boards/stores/dragHandles';
-  import { getContext } from 'svelte';
-  import { getBoardUI } from '$lib/features/boards/context/board.context';
+  import { getBoardContext, getBoardUI } from '$lib/features/boards/context/board.context';
   import { renderDescriptionHtml } from '$lib/features/boards/markdown/render';
   import { summarizeDescription } from '$lib/features/boards/markdown/summary';
   import '$lib/features/boards/styles/markdown.css';
@@ -18,19 +13,17 @@
 
   let { card, listId }: { card: GetBoardByIdResponse.CardDto; listId: number } = $props();
 
-  const getBoardState = getContext<() => string>('boardState');
-  const boardState = $derived(getBoardState());
-  const getCanManageCards = getContext<() => boolean>('canManageCards');
-  const canManageCards = $derived(getCanManageCards());
-  const getRecentMove = getContext<GetRecentMove | undefined>('recentMove');
-  const recentMove = $derived(getRecentMove?.('card', card.id));
-  const getIsInFlight = getContext<IsInFlight | undefined>('isInFlight');
-  const inFlight = $derived(getIsInFlight?.('card', card.id) ?? false);
+  const boardCtx = getBoardContext();
+  const boardState = $derived(boardCtx.connectionState);
+  const canManageCards = $derived(boardCtx.canManageCards);
+  const recentMove = $derived(boardCtx.getRecentMove('card', card.id));
+  const inFlight = $derived(boardCtx.isInFlight('card', card.id));
 
-  const getBoard = getContext<() => GetBoardByIdResponse.BoardDto>('board');
   // The card holds ids only; the board's definitions give each one its title and colour.
   const tags = $derived(
-    card.tagIds.map((id) => getBoard().tags.find((t) => t.id === id)).filter((t) => t !== undefined)
+    card.tagIds
+      .map((id) => boardCtx.board.tags.find((t) => t.id === id))
+      .filter((t) => t !== undefined)
   );
 
   // The description shows formatted but small (markdown.css), with the checklist as a count.

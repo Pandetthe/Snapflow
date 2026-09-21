@@ -3,7 +3,8 @@
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import type { Result } from '$lib/core/types/app';
   import { createForm } from '$lib/ui/utils';
-  import { getContext, untrack } from 'svelte';
+  import { untrack } from 'svelte';
+  import { getBoardContext } from '$lib/features/boards/context/board.context';
   import { Check, Pencil } from 'lucide-svelte';
   import { tagChipClass } from '$lib/features/boards/tagColors';
   import MarkdownView from './MarkdownView.svelte';
@@ -44,14 +45,11 @@
 
   let isDeleting = $state(false);
 
-  const getBoard = getContext<() => GetBoardByIdResponse.BoardDto>('board');
-  const boardTags = $derived(getBoard().tags);
-  const getBoardState = getContext<() => string>('boardState');
-  const boardState = $derived(getBoardState());
-  const getCanManageCards = getContext<() => boolean>('canManageCards');
-  const canManageCards = $derived(getCanManageCards());
-  const getCanAssignTags = getContext<() => boolean>('canAssignTags');
-  const canAssignTags = $derived(getCanAssignTags());
+  const boardCtx = getBoardContext();
+  const boardTags = $derived(boardCtx.board.tags);
+  const boardState = $derived(boardCtx.connectionState);
+  const canManageCards = $derived(boardCtx.canManageCards);
+  const canAssignTags = $derived(boardCtx.canAssignTags);
 
   // An existing card opens for reading; whoever may change it goes on to edit from there.
   let mode = $state<'view' | 'edit'>('view');

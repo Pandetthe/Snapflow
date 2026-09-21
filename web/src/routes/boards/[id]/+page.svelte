@@ -12,8 +12,8 @@
   import ListModal from '$lib/features/boards/components/ListModal.svelte';
   import CardModal from '$lib/features/boards/components/CardModal.svelte';
   import BoardViewers from '$lib/features/boards/components/BoardViewers.svelte';
-  import { setContext, tick, untrack } from 'svelte';
-  import { setBoardUI } from '$lib/features/boards/context/board.context';
+  import { tick, untrack } from 'svelte';
+  import { setBoardContext, setBoardUI } from '$lib/features/boards/context/board.context';
   import { BoardsHub } from '$lib/features/boards/hub/boards.hub';
   import { createBoardState } from '$lib/features/boards/composables/boardState.svelte';
   import { errorStore } from '$lib/ui/stores/error.svelte';
@@ -168,17 +168,33 @@
     };
   });
 
-  setContext('hub', () => hub);
-  setContext('board', () => bs.board);
-  setContext('boardState', () => bs.connectionState);
-  setContext('canManageSwimlanes', () => bs.canManageSwimlanes);
-  setContext('canManageLists', () => bs.canManageLists);
-  setContext('canManageCards', () => bs.canManageCards);
-  setContext('canAssignTags', () => bs.canAssignTags);
-  setContext('recentMove', bs.getRecentMove);
-  setContext('isInFlight', bs.isInFlight);
-  setContext('isNew', bs.isNew);
-  setContext('isLeaving', bs.isLeaving);
+  setBoardContext({
+    get hub() {
+      return hub;
+    },
+    get board() {
+      return bs.board;
+    },
+    get connectionState() {
+      return bs.connectionState;
+    },
+    get canManageSwimlanes() {
+      return bs.canManageSwimlanes;
+    },
+    get canManageLists() {
+      return bs.canManageLists;
+    },
+    get canManageCards() {
+      return bs.canManageCards;
+    },
+    get canAssignTags() {
+      return bs.canAssignTags;
+    },
+    getRecentMove: bs.getRecentMove,
+    isInFlight: bs.isInFlight,
+    isNew: bs.isNew,
+    isLeaving: bs.isLeaving
+  });
 
   // Swimlane picked up with the keyboard, shown as selected until it is dropped.
   let keyboardMovedSwimlaneId = $state<number | null>(null);

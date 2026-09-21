@@ -23,6 +23,8 @@ import { resolve } from '$app/paths';
 
 export type MovableKind = 'card' | 'list' | 'swimlane';
 
+export type ConnectionState = 'connecting' | 'connected' | 'reconnecting' | 'disconnected';
+
 export type BoardAction = 'moved' | 'added' | 'edited' | 'deleted';
 
 export interface RecentMove {
@@ -54,9 +56,7 @@ export function createBoardState(
 ) {
   let board = $state(initialBoard);
   let members = $state(initialMembers);
-  let connectionState = $state<'connecting' | 'connected' | 'reconnecting' | 'disconnected'>(
-    'connecting'
-  );
+  let connectionState = $state<ConnectionState>('connecting');
   let hub: BoardsHub | null = null;
 
   const recentMoves = new SvelteMap<string, RecentMove>();

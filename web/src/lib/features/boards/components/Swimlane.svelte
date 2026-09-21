@@ -10,21 +10,13 @@
   import { boardZone } from '$lib/features/boards/actions/boardZone';
   import { dragHandles } from '$lib/features/boards/stores/dragHandles';
   import List from './List.svelte';
-  import { getContext } from 'svelte';
-  import { getBoardUI } from '$lib/features/boards/context/board.context';
-  import { BoardsHub } from '$lib/features/boards/hub/boards.hub';
+  import { getBoardContext, getBoardUI } from '$lib/features/boards/context/board.context';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import { errorStore } from '$lib/ui/stores/error.svelte';
   import { Button } from '$lib/ui/components';
   import { ScrollArea } from 'bits-ui';
   import { triggerHaptic } from '$lib/ui/utils';
   import { GripVertical, Pencil, Plus } from 'lucide-svelte';
-  import type {
-    GetRecentMove,
-    IsInFlight,
-    IsLeaving,
-    IsNew
-  } from '$lib/features/boards/composables/boardState.svelte';
   import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
   import {
     forgetDraggedList,
@@ -38,20 +30,13 @@
 
   let { swimlane = $bindable() }: { swimlane: GetBoardByIdResponse.SwimlaneDto } = $props();
 
-  const getHub = getContext<() => BoardsHub | null>('hub');
-  const hub = $derived(getHub());
-  const getBoardState = getContext<() => string>('boardState');
-  const boardState = $derived(getBoardState());
-  const getCanManageSwimlanes = getContext<() => boolean>('canManageSwimlanes');
-  const canManageSwimlanes = $derived(getCanManageSwimlanes());
-  const getCanManageLists = getContext<() => boolean>('canManageLists');
-  const canManageLists = $derived(getCanManageLists());
-  const getRecentMove = getContext<GetRecentMove | undefined>('recentMove');
-  const recentMove = $derived(getRecentMove?.('swimlane', swimlane.id));
-  const getIsInFlight = getContext<IsInFlight | undefined>('isInFlight');
-  const inFlight = $derived(getIsInFlight?.('swimlane', swimlane.id) ?? false);
-  const isNew = getContext<IsNew | undefined>('isNew');
-  const isLeaving = getContext<IsLeaving | undefined>('isLeaving');
+  const boardCtx = getBoardContext();
+  const hub = $derived(boardCtx.hub);
+  const boardState = $derived(boardCtx.connectionState);
+  const canManageSwimlanes = $derived(boardCtx.canManageSwimlanes);
+  const canManageLists = $derived(boardCtx.canManageLists);
+  const recentMove = $derived(boardCtx.getRecentMove('swimlane', swimlane.id));
+  const inFlight = $derived(boardCtx.isInFlight('swimlane', swimlane.id));
 
   const ui = getBoardUI();
 
@@ -241,8 +226,8 @@
           {#each swimlane.lists as list, index (list.id)}
             <div
               class="relative z-20 flex min-h-0 self-stretch rounded-xl outline-none"
-              class:board-enter={isNew?.('list', list.id)}
-              class:board-leave={isLeaving?.('list', list.id)}
+              class:board-enter={boardCtx.isNew('list', list.id)}
+              class:board-leave={boardCtx.isLeaving('list', list.id)}
               data-board-slot="list"
               data-selected={keyboardMovedListId === list.id || undefined}
               animate:flip={layoutFlip}
