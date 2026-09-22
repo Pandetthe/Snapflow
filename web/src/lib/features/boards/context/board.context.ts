@@ -1,7 +1,7 @@
 import { getContext, setContext } from 'svelte';
 import type { GetBoardByIdResponse } from '../types/boards.api';
 import type { BoardsHub } from '../hub/boards.hub';
-import type { ConnectionState } from '../composables/boardState.svelte';
+import type { ConnectionState } from '../state/boardTypes';
 import type { GetRecentMove, IsInFlight, IsLeaving, IsNew } from '../state/boardPresence.svelte';
 
 export interface BoardUIContext {
