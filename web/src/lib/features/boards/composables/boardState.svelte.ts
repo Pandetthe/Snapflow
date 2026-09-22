@@ -34,6 +34,14 @@ export function createBoardState(
   });
 
   const permissions = $derived(boardPermissions(members, currentUserId));
+  const isMember = $derived(permissions.isMember);
+  const role = $derived(permissions.role);
+  const canEditBoard = $derived(permissions.canEditBoard);
+  const canManageSwimlanes = $derived(permissions.canManageSwimlanes);
+  const canManageLists = $derived(permissions.canManageLists);
+  const canManageCards = $derived(permissions.canManageCards);
+  const canManageTags = $derived(permissions.canManageTags);
+  const canAssignTags = $derived(permissions.canAssignTags);
 
   const sortAll = () => tree.sortAll(board);
   const sortSwimlanes = () => tree.sortSwimlanes(board);
@@ -130,28 +138,28 @@ export function createBoardState(
       connectionState = v;
     },
     get isMember() {
-      return permissions.isMember;
+      return isMember;
     },
     get role() {
-      return permissions.role;
+      return role;
     },
     get canEditBoard() {
-      return permissions.canEditBoard;
+      return canEditBoard;
     },
     get canManageSwimlanes() {
-      return permissions.canManageSwimlanes;
+      return canManageSwimlanes;
     },
     get canManageLists() {
-      return permissions.canManageLists;
+      return canManageLists;
     },
     get canManageCards() {
-      return permissions.canManageCards;
+      return canManageCards;
     },
     get canManageTags() {
-      return permissions.canManageTags;
+      return canManageTags;
     },
     get canAssignTags() {
-      return permissions.canAssignTags;
+      return canAssignTags;
     },
     getRecentMove,
     isInFlight,
