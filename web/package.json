@@ -97,6 +97,7 @@
   },
   "overrides": {
     "serialize-javascript": "^7.0.5",
-    "cookie": "0.7.2"
+    "cookie": "0.7.2",
+    "extend": "^3.0.2"
   }
 }
