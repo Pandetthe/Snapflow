@@ -158,16 +158,6 @@
 }
 
 @layer base {
-  html {
-    scrollbar-gutter: stable;
-  }
-  /*
-    Pages whose content reaches the window edge and carry no header: the reserved space would show as an
-    empty strip beside them. The board keeps the gutter, so its header stays put across navigations.
-  */
-  html:has([data-full-bleed-page]) {
-    scrollbar-gutter: auto;
-  }
   html,
   body {
     @apply relative z-1 bg-white font-outfit font-normal text-text-main transition-colors duration-300;

@@ -15,11 +15,10 @@
 </script>
 
 <!--
-  The panel on the right reaches the window edge, so the page opts out of the scrollbar space the rest of
-  the app reserves (app.css). The columns are at least a screen tall rather than exactly a screen tall and
-  clipped, so a form that outgrows the window - a long form, a small window, a zoomed-in browser - scrolls.
+  The columns are at least a screen tall rather than exactly a screen tall and clipped, so a form that
+  outgrows the window - a long form, a small window, a zoomed-in browser - scrolls.
 -->
-<div class="relative z-1 bg-white dark:bg-gray-900" data-full-bleed-page>
+<div class="relative z-1 bg-white dark:bg-gray-900">
   <div class="relative flex min-h-screen w-full flex-col lg:flex-row dark:bg-gray-900">
     <div class="flex w-full flex-1 flex-col lg:w-1/2">
       <div class="mx-auto w-full max-w-md px-6 pt-5 sm:px-0 lg:pt-10">
