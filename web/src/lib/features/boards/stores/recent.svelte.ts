@@ -1,3 +1,5 @@
+import { untrack } from 'svelte';
+
 const STORAGE_KEY = 'recent-boards';
 const MAX_RECENT = 5;
 
@@ -26,9 +28,9 @@ class RecentBoardsState {
     return this.#ids;
   }
 
-  #persist() {
+  #persist(ids: number[]) {
     if (typeof window !== 'undefined') {
-      localStorage.setItem(this.#storageKey, JSON.stringify(this.#ids));
+      localStorage.setItem(this.#storageKey, JSON.stringify(ids));
     }
   }
 
@@ -38,9 +40,10 @@ class RecentBoardsState {
   }
 
   add(boardId: number) {
-    const filtered = this.#ids.filter((id) => id !== boardId);
-    this.#ids = [boardId, ...filtered].slice(0, MAX_RECENT);
-    this.#persist();
+    const current = untrack(() => this.#ids);
+    const next = [boardId, ...current.filter((id) => id !== boardId)].slice(0, MAX_RECENT);
+    this.#ids = next;
+    this.#persist(next);
   }
 
   clear() {
