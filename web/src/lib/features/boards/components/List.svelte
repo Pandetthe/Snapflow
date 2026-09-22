@@ -21,7 +21,7 @@
         slots.reduce((sum, s) => sum + s.offsetHeight, 0) + gap * Math.max(slots.length - 1, 0);
       const withDragged = cardsHeight + draggedHeight + (slots.length > 0 ? gap : 0);
       const chrome = listEl.offsetHeight - (zone.offsetHeight - padding);
-      const minContent = Math.max(parseFloat(style.minHeight) - padding, 0);
+      const minContent = Math.max((parseFloat(style.minHeight) || 0) - padding, 0);
       cardDropHeights[Number(listEl.dataset.listId)] = Math.round(
         chrome + Math.max(withDragged, minContent)
       );
@@ -217,7 +217,7 @@
     type="auto"
   >
     <ScrollArea.Viewport class="h-full w-full rounded-[inherit]">
-      <div class="flex h-full min-h-0 flex-col p-2">
+      <div class="flex min-h-full flex-col p-2">
         <!-- The drop area reaches under "Add card" via padding cancelled by a negative margin -->
         <section
           use:boardZone={{
@@ -235,7 +235,7 @@
           onfinalize={handleCardFinalize}
           data-board-zone="cards"
           data-empty={list.cards.length === 0 || undefined}
-          class="flex min-h-10 flex-1 flex-col gap-1.5 {canManageCards ? '-mb-12 pb-12' : ''}"
+          class="flex flex-1 flex-col gap-1.5 {canManageCards ? '-mb-12 pb-12' : ''}"
         >
           {#each list.cards as card (card.id)}
             <div
@@ -281,7 +281,11 @@
 
 <style>
   :global(.list-scroll-area [data-scroll-area-viewport] > [data-scroll-area-content]) {
-    height: 100%;
+    min-height: 100%;
+  }
+
+  section[data-board-zone='cards'][data-empty] {
+    min-height: calc(var(--spacing) * 10);
   }
 
   /* A swimlane without a fixed height grows with its lists; they overflow only while a drop resizes them */
