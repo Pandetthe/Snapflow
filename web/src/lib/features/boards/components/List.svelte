@@ -39,7 +39,7 @@
   } from 'svelte-dnd-action';
   import type { DndEvent } from 'svelte-dnd-action';
   import { boardZone } from '$lib/features/boards/actions/boardZone';
-  import { dragHandles } from '$lib/features/boards/stores/dragHandles';
+  import { dragHandles } from '$lib/features/boards/stores/dragHandles.svelte';
   import { getBoardContext, getBoardUI } from '$lib/features/boards/context/board.context';
   import Card from './Card.svelte';
   import { ScrollArea } from 'bits-ui';
@@ -164,7 +164,7 @@
   <div
     class="board-item-bar relative flex h-10 shrink-0 items-center gap-1.5 rounded-t-[11px] border-b border-gray-200 bg-gray-100/80 px-2 dark:border-gray-700/60 dark:bg-gray-800/90"
   >
-    {#if canManageLists && $dragHandles === 'hidden'}
+    {#if canManageLists && dragHandles.current === 'hidden'}
       <!-- No grip to grab, so the bar itself picks the list up; its buttons sit above this -->
       <div
         use:dragHandle
@@ -173,7 +173,7 @@
       ></div>
     {/if}
 
-    {#if canManageLists && $dragHandles !== 'hidden'}
+    {#if canManageLists && dragHandles.current !== 'hidden'}
       <div
         use:dragHandle
         class="list-drag-handle board-drag-handle board-control touch-none focus-visible:outline-none {boardState ===
@@ -219,7 +219,7 @@
         <!-- The drop area reaches under "Add card" via padding cancelled by a negative margin -->
         <section
           use:boardZone={{
-            useHandle: $dragHandles !== 'hidden',
+            useHandle: dragHandles.current !== 'hidden',
             items: list.cards,
             flipDurationMs: LAYOUT_FLIP_MS,
             type: 'cards',

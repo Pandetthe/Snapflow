@@ -1,5 +1,3 @@
-import { writable } from 'svelte/store';
-
 export type DragHandleVisibility = 'always' | 'hover' | 'hidden';
 
 const STORAGE_KEY = 'drag-handles';
@@ -17,25 +15,27 @@ function applyVisibility(visibility: DragHandleVisibility) {
   document.documentElement.setAttribute('data-drag-handles', visibility);
 }
 
-function createDragHandlesStore() {
-  const { subscribe, set } = writable<DragHandleVisibility>(getInitialVisibility());
+class DragHandlesState {
+  #visibility = $state<DragHandleVisibility>(getInitialVisibility());
 
-  return {
-    subscribe,
-    set: (visibility: DragHandleVisibility) => {
-      set(visibility);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, visibility);
-        applyVisibility(visibility);
-      }
-    },
-    init: () => {
-      const initial = getInitialVisibility();
-      set(initial);
-      applyVisibility(initial);
-      return initial;
+  get current() {
+    return this.#visibility;
+  }
+
+  set(visibility: DragHandleVisibility) {
+    this.#visibility = visibility;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, visibility);
+      applyVisibility(visibility);
     }
-  };
+  }
+
+  init() {
+    const initial = getInitialVisibility();
+    this.#visibility = initial;
+    applyVisibility(initial);
+    return initial;
+  }
 }
 
-export const dragHandles = createDragHandlesStore();
+export const dragHandles = new DragHandlesState();

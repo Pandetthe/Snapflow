@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import { dragHandle } from 'svelte-dnd-action';
-  import { dragHandles } from '$lib/features/boards/stores/dragHandles';
+  import { dragHandles } from '$lib/features/boards/stores/dragHandles.svelte';
   import { getBoardContext, getBoardUI } from '$lib/features/boards/context/board.context';
   import { renderDescriptionHtml } from '$lib/features/boards/markdown/render';
   import { summarizeDescription } from '$lib/features/boards/markdown/summary';
@@ -32,7 +32,7 @@
 
   const ui = getBoardUI();
 
-  const surfaceDrag = $derived(canManageCards && $dragHandles === 'hidden');
+  const surfaceDrag = $derived(canManageCards && dragHandles.current === 'hidden');
 </script>
 
 <!-- --flight-landing-scale must match the card motion in animations/elementFlight.ts -->

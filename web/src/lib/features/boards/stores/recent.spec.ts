@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { recentBoards } from './recent';
-import { get } from 'svelte/store';
+import { recentBoards } from './recent.svelte';
 
 describe('recentBoards store', () => {
   beforeEach(() => {
@@ -25,23 +24,23 @@ describe('recentBoards store', () => {
     recentBoards.add(1);
 
     recentBoards.configure(2);
-    expect(get(recentBoards)).toEqual([]);
+    expect(recentBoards.current).toEqual([]);
 
     recentBoards.add(2);
 
     recentBoards.configure(1);
-    expect(get(recentBoards)).toEqual([1]);
+    expect(recentBoards.current).toEqual([1]);
   });
 
   it('should initialize with empty array by default', () => {
-    expect(get(recentBoards)).toEqual([]);
+    expect(recentBoards.current).toEqual([]);
   });
 
   it('should add a board to the list', () => {
     const boardId = 1;
     recentBoards.add(boardId);
 
-    expect(get(recentBoards)).toEqual([boardId]);
+    expect(recentBoards.current).toEqual([boardId]);
     expect(localStorage.setItem).toHaveBeenCalledWith('recent-boards', JSON.stringify([boardId]));
   });
 
@@ -51,10 +50,10 @@ describe('recentBoards store', () => {
 
     recentBoards.add(board1);
     recentBoards.add(board2);
-    expect(get(recentBoards)).toEqual([board2, board1]);
+    expect(recentBoards.current).toEqual([board2, board1]);
 
     recentBoards.add(board1);
-    expect(get(recentBoards)).toEqual([board1, board2]);
+    expect(recentBoards.current).toEqual([board1, board2]);
   });
 
   it('should limit the list to 5 items', () => {
@@ -62,7 +61,7 @@ describe('recentBoards store', () => {
       recentBoards.add(i);
     }
 
-    const currentRecent = get(recentBoards);
+    const currentRecent = recentBoards.current;
     expect(currentRecent).toHaveLength(5);
     expect(currentRecent[0]).toBe(6);
     expect(currentRecent[4]).toBe(2);
@@ -72,7 +71,7 @@ describe('recentBoards store', () => {
     recentBoards.add(1);
     recentBoards.clear();
 
-    expect(get(recentBoards)).toEqual([]);
+    expect(recentBoards.current).toEqual([]);
     expect(localStorage.removeItem).toHaveBeenCalledWith('recent-boards');
   });
 });

@@ -5,7 +5,7 @@
   import PublicBoards from '$lib/features/boards/components/PublicBoards.svelte';
   import LastRefreshed from '$lib/features/boards/components/LastRefreshed.svelte';
   import type { PublicBoardDto } from '$lib/features/boards/types/boards.api';
-  import { recentBoards } from '$lib/features/boards/stores/recent';
+  import { recentBoards } from '$lib/features/boards/stores/recent.svelte';
   import { Button, EmptyState, Input, Skeleton } from '$lib/ui/components';
   import { History, Folders, Plus, Search } from 'lucide-svelte';
   import { fade, slide } from 'svelte/transition';
@@ -31,7 +31,7 @@
   });
 
   const recentlyVisited = $derived(
-    $recentBoards
+    recentBoards.current
       .map((boardId) => boards.find((b: BoardData) => b.id === Number(boardId)))
       .filter((board): board is BoardData => board !== undefined)
   );

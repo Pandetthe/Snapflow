@@ -6,9 +6,12 @@
     SettingsSection,
     Switch
   } from '$lib/ui/components';
-  import { dragHandles, type DragHandleVisibility } from '$lib/features/boards/stores/dragHandles';
-  import { swimlaneFolding } from '$lib/features/boards/stores/swimlaneFolding';
-  import { theme } from '$lib/ui/stores/theme';
+  import {
+    dragHandles,
+    type DragHandleVisibility
+  } from '$lib/features/boards/stores/dragHandles.svelte';
+  import { swimlaneFolding } from '$lib/features/boards/stores/swimlaneFolding.svelte';
+  import { theme } from '$lib/ui/stores/theme.svelte';
   import { triggerHaptic } from '$lib/ui/utils';
   import {
     FoldVertical,
@@ -101,11 +104,11 @@
         <div class="space-y-5">
           <div class="space-y-3">
             <div class="flex items-center gap-3">
-              {@render settingIcon(themeIcons[$theme])}
+              {@render settingIcon(themeIcons[theme.current])}
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-medium text-gray-700 dark:text-gray-400">Theme</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {themeDescriptions[$theme]}
+                  {themeDescriptions[theme.current]}
                 </p>
               </div>
             </div>
@@ -117,7 +120,7 @@
                 { value: 'dark', label: 'Dark', icon: Moon },
                 { value: 'system', label: 'System', icon: Monitor }
               ]}
-              value={$theme}
+              value={theme.current}
               onValueChange={selectTheme}
             />
           </div>
@@ -138,7 +141,7 @@
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-medium text-gray-700 dark:text-gray-400">Drag handles</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {handleDescriptions[$dragHandles]}
+                  {handleDescriptions[dragHandles.current]}
                 </p>
               </div>
             </div>
@@ -150,7 +153,7 @@
                 { value: 'hover', label: 'On hover', icon: MousePointer2 },
                 { value: 'hidden', label: 'Hidden', icon: EyeOff }
               ]}
-              value={$dragHandles}
+              value={dragHandles.current}
               onValueChange={selectHandles}
             />
           </div>
@@ -163,7 +166,7 @@
               <Switch
                 label="Fold swimlanes while dragging"
                 helperText="Every swimlane collapses to its header, so the board fits on a few screens while you carry one."
-                checked={$swimlaneFolding}
+                checked={swimlaneFolding.current}
                 onCheckedChange={toggleFolding}
                 class="w-full flex-row-reverse justify-between"
               />

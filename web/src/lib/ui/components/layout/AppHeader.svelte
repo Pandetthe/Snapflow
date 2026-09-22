@@ -18,7 +18,7 @@
   import { AuthService } from '$lib/features/auth/api/auth';
   import { apiClient } from '$lib/core/api.client';
   import { errorStore } from '$lib/ui/stores/error.svelte';
-  import { theme } from '$lib/ui/stores/theme';
+  import { theme } from '$lib/ui/stores/theme.svelte';
   import { cn } from '$lib/ui/utils';
   import type { User } from '$lib/features/users/api/users';
   import { avatarBust } from '$lib/features/users/avatarBust.svelte';
@@ -43,7 +43,9 @@
     { value: 'system', label: 'System', icon: Monitor }
   ];
 
-  const currentTheme = $derived(themeOptions.find((o) => o.value === $theme) ?? themeOptions[2]);
+  const currentTheme = $derived(
+    themeOptions.find((o) => o.value === theme.current) ?? themeOptions[2]
+  );
 
   const navItems = [
     { href: '/', icon: Folders, text: 'Boards' },
@@ -249,7 +251,7 @@
               <span class="flex-1">Theme</span>
               <ToggleGroup.Root
                 type="single"
-                bind:value={() => $theme, (mode) => mode && theme.set(mode as ThemeMode)}
+                bind:value={() => theme.current, (mode) => mode && theme.set(mode as ThemeMode)}
                 aria-label="Theme"
                 class="flex items-center gap-0.5 rounded-lg border border-gray-200 p-0.5 dark:border-gray-800"
               >

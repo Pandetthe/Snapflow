@@ -1,7 +1,7 @@
 <script lang="ts">
   import { DropdownMenu } from 'bits-ui';
   import { Button } from '$lib/ui/components';
-  import { theme } from '$lib/ui/stores/theme';
+  import { theme } from '$lib/ui/stores/theme.svelte';
   import { Sun, Moon, Monitor, Check } from 'lucide-svelte';
   import { cn, floatingMotionClass } from '$lib/ui/utils';
 
@@ -47,7 +47,10 @@
     align="end"
     sideOffset={4}
   >
-    <DropdownMenu.RadioGroup value={$theme} onValueChange={(mode) => theme.set(mode as ThemeMode)}>
+    <DropdownMenu.RadioGroup
+      value={theme.current}
+      onValueChange={(mode) => theme.set(mode as ThemeMode)}
+    >
       {#each options as option (option.value)}
         <DropdownMenu.RadioItem value={option.value}>
           {#snippet child({ props, checked })}

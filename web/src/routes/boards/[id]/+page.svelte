@@ -3,7 +3,7 @@
   import { fade } from 'svelte/transition';
   import { type DndEvent, SOURCES, TRIGGERS } from 'svelte-dnd-action';
   import { boardZone } from '$lib/features/boards/actions/boardZone';
-  import { swimlaneFolding } from '$lib/features/boards/stores/swimlaneFolding';
+  import { swimlaneFolding } from '$lib/features/boards/stores/swimlaneFolding.svelte';
   import Swimlane from '$lib/features/boards/components/Swimlane.svelte';
   import BoardSkeleton, {
     type SkeletonBand
@@ -17,7 +17,7 @@
   import { BoardsHub } from '$lib/features/boards/hub/boards.hub';
   import { createBoardState } from '$lib/features/boards/composables/boardState.svelte';
   import { errorStore } from '$lib/ui/stores/error.svelte';
-  import { recentBoards } from '$lib/features/boards/stores/recent';
+  import { recentBoards } from '$lib/features/boards/stores/recent.svelte';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import {
     Button,
@@ -208,7 +208,8 @@
     bs.board.swimlanes = [...e.detail.items];
     const { info } = e.detail;
     if (info.source === SOURCES.KEYBOARD) keyboardMovedSwimlaneId = Number(info.id);
-    if (info.trigger === TRIGGERS.DRAG_STARTED && $swimlaneFolding) foldSwimlanes(Number(info.id));
+    if (info.trigger === TRIGGERS.DRAG_STARTED && swimlaneFolding.current)
+      foldSwimlanes(Number(info.id));
     if (info.trigger === TRIGGERS.DRAG_STOPPED) endSwimlaneDrag();
   }
 

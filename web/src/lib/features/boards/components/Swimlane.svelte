@@ -8,7 +8,7 @@
   } from 'svelte-dnd-action';
   import type { DndEvent } from 'svelte-dnd-action';
   import { boardZone } from '$lib/features/boards/actions/boardZone';
-  import { dragHandles } from '$lib/features/boards/stores/dragHandles';
+  import { dragHandles } from '$lib/features/boards/stores/dragHandles.svelte';
   import List from './List.svelte';
   import { getBoardContext, getBoardUI } from '$lib/features/boards/context/board.context';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
@@ -139,7 +139,7 @@
   <div
     class="swimlane-header board-item-bar relative flex h-11 shrink-0 items-center gap-1.5 bg-gray-50 px-3 dark:bg-gray-800/70"
   >
-    {#if canManageSwimlanes && $dragHandles === 'hidden'}
+    {#if canManageSwimlanes && dragHandles.current === 'hidden'}
       <!-- No grip to grab, so the bar itself picks the swimlane up; its buttons sit above this -->
       <div
         use:dragHandle
@@ -148,7 +148,7 @@
       ></div>
     {/if}
 
-    {#if canManageSwimlanes && $dragHandles !== 'hidden'}
+    {#if canManageSwimlanes && dragHandles.current !== 'hidden'}
       <div
         use:dragHandle
         class="board-drag-handle board-control touch-none focus-visible:outline-none {boardState ===

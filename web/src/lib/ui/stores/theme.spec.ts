@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { get } from 'svelte/store';
 
 describe('theme store', () => {
   beforeEach(() => {
@@ -27,26 +26,26 @@ describe('theme store', () => {
   });
 
   it('should initialize with light theme by default', async () => {
-    const { theme } = await import('./theme');
+    const { theme } = await import('./theme.svelte');
     theme.set('light');
-    expect(get(theme)).toBe('light');
+    expect(theme.current).toBe('light');
   });
 
   it('should toggle theme from light to dark', async () => {
-    const { theme } = await import('./theme');
+    const { theme } = await import('./theme.svelte');
     theme.set('light');
     theme.toggle();
 
-    expect(get(theme)).toBe('dark');
+    expect(theme.current).toBe('dark');
     expect(localStorage.setItem).toHaveBeenCalledWith('theme', 'dark');
     expect(document.documentElement.classList.contains('dark')).toBe(true);
   });
 
   it('should set specific theme', async () => {
-    const { theme } = await import('./theme');
+    const { theme } = await import('./theme.svelte');
     theme.set('dark');
 
-    expect(get(theme)).toBe('dark');
+    expect(theme.current).toBe('dark');
     expect(localStorage.setItem).toHaveBeenCalledWith('theme', 'dark');
     expect(document.documentElement.classList.contains('dark')).toBe(true);
   });
