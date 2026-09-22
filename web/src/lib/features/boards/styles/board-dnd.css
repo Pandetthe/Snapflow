@@ -350,8 +350,10 @@ section[data-board-zone] {
 /*
   Swimlanes resizing for a dragged list or card (heights measured at drag start, animations/zoneHeights.ts).
   A swimlane's height follows its content and cannot transition, so the list zone carries it: while an item is
-  dragged every zone holds its height, the zone receiving it grows to fit, and after the drop the zones ease
-  back to their content height (interpolate-size; browsers without it snap there instead).
+  dragged every zone holds the height it needs without it, the zone receiving it grows to fit, and after the
+  drop the zones ease back to their content height (interpolate-size; browsers without it snap there instead).
+  So the row an item was picked up from eases down to what is left in it as soon as the item is held away from
+  it, instead of keeping the item's space until the drop.
 */
 section[data-board-zone='lists'] {
   interpolate-size: allow-keywords;
@@ -384,21 +386,21 @@ section[data-board-zone='lists'][data-fill] {
 }
 
 section[data-board-zone='lists'].board-drop-target {
-  height: var(--board-zone-rest-height, auto);
+  height: var(--board-zone-held-height, auto);
 }
 
 section[data-board-zone='lists'].board-drop-target[data-receiving] {
-  height: max(var(--board-zone-rest-height, 0px), var(--board-dragged-list-height, 0px));
+  height: max(var(--board-zone-held-height, 0px), var(--board-dragged-list-height, 0px));
 }
 
 section[data-board-zone='lists']:has(section[data-board-zone='cards'].board-drop-target) {
-  height: var(--board-zone-rest-height, auto);
+  height: var(--board-zone-held-height, auto);
 }
 
 section[data-board-zone='lists'][data-card-receiver]:has(
     section[data-board-zone='cards'].board-drop-target
   ) {
-  height: max(var(--board-zone-rest-height, 0px), var(--board-receiving-list-height, 0px));
+  height: max(var(--board-zone-held-height, 0px), var(--board-receiving-list-height, 0px));
 }
 
 section[data-board-zone='swimlanes'] {

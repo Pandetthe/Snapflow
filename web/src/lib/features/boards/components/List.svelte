@@ -102,7 +102,7 @@
     const { info } = e.detail;
     if (info.trigger === TRIGGERS.DRAG_STARTED) {
       measureCardDropHeights(Number(info.id));
-      holdListZoneHeights();
+      holdListZoneHeights({ card: Number(info.id) });
     }
     list.cards = e.detail.items;
     if (info.source === SOURCES.KEYBOARD) keyboardMovedCardId = Number(info.id);

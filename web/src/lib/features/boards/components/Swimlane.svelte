@@ -65,7 +65,7 @@
     if (info.source === SOURCES.KEYBOARD) keyboardMovedListId = Number(info.id);
     if (info.trigger === TRIGGERS.DRAG_STARTED) {
       measureDraggedList(Number(info.id));
-      holdListZoneHeights();
+      holdListZoneHeights({ list: Number(info.id) });
     }
     if (info.trigger === TRIGGERS.DRAG_STOPPED) endListDrag();
   }
