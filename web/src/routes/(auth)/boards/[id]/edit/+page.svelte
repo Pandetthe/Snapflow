@@ -321,12 +321,14 @@
         </div>
       </SettingsSection>
 
-      <SettingsSection icon={Eye} title="Visibility" description="Who can open this board.">
-        <VisibilitySelector
-          bind:value={visibility}
-          allowedVisibilities={data.visibilityOptions.allowedVisibilities}
-        />
-      </SettingsSection>
+      {#if currentUserIsOwner}
+        <SettingsSection icon={Eye} title="Visibility" description="Who can open this board.">
+          <VisibilitySelector
+            bind:value={visibility}
+            allowedVisibilities={data.visibilityOptions.allowedVisibilities}
+          />
+        </SettingsSection>
+      {/if}
 
       <SettingsSection
         icon={Users}
@@ -388,27 +390,29 @@
       <TagDefinitionsEditor boardId={board.id} bind:tags />
     </SettingsSection>
 
-    <SettingsSection
-      danger
-      icon={TriangleAlert}
-      title="Danger zone"
-      description="Permanently remove this board and all of its data."
-    >
-      <Button
-        type="button"
-        variant="danger"
-        size="lg"
-        class="w-full justify-center shadow-lg shadow-error-500/10"
-        startIcon={Trash2}
-        haptic="medium"
-        onclick={() => {
-          deleteConfirmation = '';
-          isDeleteModalOpen = true;
-        }}
+    {#if currentUserIsOwner}
+      <SettingsSection
+        danger
+        icon={TriangleAlert}
+        title="Danger zone"
+        description="Permanently remove this board and all of its data."
       >
-        Delete board
-      </Button>
-    </SettingsSection>
+        <Button
+          type="button"
+          variant="danger"
+          size="lg"
+          class="w-full justify-center shadow-lg shadow-error-500/10"
+          startIcon={Trash2}
+          haptic="medium"
+          onclick={() => {
+            deleteConfirmation = '';
+            isDeleteModalOpen = true;
+          }}
+        >
+          Delete board
+        </Button>
+      </SettingsSection>
+    {/if}
   </div>
 </FullLayout>
 

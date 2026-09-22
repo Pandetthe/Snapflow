@@ -18,6 +18,10 @@
   }>();
 
   let pattern = $derived(GeoPattern.generate(id));
+
+  const canEditBoard = $derived(
+    yourRole?.toLowerCase() === 'owner' || yourRole?.toLowerCase() === 'admin'
+  );
 </script>
 
 <div
@@ -47,7 +51,7 @@
       </h3>
     </div>
   </a>
-  {#if yourRole?.toLowerCase() === 'owner'}
+  {#if canEditBoard}
     <div class="absolute top-3 right-3 z-20">
       <Button
         variant="ghost"

@@ -4,8 +4,6 @@ import { BoardsService } from '$lib/features/boards/api/boards.api';
 import { TagsService } from '$lib/features/boards/api/tags.api';
 import { apiClient } from '$lib/server/api.server';
 
-type MemberIdShape = { userId?: number };
-
 export const load: PageServerLoad = async (event) => {
   const boardId = Number(event.params.id);
   const result = await new BoardsService(apiClient).getBoardDetails(boardId, event);
@@ -24,11 +22,9 @@ export const load: PageServerLoad = async (event) => {
     );
   }
 
-  const userId = event.locals.user?.id;
-  const owner = result.value.members?.find((m) => m.role === 'owner');
-  const ownerId = owner ? (owner.id ?? (owner as MemberIdShape).userId) : null;
+  const role = result.value.members?.find((m) => m.id === event.locals.user?.id)?.role;
 
-  if (!ownerId || ownerId !== userId) {
+  if (role !== 'owner' && role !== 'admin') {
     throw redirect(302, `/boards/${boardId}`);
   }
 
