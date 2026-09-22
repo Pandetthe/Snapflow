@@ -269,7 +269,7 @@
       {/if}
     </div>
   {/if}
-  <div class="flex w-full flex-1 flex-col overflow-x-clip pb-12" data-board-page>
+  <div class="flex w-full flex-1 flex-col overflow-x-clip pb-12">
     <div
       class="relative z-30 w-full border-b border-gray-200/80 bg-white/95 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/95"
     >

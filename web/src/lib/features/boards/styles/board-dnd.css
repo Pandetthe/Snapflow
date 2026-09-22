@@ -9,14 +9,6 @@
                        [data-is-dnd-shadow-item-internal] is the slot the item would drop into
 */
 
-/*
-  Swimlanes span the page edge to edge, so the scrollbar space other pages keep reserved (app.css) would show
-  as an empty strip on the right while the board does not scroll.
-*/
-html:has([data-board-page]) {
-  scrollbar-gutter: auto;
-}
-
 :root {
   /*
     How long an element shows that someone added, edited, moved or deleted it, whatever the action.
