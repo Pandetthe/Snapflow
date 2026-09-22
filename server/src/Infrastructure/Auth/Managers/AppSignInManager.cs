@@ -366,7 +366,12 @@ internal sealed class AppSignInManager(
                 TwoFactorCode.NormalizeRecoveryCode(recoveryCode!));
 
             if (!redeemed.Succeeded)
-                return Result.Failure(TwoFactorErrors.InvalidCode);
+            {
+                await userManager.AccessFailedAsync(user);
+                return Result.Failure(await userManager.IsLockedOutAsync(user)
+                    ? UserErrors.SignInLockedOut
+                    : TwoFactorErrors.InvalidCode);
+            }
         }
         else
         {
