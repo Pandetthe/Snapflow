@@ -36,6 +36,12 @@
 {:else if type === 'github'}
   <img src={githubBlack} alt="" class="size-4.5 shrink-0 dark:hidden" />
   <img src={githubWhite} alt="" class="hidden size-4.5 shrink-0 dark:block" />
+{:else if type === 'apple'}
+  <svg viewBox="0 0 24 24" class="size-4.5 shrink-0 fill-black dark:fill-white" aria-hidden="true">
+    <path
+      d="M17.05 12.74c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.44-.36 6.05 1.01 8.03.67.97 1.47 2.06 2.51 2.02 1.01-.04 1.39-.65 2.61-.65 1.22 0 1.56.65 2.62.63 1.08-.02 1.77-.99 2.43-1.96.77-1.12 1.08-2.21 1.1-2.27-.02-.01-2.11-.81-2.13-3.22M15.05 6.8c.56-.68.94-1.62.83-2.56-.81.03-1.79.54-2.36 1.21-.51.6-.96 1.56-.84 2.48.9.07 1.82-.46 2.37-1.13"
+    />
+  </svg>
 {:else if type === 'facebook'}
   <svg viewBox="0 0 24 24" class="size-4.5 shrink-0" aria-hidden="true">
     <path

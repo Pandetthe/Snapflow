@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using AspNet.Security.OAuth.Apple;
 using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
@@ -75,6 +76,10 @@ public sealed class ExternalProviderRegistry : IAuthenticationSettings
         if (options.GitHub.Enabled)
             yield return new ExternalProvider(GitHubScheme, options.GitHub.DisplayName, "github",
                 options.GitHub.TrustEmail, DefaultEmailClaimTypes, [ClaimTypes.Name, GitHubLoginClaimType]);
+
+        if (options.Apple.Enabled)
+            yield return new ExternalProvider(AppleAuthenticationDefaults.AuthenticationScheme, options.Apple.DisplayName, "apple",
+                options.Apple.TrustEmail, DefaultEmailClaimTypes, DefaultNameClaimTypes);
 
         foreach (OpenIdConnectProviderOptions provider in options.OpenIdConnect.Where(o => o.Enabled))
             yield return new ExternalProvider(provider.Scheme, provider.DisplayName, "oidc",

@@ -5,7 +5,8 @@ import { env } from '$env/dynamic/public';
 import logger from '$lib/logger';
 import type { PasskeyJson, PasskeyOptions } from '../passkeys';
 
-export type ExternalProviderType = 'google' | 'microsoft' | 'facebook' | 'github' | 'oidc' | 'saml';
+export type ExternalProviderType =
+  'google' | 'microsoft' | 'facebook' | 'github' | 'apple' | 'oidc' | 'saml';
 
 export interface ExternalProvider {
   scheme: string;

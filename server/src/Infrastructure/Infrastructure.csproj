@@ -19,6 +19,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
+    <PackageReference Include="AspNet.Security.OAuth.Apple" />
     <PackageReference Include="Sustainsys.Saml2.AspNetCore2" />
     <PackageReference Include="System.DirectoryServices.Protocols" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />

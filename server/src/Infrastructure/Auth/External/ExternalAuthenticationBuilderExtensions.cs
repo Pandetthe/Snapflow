@@ -2,10 +2,13 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using AspNet.Security.OAuth.Apple;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders.Physical;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Snapflow.Infrastructure.Auth.Cookies;
 using Sustainsys.Saml2;
@@ -76,6 +79,24 @@ internal static class ExternalAuthenticationBuilderExtensions
                 github.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
                 github.ClaimActions.MapJsonKey(ExternalProviderRegistry.GitHubLoginClaimType, "login");
                 github.Events.OnCreatingTicket = AddGitHubUserAsync;
+            });
+        }
+
+        if (options.Apple.Enabled)
+        {
+            builder.AddApple(apple =>
+            {
+                apple.SignInScheme = IdentityConstants.ExternalScheme;
+                apple.CorrelationCookie.Name = AuthCookieNames.CorrelationPrefix;
+                apple.CorrelationCookie.SameSite = SameSiteMode.None;
+                apple.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+                apple.ClientId = options.Apple.ClientId;
+                apple.TeamId = options.Apple.TeamId;
+                apple.KeyId = options.Apple.KeyId;
+                apple.ClientSecretExpiresAfter = TimeSpan.FromDays(options.Apple.ClientSecretExpiryDays);
+                apple.UsePrivateKey(_ => new PhysicalFileInfo(new FileInfo(options.Apple.PrivateKeyPath)));
+                apple.Scope.Add("name");
+                apple.Scope.Add("email");
             });
         }
 

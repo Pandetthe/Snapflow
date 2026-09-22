@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using AspNet.Security.OAuth.Apple;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Snapflow.Infrastructure.Auth.External;
@@ -139,6 +140,91 @@ public sealed class AuthenticationProvidersOptionsTests
 
         registry.AutoRedirectScheme.Should().Be(ExternalProviderRegistry.GitHubScheme);
         registry.RedirectProviders.Should().ContainSingle(p => p.Type == "github");
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_AppleMissesSigningDetails()
+    {
+        var options = new AuthenticationProvidersOptions
+        {
+            Apple = new AppleProviderOptions { Enabled = true, ClientId = "pl.snapflow.web", PrivateKeyPath = "/keys/AuthKey.p8" }
+        };
+
+        Validate(options).Should().ContainSingle();
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_AppleMissesPrivateKeyPath()
+    {
+        var options = new AuthenticationProvidersOptions
+        {
+            Apple = new AppleProviderOptions { Enabled = true, ClientId = "pl.snapflow.web", TeamId = "TEAM123456", KeyId = "KEY1234567" }
+        };
+
+        Validate(options).Should().ContainSingle();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(181)]
+    public void Validate_Should_Fail_When_AppleClientSecretExpiryOutOfRange(int days)
+    {
+        var options = new AuthenticationProvidersOptions
+        {
+            Apple = new AppleProviderOptions
+            {
+                Enabled = true,
+                ClientId = "pl.snapflow.web",
+                TeamId = "TEAM123456",
+                KeyId = "KEY1234567",
+                PrivateKeyPath = "/keys/AuthKey.p8",
+                ClientSecretExpiryDays = days
+            }
+        };
+
+        Validate(options).Should().ContainSingle();
+    }
+
+    [Fact]
+    public void Validate_Should_Pass_When_AppleFullyConfigured()
+    {
+        var options = new AuthenticationProvidersOptions
+        {
+            Apple = new AppleProviderOptions
+            {
+                Enabled = true,
+                ClientId = "pl.snapflow.web",
+                TeamId = "TEAM123456",
+                KeyId = "KEY1234567",
+                PrivateKeyPath = "/keys/AuthKey.p8"
+            }
+        };
+
+        Validate(options).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Registry_Should_OfferApple_When_Enabled()
+    {
+        var registry = new ExternalProviderRegistry(Options.Create(new AuthenticationProvidersOptions
+        {
+            Mode = AuthenticationMode.Mixed,
+            Apple = new AppleProviderOptions
+            {
+                Enabled = true,
+                ClientId = "pl.snapflow.web",
+                TeamId = "TEAM123456",
+                KeyId = "KEY1234567",
+                PrivateKeyPath = "/keys/AuthKey.p8"
+            }
+        }));
+
+        ExternalProvider? apple = registry.FindRedirectProvider(AppleAuthenticationDefaults.AuthenticationScheme);
+
+        apple.Should().NotBeNull();
+        apple!.Type.Should().Be("apple");
+        apple.DisplayName.Should().Be("Apple");
+        apple.TrustEmail.Should().BeTrue();
     }
 
     [Fact]
