@@ -5,7 +5,7 @@
   import { createForm } from '$lib/ui/utils';
   import { untrack } from 'svelte';
   import { getBoardContext } from '$lib/features/boards/context/board.context';
-  import { Check, Pencil } from 'lucide-svelte';
+  import { Check, Pencil } from '@lucide/svelte';
   import { tagChipClass } from '$lib/features/boards/tagColors';
   import MarkdownView from './MarkdownView.svelte';
   import TagChip from './TagChip.svelte';

@@ -4,7 +4,7 @@
   import { AuthService } from '../api/auth';
   import { apiClient } from '$lib/core/api.client';
   import { errorStore } from '$lib/ui/stores/error.svelte';
-  import type { Icon as IconType } from 'lucide-svelte';
+  import type { LucideIcon } from '@lucide/svelte';
   import {
     ShieldAlert,
     KeyRound,
@@ -12,7 +12,7 @@
     MailCheck,
     MailQuestionMark,
     UserX
-  } from 'lucide-svelte';
+  } from '@lucide/svelte';
 
   let {
     open = $bindable(false),
@@ -47,7 +47,7 @@
 
   const signInInfoByCode: Record<
     string,
-    { title: string; message: string; icon: typeof IconType; tone: DialogTone }
+    { title: string; message: string; icon: LucideIcon; tone: DialogTone }
   > = {
     'Users.SignIn.Failed': {
       title: 'Sign in failed',

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Checkbox } from 'bits-ui';
   import { cn, slideReveal } from '$lib/ui/utils';
-  import { Check, X } from 'lucide-svelte';
+  import { Check, X } from '@lucide/svelte';
   import { slide } from 'svelte/transition';
 
   interface Props {

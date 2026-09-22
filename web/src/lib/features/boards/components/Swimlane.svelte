@@ -16,7 +16,7 @@
   import { Button } from '$lib/ui/components';
   import { ScrollArea } from 'bits-ui';
   import { triggerHaptic } from '$lib/ui/utils';
-  import { GripVertical, Pencil, Plus } from 'lucide-svelte';
+  import { GripVertical, Pencil, Plus } from '@lucide/svelte';
   import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
   import {
     forgetDraggedList,

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { AppNotice } from '$lib/ui/stores/notice.svelte';
   import { AppDialog, Button } from '$lib/ui/components';
-  import { Info } from 'lucide-svelte';
+  import { Info } from '@lucide/svelte';
 
   let {
     isOpen = $bindable(false),

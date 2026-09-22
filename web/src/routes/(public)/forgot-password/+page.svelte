@@ -5,7 +5,7 @@
   import { AuthService } from '$lib/features/auth/api/auth';
   import { apiClient } from '$lib/core/api.client';
   import { createForm } from '$lib/ui/utils';
-  import { Mail } from 'lucide-svelte';
+  import { Mail } from '@lucide/svelte';
   import ForgotPasswordModal from '$lib/features/auth/components/ForgotPasswordModal.svelte';
 
   let showForgotPasswordModal = $state(false);

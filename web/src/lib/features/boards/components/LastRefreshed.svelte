@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import { invalidate } from '$app/navigation';
-  import { Clock3 } from 'lucide-svelte';
+  import { Clock3 } from '@lucide/svelte';
 
   let { refreshTime }: { refreshTime: string } = $props();
 

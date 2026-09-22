@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Icon as IconType } from 'lucide-svelte';
+  import type { LucideIcon } from '@lucide/svelte';
   import type { Snippet } from 'svelte';
   import { StatusBadge } from '$lib/ui/components';
   import type { StatusTone } from '$lib/ui/components/base/StatusBadge.svelte';
@@ -13,7 +13,7 @@
     badgeTone = 'neutral',
     action
   }: {
-    icon?: typeof IconType;
+    icon?: LucideIcon;
     iconContent?: Snippet;
     label: string;
     value?: string | Snippet;

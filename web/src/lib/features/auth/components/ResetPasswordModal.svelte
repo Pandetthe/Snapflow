@@ -1,8 +1,8 @@
 <script lang="ts">
   import { AppDialog, Button } from '$lib/ui/components';
   import type { DialogTone } from '$lib/ui/components/dialogs/AppDialog.svelte';
-  import type { Icon as IconType } from 'lucide-svelte';
-  import { Check, CircleX, UserX } from 'lucide-svelte';
+  import type { LucideIcon } from '@lucide/svelte';
+  import { Check, CircleX, UserX } from '@lucide/svelte';
 
   let {
     open = $bindable(false),
@@ -37,7 +37,7 @@
 
   const config: Record<
     'success' | 'error' | 'accountDeleted',
-    { title: string; message: string; icon: typeof IconType; tone: DialogTone }
+    { title: string; message: string; icon: LucideIcon; tone: DialogTone }
   > = {
     success: {
       title: 'Password reset successful!',

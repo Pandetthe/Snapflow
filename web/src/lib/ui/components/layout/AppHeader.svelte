@@ -9,12 +9,18 @@
     Sun,
     Moon,
     Monitor,
-    Github,
     SlidersHorizontal
-  } from 'lucide-svelte';
+  } from '@lucide/svelte';
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
-  import { ThemeToggle, UserMenu, GithubButton, Button, UserAvatar } from '$lib/ui/components';
+  import {
+    ThemeToggle,
+    UserMenu,
+    GithubButton,
+    GithubIcon,
+    Button,
+    UserAvatar
+  } from '$lib/ui/components';
   import { AuthService } from '$lib/features/auth/api/auth';
   import { apiClient } from '$lib/core/api.client';
   import { errorStore } from '$lib/ui/stores/error.svelte';
@@ -238,7 +244,7 @@
               target="_blank"
               rel="noopener noreferrer"
               onclick={closeMobileMenu}
-              startIcon={Github}
+              startIcon={GithubIcon}
               class={rowClass}
             >
               <span class="flex-1 text-left">GitHub</span>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { AppDialog, Button } from '$lib/ui/components';
-  import { TriangleAlert } from 'lucide-svelte';
+  import { TriangleAlert } from '@lucide/svelte';
 
   let {
     open = $bindable(false),

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import { tagChipClass } from '$lib/features/boards/tagColors';
-  import { X } from 'lucide-svelte';
+  import { X } from '@lucide/svelte';
 
   let {
     tag,

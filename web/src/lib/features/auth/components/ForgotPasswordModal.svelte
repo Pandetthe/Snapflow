@@ -1,6 +1,6 @@
 <script lang="ts">
   import { AppDialog, Button } from '$lib/ui/components';
-  import { Info } from 'lucide-svelte';
+  import { Info } from '@lucide/svelte';
 
   let {
     open = $bindable(false),

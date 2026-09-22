@@ -7,7 +7,7 @@
   import type { PublicBoardDto } from '$lib/features/boards/types/boards.api';
   import { recentBoards } from '$lib/features/boards/stores/recent.svelte';
   import { Button, EmptyState, Input, Skeleton } from '$lib/ui/components';
-  import { History, Folders, Plus, Search } from 'lucide-svelte';
+  import { History, Folders, Plus, Search } from '@lucide/svelte';
   import { fade, slide } from 'svelte/transition';
   import { placeholderOut, slideReveal } from '$lib/ui/utils';
   import { morphPlaceholders, type MorphPair } from '$lib/features/boards/animations/skeletonMorph';

@@ -46,7 +46,7 @@
   import { errorStore } from '$lib/ui/stores/error.svelte';
   import { triggerHaptic } from '$lib/ui/utils';
   import { Button } from '$lib/ui/components';
-  import { GripVertical, Pencil, Plus } from 'lucide-svelte';
+  import { GripVertical, Pencil, Plus } from '@lucide/svelte';
   import type { GetBoardByIdResponse } from '$lib/features/boards/types/boards.api';
   import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
   import {

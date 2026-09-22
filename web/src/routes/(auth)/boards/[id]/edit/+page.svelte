@@ -21,7 +21,7 @@
     Tags as TagsIcon,
     RotateCcw,
     Eye
-  } from 'lucide-svelte';
+  } from '@lucide/svelte';
   import { afterNavigate, goto, invalidateAll } from '$app/navigation';
   import { resolve } from '$app/paths';
   import type { Pathname } from '$app/types';

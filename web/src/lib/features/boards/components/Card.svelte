@@ -7,7 +7,7 @@
   import { summarizeDescription } from '$lib/features/boards/markdown/summary';
   import '$lib/features/boards/styles/markdown.css';
   import { UserAvatar } from '$lib/ui/components';
-  import { CalendarDays, GripVertical, ListChecks } from 'lucide-svelte';
+  import { CalendarDays, GripVertical, ListChecks } from '@lucide/svelte';
   import MovedByIndicator from './MovedByIndicator.svelte';
   import TagChip from './TagChip.svelte';
 

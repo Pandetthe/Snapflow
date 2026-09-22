@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { KeyRound, RefreshCw, ShieldOff } from 'lucide-svelte';
+  import { KeyRound, RefreshCw, ShieldOff } from '@lucide/svelte';
   import { AppDialog, Button, CodeInput } from '$lib/ui/components';
   import { createForm } from '$lib/ui/utils';
   import type { Result } from '$lib/core/types/app';

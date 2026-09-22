@@ -2,7 +2,7 @@
   import GeoPattern from 'geopattern';
   import { resolve } from '$app/paths';
   import { cn } from '$lib/ui/utils';
-  import { Pencil } from 'lucide-svelte';
+  import { Pencil } from '@lucide/svelte';
   import { Button } from '$lib/ui/components';
 
   let {

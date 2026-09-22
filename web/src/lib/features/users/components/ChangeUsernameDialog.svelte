@@ -1,6 +1,6 @@
 <script lang="ts">
   import { AppDialog, Button, InputTextField } from '$lib/ui/components';
-  import { Check } from 'lucide-svelte';
+  import { Check } from '@lucide/svelte';
   import type { UsersService } from '../api/users';
   import { createForm } from '$lib/ui/utils';
   import { validateUsername } from '$lib/features/auth/validation';

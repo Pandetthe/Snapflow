@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Select } from 'bits-ui';
-  import { Check, ChevronDown, ArrowRightLeft } from 'lucide-svelte';
+  import { Check, ChevronDown, ArrowRightLeft } from '@lucide/svelte';
   import { cn, floatingMotionClass } from '$lib/ui/utils';
   import type { MemberRole } from '$lib/features/boards/types/boards.api';
 

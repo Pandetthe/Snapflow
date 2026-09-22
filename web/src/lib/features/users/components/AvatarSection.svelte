@@ -9,7 +9,7 @@
   import { AvatarType, type UsersService } from '../api/users';
   import { avatarBust, bustAvatar } from '../avatarBust.svelte';
   import { errorStore } from '$lib/ui/stores/error.svelte';
-  import { Check, Upload, Sparkles, User as UserIcon, Camera } from 'lucide-svelte';
+  import { Check, Upload, Sparkles, User as UserIcon, Camera } from '@lucide/svelte';
   import { invalidateAll } from '$app/navigation';
   import { slide } from 'svelte/transition';
   import { slideReveal, triggerHaptic } from '$lib/ui/utils';

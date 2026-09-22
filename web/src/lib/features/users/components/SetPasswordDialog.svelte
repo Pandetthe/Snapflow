@@ -1,7 +1,7 @@
 <script lang="ts">
   import { AppDialog, Button, InputTextField } from '$lib/ui/components';
   import PasswordStrength from '$lib/features/auth/components/PasswordStrength.svelte';
-  import { Check, KeyRound } from 'lucide-svelte';
+  import { Check, KeyRound } from '@lucide/svelte';
   import type { UsersService } from '../api/users';
   import { validatePassword } from '$lib/features/auth/validation';
   import { createForm } from '$lib/ui/utils';

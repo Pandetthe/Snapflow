@@ -2,7 +2,7 @@
   import type { HTMLInputAttributes } from 'svelte/elements';
   import { Label } from 'bits-ui';
   import { cn, slideReveal } from '$lib/ui/utils';
-  import { Eye, EyeOff, Search, Loader2, type Icon as IconType } from 'lucide-svelte';
+  import { Eye, EyeOff, Search, Loader2, type LucideIcon } from '@lucide/svelte';
   import { slide } from 'svelte/transition';
 
   interface Props extends HTMLInputAttributes {
@@ -13,8 +13,8 @@
     error?: string;
     type?: string;
     showPasswordToggle?: boolean;
-    leftIcon?: typeof IconType;
-    rightIcon?: typeof IconType;
+    leftIcon?: LucideIcon;
+    rightIcon?: LucideIcon;
     leftIconDecorated?: boolean;
     id?: string;
     isLoading?: boolean;

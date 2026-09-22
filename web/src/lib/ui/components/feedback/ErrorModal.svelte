@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { AppError } from '$lib/core/types/app';
   import { AppDialog, Button } from '$lib/ui/components';
-  import { TriangleAlert } from 'lucide-svelte';
+  import { TriangleAlert } from '@lucide/svelte';
 
   let {
     isOpen = $bindable(false),

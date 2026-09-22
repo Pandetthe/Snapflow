@@ -1,12 +1,12 @@
 <script lang="ts" generics="T extends string">
   import { ToggleGroup } from 'bits-ui';
-  import type { Icon as IconType } from 'lucide-svelte';
+  import type { LucideIcon } from '@lucide/svelte';
   import { cn } from '$lib/ui/utils';
 
   interface Option {
     value: T;
     label: string;
-    icon?: typeof IconType;
+    icon?: LucideIcon;
   }
 
   interface Props {

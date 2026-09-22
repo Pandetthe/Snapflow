@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Icon as IconType } from 'lucide-svelte';
+  import type { LucideIcon } from '@lucide/svelte';
   import type { Snippet } from 'svelte';
   import { cn } from '$lib/ui/utils';
 
@@ -11,7 +11,7 @@
     class: className,
     children
   }: {
-    icon: typeof IconType;
+    icon: LucideIcon;
     title: string;
     description: string;
     danger?: boolean;

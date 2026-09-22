@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button as AppButton, GoBackButton, SplitLayout } from '$lib/ui/components';
-  import { Check } from 'lucide-svelte';
+  import { Check } from '@lucide/svelte';
   import { cn } from '$lib/ui/utils';
 </script>
 

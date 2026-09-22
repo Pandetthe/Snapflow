@@ -3,7 +3,7 @@
   import RoleSelector from '$lib/features/boards/components/RoleSelector.svelte';
   import { createUserSearch } from '$lib/features/users/composables/userSearch.svelte';
   import { itemIn, itemOut, slideReveal } from '$lib/ui/utils';
-  import { UserPlus, X } from 'lucide-svelte';
+  import { UserPlus, X } from '@lucide/svelte';
   import { fade, fly, slide } from 'svelte/transition';
   import type { SearchUserDto } from '$lib/features/users/api/users';
   import type { MemberRole } from '$lib/features/boards/types/boards.api';

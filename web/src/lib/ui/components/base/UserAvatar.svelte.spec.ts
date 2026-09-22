@@ -12,31 +12,31 @@ const imageIn = (root: Element) => root.querySelector('img');
 
 describe('UserAvatar', () => {
   it('shows the image once it has loaded and removes the skeleton', async () => {
-    const { container } = render(UserAvatar, { props: { src: IMAGE, name: 'Ann Lee' } });
+    const { container } = await render(UserAvatar, { props: { src: IMAGE, name: 'Ann Lee' } });
 
     await expect.poll(() => imageIn(container)?.classList.contains('opacity-0')).toBe(false);
     await expect.poll(() => skeletonIn(container)).toBeNull();
   });
 
   it('shows an avatar it has loaded before without the skeleton', async () => {
-    const first = render(UserAvatar, { props: { src: IMAGE, name: 'Ann Lee' } });
+    const first = await render(UserAvatar, { props: { src: IMAGE, name: 'Ann Lee' } });
     await expect.poll(() => skeletonIn(first.container)).toBeNull();
 
-    const { container } = render(UserAvatar, { props: { src: IMAGE, name: 'Ann Lee' } });
+    const { container } = await render(UserAvatar, { props: { src: IMAGE, name: 'Ann Lee' } });
 
     expect(skeletonIn(container)).toBeNull();
     expect(imageIn(container)?.classList.contains('opacity-0')).toBe(false);
   });
 
   it('falls back to the initials when the image is broken', async () => {
-    const { container } = render(UserAvatar, { props: { src: BROKEN, name: 'Ann Lee' } });
+    const { container } = await render(UserAvatar, { props: { src: BROKEN, name: 'Ann Lee' } });
 
     await expect.element(page.getByText('AL')).toBeInTheDocument();
     await expect.poll(() => skeletonIn(container)).toBeNull();
   });
 
   it('shows the initials at once when there is no image', async () => {
-    const { container } = render(UserAvatar, { props: { src: null, name: 'Ann Lee' } });
+    const { container } = await render(UserAvatar, { props: { src: null, name: 'Ann Lee' } });
 
     await expect.element(page.getByText('AL')).toBeInTheDocument();
     expect(skeletonIn(container)).toBeNull();

@@ -23,7 +23,7 @@
     Pencil,
     Smartphone,
     Settings2
-  } from 'lucide-svelte';
+  } from '@lucide/svelte';
   import { afterNavigate, invalidateAll } from '$app/navigation';
 
   let { data } = $props();

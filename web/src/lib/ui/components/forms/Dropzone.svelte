@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Label } from 'bits-ui';
-  import { FileText, CloudUpload, X } from 'lucide-svelte';
+  import { FileText, CloudUpload, X } from '@lucide/svelte';
   import { cn, slideReveal } from '$lib/ui/utils';
   import { slide } from 'svelte/transition';
 

@@ -9,7 +9,7 @@
     InputTextField,
     SplitLayout
   } from '$lib/ui/components';
-  import { Lock } from 'lucide-svelte';
+  import { Lock } from '@lucide/svelte';
   import { createForm } from '$lib/ui/_utils/form.svelte';
   import type { ProblemDetails } from '$lib/core/types/app';
   import ResetPasswordModal from '$lib/features/auth/components/ResetPasswordModal.svelte';

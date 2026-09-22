@@ -1,6 +1,6 @@
 <script lang="ts">
   import QRCode from 'qrcode';
-  import { ShieldCheck } from 'lucide-svelte';
+  import { ShieldCheck } from '@lucide/svelte';
   import { AppDialog, Button, CodeInput, Skeleton } from '$lib/ui/components';
   import { createForm } from '$lib/ui/utils';
   import type { AuthenticatorSetup, UsersService } from '../api/users';

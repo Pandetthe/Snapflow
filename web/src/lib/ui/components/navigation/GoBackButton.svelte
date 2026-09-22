@@ -1,6 +1,6 @@
 <script lang="ts">
   import Button from '../base/Button.svelte';
-  import { ChevronLeft } from 'lucide-svelte';
+  import { ChevronLeft } from '@lucide/svelte';
 
   interface Props {
     href: string;

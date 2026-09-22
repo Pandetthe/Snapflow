@@ -9,7 +9,7 @@
     InputTextField,
     SplitLayout
   } from '$lib/ui/components';
-  import { Mail, Lock, User } from 'lucide-svelte';
+  import { Mail, Lock, User } from '@lucide/svelte';
   import { createForm } from '$lib/ui/_utils/form.svelte';
   import SignUpModal from '$lib/features/auth/components/SignUpModal.svelte';
   import ExternalProviderButtons from '$lib/features/auth/components/ExternalProviderButtons.svelte';

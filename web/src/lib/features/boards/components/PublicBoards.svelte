@@ -2,7 +2,7 @@
   import BoardCard from '$lib/features/boards/components/BoardCard.svelte';
   import type { PublicBoardDto } from '$lib/features/boards/types/boards.api';
   import { EmptyState } from '$lib/ui/components';
-  import { Globe } from 'lucide-svelte';
+  import { Globe } from '@lucide/svelte';
 
   let { boards }: { boards: PublicBoardDto[] } = $props();
 </script>

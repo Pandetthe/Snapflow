@@ -1,6 +1,6 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { KeyRound, Pencil, Plus, Trash2 } from 'lucide-svelte';
+  import { KeyRound, Pencil, Plus, Trash2 } from '@lucide/svelte';
   import { AppDialog, Button, InputTextField } from '$lib/ui/components';
   import {
     createPasskey,

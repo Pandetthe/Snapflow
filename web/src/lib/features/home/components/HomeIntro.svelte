@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Button } from '$lib/ui/components';
-  import { Bug, Github } from 'lucide-svelte';
+  import { Button, GithubIcon } from '$lib/ui/components';
+  import { Bug } from '@lucide/svelte';
 
   const version = __APP_VERSION__;
   const repositoryUrl = 'https://github.com/pandetthe/Snapflow';
@@ -64,7 +64,7 @@
         rel="noopener noreferrer"
         variant="primary"
         size="md"
-        startIcon={Github}
+        startIcon={GithubIcon}
         haptic="light"
       >
         Contribute on GitHub

@@ -3,7 +3,7 @@
   import { cubicInOut, cubicOut } from 'svelte/easing';
   import type { TransitionConfig } from 'svelte/transition';
   import { UserAvatar } from '$lib/ui/components';
-  import { Move, Pencil, Plus, Trash2 } from 'lucide-svelte';
+  import { Move, Pencil, Plus, Trash2 } from '@lucide/svelte';
 
   /**
    * Who added, edited, moved or deleted the element, with an icon for what they did.

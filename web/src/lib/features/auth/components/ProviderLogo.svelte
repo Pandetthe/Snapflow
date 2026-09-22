@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Building2 } from 'lucide-svelte';
+  import { Building2 } from '@lucide/svelte';
   import githubBlack from '$lib/assets/github-black.svg';
   import githubWhite from '$lib/assets/github-white.svg';
   import type { ExternalProviderType } from '../api/auth';

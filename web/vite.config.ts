@@ -67,7 +67,7 @@ export default defineConfig(({ command }) => {
     build: {
       target: 'esnext',
       sourcemap: false,
-      minify: 'esbuild'
+      minify: 'oxc'
     },
     plugins: [
       tailwindcss(),

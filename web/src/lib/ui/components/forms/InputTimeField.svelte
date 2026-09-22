@@ -1,7 +1,7 @@
 <script lang="ts">
   import { TimeField, Popover } from 'bits-ui';
   import { parseTime } from '@internationalized/date';
-  import { Clock3, X, type Icon as IconType } from 'lucide-svelte';
+  import { Clock3, X, type LucideIcon } from '@lucide/svelte';
   import { cn, floatingMotionClass, slideReveal } from '$lib/ui/utils';
   import { ClockPicker } from '$lib/ui/components';
   import { slide } from 'svelte/transition';
@@ -19,8 +19,8 @@
     readonly?: boolean | null;
     allowDeselect?: boolean;
     hourCycle?: 12 | 24;
-    leftIcon?: typeof IconType;
-    rightIcon?: typeof IconType;
+    leftIcon?: LucideIcon;
+    rightIcon?: LucideIcon;
     leftIconDecorated?: boolean;
     class?: string;
   }

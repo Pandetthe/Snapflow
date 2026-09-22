@@ -12,7 +12,7 @@
   import { slideReveal } from '$lib/ui/utils';
   import type { Result } from '$lib/core/types/app';
   import { slide } from 'svelte/transition';
-  import { Check, Pencil, Plus, Trash2, X } from 'lucide-svelte';
+  import { Check, Pencil, Plus, Trash2, X } from '@lucide/svelte';
 
   const MAX_TITLE_LENGTH = 20;
 

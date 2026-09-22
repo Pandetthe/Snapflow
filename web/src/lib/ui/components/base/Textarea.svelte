@@ -2,15 +2,15 @@
   import type { HTMLTextareaAttributes } from 'svelte/elements';
   import { Label } from 'bits-ui';
   import { cn } from '$lib/ui/utils';
-  import type { Icon as IconType } from 'lucide-svelte';
+  import type { LucideIcon } from '@lucide/svelte';
 
   interface Props extends HTMLTextareaAttributes {
     value?: string;
     label?: string;
     helperText?: string;
     error?: string;
-    leftIcon?: typeof IconType;
-    rightIcon?: typeof IconType;
+    leftIcon?: LucideIcon;
+    rightIcon?: LucideIcon;
     leftIconDecorated?: boolean;
     id?: string;
   }
@@ -117,8 +117,7 @@
         RightIcon && 'pr-11',
         className
       )}
-      {...rest}
-    ></textarea>
+      {...rest}></textarea>
 
     {#if RightIcon}
       <span

@@ -12,7 +12,7 @@
     Textarea,
     Progress
   } from '$lib/ui/components';
-  import { CalendarDays, Clock3, CreditCard, Plus, Settings } from 'lucide-svelte';
+  import { CalendarDays, Clock3, CreditCard, Plus, Settings } from '@lucide/svelte';
   import { onMount } from 'svelte';
   import { FullLayout } from '$lib/ui/components';
   import BoardCard from '$lib/features/boards/components/BoardCard.svelte';

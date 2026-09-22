@@ -1,9 +1,9 @@
 <script lang="ts">
   import { Button as BitsButton } from 'bits-ui';
-  import type { Icon as IconType } from 'lucide-svelte';
+  import type { LucideIcon } from '@lucide/svelte';
   import type { Snippet } from 'svelte';
   import type { HTMLAnchorAttributes, HTMLAttributes } from 'svelte/elements';
-  import { LoaderCircle } from 'lucide-svelte';
+  import { LoaderCircle } from '@lucide/svelte';
   import { cn, haptics, type HapticPreset } from '$lib/ui/utils';
   import { LoadingDots } from '$lib/ui/components';
   import type { Variant, Size } from '$lib/ui/types';
@@ -12,8 +12,8 @@
     Pick<HTMLAnchorAttributes, 'target' | 'rel' | 'download'> & {
       variant?: Variant;
       size?: Size;
-      startIcon?: typeof IconType;
-      endIcon?: typeof IconType;
+      startIcon?: LucideIcon;
+      endIcon?: LucideIcon;
       children?: Snippet;
       class?: string;
       id?: string;

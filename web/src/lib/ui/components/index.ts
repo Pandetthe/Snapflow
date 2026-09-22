@@ -11,6 +11,7 @@ export { default as Textarea } from './base/Textarea.svelte';
 export { default as LoadingDots } from './base/LoadingDots.svelte';
 export { default as ThemeToggle } from './base/ThemeToggle.svelte';
 export { default as GithubButton } from './base/GithubButton.svelte';
+export { default as GithubIcon } from './base/GithubIcon.svelte';
 export { default as RoleBadge } from './base/RoleBadge.svelte';
 export { default as StatusBadge } from './base/StatusBadge.svelte';
 export { default as Skeleton } from './base/Skeleton.svelte';

@@ -27,7 +27,7 @@
     LoadingDots
   } from '$lib/ui/components';
   import { placeholderOut, triggerHaptic } from '$lib/ui/utils';
-  import { Globe, LayoutGrid, Link, Pencil, Plus, Loader2 } from 'lucide-svelte';
+  import { Globe, LayoutGrid, Link, Pencil, Plus, Loader2 } from '@lucide/svelte';
   import { LAYOUT_FLIP_MS, layoutFlip } from '$lib/features/boards/animations/motion';
   import { foldSwimlanes, unfoldSwimlanes } from '$lib/features/boards/animations/swimlaneFold';
   import '$lib/features/boards/styles/board-dnd.css';

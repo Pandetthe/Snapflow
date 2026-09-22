@@ -2,7 +2,7 @@
   import { DropdownMenu } from 'bits-ui';
   import { Button } from '$lib/ui/components';
   import { theme } from '$lib/ui/stores/theme.svelte';
-  import { Sun, Moon, Monitor, Check } from 'lucide-svelte';
+  import { Sun, Moon, Monitor, Check } from '@lucide/svelte';
   import { cn, floatingMotionClass } from '$lib/ui/utils';
 
   interface Props {

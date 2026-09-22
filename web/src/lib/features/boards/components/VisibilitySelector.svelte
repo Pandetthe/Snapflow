@@ -2,7 +2,7 @@
   import { SegmentedControl } from '$lib/ui/components';
   import ShareBoardModal from '$lib/features/boards/components/ShareBoardModal.svelte';
   import type { BoardVisibility } from '$lib/features/boards/types/boards.api';
-  import { Globe, Link, Lock } from 'lucide-svelte';
+  import { Globe, Link, Lock } from '@lucide/svelte';
 
   let {
     value = $bindable(),

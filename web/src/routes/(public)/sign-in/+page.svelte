@@ -14,7 +14,7 @@
     SegmentedControl,
     SplitLayout
   } from '$lib/ui/components';
-  import { Fingerprint, Mail, Lock, User } from 'lucide-svelte';
+  import { Fingerprint, Mail, Lock, User } from '@lucide/svelte';
   import { createForm } from '$lib/ui/utils';
   import { errorStore } from '$lib/ui/stores/error.svelte';
   import {

@@ -4,7 +4,7 @@
   import { Button, FullLayout, InputTextField, GoBackButton, Textarea } from '$lib/ui/components';
   import BoardMembersEditor from '$lib/features/boards/components/BoardMembersEditor.svelte';
   import { createForm } from '$lib/ui/utils';
-  import { Plus, Users } from 'lucide-svelte';
+  import { Plus, Users } from '@lucide/svelte';
   import type { BoardVisibility } from '$lib/features/boards/types/boards.api';
   import type { OwnerMember, SelectedMember } from '$lib/features/boards/types/members';
   import VisibilitySelector from '$lib/features/boards/components/VisibilitySelector.svelte';

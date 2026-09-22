@@ -5,8 +5,8 @@
 <script lang="ts">
   import { AlertDialog, Dialog } from 'bits-ui';
   import type { Snippet } from 'svelte';
-  import type { Icon as IconType } from 'lucide-svelte';
-  import { X } from 'lucide-svelte';
+  import type { LucideIcon } from '@lucide/svelte';
+  import { X } from '@lucide/svelte';
   import { cn } from '$lib/ui/utils';
   import ResponsiveDialog from './ResponsiveDialog.svelte';
   import ResponsiveAlertDialog from './ResponsiveAlertDialog.svelte';
@@ -56,7 +56,7 @@
     alert?: boolean;
     title: string;
     description?: string | Snippet;
-    icon?: typeof IconType;
+    icon?: LucideIcon;
     tone?: DialogTone;
     closeButton?: boolean;
     onsubmit?: (event: SubmitEvent) => unknown;

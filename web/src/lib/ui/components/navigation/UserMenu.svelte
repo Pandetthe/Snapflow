@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronDown, User as UserIcon, LogOut, SlidersHorizontal } from 'lucide-svelte';
+  import { ChevronDown, User as UserIcon, LogOut, SlidersHorizontal } from '@lucide/svelte';
   import { DropdownMenu } from 'bits-ui';
   import { Button, UserAvatar } from '$lib/ui/components';
   import { floatingMotionClass } from '$lib/ui/utils';

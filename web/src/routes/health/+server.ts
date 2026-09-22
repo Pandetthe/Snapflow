@@ -5,8 +5,8 @@ import type { RequestEvent } from './$types';
 
 export async function GET(event: RequestEvent) {
   const start = performance.now();
-  let apiStatus: 'Healthy' | 'Unhealthy' = 'Unhealthy';
-  let apiDuration = '00:00:00.000';
+  let apiStatus: 'Healthy' | 'Unhealthy';
+  let apiDuration: string;
 
   try {
     const apiCallStart = performance.now();

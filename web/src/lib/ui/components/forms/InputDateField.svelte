@@ -1,7 +1,7 @@
 <script lang="ts">
   import { DatePicker, type SegmentPart } from 'bits-ui';
   import { parseDate, today, getLocalTimeZone } from '@internationalized/date';
-  import { CalendarDays, ChevronLeft, ChevronRight, X, type Icon as IconType } from 'lucide-svelte';
+  import { CalendarDays, ChevronLeft, ChevronRight, X, type LucideIcon } from '@lucide/svelte';
   import { cn, slideReveal } from '$lib/ui/utils';
   import { slide } from 'svelte/transition';
 
@@ -18,8 +18,8 @@
     readonly?: boolean | null;
     allowDeselect?: boolean;
     dateOrder?: 'dmy' | 'mdy' | 'ymd';
-    leftIcon?: typeof IconType;
-    rightIcon?: typeof IconType;
+    leftIcon?: LucideIcon;
+    rightIcon?: LucideIcon;
     leftIconDecorated?: boolean;
     class?: string;
   }

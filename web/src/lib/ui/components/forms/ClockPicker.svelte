@@ -37,18 +37,11 @@
   const innerRadius = 45;
 
   function getPointerStyles(type: 'hours' | 'minutes', val: number) {
-    let angle = 0;
+    const angle = type === 'hours' ? val * 30 : val * 6;
     let radius = outerRadius;
 
-    if (type === 'hours') {
-      if (props.hourCycle === 24) {
-        angle = val * 30;
-        if (val === 0 || val > 12) radius = innerRadius;
-      } else {
-        angle = val * 30;
-      }
-    } else {
-      angle = val * 6;
+    if (type === 'hours' && props.hourCycle === 24 && (val === 0 || val > 12)) {
+      radius = innerRadius;
     }
 
     return {

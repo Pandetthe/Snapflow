@@ -21,7 +21,7 @@
     Strikethrough,
     Table,
     Video
-  } from 'lucide-svelte';
+  } from '@lucide/svelte';
   import { Button } from '$lib/ui/components';
   import { cn } from '$lib/ui/utils';
   import { descriptionEmoji } from '$lib/features/boards/markdown/emoji';

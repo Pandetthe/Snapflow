@@ -24,9 +24,9 @@
     Moon,
     Palette,
     Sun
-  } from 'lucide-svelte';
+  } from '@lucide/svelte';
   import { afterNavigate } from '$app/navigation';
-  import type { Icon as IconType } from 'lucide-svelte';
+  import type { LucideIcon } from '@lucide/svelte';
 
   let backHref = $state('/');
   afterNavigate(({ from }) => {
@@ -47,7 +47,7 @@
     system: 'Snapflow follows the light or dark setting of your device.'
   };
 
-  const themeIcons: Record<ThemeMode, typeof IconType> = {
+  const themeIcons: Record<ThemeMode, LucideIcon> = {
     light: Sun,
     dark: Moon,
     system: Monitor
@@ -69,7 +69,7 @@
   }
 </script>
 
-{#snippet settingIcon(Icon: typeof IconType)}
+{#snippet settingIcon(Icon: LucideIcon)}
   <div
     class="flex size-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-400 dark:border-gray-800 dark:text-gray-500"
   >

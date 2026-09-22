@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Label, Select } from 'bits-ui';
-  import { Check, ChevronDown, ChevronsDown, ChevronsUp } from 'lucide-svelte';
+  import { Check, ChevronDown, ChevronsDown, ChevronsUp } from '@lucide/svelte';
   import { cn, floatingMotionClass, slideReveal } from '$lib/ui/utils';
   import { slide } from 'svelte/transition';
 
