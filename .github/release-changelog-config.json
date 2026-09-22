@@ -27,11 +27,15 @@
     {
       "title": "## ⚡ Performance",
       "labels": ["performance", "perf"]
+    },
+    {
+      "title": "<details>\n<summary>Full list of changes</summary>",
+      "labels": ["all"]
     }
   ],
   "ignore_labels": ["ignore"],
   "sort": "ASC",
-  "template": "#{{CHANGELOG}}\n\n<details>\n<summary>Full list of changes</summary>\n#{{UNCATEGORIZED}}\n</details>",
+  "template": "#{{CHANGELOG}}</details>",
   "pr_template": "- #{{TITLE}}",
   "commit_template": "- #{{TITLE}}",
   "transformers": [
@@ -49,6 +53,11 @@
     {
       "pattern": "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(?:\\((.*)\\))?!?: (.*)$",
       "target": "$1",
+      "on_property": "title"
+    },
+    {
+      "pattern": "^.*$",
+      "target": "all",
       "on_property": "title"
     }
   ]
