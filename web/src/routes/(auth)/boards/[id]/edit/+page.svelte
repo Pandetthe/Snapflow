@@ -22,7 +22,7 @@
     RotateCcw,
     Eye
   } from 'lucide-svelte';
-  import { afterNavigate, goto } from '$app/navigation';
+  import { afterNavigate, goto, invalidateAll } from '$app/navigation';
   import { resolve } from '$app/paths';
   import type { Pathname } from '$app/types';
   import type { BoardVisibility, MemberRole } from '$lib/features/boards/types/boards.api';
@@ -87,8 +87,11 @@
   const selectedMembersCount = $derived(selectedMembers.length + (ownerMember ? 1 : 0));
 
   afterNavigate(({ from }) => {
-    backHref = (from?.url.pathname.replace(/\/edit$/, '') ?? '/') as Pathname;
+    backHref = (from?.url.pathname.replace(/\/edit$/, '') ??
+      `/boards/${data.board.id}`) as Pathname;
   });
+
+  let submitted: typeof baseline | null = null;
 
   const form = createForm({
     initialValues: {
@@ -122,15 +125,25 @@
         members.push({ userId: ownerMember.id, role: 'owner' });
       }
 
-      return await boardsService.updateBoard(board.id, {
+      submitted = {
         title: values.title.trim(),
         description: values.description.trim(),
+        members: memberSignature(selectedMembers),
+        visibility
+      };
+
+      return await boardsService.updateBoard(board.id, {
+        title: submitted.title,
+        description: submitted.description,
         members,
         visibility
       });
     },
     onSuccess: () => {
-      goto(resolve(backHref));
+      if (!submitted) return;
+      baseline = submitted;
+      form.reset({ title: submitted.title, description: submitted.description });
+      invalidateAll();
     }
   });
 
