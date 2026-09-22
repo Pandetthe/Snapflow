@@ -14,11 +14,14 @@ are incomplete, and the database schema and the HTTP API change without notice. 
 older version that runs on its own lives on the
 [proof-of-concept branch](https://github.com/Pandetthe/Snapflow/tree/proof-of-concept).
 
-|  |  |
-| :-: | :-: |
-| ![Swimlanes, lists, cards and tags](docs/images/03-public-board.jpg) | ![Card details](docs/images/04-card-details.jpg) |
-| ![Dashboard](docs/images/02-dashboard.jpg) | ![A private board](docs/images/05-private-board.jpg) |
-| ![Landing page, signed out](docs/images/01-landing-public-boards.jpg) | ![Visibility and team roles](docs/images/06-board-visibility-and-team.jpg) |
+<p align="center">
+  <img src="docs/images/03-public-board.jpg" alt="Swimlanes, lists, cards and tags" width="49%">
+  <img src="docs/images/04-card-details.jpg" alt="Card details" width="49%">
+  <img src="docs/images/02-dashboard.jpg" alt="Dashboard" width="49%">
+  <img src="docs/images/05-private-board.jpg" alt="A private board" width="49%">
+  <img src="docs/images/01-landing-public-boards.jpg" alt="Landing page, signed out" width="49%">
+  <img src="docs/images/06-board-visibility-and-team.jpg" alt="Visibility and team roles" width="49%">
+</p>
 
 ## Development
 
