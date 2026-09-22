@@ -36,8 +36,8 @@
   "commit_template": "- #{{TITLE}}",
   "transformers": [
     {
-      "pattern": "- (?:feat|fix|docs|style|refactor|perf|test|build|ci|chore)(?:\\([^)]*\\))?!?:\\s*",
-      "target": "- "
+      "pattern": "^(?:feat|fix|docs|style|refactor|perf|test|build|ci|chore)(?:\\([^)]*\\))?!?:\\s*",
+      "target": ""
     }
   ],
   "label_extractor": [
