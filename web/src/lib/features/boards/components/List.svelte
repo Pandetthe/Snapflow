@@ -62,7 +62,6 @@
   }: { list: GetBoardByIdResponse.ListDto; swimlaneId: number } = $props();
 
   const boardCtx = getBoardContext();
-  const hub = $derived(boardCtx.hub);
   const boardState = $derived(boardCtx.connectionState);
   const canManageLists = $derived(boardCtx.canManageLists);
   const canManageCards = $derived(boardCtx.canManageCards);
@@ -133,8 +132,11 @@
       const nextItem = list.cards[index + 1];
       const beforeId = nextItem ? nextItem.id : null;
 
-      let res = await hub?.moveCard({ id, listId: list.id, beforeId });
-      if (res && res.ok) {
+      const hub = boardCtx.hub;
+      if (!hub) return;
+
+      const res = await hub.moveCard({ id, listId: list.id, beforeId });
+      if (res.ok) {
         const movedItem = list.cards.find((c) => c.id === id);
         if (movedItem) movedItem.rank = res.value.rank;
         list.cards.sort((a, b) => a.rank.localeCompare(b.rank));

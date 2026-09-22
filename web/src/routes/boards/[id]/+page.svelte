@@ -228,8 +228,10 @@
       const nextItem = bs.board.swimlanes[index + 1];
       const beforeId = nextItem ? nextItem.id : null;
 
-      const res = await hub?.moveSwimlane({ id, beforeId });
-      if (res?.ok) {
+      if (!hub) return;
+
+      const res = await hub.moveSwimlane({ id, beforeId });
+      if (res.ok) {
         const moved = bs.board.swimlanes.find((s) => s.id === id);
         if (moved) moved.rank = res.value.rank;
         bs.sortSwimlanes();

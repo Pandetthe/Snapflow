@@ -31,7 +31,6 @@
   let { swimlane = $bindable() }: { swimlane: GetBoardByIdResponse.SwimlaneDto } = $props();
 
   const boardCtx = getBoardContext();
-  const hub = $derived(boardCtx.hub);
   const boardState = $derived(boardCtx.connectionState);
   const canManageSwimlanes = $derived(boardCtx.canManageSwimlanes);
   const canManageLists = $derived(boardCtx.canManageLists);
@@ -102,9 +101,12 @@
       const nextItem = swimlane.lists[index + 1];
       const beforeId = nextItem ? nextItem.id : null;
 
-      let res = await hub?.moveList({ id, swimlaneId: swimlane.id, beforeId });
+      const hub = boardCtx.hub;
+      if (!hub) return;
 
-      if (res && res.ok) {
+      const res = await hub.moveList({ id, swimlaneId: swimlane.id, beforeId });
+
+      if (res.ok) {
         const movedItem = swimlane.lists.find((l) => l.id === id);
         if (movedItem && res.value?.rank) {
           movedItem.rank = res.value.rank;
