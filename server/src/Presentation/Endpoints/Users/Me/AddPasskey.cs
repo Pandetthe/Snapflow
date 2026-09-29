@@ -31,7 +31,7 @@ internal sealed class AddPasskey : IEndpoint
         .RequirePasswordAuthentication()
         .WithTags(EndpointTags.Users)
         .Produces<PasskeyDetails>()
-        .ProducesValidationProblem()
+        .ProducesCustomValidationProblem()
         .ProducesProblem(StatusCodes.Status409Conflict);
     }
 }

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.BearerToken;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Auth.TwoFactorSignIn;
 using Snapflow.Common;
@@ -40,6 +41,9 @@ internal sealed class TwoFactorSignIn : IEndpoint
 
             return result.Match(Results.Empty, Results.Problem);
         })
-        .WithTags(EndpointTags.Auth);
+        .AllowAnonymous()
+        .WithTags(EndpointTags.Auth)
+        .Produces<AccessTokenResponse>()
+        .ProducesCustomValidationProblem();
     }
 }

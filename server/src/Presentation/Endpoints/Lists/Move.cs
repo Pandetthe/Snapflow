@@ -2,6 +2,7 @@
 using Snapflow.Application.Lists.Move;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
+using Snapflow.Presentation.Contracts;
 using Snapflow.Presentation.Extensions;
 
 namespace Snapflow.Presentation.Endpoints.Lists;
@@ -26,7 +27,7 @@ internal sealed class Move : IEndpoint
         })
         .RequireAuthorization(BoardPermissions.Lists.Move)
         .WithTags(EndpointTags.Lists)
-        .Produces(StatusCodes.Status204NoContent)
+        .Produces<RankResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

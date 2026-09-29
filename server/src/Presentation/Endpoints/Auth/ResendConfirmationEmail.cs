@@ -28,6 +28,9 @@ internal sealed class ResendConfirmationEmail : IEndpoint
             return result.Match(Results.NoContent, Results.Problem
             );
         })
-        .WithTags(EndpointTags.Auth);
+        .AllowAnonymous()
+        .WithTags(EndpointTags.Auth)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesCustomValidationProblem();
     }
 }

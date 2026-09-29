@@ -29,6 +29,8 @@ internal sealed class EmailConfirmed : IEndpoint
             });
             return Results.Content(rendered, "text/html; charset=utf-8");
         })
-        .WithTags(EndpointTags.Auth);
+        .AllowAnonymous()
+        .WithTags(EndpointTags.Auth)
+        .Produces(StatusCodes.Status200OK, contentType: "text/html");
     }
 }

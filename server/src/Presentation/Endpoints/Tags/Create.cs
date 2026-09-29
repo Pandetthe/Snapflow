@@ -24,11 +24,11 @@ internal sealed class Create : IEndpoint
 
             Result<CreateTagResponse> result = await handler.Handle(command, cancellationToken);
 
-            return result.Match(Results.Ok, Results.Problem);
+            return result.Match(response => Results.Created((string?)null, response), Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Tags.Create)
         .WithTags(EndpointTags.Tags)
-        .Produces<CreateTagResponse>(StatusCodes.Status200OK)
+        .Produces<CreateTagResponse>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status409Conflict)
         .ProducesCustomValidationProblem();
     }

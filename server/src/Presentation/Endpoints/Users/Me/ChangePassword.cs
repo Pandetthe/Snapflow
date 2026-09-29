@@ -24,6 +24,6 @@ internal sealed class ChangePassword : IEndpoint
         .RequirePasswordAuthentication()
         .WithTags(EndpointTags.Users)
         .Produces(StatusCodes.Status204NoContent)
-        .ProducesValidationProblem();
+        .ProducesCustomValidationProblem();
     }
 }

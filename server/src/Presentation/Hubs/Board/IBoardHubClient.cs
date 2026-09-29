@@ -1,4 +1,4 @@
-﻿using Snapflow.Application.Boards.GetById;
+﻿using Snapflow.Application.Boards.GetContent;
 using Snapflow.Application.Boards.GetDetails;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Members;
@@ -10,7 +10,7 @@ public interface IBoardHubClient
 {
     // The whole board, sent to a connection when it connects or reconnects; it replaces the client's state.
     public sealed record BoardSnapshotPayload(int Id, string Title, string Description, BoardVisibility Visibility,
-        IReadOnlyList<GetBoardByIdResponse.SwimlaneDto> Swimlanes, IReadOnlyList<GetBoardByIdResponse.TagDto> Tags,
+        IReadOnlyList<GetBoardContentResponse.SwimlaneDto> Swimlanes, IReadOnlyList<GetBoardContentResponse.TagDto> Tags,
         IReadOnlyList<GetBoardDetailsMemberResponse> Members, IReadOnlyList<UserDto> Viewers);
 
     Task BoardSnapshot(BoardSnapshotPayload payload, CancellationToken cancellationToken = default);

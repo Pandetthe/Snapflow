@@ -1,24 +1,25 @@
 using Snapflow.Application.Abstractions.Messaging;
-using Snapflow.Application.Boards.Update;
+using Snapflow.Application.Members.Replace;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
+using Snapflow.Domain.Members;
 using Snapflow.Presentation.Extensions;
 
 namespace Snapflow.Presentation.Endpoints.Boards;
 
-internal sealed class Update : IEndpoint
+internal sealed class ReplaceMembers : IEndpoint
 {
-    public sealed record UpdateBoardRequest(string? Title, string? Description);
+    public sealed record ReplaceMembersRequest(IReadOnlyList<ReplaceMemberRequest> Members);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPatch("boards/{boardId:int}", async (
-            UpdateBoardRequest request,
+        app.MapPut("boards/{boardId:int}/members", async (
             int boardId,
-            ICommandHandler<UpdateBoardCommand> handler,
+            ReplaceMembersRequest request,
+            ICommandHandler<ReplaceMembersCommand> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new UpdateBoardCommand(boardId, request.Title, request.Description);
+            var command = new ReplaceMembersCommand(boardId, request.Members);
 
             Result result = await handler.Handle(command, cancellationToken);
 
@@ -28,6 +29,7 @@ internal sealed class Update : IEndpoint
         .WithTags(EndpointTags.Boards)
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status409Conflict)
         .ProducesCustomValidationProblem();
     }
 }

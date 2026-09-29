@@ -12,7 +12,7 @@ internal sealed class ChangeOwner : IEndpoint
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("boards/{boardId:int}/change-owner", async (
+        app.MapPut("boards/{boardId:int}/owner", async (
             int boardId,
             ChangeOwnerRequest request,
             ICommandHandler<ChangeOwnerCommand> handler,

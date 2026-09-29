@@ -11,7 +11,6 @@ internal sealed class ConfirmEmail : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        string endpointName = string.Empty;
         app.MapGet("auth/confirm-email", async (
             [FromQuery] string email, [FromQuery] string code, [FromQuery] string? changedEmail,
             ServiceLinkBuilder serviceLinkBuilder,
@@ -29,12 +28,9 @@ internal sealed class ConfirmEmail : IEndpoint
                 Results.Problem
             );
         })
+        .AllowAnonymous()
         .WithTags(EndpointTags.Auth)
-        .Add(endpointBuilder =>
-         {
-             var routePattern = ((RouteEndpointBuilder)endpointBuilder).RoutePattern.RawText;
-             endpointName = $"{nameof(ConfirmEmail)}-{routePattern}";
-             endpointBuilder.Metadata.Add(new EndpointNameMetadata(endpointName));
-         });
+        .Produces(StatusCodes.Status302Found)
+        .ProducesCustomValidationProblem();
     }
 }

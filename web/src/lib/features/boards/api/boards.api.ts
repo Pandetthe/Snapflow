@@ -10,6 +10,7 @@ import type {
   GetBoardsResponse,
   IdResponse,
   PublicBoardDto,
+  ReplaceMembersRequest,
   UpdateBoardRequest
 } from '$lib/features/boards/types/boards.api';
 
@@ -29,13 +30,13 @@ export class BoardsService extends BaseService {
   }
 
   getBoard(id: number, event?: ApiEvent): Promise<Result<GetBoardByIdResponse.BoardDto>> {
-    return this.handleResponse(this.apiClient.fetch(`/boards/${id}`, { method: 'GET' }, event));
+    return this.handleResponse(
+      this.apiClient.fetch(`/boards/${id}/content`, { method: 'GET' }, event)
+    );
   }
 
   getBoardDetails(id: number, event?: ApiEvent): Promise<Result<GetBoardDetailsResponse.BoardDto>> {
-    return this.handleResponse(
-      this.apiClient.fetch(`/boards/${id}/details`, { method: 'GET' }, event)
-    );
+    return this.handleResponse(this.apiClient.fetch(`/boards/${id}`, { method: 'GET' }, event));
   }
 
   createBoard(request: CreateBoardRequest): Promise<Result<IdResponse>> {
@@ -64,8 +65,20 @@ export class BoardsService extends BaseService {
 
   changeOwner(id: number, request: { userId: number }): Promise<Result> {
     return this.handleResponse(
-      this.apiClient.fetch(`boards/${id}/change-owner`, {
-        method: 'POST',
+      this.apiClient.fetch(`boards/${id}/owner`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request)
+      })
+    );
+  }
+
+  replaceMembers(id: number, request: ReplaceMembersRequest): Promise<Result> {
+    return this.handleResponse(
+      this.apiClient.fetch(`boards/${id}/members`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },

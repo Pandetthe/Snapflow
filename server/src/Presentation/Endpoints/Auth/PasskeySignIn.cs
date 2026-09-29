@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.BearerToken;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Auth.PasskeySignIn;
 using Snapflow.Common;
@@ -31,6 +32,9 @@ internal sealed class PasskeySignIn : IEndpoint
             return result.Match(Results.Empty, Results.Problem);
         })
         .RequirePasswordAuthentication()
-        .WithTags(EndpointTags.Auth);
+        .AllowAnonymous()
+        .WithTags(EndpointTags.Auth)
+        .Produces<AccessTokenResponse>()
+        .ProducesCustomValidationProblem();
     }
 }

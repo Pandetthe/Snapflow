@@ -24,6 +24,6 @@ internal sealed class SetPassword : IEndpoint
         .WithTags(EndpointTags.Users)
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status409Conflict)
-        .ProducesValidationProblem();
+        .ProducesCustomValidationProblem();
     }
 }

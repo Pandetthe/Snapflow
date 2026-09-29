@@ -23,6 +23,6 @@ internal sealed class UpdateProfile : IEndpoint
         .RequireAuthorization()
         .WithTags(EndpointTags.Users)
         .Produces(StatusCodes.Status204NoContent)
-        .ProducesValidationProblem();
+        .ProducesCustomValidationProblem();
     }
 }

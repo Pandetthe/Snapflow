@@ -2,6 +2,7 @@
 using Snapflow.Application.Swimlanes.Move;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
+using Snapflow.Presentation.Contracts;
 using Snapflow.Presentation.Extensions;
 
 namespace Snapflow.Presentation.Endpoints.Swimlanes;
@@ -20,13 +21,13 @@ internal sealed class Move : IEndpoint
         {
             var command = new MoveSwimlaneCommand(boardId, swimlaneId, request.BeforeId);
 
-            Result result = await handler.Handle(command, cancellationToken);
+            Result<string> result = await handler.Handle(command, cancellationToken);
 
-            return result.Match(Results.NoContent, Results.Problem);
+            return result.Match(Results.OkWithRank, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Swimlanes.Move)
         .WithTags(EndpointTags.Swimlanes)
-        .Produces(StatusCodes.Status204NoContent)
+        .Produces<RankResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

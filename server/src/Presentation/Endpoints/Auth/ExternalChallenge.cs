@@ -13,22 +13,22 @@ internal sealed class ExternalChallenge : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("auth/external/{scheme}", (
-            string scheme,
+        app.MapGet("auth/external/{provider}", (
+            string provider,
             bool? rememberMe,
             ExternalProviderRegistry registry,
             SignInManager<AppUser> signInManager,
             ServiceLinkBuilder serviceLinkBuilder) =>
         {
-            if (registry.FindRedirectProvider(scheme) is null)
+            if (registry.FindRedirectProvider(provider) is null)
                 return Results.Problem(Result.Failure(AuthenticationErrors.ProviderNotAvailable));
 
             AuthenticationProperties properties = signInManager.ConfigureExternalAuthenticationProperties(
-                scheme,
-                serviceLinkBuilder.BuildExternalSignInCallbackLink().ToString());
+                provider,
+                serviceLinkBuilder.BuildExternalSignInCallbackLink(provider).ToString());
             properties.Items[ExternalProviderRegistry.PersistentItemKey] = rememberMe == true ? "true" : "false";
 
-            return Results.Challenge(properties, [scheme]);
+            return Results.Challenge(properties, [provider]);
         })
         .AllowAnonymous()
         .WithTags(EndpointTags.Auth)

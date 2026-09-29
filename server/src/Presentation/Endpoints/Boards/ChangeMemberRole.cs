@@ -13,7 +13,7 @@ internal sealed class ChangeMemberRole : IEndpoint
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPatch("boards/{boardId:int}/members/{userId:int}/role", async (
+        app.MapPatch("boards/{boardId:int}/members/{userId:int}", async (
             int boardId,
             int userId,
             ChangeMemberRoleRequest request,

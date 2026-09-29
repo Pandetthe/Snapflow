@@ -49,6 +49,9 @@ internal sealed class ResetPassword : IEndpoint
             return Results.Content(rendered, "text/html; charset=utf-8");
         })
         .RequirePasswordAuthentication()
-        .WithTags(EndpointTags.Auth);
+        .AllowAnonymous()
+        .WithTags(EndpointTags.Auth)
+        .Produces(StatusCodes.Status200OK, contentType: "text/html")
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

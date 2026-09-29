@@ -24,6 +24,6 @@ internal sealed class RequestEmailChange : IEndpoint
         .WithTags(EndpointTags.Users)
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status400BadRequest)
-        .ProducesValidationProblem();
+        .ProducesCustomValidationProblem();
     }
 }

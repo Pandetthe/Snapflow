@@ -26,7 +26,7 @@ internal sealed class GetByBoardId : IEndpoint
         .RequireAuthorization(BoardPermissions.Boards.View)
         .CacheOutput(CachePolicies.Board)
         .WithTags(EndpointTags.Cards)
-        .Produces<GetCardsByBoardIdResponse>(StatusCodes.Status200OK)
+        .Produces<IReadOnlyList<CardDto>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

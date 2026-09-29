@@ -29,7 +29,7 @@ internal sealed class Create : IEndpoint
 
             Result<int> result = await handler.Handle(command, cancellationToken);
 
-            return result.Match(Results.OkWithId, Results.Problem);
+            return result.Match(id => Results.CreatedWithId($"/boards/{id}", id), Results.Problem);
         })
         .RequireAuthorization()
         .WithTags(EndpointTags.Boards)

@@ -12,10 +12,8 @@ internal sealed class UpdateBoardValidator : AbstractValidator<UpdateBoardComman
             .MaximumLength(BoardOptions.MaxTitleLength)
             .WithMessage($"Title must not exceed {BoardOptions.MaxTitleLength} characters.")
             .MinimumLength(BoardOptions.MinTitleLength)
-            .WithMessage($"Title must be at least {BoardOptions.MinTitleLength} characters long.");
-
-        RuleFor(b => b.Visibility)
-            .IsInEnum().WithMessage("Visibility is not valid.");
+            .WithMessage($"Title must be at least {BoardOptions.MinTitleLength} characters long.")
+            .When(b => b.Title is not null);
 
         RuleFor(b => b.Description)
             .MaximumLength(BoardOptions.MaxDescriptionLength)

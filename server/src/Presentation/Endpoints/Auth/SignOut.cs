@@ -19,7 +19,8 @@ internal sealed class SignOut : IEndpoint
 
             return result.Match(Results.NoContent, Results.Problem);
         })
+        .RequireAuthorization()
         .WithTags(EndpointTags.Auth)
-        .RequireAuthorization();
+        .Produces(StatusCodes.Status204NoContent);
     }
 }

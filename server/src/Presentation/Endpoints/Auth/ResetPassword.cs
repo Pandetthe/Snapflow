@@ -26,6 +26,9 @@ internal sealed class ResetPassword : IEndpoint
             return result.Match(Results.NoContent, Results.Problem);
         })
         .RequirePasswordAuthentication()
-        .WithTags(EndpointTags.Auth);
+        .AllowAnonymous()
+        .WithTags(EndpointTags.Auth)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesCustomValidationProblem();
     }
 }

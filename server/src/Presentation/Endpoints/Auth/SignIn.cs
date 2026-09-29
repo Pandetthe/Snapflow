@@ -1,4 +1,5 @@
-﻿using Snapflow.Application.Abstractions.Messaging;
+﻿using Microsoft.AspNetCore.Authentication.BearerToken;
+using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Auth.SignIn;
 using Snapflow.Common;
 using Snapflow.Presentation.Extensions;
@@ -31,6 +32,9 @@ internal sealed class SignIn : IEndpoint
             return result.Match(Results.Empty, Results.Problem);
         })
         .RequirePasswordAuthentication()
-        .WithTags(EndpointTags.Auth);
+        .AllowAnonymous()
+        .WithTags(EndpointTags.Auth)
+        .Produces<AccessTokenResponse>()
+        .ProducesCustomValidationProblem();
     }
 }

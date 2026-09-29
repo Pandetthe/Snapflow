@@ -64,6 +64,6 @@ internal sealed class UpdateAvatar : IEndpoint
         .WithTags(EndpointTags.Users)
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status400BadRequest)
-        .ProducesValidationProblem();
+        .ProducesCustomValidationProblem();
     }
 }

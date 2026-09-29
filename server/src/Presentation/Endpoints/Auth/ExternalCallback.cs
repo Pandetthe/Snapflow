@@ -9,7 +9,7 @@ internal sealed class ExternalCallback : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("auth/external/callback", async (
+        app.MapGet("auth/external/{provider}/callback", async (
             ICommandHandler<ExternalSignInCommand> handler,
             ServiceLinkBuilder serviceLinkBuilder,
             CancellationToken cancellationToken) =>

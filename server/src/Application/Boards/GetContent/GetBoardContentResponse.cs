@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Tags;
-using static Snapflow.Application.Boards.GetById.GetBoardByIdResponse;
+using static Snapflow.Application.Boards.GetContent.GetBoardContentResponse;
 
-namespace Snapflow.Application.Boards.GetById;
+namespace Snapflow.Application.Boards.GetContent;
 
-public sealed record GetBoardByIdResponse(
+public sealed record GetBoardContentResponse(
         int Id,
         string Title,
         string Description,

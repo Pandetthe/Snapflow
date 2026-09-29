@@ -1,4 +1,5 @@
-﻿using Snapflow.Application.Abstractions.Messaging;
+﻿using Microsoft.AspNetCore.Authentication.BearerToken;
+using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Auth.Refresh;
 using Snapflow.Common;
 using Snapflow.Presentation.Extensions;
@@ -26,6 +27,8 @@ internal sealed class Refresh : IEndpoint
                 return Results.Problem(result);
             return Results.Empty; // Application returns data via asp.net authentication mechanisms
         })
-            .WithTags(EndpointTags.Auth);
+        .AllowAnonymous()
+        .WithTags(EndpointTags.Auth)
+        .Produces<AccessTokenResponse>();
     }
 }

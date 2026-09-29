@@ -6,14 +6,14 @@ public static class ProducesExtensions
 {
     public static RouteHandlerBuilder ProducesIdResponse<T>(
         this RouteHandlerBuilder builder,
-        int statusCode = 200)
+        int statusCode = StatusCodes.Status201Created)
     {
         return builder.Produces<IdResponse<T>>(statusCode);
     }
 
     public static RouteHandlerBuilder ProducesIdResponse(
         this RouteHandlerBuilder builder,
-        int statusCode = 200)
+        int statusCode = StatusCodes.Status201Created)
     {
         return builder.ProducesIdResponse<int>(statusCode);
     }

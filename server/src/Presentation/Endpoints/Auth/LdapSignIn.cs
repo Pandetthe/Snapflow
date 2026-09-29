@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.BearerToken;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Auth.LdapSignIn;
 using Snapflow.Common;
@@ -24,6 +25,9 @@ internal sealed class LdapSignIn : IEndpoint
 
             return result.Match(Results.Empty, Results.Problem);
         })
-        .WithTags(EndpointTags.Auth);
+        .AllowAnonymous()
+        .WithTags(EndpointTags.Auth)
+        .Produces<AccessTokenResponse>()
+        .ProducesCustomValidationProblem();
     }
 }

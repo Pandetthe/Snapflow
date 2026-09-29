@@ -131,10 +131,12 @@ export interface CreateBoardMemberRequest {
 }
 
 export interface UpdateBoardRequest {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
+}
+
+export interface ReplaceMembersRequest {
   members: CreateBoardMemberRequest[];
-  visibility: BoardVisibility;
 }
 
 export interface BoardVisibilityOptionsResponse {

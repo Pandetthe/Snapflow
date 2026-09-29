@@ -1,6 +1,6 @@
+using Snapflow.Application.Boards.ChangeVisibility;
 using Snapflow.Application.Boards.Delete;
 using Snapflow.Application.Boards.GetDetails;
-using Snapflow.Application.Boards.Update;
 using Snapflow.Application.Members.Add;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
@@ -27,7 +27,7 @@ public sealed class AccessTests(PostgresFixture fixture)
     }
 
     [DockerFact]
-    public async Task OnlyTheOwner_CanChangeTheVisibilityThroughABoardUpdate()
+    public async Task OnlyTheOwner_CanChangeTheVisibility()
     {
         await using TestApp app = TestApp.Create(fixture);
         TestBoard board = await app.CreateBoardAsync();
@@ -35,9 +35,9 @@ public sealed class AccessTests(PostgresFixture fixture)
         await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new AddMemberCommand(board.BoardId, admin, MemberRole.Admin)));
 
         Result byAdmin = await app.SendAsync(admin,
-            new UpdateBoardCommand(board.BoardId, "Board", "", Visibility: BoardVisibility.Unlisted));
+            new ChangeBoardVisibilityCommand(board.BoardId, BoardVisibility.Unlisted));
         Result byOwner = await app.SendAsync(board.OwnerId,
-            new UpdateBoardCommand(board.BoardId, "Board", "", Visibility: BoardVisibility.Unlisted));
+            new ChangeBoardVisibilityCommand(board.BoardId, BoardVisibility.Unlisted));
 
         Assert.Equal("Boards.VisibilityChangeForbidden", byAdmin.Error.Code);
         Assert.True(byOwner.IsSuccess, byOwner.IsFailure ? byOwner.Error.Code : null);

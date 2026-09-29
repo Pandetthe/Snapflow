@@ -23,11 +23,11 @@ internal sealed class Create : IEndpoint
 
             Result<CreateSwimlaneResponse> result = await handler.Handle(command, cancellationToken);
 
-            return result.Match(Results.Ok, Results.Problem);
+            return result.Match(response => Results.Created($"/boards/{boardId}/swimlanes/{response.Id}", response), Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Swimlanes.Create)
         .WithTags(EndpointTags.Swimlanes)
-        .Produces<CreateSwimlaneResponse>(StatusCodes.Status200OK)
+        .Produces<CreateSwimlaneResponse>(StatusCodes.Status201Created)
         .ProducesCustomValidationProblem();
     }
 }

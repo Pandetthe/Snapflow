@@ -23,11 +23,11 @@ internal sealed class Create : IEndpoint
 
             Result<CreateListResponse> result = await handler.Handle(command, cancellationToken);
 
-            return result.Match(Results.Ok, Results.Problem);
+            return result.Match(response => Results.Created($"/boards/{boardId}/lists/{response.Id}", response), Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Lists.Create)
         .WithTags(EndpointTags.Lists)
-        .Produces<CreateListResponse>(StatusCodes.Status200OK)
+        .Produces<CreateListResponse>(StatusCodes.Status201Created)
         .ProducesCustomValidationProblem();
     }
 }

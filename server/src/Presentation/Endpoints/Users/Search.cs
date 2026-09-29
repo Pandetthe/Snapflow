@@ -23,6 +23,6 @@ internal sealed class Search : IEndpoint
         .RequireAuthorization()
         .WithTags(EndpointTags.Users)
         .Produces<IReadOnlyList<SearchUsersResponse.UserDto>>()
-        .ProducesValidationProblem();
+        .ProducesCustomValidationProblem();
     }
 }

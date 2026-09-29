@@ -27,7 +27,7 @@ internal sealed class RenamePasskey : IEndpoint
         .RequirePasswordAuthentication()
         .WithTags(EndpointTags.Users)
         .Produces(StatusCodes.Status204NoContent)
-        .ProducesValidationProblem()
+        .ProducesCustomValidationProblem()
         .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

@@ -22,6 +22,6 @@ internal sealed class RegenerateRecoveryCodes : IEndpoint
         .RequireAuthorization()
         .WithTags(EndpointTags.Users)
         .Produces<RegenerateRecoveryCodesResponse>()
-        .ProducesValidationProblem();
+        .ProducesCustomValidationProblem();
     }
 }

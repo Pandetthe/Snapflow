@@ -13,22 +13,22 @@ internal sealed class AddLogin : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("me/logins/{scheme}", (
-            string scheme,
+        app.MapGet("me/logins/{provider}", (
+            string provider,
             HttpContext context,
             ExternalProviderRegistry registry,
             SignInManager<AppUser> signInManager,
             ServiceLinkBuilder serviceLinkBuilder) =>
         {
-            if (registry.FindRedirectProvider(scheme) is null)
+            if (registry.FindRedirectProvider(provider) is null)
                 return Results.Problem(Result.Failure(AuthenticationErrors.ProviderNotAvailable));
 
             AuthenticationProperties properties = signInManager.ConfigureExternalAuthenticationProperties(
-                scheme,
-                serviceLinkBuilder.BuildExternalLinkCallbackLink().ToString(),
+                provider,
+                serviceLinkBuilder.BuildExternalLinkCallbackLink(provider).ToString(),
                 signInManager.UserManager.GetUserId(context.User));
 
-            return Results.Challenge(properties, [scheme]);
+            return Results.Challenge(properties, [provider]);
         })
         .RequireAuthorization()
         .WithTags(EndpointTags.Users)

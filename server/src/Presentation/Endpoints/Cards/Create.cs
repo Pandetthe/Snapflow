@@ -23,11 +23,11 @@ internal sealed class Create : IEndpoint
 
             Result<CreateCardResponse> result = await handler.Handle(command, cancellationToken);
 
-            return result.Match(Results.Ok, Results.Problem);
+            return result.Match(response => Results.Created($"/boards/{boardId}/cards/{response.Id}", response), Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Cards.Create)
         .WithTags(EndpointTags.Cards)
-        .Produces<CreateCardResponse>(StatusCodes.Status200OK)
+        .Produces<CreateCardResponse>(StatusCodes.Status201Created)
         .ProducesCustomValidationProblem();
     }
 }

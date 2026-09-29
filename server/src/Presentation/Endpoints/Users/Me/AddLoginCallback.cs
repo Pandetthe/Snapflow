@@ -9,7 +9,7 @@ internal sealed class AddLoginCallback : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("me/logins/callback", async (
+        app.MapGet("me/logins/{provider}/callback", async (
             ICommandHandler<AddLoginCommand, string> handler,
             ServiceLinkBuilder serviceLinkBuilder,
             CancellationToken cancellationToken) =>

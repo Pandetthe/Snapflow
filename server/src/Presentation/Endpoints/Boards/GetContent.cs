@@ -1,30 +1,30 @@
 using Snapflow.Presentation.Caching;
 ﻿using Snapflow.Application.Abstractions.Messaging;
-using Snapflow.Application.Boards.GetById;
+using Snapflow.Application.Boards.GetContent;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
 using Snapflow.Presentation.Extensions;
 
 namespace Snapflow.Presentation.Endpoints.Boards;
 
-internal sealed class GetById : IEndpoint
+internal sealed class GetContent : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("boards/{boardId:int}", async (
+        app.MapGet("boards/{boardId:int}/content", async (
             int boardId,
-            IQueryHandler<GetBoardByIdQuery, GetBoardByIdResponse> handler,
+            IQueryHandler<GetBoardContentQuery, GetBoardContentResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var query = new GetBoardByIdQuery(boardId);
-            Result<GetBoardByIdResponse> result = await handler.Handle(query, cancellationToken);
+            var query = new GetBoardContentQuery(boardId);
+            Result<GetBoardContentResponse> result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Boards.View)
         .CacheOutput(CachePolicies.Board)
         .WithTags(EndpointTags.Boards)
-        .Produces<GetBoardByIdResponse>(StatusCodes.Status200OK)
+        .Produces<GetBoardContentResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

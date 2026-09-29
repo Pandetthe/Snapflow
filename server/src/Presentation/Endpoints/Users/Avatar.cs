@@ -21,7 +21,10 @@ internal sealed class Avatar : IEndpoint
 
                 return result.Match(x => Results.File(x.Data, x.ContentType), Results.Problem);
             })
+            .AllowAnonymous()
             .CacheOutput(CachePolicies.Avatar)
-            .WithTags(EndpointTags.Users);
+            .WithTags(EndpointTags.Users)
+            .Produces(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

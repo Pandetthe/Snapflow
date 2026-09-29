@@ -21,9 +21,9 @@ public static class ResultsExtension
                 extensions: ResultHelper.GetErrors(result));
         }
 
-        public static IResult OkWithId<T>(T id)
+        public static IResult CreatedWithId<T>(string location, T id)
         {
-            return Results.Ok(new IdResponse<T>(id));
+            return Results.Created(location, new IdResponse<T>(id));
         }
 
         public static IResult OkWithRank(string rank)

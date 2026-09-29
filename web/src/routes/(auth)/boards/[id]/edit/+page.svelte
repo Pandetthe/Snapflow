@@ -116,28 +116,37 @@
       return errors;
     },
     onSubmit: async (values) => {
-      const members = selectedMembers.map((member) => ({
-        userId: member.id,
-        role: member.role
-      }));
-
-      if (ownerMember) {
-        members.push({ userId: ownerMember.id, role: 'owner' });
-      }
-
-      submitted = {
+      const next = {
         title: values.title.trim(),
         description: values.description.trim(),
         members: memberSignature(selectedMembers),
         visibility
       };
+      submitted = next;
 
-      return await boardsService.updateBoard(board.id, {
-        title: submitted.title,
-        description: submitted.description,
-        members,
-        visibility
-      });
+      if (next.title !== baseline.title || next.description !== baseline.description) {
+        const updated = await boardsService.updateBoard(board.id, {
+          title: next.title,
+          description: next.description
+        });
+        if (!updated.ok) return updated;
+      }
+
+      if (next.members !== baseline.members) {
+        const replaced = await boardsService.replaceMembers(board.id, {
+          members: selectedMembers.map((member) => ({ userId: member.id, role: member.role }))
+        });
+        if (!replaced.ok) return replaced;
+      }
+
+      if (next.visibility !== baseline.visibility) {
+        const changed = await boardsService.changeVisibility(board.id, {
+          visibility: next.visibility
+        });
+        if (!changed.ok) return changed;
+      }
+
+      return { ok: true, value: undefined };
     },
     onSuccess: () => {
       if (!submitted) return;

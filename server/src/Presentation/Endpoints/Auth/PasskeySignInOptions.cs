@@ -19,6 +19,7 @@ internal sealed class PasskeySignInOptions : IEndpoint
             return result.Match(challenge => Results.Ok(PasskeyOptionsResponse.From(challenge)), Results.Problem);
         })
         .RequirePasswordAuthentication()
+        .AllowAnonymous()
         .WithTags(EndpointTags.Auth)
         .Produces<PasskeyOptionsResponse>();
     }

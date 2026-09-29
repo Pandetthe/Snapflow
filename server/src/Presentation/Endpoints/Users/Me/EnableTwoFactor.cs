@@ -22,7 +22,7 @@ internal sealed class EnableTwoFactor : IEndpoint
         .RequireAuthorization()
         .WithTags(EndpointTags.Users)
         .Produces<EnableTwoFactorResponse>()
-        .ProducesValidationProblem()
+        .ProducesCustomValidationProblem()
         .ProducesProblem(StatusCodes.Status409Conflict);
     }
 }

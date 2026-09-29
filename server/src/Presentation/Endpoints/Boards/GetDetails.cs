@@ -11,7 +11,7 @@ internal sealed class GetDetails : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("boards/{boardId:int}/details", async (
+        app.MapGet("boards/{boardId:int}", async (
             int boardId,
             IQueryHandler<GetBoardDetailsQuery, GetBoardDetailsResponse> handler,
             CancellationToken cancellationToken) =>

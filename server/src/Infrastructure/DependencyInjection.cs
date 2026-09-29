@@ -356,8 +356,8 @@ public static class DependencyInjection
             services.AddSingleton<ExternalProviderRegistry>();
             services.AddSingleton<IAuthenticationSettings>(sp => sp.GetRequiredService<ExternalProviderRegistry>());
             services.AddSingleton<ILdapAuthenticator, LdapAuthenticator>();
-            services.AddAuthorizationBuilder();
-            services.AddAuthorization();
+            services.AddAuthorizationBuilder()
+                .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
             services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
             services.AddScoped<PermissionProvider>();
             services.AddScoped<IAuthorizationHandler, BoardPermissionAuthorizationHandler>();

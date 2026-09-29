@@ -5,23 +5,23 @@ using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Application.Abstractions.Services;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
-using static Snapflow.Application.Boards.GetById.GetBoardByIdResponse;
+using static Snapflow.Application.Boards.GetContent.GetBoardContentResponse;
 
-namespace Snapflow.Application.Boards.GetById;
+namespace Snapflow.Application.Boards.GetContent;
 
-internal sealed class GetBoardByIdHandler(
+internal sealed class GetBoardContentHandler(
     IAppDbContext context,
     IAvatarService avatarService,
-    IBoardMembershipService membershipService) : IQueryHandler<GetBoardByIdQuery, GetBoardByIdResponse>
+    IBoardMembershipService membershipService) : IQueryHandler<GetBoardContentQuery, GetBoardContentResponse>
 {
-    public async Task<Result<GetBoardByIdResponse>> Handle(GetBoardByIdQuery query, CancellationToken cancellationToken = default)
+    public async Task<Result<GetBoardContentResponse>> Handle(GetBoardContentQuery query, CancellationToken cancellationToken = default)
     {
         bool isMember = await membershipService.IsMemberAsync(query.Id, cancellationToken);
 
-        GetBoardByIdResponse? board = await context.Boards
+        GetBoardContentResponse? board = await context.Boards
             .AsNoTracking()
             .Where(b => b.Id == query.Id)
-            .Select(b => new GetBoardByIdResponse(
+            .Select(b => new GetBoardContentResponse(
                 b.Id,
                 b.Title,
                 b.Description,

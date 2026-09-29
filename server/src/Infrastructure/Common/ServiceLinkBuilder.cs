@@ -91,11 +91,11 @@ public sealed class ServiceLinkBuilder(
         return uriBuilder.Uri;
     }
 
-    public Uri BuildExternalSignInCallbackLink() =>
-        BuildLink(options.Value.ApiUrl, "/auth/external/callback", query: null);
+    public Uri BuildExternalSignInCallbackLink(string provider) =>
+        BuildLink(options.Value.ApiUrl, $"/auth/external/{provider}/callback", query: null);
 
-    public Uri BuildExternalLinkCallbackLink() =>
-        BuildLink(options.Value.ApiUrl, "/me/logins/callback", query: null);
+    public Uri BuildExternalLinkCallbackLink(string provider) =>
+        BuildLink(options.Value.ApiUrl, $"/me/logins/{provider}/callback", query: null);
 
     public Uri BuildWebLink(string path, string? query = null) =>
         BuildLink(options.Value.WebUrl, path, query);

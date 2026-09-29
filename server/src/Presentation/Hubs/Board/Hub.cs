@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Services;
-using Snapflow.Application.Boards.GetById;
+using Snapflow.Application.Boards.GetContent;
 using Snapflow.Application.Boards.GetDetails;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
@@ -128,12 +128,12 @@ public sealed partial class BoardHub(
     {
         await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
         var boardHandler = scope.ServiceProvider
-            .GetRequiredService<IQueryHandler<GetBoardByIdQuery, GetBoardByIdResponse>>();
+            .GetRequiredService<IQueryHandler<GetBoardContentQuery, GetBoardContentResponse>>();
         var detailsHandler = scope.ServiceProvider
             .GetRequiredService<IQueryHandler<GetBoardDetailsQuery, GetBoardDetailsResponse>>();
 
         // One after the other: both handlers share the scope's DbContext.
-        Result<GetBoardByIdResponse> board = await boardHandler.Handle(new GetBoardByIdQuery(boardId), cancellationToken);
+        Result<GetBoardContentResponse> board = await boardHandler.Handle(new GetBoardContentQuery(boardId), cancellationToken);
         if (!board.IsSuccess)
             return null;
 

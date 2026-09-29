@@ -3,6 +3,7 @@ using Snapflow.Application.Members.Add;
 using Snapflow.Application.Members.ChangeOwner;
 using Snapflow.Application.Members.ChangeRole;
 using Snapflow.Application.Members.Remove;
+using Snapflow.Application.Members.Replace;
 using Snapflow.Common;
 using Snapflow.Domain.Members;
 using Snapflow.Infrastructure.Persistence;
@@ -67,6 +68,26 @@ public sealed class MemberTests(PostgresFixture fixture)
 
         Assert.Null(await RoleAsync(app, board.BoardId, member));
         Assert.Equal(MemberErrors.CannotRemoveOwner, ownerRemoved.Error);
+    }
+
+    [DockerFact]
+    public async Task ReplacingTheMembers_AddsChangesAndRemoves_ButTheOwnerStays()
+    {
+        await using TestApp app = TestApp.Create(fixture);
+        TestBoard board = await app.CreateBoardAsync();
+        int kept = await app.CreateUserAsync();
+        int dropped = await app.CreateUserAsync();
+        int added = await app.CreateUserAsync();
+        await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new AddMemberCommand(board.BoardId, kept, MemberRole.Viewer)));
+        await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new AddMemberCommand(board.BoardId, dropped, MemberRole.Member)));
+
+        await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new ReplaceMembersCommand(board.BoardId,
+            [new ReplaceMemberRequest(kept, MemberRole.Admin), new ReplaceMemberRequest(added, MemberRole.Member)])));
+
+        Assert.Equal(MemberRole.Owner, await RoleAsync(app, board.BoardId, board.OwnerId));
+        Assert.Equal(MemberRole.Admin, await RoleAsync(app, board.BoardId, kept));
+        Assert.Equal(MemberRole.Member, await RoleAsync(app, board.BoardId, added));
+        Assert.Null(await RoleAsync(app, board.BoardId, dropped));
     }
 
     private static async Task<MemberRole?> RoleAsync(TestApp app, int boardId, int userId)
