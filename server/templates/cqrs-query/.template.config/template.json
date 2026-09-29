@@ -25,7 +25,7 @@
     },
     {
       "condition": "(HostIdentifier != \"dotnetcli\" && HostIdentifier != \"dotnetcli-preview\")",
-      "path": "Example1QueryHandler.cs"
+      "path": "Example1Handler.cs"
     }
   ],
   "postActions": [
