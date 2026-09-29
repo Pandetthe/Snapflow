@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Snapflow.Application.Abstractions.Ranking;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
@@ -10,10 +9,9 @@ using System.Linq.Expressions;
 namespace Snapflow.Application.Ranking;
 
 internal sealed class SwimlaneRankService(
-    ILogger<SwimlaneRankService> logger,
     IAppDbContext dbContext,
-    IRankService rankService) 
-    : BaseRankService<Swimlane>(logger, dbContext, rankService)
+    IRankService rankService)
+    : BaseRankService<Swimlane>(dbContext, rankService)
 {
     protected override DbSet<Swimlane> Entities => DbContext.Swimlanes;
 

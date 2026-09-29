@@ -11,8 +11,8 @@ public class LexoRankService : IRankService
     public static readonly int Base = Alphabet.Length;
     public const int Length = 12;
 
-    public string Minimum => Pad(BigInteger.Zero);
-    public string Maximum => Pad(BigInteger.Pow(Base, Length) - 1);
+    private static string Minimum => Pad(BigInteger.Zero);
+    private static string Maximum => Pad(BigInteger.Pow(Base, Length) - 1);
 
     public string GenerateInitial()
     {
@@ -41,51 +41,31 @@ public class LexoRankService : IRankService
         return true;
     }
 
-    public List<string> GenerateBalanced(int count)
-    {
-        if (count <= 0) return [];
+    public bool TryGenerateBalanced(int count, [NotNullWhen(true)] out IReadOnlyList<string>? ranks) =>
+        TrySpread(count, Parse(Minimum), Parse(Maximum), out ranks);
 
-        var min = Parse(Minimum);
-        var max = Parse(Maximum);
-        var span = max - min;
+    public bool TryGenerateBalancedBetween(
+        int count, string left, string right, [NotNullWhen(true)] out IReadOnlyList<string>? ranks) =>
+        TrySpread(count, Parse(left), Parse(right), out ranks);
+
+    private static bool TrySpread(
+        int count, BigInteger from, BigInteger to, [NotNullWhen(true)] out IReadOnlyList<string>? ranks)
+    {
+        ranks = null;
+        if (count < 0 || from >= to)
+            return false;
+
+        var span = to - from;
         if (span <= count)
-            throw new InvalidOperationException("Not enough space to rebalance.");
+            return false;
 
         var step = span / (count + 1);
-        List<string> results = new(count);
-        for (int i = 0; i < count; i++)
-        {
-            var value = min + step * (i + 1);
-            results.Add(Pad(value));
-        }
-        return results;
-    }
-
-    public List<string> GenerateBalancedBetween(int count, string? left, string? right)
-    {
-        if (count <= 0)
-            return new List<string>();
-
-        BigInteger leftVal = left != null ? Parse(left) : Parse(Minimum);
-        BigInteger rightVal = right != null ? Parse(right) : Parse(Maximum);
-
-        if (leftVal >= rightVal)
-            throw new InvalidOperationException("Left bound must be strictly less than right bound.");
-
-        var span = rightVal - leftVal;
-        if (span <= count)
-            throw new InvalidOperationException("Not enough space to rebalance between bounds.");
-
-        var step = span / (count + 1);
-
         var results = new List<string>(count);
         for (int i = 0; i < count; i++)
-        {
-            var value = leftVal + step * (i + 1);
-            results.Add(Pad(value));
-        }
+            results.Add(Pad(from + step * (i + 1)));
 
-        return results;
+        ranks = results;
+        return true;
     }
 
     private static BigInteger Parse(string s)

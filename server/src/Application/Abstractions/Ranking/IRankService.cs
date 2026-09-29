@@ -1,18 +1,14 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Snapflow.Application.Abstractions.Ranking;
 
 public interface IRankService
 {
-    string Minimum { get; }
-
-    string Maximum { get; }
-
     string GenerateInitial();
 
     bool TryGenerateBetween(string? left, string? right, [NotNullWhen(true)] out string? newRank);
 
-    List<string> GenerateBalanced(int count);
+    bool TryGenerateBalanced(int count, [NotNullWhen(true)] out IReadOnlyList<string>? ranks);
 
-    List<string> GenerateBalancedBetween(int count, string? left, string? right);
+    bool TryGenerateBalancedBetween(int count, string left, string right, [NotNullWhen(true)] out IReadOnlyList<string>? ranks);
 }

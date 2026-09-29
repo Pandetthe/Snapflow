@@ -1,22 +1,18 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Snapflow.Application.Abstractions.Ranking;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Ranking;
 using System.Globalization;
 using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Snapflow.Application.Ranking;
 
 internal abstract class BaseRankService<TEntity>(
-    ILogger logger,
     IAppDbContext dbContext,
     IRankService rankService) : IEntityRankService<TEntity>
     where TEntity : class, IEntity, IRankable
 {
-    protected ILogger Logger => logger;
     protected IAppDbContext DbContext => dbContext;
     protected IRankService RankService => rankService;
 
@@ -61,9 +57,7 @@ internal abstract class BaseRankService<TEntity>(
             if (attempt == normalizations.Length)
                 return RankingErrors.RankExhausted;
 
-            Result normalized = await normalizations[attempt](neighbours.Value);
-            if (normalized.IsFailure)
-                return normalized.Error;
+            await normalizations[attempt](neighbours.Value);
         }
     }
 
@@ -160,51 +154,30 @@ internal abstract class BaseRankService<TEntity>(
         if (items.Count < 2)
             return Result.Success();
 
-        var newRanks = RankService.GenerateBalancedBetween(items.Count, items.First().Rank, items.Last().Rank);
+        if (!RankService.TryGenerateBalancedBetween(items.Count, items[0].Rank, items[^1].Rank, out var newRanks))
+            return RankingErrors.RankExhausted;
 
         await ApplyRanksAsync(items.Select(i => i.Id).Zip(newRanks).ToList(), cancellationToken);
         return Result.Success();
     }
 
-    public async Task<Result> NormalizeGloballyAsync(int? groupId, CancellationToken cancellationToken = default)
-    {
-        IExecutionStrategy strategy = DbContext.Database.CreateExecutionStrategy();
-
-        return await strategy.ExecuteAsync(async () =>
+    public Task<Result> NormalizeGloballyAsync(int? groupId, CancellationToken cancellationToken = default) =>
+        DbContext.InTransactionAsync(async () =>
         {
-            await using var tx = await DbContext.Database.BeginTransactionAsync(cancellationToken);
-            try
+            if (groupId.HasValue)
             {
-                if (groupId.HasValue)
-                {
-                    var globalLockKey = GetGlobalLockKey();
-                    var groupLockKey = GetGroupLockKey(groupId.Value);
-                    await DbContext.Database.ExecuteSqlRawAsync(
-                        "SELECT pg_advisory_xact_lock_shared({0}), pg_advisory_xact_lock({1})",
-                        [globalLockKey, groupLockKey], cancellationToken);
+                await DbContext.Database.ExecuteSqlRawAsync(
+                    "SELECT pg_advisory_xact_lock_shared({0}), pg_advisory_xact_lock({1})",
+                    [GetGlobalLockKey(), GetGroupLockKey(groupId.Value)], cancellationToken);
 
-                    await NormalizeGroupInternalAsync(groupId.Value, cancellationToken);
-                }
-                else
-                {
-                    var globalLockKey = GetGlobalLockKey();
-                    await DbContext.Database.ExecuteSqlRawAsync(
-                        "SELECT pg_advisory_xact_lock({0})", [globalLockKey], cancellationToken);
-
-                    await NormalizeAllGroupsAsync(cancellationToken);
-                }
-
-                await tx.CommitAsync(cancellationToken);
-                return Result.Success();
+                return await NormalizeGroupInternalAsync(groupId.Value, cancellationToken);
             }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Failed to normalize {EntityName} ranks.", typeof(TEntity).Name);
-                await tx.RollbackAsync(cancellationToken);
-                return RankingErrors.RankExhausted;
-            }
-        });
-    }
+
+            await DbContext.Database.ExecuteSqlRawAsync(
+                "SELECT pg_advisory_xact_lock({0})", [GetGlobalLockKey()], cancellationToken);
+
+            return await NormalizeAllGroupsAsync(cancellationToken);
+        }, cancellationToken);
 
     private async Task<Result> NormalizeGroupInternalAsync(int groupId, CancellationToken cancellationToken)
     {
@@ -218,13 +191,14 @@ internal abstract class BaseRankService<TEntity>(
         if (items.Count == 0)
             return Result.Success();
 
-        var ranks = RankService.GenerateBalanced(items.Count);
+        if (!RankService.TryGenerateBalanced(items.Count, out var ranks))
+            return RankingErrors.RankExhausted;
 
         await ApplyRanksAsync(items.Zip(ranks).ToList(), cancellationToken);
         return Result.Success();
     }
 
-    private async Task NormalizeAllGroupsAsync(CancellationToken cancellationToken)
+    private async Task<Result> NormalizeAllGroupsAsync(CancellationToken cancellationToken)
     {
         List<int> groupIds = await Entities
             .AsNoTracking()
@@ -234,9 +208,12 @@ internal abstract class BaseRankService<TEntity>(
 
         foreach (int groupId in groupIds)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            await NormalizeGroupInternalAsync(groupId, cancellationToken);
+            Result normalized = await NormalizeGroupInternalAsync(groupId, cancellationToken);
+            if (normalized.IsFailure)
+                return normalized;
         }
+
+        return Result.Success();
     }
 
     private static long GetGlobalLockKey() =>
