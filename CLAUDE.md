@@ -42,7 +42,7 @@ Clean Architecture with vertical slices and CQRS, **no mediator library**. Layer
 - Package versions go in `server/Directory.Packages.props`, never in a csproj.
 - **Always use LINQ method syntax**, never query syntax.
 - **Never validate that an ID is `> 0`**: let the handler return `NotFound`.
-- One `.editorconfig` at the repo root covers everything; LF line endings.
+- One `.editorconfig` at the repo root covers formatting and style (LF line endings). Analyzer severities live in `server/.globalconfig`, because the server Docker build only sees `server/`.
 
 ## Git
 
