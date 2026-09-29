@@ -45,3 +45,9 @@ Thumbs.db
 .eslintcache
 .stylelintcache
 node_modules.zip
+
+# Claude Code
+.claude/plans/
+.claude/research/
+.claude/handoffs/
+.claude/worktrees/

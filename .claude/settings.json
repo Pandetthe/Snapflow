@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep *)",
+      "Bash(ls *)",
+      "Bash(find . *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git status)",
+      "Bash(git branch *)",
+      "Bash(scripts/check.sh)",
+      "Bash(scripts/check.sh *)",
+      "Bash(./scripts/check.sh)",
+      "Bash(./scripts/check.sh *)",
+      "Bash(scripts/spec_metadata.sh)",
+      "Bash(./scripts/spec_metadata.sh)",
+      "Bash(npm run lint --prefix web)",
+      "Bash(npm run check --prefix web)",
+      "Bash(npm run format --prefix web)",
+      "Bash(dotnet format ./server/Snapflow.slnx)"
+    ]
+  },
+  "env": {
+    "MAX_THINKING_TOKENS": "32000"
+  }
+}
