@@ -3,9 +3,9 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Auth.TwoFactorSignIn;
 
-internal sealed class TwoFactorSignInCommandValidator : AbstractValidator<TwoFactorSignInCommand>
+internal sealed class TwoFactorSignInValidator : AbstractValidator<TwoFactorSignInCommand>
 {
-    public TwoFactorSignInCommandValidator()
+    public TwoFactorSignInValidator()
     {
         RuleFor(c => c.Code)
             .NotEmpty().When(c => string.IsNullOrWhiteSpace(c.RecoveryCode) && string.IsNullOrWhiteSpace(c.PasskeyCredential))

@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Snapflow.Infrastructure.Auth.External;
 
 namespace Snapflow.UnitTests.Infrastructure;
@@ -13,6 +12,6 @@ public sealed class LdapFilterTests
     [InlineData("a\0b", @"a\00b")]
     public void Escape_Should_EscapeFilterCharacters_When_Present(string value, string expected)
     {
-        LdapFilter.Escape(value).Should().Be(expected);
+        Assert.Equal(expected, LdapFilter.Escape(value));
     }
 }

@@ -1,5 +1,4 @@
 using System.Reflection;
-using FluentAssertions;
 using Snapflow.Domain.Roles;
 
 namespace Snapflow.UnitTests.Domain;
@@ -11,7 +10,7 @@ public sealed class SystemRolePermissionsTests
     {
         var permissions = SystemRolePermissions.For([SystemRoles.Admin]);
 
-        permissions.Should().BeEquivalentTo(AllPermissions());
+        Assert.Equal(AllPermissions().Order(), permissions.Order());
     }
 
     [Fact]
@@ -19,7 +18,7 @@ public sealed class SystemRolePermissionsTests
     {
         var permissions = SystemRolePermissions.For([]);
 
-        permissions.Should().BeEmpty();
+        Assert.Empty(permissions);
     }
 
     [Fact]
@@ -27,13 +26,13 @@ public sealed class SystemRolePermissionsTests
     {
         var permissions = SystemRolePermissions.For(["NotARole"]);
 
-        permissions.Should().BeEmpty();
+        Assert.Empty(permissions);
     }
 
     [Fact]
     public void Permissions_Should_AllStartWithSystemPrefix()
     {
-        AllPermissions().Should().OnlyContain(p => p.StartsWith(SystemPermissions.StartingPoint, StringComparison.Ordinal));
+        Assert.All(AllPermissions(), p => Assert.StartsWith(SystemPermissions.StartingPoint, p, StringComparison.Ordinal));
     }
 
     // Leaf constants only; the Base/StartingPoint/Separator helpers are prefixes, not permissions.

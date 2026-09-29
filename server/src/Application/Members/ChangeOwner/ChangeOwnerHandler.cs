@@ -8,7 +8,7 @@ using Snapflow.Domain.Members;
 
 namespace Snapflow.Application.Members.ChangeOwner;
 
-internal sealed class ChangeOwnerCommandHandler(
+internal sealed class ChangeOwnerHandler(
     IAppDbContext dbContext,
     IUserContext userContext) : ICommandHandler<ChangeOwnerCommand>
 {

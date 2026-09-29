@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Tags;
@@ -27,19 +26,17 @@ public sealed class CardTests
 
         var card = Card.Create(1, 2, 3, "Test Card", "Test Desc", "000000000001", 7, now, "conn-id");
 
-        card.BoardId.Should().Be(1);
-        card.SwimlaneId.Should().Be(2);
-        card.ListId.Should().Be(3);
-        card.Title.Should().Be("Test Card");
-        card.Description.Should().Be("Test Desc");
-        card.Rank.Should().Be("000000000001");
-        card.CreatedById.Should().Be(7);
-        card.CreatedAt.Should().Be(now);
+        Assert.Equal(1, card.BoardId);
+        Assert.Equal(2, card.SwimlaneId);
+        Assert.Equal(3, card.ListId);
+        Assert.Equal("Test Card", card.Title);
+        Assert.Equal("Test Desc", card.Description);
+        Assert.Equal("000000000001", card.Rank);
+        Assert.Equal(7, card.CreatedById);
+        Assert.Equal(now, card.CreatedAt);
 
-        card.DomainEvents.Select(e => e(card)).Should().ContainSingle()
-            .Which.Should().BeOfType<CardCreatedDomainEvent>()
-            .Which.Should().Match<CardCreatedDomainEvent>(e =>
-                e.CreatedAt == now && e.CreatedById == 7 && e.ConnectionId == "conn-id");
+        CardCreatedDomainEvent raised = Assert.IsType<CardCreatedDomainEvent>(Assert.Single(card.DomainEvents.Select(e => e(card))));
+        Assert.True(raised.CreatedAt == now && raised.CreatedById == 7 && raised.ConnectionId == "conn-id");
     }
 
     [Fact]
@@ -50,13 +47,13 @@ public sealed class CardTests
 
         card.Update("New Title", "New Desc", 2, now, "new-conn");
 
-        card.Title.Should().Be("New Title");
-        card.Description.Should().Be("New Desc");
-        card.UpdatedById.Should().Be(2);
-        card.UpdatedAt.Should().Be(now);
+        Assert.Equal("New Title", card.Title);
+        Assert.Equal("New Desc", card.Description);
+        Assert.Equal(2, card.UpdatedById);
+        Assert.Equal(now, card.UpdatedAt);
 
-        card.DomainEvents.Select(e => e(card)).OfType<CardUpdatedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<CardUpdatedDomainEvent>(e => e.UpdatedById == 2 && e.ConnectionId == "new-conn");
+        CardUpdatedDomainEvent raised = Assert.Single(card.DomainEvents.Select(e => e(card)).OfType<CardUpdatedDomainEvent>());
+        Assert.True(raised.UpdatedById == 2 && raised.ConnectionId == "new-conn");
     }
 
     [Fact]
@@ -67,10 +64,10 @@ public sealed class CardTests
 
         var changed = card.Update("Title", "Desc", 2, DateTimeOffset.UtcNow, "new-conn");
 
-        changed.Should().BeFalse();
-        card.UpdatedById.Should().BeNull();
-        card.UpdatedAt.Should().BeNull();
-        card.DomainEvents.Should().BeEmpty();
+        Assert.False(changed);
+        Assert.Null(card.UpdatedById);
+        Assert.Null(card.UpdatedAt);
+        Assert.Empty(card.DomainEvents);
     }
 
     [Fact]
@@ -81,15 +78,14 @@ public sealed class CardTests
 
         card.Move(4, 6, "rank2", 5, now, "move-conn");
 
-        card.ListId.Should().Be(4);
-        card.SwimlaneId.Should().Be(6);
-        card.Rank.Should().Be("rank2");
-        card.UpdatedById.Should().Be(5);
-        card.UpdatedAt.Should().Be(now);
+        Assert.Equal(4, card.ListId);
+        Assert.Equal(6, card.SwimlaneId);
+        Assert.Equal("rank2", card.Rank);
+        Assert.Equal(5, card.UpdatedById);
+        Assert.Equal(now, card.UpdatedAt);
 
-        card.DomainEvents.Select(e => e(card)).OfType<CardMovedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<CardMovedDomainEvent>(e =>
-                e.ListId == 4 && e.Rank == "rank2" && e.MovedById == 5 && e.ConnectionId == "move-conn");
+        CardMovedDomainEvent raised = Assert.Single(card.DomainEvents.Select(e => e(card)).OfType<CardMovedDomainEvent>());
+        Assert.True(raised.ListId == 4 && raised.Rank == "rank2" && raised.MovedById == 5 && raised.ConnectionId == "move-conn");
     }
 
     [Fact]
@@ -100,13 +96,12 @@ public sealed class CardTests
 
         card.SoftDelete(3, now);
 
-        card.IsDeleted.Should().BeTrue();
-        card.DeletedById.Should().Be(3);
-        card.DeletedAt.Should().Be(now);
-        card.DeletedByCascade.Should().BeFalse();
+        Assert.True(card.IsDeleted);
+        Assert.Equal(3, card.DeletedById);
+        Assert.Equal(now, card.DeletedAt);
+        Assert.False(card.DeletedByCascade);
 
-        card.DomainEvents.Select(e => e(card)).OfType<CardDeletedDomainEvent>().Should().ContainSingle()
-            .Which.DeletedById.Should().Be(3);
+        Assert.Equal(3, Assert.Single(card.DomainEvents.Select(e => e(card)).OfType<CardDeletedDomainEvent>()).DeletedById);
     }
 
     [Fact]
@@ -116,11 +111,11 @@ public sealed class CardTests
 
         var added = card.AddTag(tag, 4, "tag-conn");
 
-        added.IsSuccess.Should().BeTrue();
-        card.Tags.Should().ContainSingle().Which.Should().BeSameAs(tag);
+        Assert.True(added.IsSuccess);
+        Assert.Same(tag, Assert.Single(card.Tags));
 
-        card.DomainEvents.Select(e => e(card)).OfType<CardTagAddedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<CardTagAddedDomainEvent>(e => e.AddedById == 4 && e.ConnectionId == "tag-conn");
+        CardTagAddedDomainEvent raised = Assert.Single(card.DomainEvents.Select(e => e(card)).OfType<CardTagAddedDomainEvent>());
+        Assert.True(raised.AddedById == 4 && raised.ConnectionId == "tag-conn");
     }
 
     [Fact]
@@ -131,9 +126,9 @@ public sealed class CardTests
 
         var added = card.AddTag(tag, 1);
 
-        added.Error.Code.Should().Be("Tags.AlreadyOnCard");
-        card.Tags.Should().ContainSingle();
-        card.DomainEvents.Select(e => e(card)).OfType<CardTagAddedDomainEvent>().Should().ContainSingle();
+        Assert.Equal("Tags.AlreadyOnCard", added.Error.Code);
+        Assert.Single(card.Tags);
+        Assert.Single(card.DomainEvents.Select(e => e(card)).OfType<CardTagAddedDomainEvent>());
     }
 
     [Fact]
@@ -144,8 +139,8 @@ public sealed class CardTests
 
         var added = card.AddTag(tag, 1);
 
-        added.Error.Code.Should().Be("Tags.NotFound");
-        card.Tags.Should().BeEmpty();
+        Assert.Equal("Tags.NotFound", added.Error.Code);
+        Assert.Empty(card.Tags);
     }
 
     [Fact]
@@ -156,11 +151,11 @@ public sealed class CardTests
 
         var removed = card.RemoveTag(tag, 5, "untag-conn");
 
-        removed.IsSuccess.Should().BeTrue();
-        card.Tags.Should().BeEmpty();
+        Assert.True(removed.IsSuccess);
+        Assert.Empty(card.Tags);
 
-        card.DomainEvents.Select(e => e(card)).OfType<CardTagRemovedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<CardTagRemovedDomainEvent>(e => e.RemovedById == 5 && e.ConnectionId == "untag-conn");
+        CardTagRemovedDomainEvent raised = Assert.Single(card.DomainEvents.Select(e => e(card)).OfType<CardTagRemovedDomainEvent>());
+        Assert.True(raised.RemovedById == 5 && raised.ConnectionId == "untag-conn");
     }
 
     [Fact]
@@ -170,7 +165,7 @@ public sealed class CardTests
 
         var removed = card.RemoveTag(tag, 1);
 
-        removed.Error.Code.Should().Be("Tags.NotOnCard");
-        card.DomainEvents.Select(e => e(card)).OfType<CardTagRemovedDomainEvent>().Should().BeEmpty();
+        Assert.Equal("Tags.NotOnCard", removed.Error.Code);
+        Assert.Empty(card.DomainEvents.Select(e => e(card)).OfType<CardTagRemovedDomainEvent>());
     }
 }

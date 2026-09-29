@@ -3,9 +3,9 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Auth.ResetPassword;
 
-internal sealed class ResetPasswordCommandValidator : AbstractValidator<ResetPasswordCommand>
+internal sealed class ResetPasswordValidator : AbstractValidator<ResetPasswordCommand>
 {
-    public ResetPasswordCommandValidator()
+    public ResetPasswordValidator()
     {
         RuleFor(x => x.Email)
             .NotEmpty()

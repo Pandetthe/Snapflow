@@ -3,9 +3,9 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Auth.ResendConfirmationEmail;
 
-internal sealed class ResendConfirmationEmailCommandValidator : AbstractValidator<ResendConfirmationEmailCommand>
+internal sealed class ResendConfirmationEmailValidator : AbstractValidator<ResendConfirmationEmailCommand>
 {
-    public ResendConfirmationEmailCommandValidator()
+    public ResendConfirmationEmailValidator()
     {
         RuleFor(x => x.Email)
             .NotEmpty()

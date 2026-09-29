@@ -12,15 +12,19 @@ internal sealed class DeleteListHandler(
     IUserContext userContext,
     TimeProvider timeProvider) : ICommandHandler<DeleteListCommand>
 {
-    public async Task<Result> Handle(DeleteListCommand command, CancellationToken cancellationToken = default)
+    public Task<Result> Handle(DeleteListCommand command, CancellationToken cancellationToken = default) =>
+        dbContext.InTransactionAsync(() => ExecuteAsync(command, cancellationToken), cancellationToken);
+
+    private async Task<Result> ExecuteAsync(DeleteListCommand command, CancellationToken cancellationToken)
     {
         List? list = await dbContext.Lists
-            .Include(l => l.Cards)
             .SingleOrDefaultAsync(l => l.Id == command.Id && l.BoardId == command.BoardId, cancellationToken);
         if (list == null)
             return ListErrors.NotFound(command.Id);
 
-        list.SoftDelete(userContext.UserId, timeProvider.GetUtcNow(), userContext.ConnectionId);
+        DateTimeOffset deletedAt = timeProvider.GetUtcNow();
+        list.SoftDelete(userContext.UserId, deletedAt, userContext.ConnectionId);
+        await dbContext.CascadeListDeletionAsync(list.Id, userContext.UserId, deletedAt, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

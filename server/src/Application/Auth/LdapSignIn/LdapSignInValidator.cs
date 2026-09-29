@@ -3,9 +3,9 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Auth.LdapSignIn;
 
-internal sealed class LdapSignInCommandValidator : AbstractValidator<LdapSignInCommand>
+internal sealed class LdapSignInValidator : AbstractValidator<LdapSignInCommand>
 {
-    public LdapSignInCommandValidator()
+    public LdapSignInValidator()
     {
         RuleFor(c => c.UserName)
             .NotEmpty()

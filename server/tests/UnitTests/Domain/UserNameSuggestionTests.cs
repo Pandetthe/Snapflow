@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.UnitTests.Domain;
@@ -15,7 +14,7 @@ public sealed class UserNameSuggestionTests
     {
         var result = UserNameSuggestion.From(name, email);
 
-        result.Should().Be(expected);
+        Assert.Equal(expected, result);
     }
 
     [Fact]
@@ -23,8 +22,8 @@ public sealed class UserNameSuggestionTests
     {
         var result = UserNameSuggestion.From("Aleksandra Wiśniewska-Nowakowska", null);
 
-        result.Length.Should().BeLessThanOrEqualTo(UserOptions.MaxUserNameLength);
-        result.Should().Be("Aleksandra.Wisniewsk");
+        Assert.True(result.Length <= UserOptions.MaxUserNameLength);
+        Assert.Equal("Aleksandra.Wisniewsk", result);
     }
 
     [Fact]
@@ -32,7 +31,7 @@ public sealed class UserNameSuggestionTests
     {
         var result = UserNameSuggestion.WithNumber("Aleksandra.Wisniewsk", 12);
 
-        result.Should().Be("Aleksandra.Wisniew12");
+        Assert.Equal("Aleksandra.Wisniew12", result);
     }
 
     [Fact]
@@ -40,6 +39,6 @@ public sealed class UserNameSuggestionTests
     {
         var result = UserNameSuggestion.WithNumber("Aleksandra.Wisniewsk", 123456789);
 
-        result.Should().Be("Aleksandra123456789");
+        Assert.Equal("Aleksandra123456789", result);
     }
 }

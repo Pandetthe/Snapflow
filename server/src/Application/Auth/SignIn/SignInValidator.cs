@@ -3,9 +3,9 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Auth.SignIn;
 
-internal sealed class SignInCommandValidator : AbstractValidator<SignInCommand>
+internal sealed class SignInValidator : AbstractValidator<SignInCommand>
 {
-    public SignInCommandValidator()
+    public SignInValidator()
     {
         RuleFor(c => c.Email)
             .NotEmpty()

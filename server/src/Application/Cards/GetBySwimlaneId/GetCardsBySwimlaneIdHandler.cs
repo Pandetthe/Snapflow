@@ -7,7 +7,7 @@ using static Snapflow.Application.Cards.GetBySwimlaneId.GetCardsBySwimlaneIdResp
 
 namespace Snapflow.Application.Cards.GetBySwimlaneId;
 
-internal sealed class GetCardsBySwimlaneIdQueryHandler(
+internal sealed class GetCardsBySwimlaneIdHandler(
     IAppDbContext dbContext) : IQueryHandler<GetCardsBySwimlaneIdQuery, IReadOnlyList<CardDto>>
 {
     public async Task<Result<IReadOnlyList<CardDto>>> Handle(GetCardsBySwimlaneIdQuery query,

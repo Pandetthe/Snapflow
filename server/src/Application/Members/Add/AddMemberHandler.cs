@@ -9,7 +9,7 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Members.Add;
 
-internal sealed class AddMemberCommandHandler(
+internal sealed class AddMemberHandler(
     IAppDbContext dbContext,
     IUserContext userContext) : ICommandHandler<AddMemberCommand>
 {

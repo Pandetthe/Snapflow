@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using NetArchTest.Rules;
+﻿using NetArchTest.Rules;
 using Snapflow.Application.Abstractions.Messaging;
 
 namespace Snapflow.ArchitectureTests;
@@ -16,7 +15,7 @@ public sealed class CqrsTests : Base
             .Select(handler => handler.FullName ?? handler.Name)
             .ToList();
 
-        failing.Should().BeEmpty("command handlers should be internal and end with 'Handler'");
+        Assert.True(failing.Count == 0, $"command handlers should be internal and end with 'Handler' {string.Join(", ", failing)}");
     }
 
     [Fact]
@@ -27,7 +26,7 @@ public sealed class CqrsTests : Base
             .Select(handler => handler.FullName ?? handler.Name)
             .ToList();
 
-        failing.Should().BeEmpty("query handlers should be internal and end with 'Handler'");
+        Assert.True(failing.Count == 0, $"query handlers should be internal and end with 'Handler' {string.Join(", ", failing)}");
     }
 
     [Fact]
@@ -49,7 +48,7 @@ public sealed class CqrsTests : Base
             .Select(command => command.Name)
             .ToList();
 
-        failing.Should().BeEmpty("every command should have exactly one handler");
+        Assert.True(failing.Count == 0, $"every command should have exactly one handler {string.Join(", ", failing)}");
     }
 
     [Fact]
@@ -80,7 +79,7 @@ public sealed class CqrsTests : Base
             }
         }
 
-        failingHandlers.Should().BeEmpty("Handlers should be located in the same namespace as their respective Commands or Queries.");
+        Assert.True(failingHandlers.Count == 0, $"Handlers should be located in the same namespace as their respective Commands or Queries. {string.Join(", ", failingHandlers)}");
     }
 
     [Fact]
@@ -93,7 +92,7 @@ public sealed class CqrsTests : Base
             .And().BeSealed()
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue("Commands should be sealed records to ensure immutability.");
+        Assert.True(result.IsSuccessful, "Commands should be sealed records to ensure immutability.");
     }
 
     [Fact]
@@ -105,7 +104,7 @@ public sealed class CqrsTests : Base
             .And().BeSealed()
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue("Queries should be sealed records to ensure immutability.");
+        Assert.True(result.IsSuccessful, "Queries should be sealed records to ensure immutability.");
     }
 
     private static IEnumerable<Type> SliceHandlers(params Type[] handlerInterfaces) =>

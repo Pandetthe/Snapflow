@@ -7,7 +7,7 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Domain.Lists;
 
-public class List : Entity<int, List>, IRankable, ISoftDeletable
+public class List : Entity<int, List>, IRankable, ICascadeSoftDeletable
 {
     private readonly List<Card> _cards = [];
 
@@ -76,13 +76,7 @@ public class List : Entity<int, List>, IRankable, ISoftDeletable
 
     public void Move(int swimlaneId, string rank, int movedById, DateTimeOffset updatedAt, string? connectionId = null)
     {
-        if (SwimlaneId != swimlaneId)
-        {
-            SwimlaneId = swimlaneId;
-            foreach (Card card in Cards)
-                card.FollowList(swimlaneId);
-        }
-
+        SwimlaneId = swimlaneId;
         Rank = rank;
         UpdatedById = movedById;
         UpdatedAt = updatedAt;
@@ -96,26 +90,7 @@ public class List : Entity<int, List>, IRankable, ISoftDeletable
         DeletedById = deletedById;
         DeletedAt = deletedAt;
         DeletedByCascade = false;
-        DeleteCards(deletedById, deletedAt);
 
         Raise(l => new ListDeletedDomainEvent(l.Id, l.BoardId, deletedById, connectionId));
-    }
-
-    internal void DeleteWithParent(int deletedById, DateTimeOffset deletedAt)
-    {
-        if (IsDeleted)
-            return;
-
-        IsDeleted = true;
-        DeletedById = deletedById;
-        DeletedAt = deletedAt;
-        DeletedByCascade = true;
-        DeleteCards(deletedById, deletedAt);
-    }
-
-    private void DeleteCards(int deletedById, DateTimeOffset deletedAt)
-    {
-        foreach (Card card in _cards)
-            card.DeleteWithParent(deletedById, deletedAt);
     }
 }

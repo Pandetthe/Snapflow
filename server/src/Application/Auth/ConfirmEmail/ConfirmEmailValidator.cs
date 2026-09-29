@@ -3,9 +3,9 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Auth.ConfirmEmail;
 
-internal sealed class ConfirmEmailCommandValidator : AbstractValidator<ConfirmEmailCommand>
+internal sealed class ConfirmEmailValidator : AbstractValidator<ConfirmEmailCommand>
 {
-    public ConfirmEmailCommandValidator()
+    public ConfirmEmailValidator()
     {
         RuleFor(c => c.Code)
             .NotEmpty().WithMessage("Confirmation code must be provided.");

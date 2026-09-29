@@ -12,17 +12,19 @@ internal sealed class DeleteSwimlaneHandler(
     IUserContext userContext,
     TimeProvider timeProvider) : ICommandHandler<DeleteSwimlaneCommand>
 {
-    public async Task<Result> Handle(DeleteSwimlaneCommand command, CancellationToken cancellationToken = default)
+    public Task<Result> Handle(DeleteSwimlaneCommand command, CancellationToken cancellationToken = default) =>
+        dbContext.InTransactionAsync(() => ExecuteAsync(command, cancellationToken), cancellationToken);
+
+    private async Task<Result> ExecuteAsync(DeleteSwimlaneCommand command, CancellationToken cancellationToken)
     {
         Swimlane? swimlane = await dbContext.Swimlanes
-            .Include(s => s.Lists)
-            .Include(s => s.Cards)
-            .AsSplitQuery()
             .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId, cancellationToken);
         if (swimlane == null)
             return SwimlaneErrors.NotFound(command.Id);
 
-        swimlane.SoftDelete(userContext.UserId, timeProvider.GetUtcNow(), userContext.ConnectionId);
+        DateTimeOffset deletedAt = timeProvider.GetUtcNow();
+        swimlane.SoftDelete(userContext.UserId, deletedAt, userContext.ConnectionId);
+        await dbContext.CascadeSwimlaneDeletionAsync(swimlane.Id, userContext.UserId, deletedAt, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

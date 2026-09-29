@@ -7,11 +7,11 @@ using Snapflow.Domain.Boards;
 
 namespace Snapflow.Application.Members.Get;
 
-internal sealed class GetMembersQueryHandler(
+internal sealed class GetMembersHandler(
     IAppDbContext dbContext,
-    IBoardMembershipService membershipService) : IQueryHandler<GetMembersQuery, List<GetMembersResponse>>
+    IBoardMembershipService membershipService) : IQueryHandler<GetMembersQuery, IReadOnlyList<GetMembersResponse>>
 {
-    public async Task<Result<List<GetMembersResponse>>> Handle(GetMembersQuery query,
+    public async Task<Result<IReadOnlyList<GetMembersResponse>>> Handle(GetMembersQuery query,
         CancellationToken cancellationToken = default)
     {
         bool boardExists = await dbContext.Boards
@@ -21,13 +21,13 @@ internal sealed class GetMembersQueryHandler(
             return BoardErrors.NotFound(query.BoardId);
 
         if (!await membershipService.IsMemberAsync(query.BoardId, cancellationToken))
-            return Result.Success(new List<GetMembersResponse>());
+            return Result.Success<IReadOnlyList<GetMembersResponse>>([]);
 
         var members = await dbContext.Members
             .AsNoTracking()
             .Where(b => b.BoardId == query.BoardId)
             .Select(b => new GetMembersResponse(b.UserId, b.User.UserName))
             .ToListAsync(cancellationToken);
-        return Result.Success(members);
+        return members;
     }
 }

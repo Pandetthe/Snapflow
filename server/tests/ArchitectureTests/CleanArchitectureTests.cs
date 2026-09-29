@@ -1,4 +1,3 @@
-using FluentAssertions;
 using NetArchTest.Rules;
 using System.Reflection;
 
@@ -14,7 +13,7 @@ public sealed class CleanArchitectureTests : Base
             .NotHaveDependencyOn(ApplicationNamespace)
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue(Describe(result));
+        Assert.True(result.IsSuccessful, Describe(result));
     }
 
     [Fact]
@@ -25,7 +24,7 @@ public sealed class CleanArchitectureTests : Base
             .NotHaveDependencyOn(InfrastructureNamespace)
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue(Describe(result));
+        Assert.True(result.IsSuccessful, Describe(result));
     }
 
     [Fact]
@@ -36,7 +35,7 @@ public sealed class CleanArchitectureTests : Base
             .NotHaveDependencyOn(PresentationNamespace)
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue(Describe(result));
+        Assert.True(result.IsSuccessful, Describe(result));
     }
 
     [Fact]
@@ -47,7 +46,7 @@ public sealed class CleanArchitectureTests : Base
             .NotHaveDependencyOn(InfrastructureNamespace)
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue(Describe(result));
+        Assert.True(result.IsSuccessful, Describe(result));
     }
 
     [Fact]
@@ -58,7 +57,7 @@ public sealed class CleanArchitectureTests : Base
             .NotHaveDependencyOn(PresentationNamespace)
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue(Describe(result));
+        Assert.True(result.IsSuccessful, Describe(result));
     }
 
     [Fact]
@@ -69,7 +68,7 @@ public sealed class CleanArchitectureTests : Base
             .NotHaveDependencyOn(PresentationNamespace)
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue(Describe(result));
+        Assert.True(result.IsSuccessful, Describe(result));
     }
 
     [Fact]
@@ -85,10 +84,10 @@ public sealed class CleanArchitectureTests : Base
 
         foreach ((string expectedAssembly, Assembly assembly, string? layerNamespace) in layers)
         {
-            assembly.GetName().Name.Should().Be(expectedAssembly);
+            Assert.Equal(expectedAssembly, assembly.GetName().Name);
 
             if (layerNamespace is not null)
-                layerNamespace.Should().Be($"Snapflow.{expectedAssembly}");
+                Assert.Equal($"Snapflow.{expectedAssembly}", layerNamespace);
         }
     }
 
@@ -110,7 +109,7 @@ public sealed class CleanArchitectureTests : Base
             }
         }
 
-        failingInterfaces.Should().BeEmpty("All interfaces in the solution should start with the letter 'I' followed by an uppercase letter.");
+        Assert.True(failingInterfaces.Count == 0, $"All interfaces in the solution should start with the letter 'I' followed by an uppercase letter. {string.Join(", ", failingInterfaces)}");
     }
 
     private static string Describe(TestResult result) =>

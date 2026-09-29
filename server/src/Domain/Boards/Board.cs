@@ -93,15 +93,6 @@ public class Board : Entity<int, Board>, ISoftDeletable
         DeletedById = deletedById;
         DeletedAt = deletedAt;
 
-        foreach (Swimlane swimlane in _swimlanes)
-            swimlane.DeleteWithParent(deletedById, deletedAt);
-        foreach (List list in _lists)
-            list.DeleteWithParent(deletedById, deletedAt);
-        foreach (Card card in _cards)
-            card.DeleteWithParent(deletedById, deletedAt);
-        foreach (Tag tag in _tags)
-            tag.DeleteWithParent(deletedById, deletedAt);
-
         var memberIds = _members.Select(m => m.UserId).ToList();
         Raise(b => new BoardDeletedDomainEvent(b.Id, memberIds, connectionId));
     }

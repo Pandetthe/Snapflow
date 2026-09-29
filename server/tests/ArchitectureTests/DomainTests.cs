@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using NetArchTest.Rules;
+﻿using NetArchTest.Rules;
 using Snapflow.Common;
 
 namespace Snapflow.ArchitectureTests;
@@ -15,7 +14,7 @@ public sealed class DomainTests : Base
             .And().HaveNameEndingWith("DomainEvent")
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue("Domain events should be sealed to prevent inheritance and follow naming conventions.");
+        Assert.True(result.IsSuccessful, "Domain events should be sealed to prevent inheritance and follow naming conventions.");
     }
 
     [Fact]
@@ -44,7 +43,7 @@ public sealed class DomainTests : Base
             }
         }
 
-        failingEntities.Should().BeEmpty("Entities should have a parameterless constructor for EF Core or deserialization purposes.");
+        Assert.True(failingEntities.Count == 0, $"Entities should have a parameterless constructor for EF Core or deserialization purposes. {string.Join(", ", failingEntities)}");
     }
 
     [Fact]
@@ -75,6 +74,6 @@ public sealed class DomainTests : Base
             }
         }
 
-        failingProperties.Should().BeEmpty("Entities should encapsulate collections. They should not have public setters for them.");
+        Assert.True(failingProperties.Count == 0, $"Entities should encapsulate collections. They should not have public setters for them. {string.Join(", ", failingProperties)}");
     }
 }

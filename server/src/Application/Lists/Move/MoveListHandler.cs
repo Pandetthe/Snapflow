@@ -28,7 +28,6 @@ internal sealed class MoveListHandler(
             return SwimlaneErrors.NotFound(command.SwimlaneId);
 
         List? list = await dbContext.Lists
-            .Include(l => l.Cards)
             .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId, cancellationToken);
         if (list == null)
             return ListErrors.NotFound(command.Id);
@@ -44,6 +43,11 @@ internal sealed class MoveListHandler(
             userContext.UserId,
             timeProvider.GetUtcNow(),
             userContext.ConnectionId);
+
+        await dbContext.Cards
+            .IgnoreQueryFilters([ISoftDeletable.FilterName])
+            .Where(c => c.ListId == list.Id && c.SwimlaneId != command.SwimlaneId)
+            .ExecuteUpdateAsync(c => c.SetProperty(x => x.SwimlaneId, command.SwimlaneId), cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success(rankResult.Value);

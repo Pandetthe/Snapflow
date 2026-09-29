@@ -1,6 +1,3 @@
-using FluentAssertions;
-using Snapflow.Domain.Cards;
-using Snapflow.Domain.Lists;
 using Snapflow.Domain.Swimlanes;
 
 namespace Snapflow.UnitTests.Domain;
@@ -17,15 +14,15 @@ public sealed class SwimlaneTests
 
         var swimlane = Swimlane.Create(1, "Test Swimlane", 100, "000000000001", 7, now, "conn-id");
 
-        swimlane.BoardId.Should().Be(1);
-        swimlane.Title.Should().Be("Test Swimlane");
-        swimlane.Height.Should().Be(100);
-        swimlane.Rank.Should().Be("000000000001");
-        swimlane.CreatedById.Should().Be(7);
-        swimlane.CreatedAt.Should().Be(now);
+        Assert.Equal(1, swimlane.BoardId);
+        Assert.Equal("Test Swimlane", swimlane.Title);
+        Assert.Equal(100, swimlane.Height);
+        Assert.Equal("000000000001", swimlane.Rank);
+        Assert.Equal(7, swimlane.CreatedById);
+        Assert.Equal(now, swimlane.CreatedAt);
 
-        swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneCreatedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<SwimlaneCreatedDomainEvent>(e => e.CreatedById == 7 && e.ConnectionId == "conn-id");
+        SwimlaneCreatedDomainEvent raised = Assert.Single(swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneCreatedDomainEvent>());
+        Assert.True(raised.CreatedById == 7 && raised.ConnectionId == "conn-id");
     }
 
     [Fact]
@@ -36,13 +33,13 @@ public sealed class SwimlaneTests
 
         swimlane.Update("New Title", 200, 2, now, "new-conn");
 
-        swimlane.Title.Should().Be("New Title");
-        swimlane.Height.Should().Be(200);
-        swimlane.UpdatedById.Should().Be(2);
-        swimlane.UpdatedAt.Should().Be(now);
+        Assert.Equal("New Title", swimlane.Title);
+        Assert.Equal(200, swimlane.Height);
+        Assert.Equal(2, swimlane.UpdatedById);
+        Assert.Equal(now, swimlane.UpdatedAt);
 
-        swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneUpdatedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<SwimlaneUpdatedDomainEvent>(e => e.UpdatedById == 2 && e.ConnectionId == "new-conn");
+        SwimlaneUpdatedDomainEvent raised = Assert.Single(swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneUpdatedDomainEvent>());
+        Assert.True(raised.UpdatedById == 2 && raised.ConnectionId == "new-conn");
     }
 
     [Fact]
@@ -53,10 +50,10 @@ public sealed class SwimlaneTests
 
         var changed = swimlane.Update("Title", 100, 2, DateTimeOffset.UtcNow, "new-conn");
 
-        changed.Should().BeFalse();
-        swimlane.UpdatedById.Should().BeNull();
-        swimlane.UpdatedAt.Should().BeNull();
-        swimlane.DomainEvents.Should().BeEmpty();
+        Assert.False(changed);
+        Assert.Null(swimlane.UpdatedById);
+        Assert.Null(swimlane.UpdatedAt);
+        Assert.Empty(swimlane.DomainEvents);
     }
 
     [Fact]
@@ -67,13 +64,12 @@ public sealed class SwimlaneTests
 
         swimlane.Move("rank2", 5, now, "move-conn");
 
-        swimlane.Rank.Should().Be("rank2");
-        swimlane.UpdatedById.Should().Be(5);
-        swimlane.UpdatedAt.Should().Be(now);
+        Assert.Equal("rank2", swimlane.Rank);
+        Assert.Equal(5, swimlane.UpdatedById);
+        Assert.Equal(now, swimlane.UpdatedAt);
 
-        swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneMovedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<SwimlaneMovedDomainEvent>(e =>
-                e.Rank == "rank2" && e.MovedById == 5 && e.ConnectionId == "move-conn");
+        SwimlaneMovedDomainEvent raised = Assert.Single(swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneMovedDomainEvent>());
+        Assert.True(raised.Rank == "rank2" && raised.MovedById == 5 && raised.ConnectionId == "move-conn");
     }
 
     [Fact]
@@ -84,29 +80,12 @@ public sealed class SwimlaneTests
 
         swimlane.SoftDelete(3, now);
 
-        swimlane.IsDeleted.Should().BeTrue();
-        swimlane.DeletedById.Should().Be(3);
-        swimlane.DeletedAt.Should().Be(now);
-        swimlane.DeletedByCascade.Should().BeFalse();
+        Assert.True(swimlane.IsDeleted);
+        Assert.Equal(3, swimlane.DeletedById);
+        Assert.Equal(now, swimlane.DeletedAt);
+        Assert.False(swimlane.DeletedByCascade);
 
-        swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneDeletedDomainEvent>().Should().ContainSingle()
-            .Which.DeletedById.Should().Be(3);
+        Assert.Equal(3, Assert.Single(swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneDeletedDomainEvent>()).DeletedById);
     }
 
-    [Fact]
-    public void SoftDelete_Should_CascadeToListsAndCards()
-    {
-        var swimlane = CreateSwimlane();
-        var list = List.Create(1, swimlane.Id, "List", null, "rank", 1, DateTimeOffset.UtcNow);
-        var card = Card.Create(1, swimlane.Id, list.Id, "Card", "", "rank", 1, DateTimeOffset.UtcNow);
-        Loaded.Into(swimlane, "_lists", list);
-        Loaded.Into(swimlane, "_cards", card);
-
-        swimlane.SoftDelete(3, DateTimeOffset.UtcNow);
-
-        list.IsDeleted.Should().BeTrue();
-        list.DeletedByCascade.Should().BeTrue();
-        card.IsDeleted.Should().BeTrue();
-        card.DeletedByCascade.Should().BeTrue();
-    }
 }

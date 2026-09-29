@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Tags;
 
@@ -17,16 +16,14 @@ public sealed class TagTests
 
         var tag = board.CreateTag("Test Tag", TagColors.Red, 7, now, "conn-id").Value;
 
-        board.Tags.Should().ContainSingle().Which.Should().BeSameAs(tag);
-        tag.Title.Should().Be("Test Tag");
-        tag.Color.Should().Be(TagColors.Red);
-        tag.CreatedById.Should().Be(7);
-        tag.CreatedAt.Should().Be(now);
+        Assert.Same(tag, Assert.Single(board.Tags));
+        Assert.Equal("Test Tag", tag.Title);
+        Assert.Equal(TagColors.Red, tag.Color);
+        Assert.Equal(7, tag.CreatedById);
+        Assert.Equal(now, tag.CreatedAt);
 
-        tag.DomainEvents.Select(e => e(tag)).OfType<TagCreatedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<TagCreatedDomainEvent>(e =>
-                e.Title == "Test Tag" && e.Color == TagColors.Red &&
-                e.CreatedById == 7 && e.ConnectionId == "conn-id");
+        TagCreatedDomainEvent raised = Assert.Single(tag.DomainEvents.Select(e => e(tag)).OfType<TagCreatedDomainEvent>());
+        Assert.True(raised.Title == "Test Tag" && raised.Color == TagColors.Red && raised.CreatedById == 7 && raised.ConnectionId == "conn-id");
     }
 
     [Fact]
@@ -37,8 +34,8 @@ public sealed class TagTests
 
         var result = board.CreateTag("Bug", TagColors.Blue, 1, DateTimeOffset.UtcNow);
 
-        result.Error.Code.Should().Be("Tags.TitleNotUnique");
-        board.Tags.Should().ContainSingle();
+        Assert.Equal("Tags.TitleNotUnique", result.Error.Code);
+        Assert.Single(board.Tags);
     }
 
     [Fact]
@@ -50,7 +47,7 @@ public sealed class TagTests
 
         var result = board.CreateTag("Bug", TagColors.Blue, 1, DateTimeOffset.UtcNow);
 
-        result.IsSuccess.Should().BeTrue();
+        Assert.True(result.IsSuccess);
     }
 
     [Fact]
@@ -62,16 +59,14 @@ public sealed class TagTests
 
         var changed = board.UpdateTag(tag.Id, "New Title", TagColors.Green, 2, now, "new-conn");
 
-        changed.Value.Should().BeTrue();
-        tag.Title.Should().Be("New Title");
-        tag.Color.Should().Be(TagColors.Green);
-        tag.UpdatedById.Should().Be(2);
-        tag.UpdatedAt.Should().Be(now);
+        Assert.True(changed.Value);
+        Assert.Equal("New Title", tag.Title);
+        Assert.Equal(TagColors.Green, tag.Color);
+        Assert.Equal(2, tag.UpdatedById);
+        Assert.Equal(now, tag.UpdatedAt);
 
-        tag.DomainEvents.Select(e => e(tag)).OfType<TagUpdatedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<TagUpdatedDomainEvent>(e =>
-                e.Title == "New Title" && e.Color == TagColors.Green &&
-                e.UpdatedById == 2 && e.ConnectionId == "new-conn");
+        TagUpdatedDomainEvent raised = Assert.Single(tag.DomainEvents.Select(e => e(tag)).OfType<TagUpdatedDomainEvent>());
+        Assert.True(raised.Title == "New Title" && raised.Color == TagColors.Green && raised.UpdatedById == 2 && raised.ConnectionId == "new-conn");
     }
 
     [Fact]
@@ -83,10 +78,10 @@ public sealed class TagTests
 
         var changed = board.UpdateTag(tag.Id, "Title", TagColors.Blue, 2, DateTimeOffset.UtcNow, "new-conn");
 
-        changed.Value.Should().BeFalse();
-        tag.UpdatedById.Should().BeNull();
-        tag.UpdatedAt.Should().BeNull();
-        tag.DomainEvents.Should().BeEmpty();
+        Assert.False(changed.Value);
+        Assert.Null(tag.UpdatedById);
+        Assert.Null(tag.UpdatedAt);
+        Assert.Empty(tag.DomainEvents);
     }
 
     [Fact]
@@ -98,8 +93,8 @@ public sealed class TagTests
 
         var result = board.UpdateTag(tag.Id, "Bug", TagColors.Blue, 1, DateTimeOffset.UtcNow);
 
-        result.Error.Code.Should().Be("Tags.TitleNotUnique");
-        tag.Title.Should().Be("Feature");
+        Assert.Equal("Tags.TitleNotUnique", result.Error.Code);
+        Assert.Equal("Feature", tag.Title);
     }
 
     [Fact]
@@ -111,13 +106,12 @@ public sealed class TagTests
 
         var result = board.DeleteTag(tag.Id, 3, now);
 
-        result.IsSuccess.Should().BeTrue();
-        tag.IsDeleted.Should().BeTrue();
-        tag.DeletedById.Should().Be(3);
-        tag.DeletedAt.Should().Be(now);
+        Assert.True(result.IsSuccess);
+        Assert.True(tag.IsDeleted);
+        Assert.Equal(3, tag.DeletedById);
+        Assert.Equal(now, tag.DeletedAt);
 
-        tag.DomainEvents.Select(e => e(tag)).OfType<TagDeletedDomainEvent>().Should().ContainSingle()
-            .Which.DeletedById.Should().Be(3);
+        Assert.Equal(3, Assert.Single(tag.DomainEvents.Select(e => e(tag)).OfType<TagDeletedDomainEvent>()).DeletedById);
     }
 
     [Fact]
@@ -127,6 +121,6 @@ public sealed class TagTests
 
         var result = board.DeleteTag(42, 1, DateTimeOffset.UtcNow);
 
-        result.Error.Code.Should().Be("Tags.NotFound");
+        Assert.Equal("Tags.NotFound", result.Error.Code);
     }
 }

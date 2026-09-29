@@ -1,4 +1,3 @@
-using FluentAssertions;
 using NetArchTest.Rules;
 
 namespace Snapflow.ArchitectureTests;
@@ -27,6 +26,6 @@ public sealed class VerticalSliceTests : Base
             }
         }
 
-        failingSlices.Should().BeEmpty("Vertical Slices in Application layer should be isolated from each other. Use Domain Events for cross-slice communication.");
+        Assert.True(failingSlices.Count == 0, $"Vertical Slices in Application layer should be isolated from each other. Use Domain Events for cross-slice communication. {string.Join(", ", failingSlices)}");
     }
 }

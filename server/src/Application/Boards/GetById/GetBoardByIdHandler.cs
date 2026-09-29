@@ -66,14 +66,22 @@ internal sealed class GetBoardByIdHandler(
         if (board == null)
             return BoardErrors.NotFound(query.Id);
 
-        foreach (CardDto card in board.Swimlanes.SelectMany(s => s.Lists).SelectMany(l => l.Cards))
+        return board with
         {
-            if (card.CreatedBy != null)
-                card.CreatedBy.AvatarUrl = avatarService.GenerateAvatarUrl(card.CreatedBy.Id);
-            if (card.UpdatedBy != null)
-                card.UpdatedBy.AvatarUrl = avatarService.GenerateAvatarUrl(card.UpdatedBy.Id);
-        }
-
-        return board;
+            Swimlanes = [.. board.Swimlanes.Select(s => s with
+            {
+                Lists = [.. s.Lists.Select(l => l with
+                {
+                    Cards = [.. l.Cards.Select(c => c with
+                    {
+                        CreatedBy = WithAvatar(c.CreatedBy),
+                        UpdatedBy = WithAvatar(c.UpdatedBy)
+                    })]
+                })]
+            })]
+        };
     }
+
+    private UserDto? WithAvatar(UserDto? user) =>
+        user is null ? null : user with { AvatarUrl = avatarService.GenerateAvatarUrl(user.Id) };
 }

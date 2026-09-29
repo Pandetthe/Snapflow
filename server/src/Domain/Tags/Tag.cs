@@ -74,14 +74,4 @@ public class Tag : Entity<int, Tag>, ISoftDeletable
         Raise(t => new TagDeletedDomainEvent(t.Id, t.BoardId,
             deletedById, connectionId));
     }
-
-    internal void DeleteWithParent(int deletedById, DateTimeOffset deletedAt)
-    {
-        if (IsDeleted)
-            return;
-
-        IsDeleted = true;
-        DeletedById = deletedById;
-        DeletedAt = deletedAt;
-    }
 }

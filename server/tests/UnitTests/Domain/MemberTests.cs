@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Members;
 
@@ -21,11 +20,11 @@ public sealed class MemberTests
 
         var result = board.AddMember(2, MemberRole.Admin, "conn-id");
 
-        result.IsSuccess.Should().BeTrue();
-        var member = board.Members.Should().ContainSingle(m => m.UserId == 2).Subject;
-        member.Role.Should().Be(MemberRole.Admin);
-        Events<MemberCreatedDomainEvent>(member).Should().ContainSingle()
-            .Which.Should().Match<MemberCreatedDomainEvent>(e => e.Role == MemberRole.Admin && e.ConnectionId == "conn-id");
+        Assert.True(result.IsSuccess);
+        var member = Assert.Single(board.Members, m => m.UserId == 2);
+        Assert.Equal(MemberRole.Admin, member.Role);
+        MemberCreatedDomainEvent raised = Assert.Single(Events<MemberCreatedDomainEvent>(member));
+        Assert.True(raised.Role == MemberRole.Admin && raised.ConnectionId == "conn-id");
     }
 
     [Fact]
@@ -36,8 +35,8 @@ public sealed class MemberTests
 
         var result = board.AddMember(2, MemberRole.Viewer);
 
-        result.Error.Code.Should().Be("Members.AlreadyMember");
-        board.Members.Should().HaveCount(2);
+        Assert.Equal("Members.AlreadyMember", result.Error.Code);
+        Assert.Equal(2, board.Members.Count);
     }
 
     [Fact]
@@ -47,8 +46,8 @@ public sealed class MemberTests
 
         var result = board.AddMember(2, MemberRole.Owner);
 
-        result.Error.Should().Be(MemberErrors.CannotAssignOwner);
-        board.Members.Should().ContainSingle();
+        Assert.Equal(MemberErrors.CannotAssignOwner, result.Error);
+        Assert.Single(board.Members);
     }
 
     [Fact]
@@ -59,12 +58,11 @@ public sealed class MemberTests
 
         var result = board.ChangeMemberRole(2, MemberRole.Admin, "new-conn");
 
-        result.IsSuccess.Should().BeTrue();
+        Assert.True(result.IsSuccess);
         var member = board.Members.Single(m => m.UserId == 2);
-        member.Role.Should().Be(MemberRole.Admin);
-        Events<MemberRoleChangedDomainEvent>(member).Should().ContainSingle()
-            .Which.Should().Match<MemberRoleChangedDomainEvent>(e =>
-                e.OldRole == MemberRole.Member && e.NewRole == MemberRole.Admin && e.ConnectionId == "new-conn");
+        Assert.Equal(MemberRole.Admin, member.Role);
+        MemberRoleChangedDomainEvent raised = Assert.Single(Events<MemberRoleChangedDomainEvent>(member));
+        Assert.True(raised.OldRole == MemberRole.Member && raised.NewRole == MemberRole.Admin && raised.ConnectionId == "new-conn");
     }
 
     [Fact]
@@ -74,8 +72,8 @@ public sealed class MemberTests
 
         var result = board.ChangeMemberRole(OwnerId, MemberRole.Viewer);
 
-        result.Error.Should().Be(MemberErrors.CannotChangeOwnerRole);
-        board.Members.Single().Role.Should().Be(MemberRole.Owner);
+        Assert.Equal(MemberErrors.CannotChangeOwnerRole, result.Error);
+        Assert.Equal(MemberRole.Owner, board.Members.Single().Role);
     }
 
     [Fact]
@@ -86,7 +84,7 @@ public sealed class MemberTests
 
         var result = board.ChangeMemberRole(2, MemberRole.Owner);
 
-        result.Error.Should().Be(MemberErrors.CannotAssignOwner);
+        Assert.Equal(MemberErrors.CannotAssignOwner, result.Error);
     }
 
     [Fact]
@@ -98,10 +96,9 @@ public sealed class MemberTests
 
         var result = board.RemoveMember(2, "del-conn");
 
-        result.IsSuccess.Should().BeTrue();
-        board.Members.Should().NotContain(member);
-        Events<MemberRemovedDomainEvent>(member).Should().ContainSingle()
-            .Which.ConnectionId.Should().Be("del-conn");
+        Assert.True(result.IsSuccess);
+        Assert.DoesNotContain(member, board.Members);
+        Assert.Equal("del-conn", Assert.Single(Events<MemberRemovedDomainEvent>(member)).ConnectionId);
     }
 
     [Fact]
@@ -111,8 +108,8 @@ public sealed class MemberTests
 
         var result = board.RemoveMember(OwnerId);
 
-        result.Error.Should().Be(MemberErrors.CannotRemoveOwner);
-        board.Members.Should().ContainSingle();
+        Assert.Equal(MemberErrors.CannotRemoveOwner, result.Error);
+        Assert.Single(board.Members);
     }
 
     [Fact]
@@ -124,11 +121,11 @@ public sealed class MemberTests
         var handedOver = board.HandOverOwnership(2);
         var taken = board.TakeOwnership(2);
 
-        handedOver.IsSuccess.Should().BeTrue();
-        taken.IsSuccess.Should().BeTrue();
-        board.Members.Single(m => m.UserId == OwnerId).Role.Should().Be(MemberRole.Admin);
-        board.Members.Single(m => m.UserId == 2).Role.Should().Be(MemberRole.Owner);
-        board.IsOwnedBy(2).Should().BeTrue();
+        Assert.True(handedOver.IsSuccess);
+        Assert.True(taken.IsSuccess);
+        Assert.Equal(MemberRole.Admin, board.Members.Single(m => m.UserId == OwnerId).Role);
+        Assert.Equal(MemberRole.Owner, board.Members.Single(m => m.UserId == 2).Role);
+        Assert.True(board.IsOwnedBy(2));
     }
 
     [Fact]
@@ -138,8 +135,8 @@ public sealed class MemberTests
 
         var result = board.HandOverOwnership(2);
 
-        result.Error.Code.Should().Be("Members.NotFound");
-        board.IsOwnedBy(OwnerId).Should().BeTrue();
+        Assert.Equal("Members.NotFound", result.Error.Code);
+        Assert.True(board.IsOwnedBy(OwnerId));
     }
 
     [Fact]
@@ -149,7 +146,7 @@ public sealed class MemberTests
 
         var result = board.HandOverOwnership(OwnerId);
 
-        result.Error.Code.Should().Be("Members.AlreadyOwner");
+        Assert.Equal("Members.AlreadyOwner", result.Error.Code);
     }
 
     [Fact]
@@ -160,8 +157,8 @@ public sealed class MemberTests
 
         var result = board.TakeOwnership(2);
 
-        result.Error.Code.Should().Be("Members.OwnerAlreadyExists");
-        board.IsOwnedBy(OwnerId).Should().BeTrue();
+        Assert.Equal("Members.OwnerAlreadyExists", result.Error.Code);
+        Assert.True(board.IsOwnedBy(OwnerId));
     }
 
     [Fact]
@@ -173,9 +170,8 @@ public sealed class MemberTests
 
         var result = board.SyncMembers([(2, MemberRole.Admin), (4, MemberRole.Viewer), (OwnerId, MemberRole.Viewer)]);
 
-        result.IsSuccess.Should().BeTrue();
-        board.Members.Select(m => (m.UserId, m.Role)).Should().BeEquivalentTo(
-            [(OwnerId, MemberRole.Owner), (2, MemberRole.Admin), (4, MemberRole.Viewer)]);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(new[] { (OwnerId, MemberRole.Owner), (2, MemberRole.Admin), (4, MemberRole.Viewer) }.Order(), board.Members.Select(m => (m.UserId, m.Role)).Order());
     }
 
     [Fact]
@@ -185,7 +181,7 @@ public sealed class MemberTests
 
         var result = board.SyncMembers([(2, MemberRole.Admin), (2, MemberRole.Viewer)]);
 
-        result.Error.Should().Be(MemberErrors.DuplicateMember);
-        board.Members.Should().ContainSingle();
+        Assert.Equal(MemberErrors.DuplicateMember, result.Error);
+        Assert.Single(board.Members);
     }
 }

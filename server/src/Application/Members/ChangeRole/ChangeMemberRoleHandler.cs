@@ -6,13 +6,13 @@ using Snapflow.Common;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Members;
 
-namespace Snapflow.Application.Members.Remove;
+namespace Snapflow.Application.Members.ChangeRole;
 
-internal sealed class RemoveMemberCommandHandler(
+internal sealed class ChangeMemberRoleHandler(
     IAppDbContext dbContext,
-    IUserContext userContext) : ICommandHandler<RemoveMemberCommand>
+    IUserContext userContext) : ICommandHandler<ChangeMemberRoleCommand>
 {
-    public async Task<Result> Handle(RemoveMemberCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result> Handle(ChangeMemberRoleCommand command, CancellationToken cancellationToken = default)
     {
         Board? board = await dbContext.Boards
             .Include(b => b.Members)
@@ -20,9 +20,9 @@ internal sealed class RemoveMemberCommandHandler(
         if (board is null)
             return BoardErrors.NotFound(command.BoardId);
 
-        Result removed = board.RemoveMember(command.UserId, userContext.ConnectionId);
-        if (removed.IsFailure)
-            return removed;
+        Result changed = board.ChangeMemberRole(command.UserId, command.Role, userContext.ConnectionId);
+        if (changed.IsFailure)
+            return changed;
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();

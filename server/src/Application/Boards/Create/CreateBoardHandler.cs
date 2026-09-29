@@ -18,11 +18,6 @@ internal sealed class CreateBoardHandler(
 {
     public async Task<Result<int>> Handle(CreateBoardCommand command, CancellationToken cancellationToken = default)
     {
-        var userExists = await dbContext.Users.AsNoTracking()
-            .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (!userExists)
-            return UserErrors.NotFound(userContext.UserId);
-
         if (!visibilityPolicy.IsAllowed(command.Visibility))
             return BoardErrors.VisibilityNotAllowed(command.Visibility);
 

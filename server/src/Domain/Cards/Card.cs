@@ -8,7 +8,7 @@ using Snapflow.Domain.Ranking;
 
 namespace Snapflow.Domain.Cards;
 
-public class Card : Entity<int, Card>, IRankable, ISoftDeletable
+public class Card : Entity<int, Card>, IRankable, ICascadeSoftDeletable
 {
     private readonly List<Tag> _tags = [];
 
@@ -87,8 +87,6 @@ public class Card : Entity<int, Card>, IRankable, ISoftDeletable
         Raise(c => new CardMovedDomainEvent(Id, BoardId, ListId, Rank, movedById, connectionId));
     }
 
-    internal void FollowList(int swimlaneId) => SwimlaneId = swimlaneId;
-
     public Result AddTag(Tag tag, int addedById, string? connectionId = null)
     {
         if (tag.BoardId != BoardId)
@@ -120,16 +118,5 @@ public class Card : Entity<int, Card>, IRankable, ISoftDeletable
         DeletedByCascade = false;
 
         Raise(c => new CardDeletedDomainEvent(Id, BoardId, deletedById, connectionId));
-    }
-
-    internal void DeleteWithParent(int deletedById, DateTimeOffset deletedAt)
-    {
-        if (IsDeleted)
-            return;
-
-        IsDeleted = true;
-        DeletedById = deletedById;
-        DeletedAt = deletedAt;
-        DeletedByCascade = true;
     }
 }

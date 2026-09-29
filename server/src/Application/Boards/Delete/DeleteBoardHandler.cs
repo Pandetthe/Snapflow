@@ -12,20 +12,20 @@ internal sealed class DeleteBoardHandler(
     IUserContext userContext,
     TimeProvider timeProvider) : ICommandHandler<DeleteBoardCommand>
 {
-    public async Task<Result> Handle(DeleteBoardCommand command, CancellationToken cancellationToken = default)
+    public Task<Result> Handle(DeleteBoardCommand command, CancellationToken cancellationToken = default) =>
+        dbContext.InTransactionAsync(() => ExecuteAsync(command, cancellationToken), cancellationToken);
+
+    private async Task<Result> ExecuteAsync(DeleteBoardCommand command, CancellationToken cancellationToken)
     {
         Board? board = await dbContext.Boards
             .Include(b => b.Members)
-            .Include(b => b.Swimlanes)
-            .Include(b => b.Lists)
-            .Include(b => b.Cards)
-            .Include(b => b.Tags)
-            .AsSplitQuery()
             .SingleOrDefaultAsync(b => b.Id == command.BoardId, cancellationToken);
         if (board == null)
             return BoardErrors.NotFound(command.BoardId);
 
-        board.SoftDelete(userContext.UserId, timeProvider.GetUtcNow(), userContext.ConnectionId);
+        DateTimeOffset deletedAt = timeProvider.GetUtcNow();
+        board.SoftDelete(userContext.UserId, deletedAt, userContext.ConnectionId);
+        await dbContext.CascadeBoardDeletionAsync(board.Id, userContext.UserId, deletedAt, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

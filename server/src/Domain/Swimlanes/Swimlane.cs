@@ -7,7 +7,7 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Domain.Swimlanes;
 
-public class Swimlane : Entity<int, Swimlane>, IRankable, ISoftDeletable
+public class Swimlane : Entity<int, Swimlane>, IRankable, ICascadeSoftDeletable
 {
     private readonly List<List> _lists = [];
     private readonly List<Card> _cards = [];
@@ -87,28 +87,7 @@ public class Swimlane : Entity<int, Swimlane>, IRankable, ISoftDeletable
         DeletedById = deletedById;
         DeletedAt = deletedAt;
         DeletedByCascade = false;
-        DeleteContent(deletedById, deletedAt);
 
         Raise(s => new SwimlaneDeletedDomainEvent(s.Id, s.BoardId, deletedById, connectionId));
-    }
-
-    internal void DeleteWithParent(int deletedById, DateTimeOffset deletedAt)
-    {
-        if (IsDeleted)
-            return;
-
-        IsDeleted = true;
-        DeletedById = deletedById;
-        DeletedAt = deletedAt;
-        DeletedByCascade = true;
-        DeleteContent(deletedById, deletedAt);
-    }
-
-    private void DeleteContent(int deletedById, DateTimeOffset deletedAt)
-    {
-        foreach (List list in _lists)
-            list.DeleteWithParent(deletedById, deletedAt);
-        foreach (Card card in _cards)
-            card.DeleteWithParent(deletedById, deletedAt);
     }
 }

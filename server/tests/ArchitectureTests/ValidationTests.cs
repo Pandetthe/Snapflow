@@ -1,4 +1,3 @@
-using FluentAssertions;
 using FluentValidation;
 using Snapflow.Application.Abstractions.Messaging;
 
@@ -43,7 +42,7 @@ public sealed class ValidationTests : Base
             .Order(StringComparer.Ordinal)
             .ToList();
 
-        failing.Should().BeEmpty("every command taking user input should have a validator");
+        Assert.True(failing.Count == 0, $"every command taking user input should have a validator {string.Join(", ", failing)}");
     }
 
     [Fact]
@@ -51,8 +50,7 @@ public sealed class ValidationTests : Base
     {
         var commandNames = Commands().Select(command => command.Name).ToHashSet(StringComparer.Ordinal);
 
-        CommandsWithoutUserInput.Where(name => !commandNames.Contains(name))
-            .Should().BeEmpty("exemptions for commands that no longer exist should be dropped");
+        Assert.True(!CommandsWithoutUserInput.Where(name => !commandNames.Contains(name)) .Any(), $"exemptions for commands that no longer exist should be dropped {string.Join(", ", CommandsWithoutUserInput.Where(name => !commandNames.Contains(name)) )}");
     }
 
     private static IEnumerable<Type> Commands() =>

@@ -19,11 +19,6 @@ internal sealed class UpdateBoardHandler(
 {
     public async Task<Result> Handle(UpdateBoardCommand command, CancellationToken cancellationToken = default)
     {
-        var userExists = await dbContext.Users.AsNoTracking()
-             .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (!userExists)
-            return UserErrors.NotFound(userContext.UserId);
-
         Board? board = await dbContext.Boards
             .Include(x => x.Members)
             .SingleOrDefaultAsync(x => x.Id == command.Id, cancellationToken);

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Snapflow.Common;
+﻿namespace Snapflow.Common;
 
 public abstract class Entity<TEntity> : IEntity
     where TEntity : Entity<TEntity>

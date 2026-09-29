@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Snapflow.Presentation.Hubs.Board;
 
 namespace Snapflow.UnitTests.Presentation;
@@ -10,7 +9,7 @@ public sealed class BoardConnectionRegistryTests
     {
         var registry = new BoardConnectionRegistry();
 
-        registry.GetConnectionIds(1, 1).Should().BeEmpty();
+        Assert.Empty(registry.GetConnectionIds(1, 1));
     }
 
     [Fact]
@@ -21,7 +20,7 @@ public sealed class BoardConnectionRegistryTests
         registry.Add(1, 7, "conn-a");
         registry.Add(1, 7, "conn-b");
 
-        registry.GetConnectionIds(1, 7).Should().BeEquivalentTo(["conn-a", "conn-b"]);
+        Assert.Equal(new[] { "conn-a", "conn-b" }, registry.GetConnectionIds(1, 7).Order());
     }
 
     [Fact]
@@ -33,9 +32,9 @@ public sealed class BoardConnectionRegistryTests
         registry.Add(2, 7, "conn-b");
         registry.Add(1, 8, "conn-c");
 
-        registry.GetConnectionIds(1, 7).Should().BeEquivalentTo(["conn-a"]);
-        registry.GetConnectionIds(2, 7).Should().BeEquivalentTo(["conn-b"]);
-        registry.GetConnectionIds(1, 8).Should().BeEquivalentTo(["conn-c"]);
+        Assert.Equal(new[] { "conn-a" }, registry.GetConnectionIds(1, 7).Order());
+        Assert.Equal(new[] { "conn-b" }, registry.GetConnectionIds(2, 7).Order());
+        Assert.Equal(new[] { "conn-c" }, registry.GetConnectionIds(1, 8).Order());
     }
 
     [Fact]
@@ -46,7 +45,7 @@ public sealed class BoardConnectionRegistryTests
         registry.Add(1, 7, "conn-a");
         registry.Add(1, 7, "conn-a");
 
-        registry.GetConnectionIds(1, 7).Should().ContainSingle();
+        Assert.Single(registry.GetConnectionIds(1, 7));
     }
 
     [Fact]
@@ -58,7 +57,7 @@ public sealed class BoardConnectionRegistryTests
 
         registry.Remove(1, 7, "conn-a");
 
-        registry.GetConnectionIds(1, 7).Should().BeEquivalentTo(["conn-b"]);
+        Assert.Equal(new[] { "conn-b" }, registry.GetConnectionIds(1, 7).Order());
     }
 
     [Fact]
@@ -70,7 +69,7 @@ public sealed class BoardConnectionRegistryTests
         registry.Remove(1, 7, "conn-missing");
         registry.Remove(9, 9, "conn-a");
 
-        registry.GetConnectionIds(1, 7).Should().BeEquivalentTo(["conn-a"]);
+        Assert.Equal(new[] { "conn-a" }, registry.GetConnectionIds(1, 7).Order());
     }
 
     [Fact]
@@ -82,6 +81,6 @@ public sealed class BoardConnectionRegistryTests
 
         registry.Add(1, 7, "conn-b");
 
-        registry.GetConnectionIds(1, 7).Should().BeEquivalentTo(["conn-b"]);
+        Assert.Equal(new[] { "conn-b" }, registry.GetConnectionIds(1, 7).Order());
     }
 }

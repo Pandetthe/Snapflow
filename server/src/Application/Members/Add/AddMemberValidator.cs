@@ -3,9 +3,9 @@ using Snapflow.Domain.Members;
 
 namespace Snapflow.Application.Members.Add;
 
-internal sealed class AddMemberCommandValidator : AbstractValidator<AddMemberCommand>
+internal sealed class AddMemberValidator : AbstractValidator<AddMemberCommand>
 {
-    public AddMemberCommandValidator()
+    public AddMemberValidator()
     {
         RuleFor(x => x.Role)
             .IsInEnum().WithMessage("Role must be a valid role.")
