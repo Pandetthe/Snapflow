@@ -16,7 +16,10 @@ internal sealed class MoveCardHandler(
     TimeProvider timeProvider,
     IEntityRankService<Card> rankService) : ICommandHandler<MoveCardCommand, string>
 {
-    public async Task<Result<string>> Handle(MoveCardCommand command, CancellationToken cancellationToken = default)
+    public Task<Result<string>> Handle(MoveCardCommand command, CancellationToken cancellationToken = default) =>
+        dbContext.InTransactionAsync(() => ExecuteAsync(command, cancellationToken), cancellationToken);
+
+    private async Task<Result<string>> ExecuteAsync(MoveCardCommand command, CancellationToken cancellationToken)
     {
         IUser? user = await dbContext.Users
             .AsNoTracking()

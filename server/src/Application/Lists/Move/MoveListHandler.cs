@@ -16,7 +16,10 @@ internal sealed class MoveListHandler(
     TimeProvider timeProvider,
     IEntityRankService<List> rankService) : ICommandHandler<MoveListCommand, string>
 {
-    public async Task<Result<string>> Handle(MoveListCommand command, CancellationToken cancellationToken = default)
+    public Task<Result<string>> Handle(MoveListCommand command, CancellationToken cancellationToken = default) =>
+        dbContext.InTransactionAsync(() => ExecuteAsync(command, cancellationToken), cancellationToken);
+
+    private async Task<Result<string>> ExecuteAsync(MoveListCommand command, CancellationToken cancellationToken)
     {
         IUser? user = await dbContext.Users
             .AsNoTracking()

@@ -12,7 +12,10 @@ internal sealed class ChangeOwnerCommandHandler(
     IAppDbContext dbContext,
     IUserContext userContext) : ICommandHandler<ChangeOwnerCommand>
 {
-    public async Task<Result> Handle(ChangeOwnerCommand command, CancellationToken cancellationToken = default)
+    public Task<Result> Handle(ChangeOwnerCommand command, CancellationToken cancellationToken = default) =>
+        dbContext.InTransactionAsync(() => ExecuteAsync(command, cancellationToken), cancellationToken);
+
+    private async Task<Result> ExecuteAsync(ChangeOwnerCommand command, CancellationToken cancellationToken)
     {
         Member? oldOwner = await dbContext.Members
             .SingleOrDefaultAsync(b => b.BoardId == command.BoardId && b.Role == MemberRole.Owner, cancellationToken);
@@ -25,8 +28,11 @@ internal sealed class ChangeOwnerCommandHandler(
         if (newOwner == null)
             return Result.Failure(MemberErrors.NotFound(command.UserId, command.BoardId));
         oldOwner.UpdateRole(MemberRole.Admin, userContext.ConnectionId);
-        newOwner.UpdateRole(MemberRole.Owner, userContext.ConnectionId);
         await dbContext.SaveChangesAsync(cancellationToken);
-        return Result.Success();
+
+        newOwner.UpdateRole(MemberRole.Owner, userContext.ConnectionId);
+        return await dbContext.TrySaveChangesAsync(
+            [new UniqueConflict(DbConstraints.BoardSingleOwner, MemberErrors.OwnerAlreadyExists(command.BoardId))],
+            cancellationToken);
     }
 }

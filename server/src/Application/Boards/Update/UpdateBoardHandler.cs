@@ -5,6 +5,7 @@ using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Application.Abstractions.Services;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
+using Snapflow.Domain.Members;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Boards.Update;
@@ -73,8 +74,8 @@ internal sealed class UpdateBoardHandler(
                 userContext.ConnectionId);
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        return Result.Success();
+        return await dbContext.TrySaveChangesAsync(
+            [new UniqueConflict(DbConstraints.BoardMemberKey, MemberErrors.DuplicateMember)],
+            cancellationToken);
     }
 }

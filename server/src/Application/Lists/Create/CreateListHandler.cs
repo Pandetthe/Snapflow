@@ -17,7 +17,10 @@ internal sealed class CreateListHandler(
     TimeProvider timeProvider,
     IEntityRankService<List> rankService) : ICommandHandler<CreateListCommand, CreateListResponse>
 {
-    public async Task<Result<CreateListResponse>> Handle(CreateListCommand command, CancellationToken cancellationToken = default)
+    public Task<Result<CreateListResponse>> Handle(CreateListCommand command, CancellationToken cancellationToken = default) =>
+        dbContext.InTransactionAsync(() => ExecuteAsync(command, cancellationToken), cancellationToken);
+
+    private async Task<Result<CreateListResponse>> ExecuteAsync(CreateListCommand command, CancellationToken cancellationToken)
     {
         IUser? user = await dbContext.Users
             .AsNoTracking()

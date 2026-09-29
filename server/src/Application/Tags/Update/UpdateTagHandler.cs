@@ -39,7 +39,11 @@ internal sealed class UpdateTagHandler(
         if (!changed)
             return new UpdateTagResponse(null, null);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        Result saved = await dbContext.TrySaveChangesAsync(
+            [new UniqueConflict(DbConstraints.TagTitle, TagErrors.TitleNotUnique(command.Title))],
+            cancellationToken);
+        if (saved.IsFailure)
+            return Result.Failure<UpdateTagResponse>(saved.Error);
 
         return new UpdateTagResponse(updatedAt, UserDto.From(user));
     }

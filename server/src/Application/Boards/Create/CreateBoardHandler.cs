@@ -57,7 +57,12 @@ internal sealed class CreateBoardHandler(
         }
 
         await dbContext.Boards.AddAsync(board, cancellationToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
+
+        Result saved = await dbContext.TrySaveChangesAsync(
+            [new UniqueConflict(DbConstraints.BoardMemberKey, MemberErrors.DuplicateMember)],
+            cancellationToken);
+        if (saved.IsFailure)
+            return Result.Failure<int>(saved.Error);
 
         return Result.Success(board.Id);
     }

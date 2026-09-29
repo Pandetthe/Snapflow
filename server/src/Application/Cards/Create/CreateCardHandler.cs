@@ -19,7 +19,10 @@ internal sealed class CreateCardHandler(
     IEntityRankService<Card> rankService,
     IAvatarService avatarService) : ICommandHandler<CreateCardCommand, CreateCardResponse>
 {
-    public async Task<Result<CreateCardResponse>> Handle(CreateCardCommand command, CancellationToken cancellationToken = default)
+    public Task<Result<CreateCardResponse>> Handle(CreateCardCommand command, CancellationToken cancellationToken = default) =>
+        dbContext.InTransactionAsync(() => ExecuteAsync(command, cancellationToken), cancellationToken);
+
+    private async Task<Result<CreateCardResponse>> ExecuteAsync(CreateCardCommand command, CancellationToken cancellationToken)
     {
         IUser? user = await dbContext.Users
             .AsNoTracking()

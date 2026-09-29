@@ -15,7 +15,10 @@ internal sealed class MoveSwimlaneHandler(
     TimeProvider timeProvider,
     IEntityRankService<Swimlane> rankService) : ICommandHandler<MoveSwimlaneCommand, string>
 {
-    public async Task<Result<string>> Handle(MoveSwimlaneCommand command, CancellationToken cancellationToken = default)
+    public Task<Result<string>> Handle(MoveSwimlaneCommand command, CancellationToken cancellationToken = default) =>
+        dbContext.InTransactionAsync(() => ExecuteAsync(command, cancellationToken), cancellationToken);
+
+    private async Task<Result<string>> ExecuteAsync(MoveSwimlaneCommand command, CancellationToken cancellationToken)
     {
         IUser? user = await dbContext.Users
             .AsNoTracking()

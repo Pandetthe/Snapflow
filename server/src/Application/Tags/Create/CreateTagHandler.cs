@@ -45,7 +45,12 @@ internal sealed class CreateTagHandler(
             userContext.ConnectionId);
 
         await dbContext.Tags.AddAsync(tag, cancellationToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
+
+        Result saved = await dbContext.TrySaveChangesAsync(
+            [new UniqueConflict(DbConstraints.TagTitle, TagErrors.TitleNotUnique(command.Title))],
+            cancellationToken);
+        if (saved.IsFailure)
+            return Result.Failure<CreateTagResponse>(saved.Error);
 
         return new CreateTagResponse(tag.Id, createdAt, UserDto.From(user));
     }

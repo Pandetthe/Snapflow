@@ -20,6 +20,10 @@ public static class MemberErrors
         "Members.CannotChangeOwnerRole",
         "The board owner's role cannot be changed. Transfer ownership instead.");
 
+    public static readonly Error DuplicateMember = Error.Conflict(
+        "Members.Duplicate",
+        "A user can be a member of the board only once.");
+
     public static Error AlreadyMember(int userId, int boardId) => Error.Conflict(
         "Members.AlreadyMember",
         $"The user with Id = '{userId}' is already a member of the board with Id = '{boardId}'.");

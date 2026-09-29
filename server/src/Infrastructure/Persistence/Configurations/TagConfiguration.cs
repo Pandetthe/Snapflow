@@ -25,5 +25,9 @@ internal sealed class TagConfiguration : IEntityTypeConfiguration<Tag>
         builder.Property(t => t.Title)
             .IsRequired()
             .HasMaxLength(TagOptions.MaxTitleLength);
+
+        builder.HasIndex(t => new { t.BoardId, t.Title })
+            .IsUnique()
+            .HasFilter("is_deleted = false");
     }
 }

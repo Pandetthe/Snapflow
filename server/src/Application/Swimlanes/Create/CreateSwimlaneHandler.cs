@@ -17,7 +17,10 @@ internal sealed class CreateSwimlaneHandler(
     TimeProvider timeProvider,
     IEntityRankService<Swimlane> rankService) : ICommandHandler<CreateSwimlaneCommand, CreateSwimlaneResponse>
 {
-    public async Task<Result<CreateSwimlaneResponse>> Handle(CreateSwimlaneCommand command, CancellationToken cancellationToken = default)
+    public Task<Result<CreateSwimlaneResponse>> Handle(CreateSwimlaneCommand command, CancellationToken cancellationToken = default) =>
+        dbContext.InTransactionAsync(() => ExecuteAsync(command, cancellationToken), cancellationToken);
+
+    private async Task<Result<CreateSwimlaneResponse>> ExecuteAsync(CreateSwimlaneCommand command, CancellationToken cancellationToken)
     {
         IUser? user = await dbContext.Users
             .AsNoTracking()

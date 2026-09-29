@@ -28,68 +28,43 @@ internal abstract class BaseRankService<TEntity>(
     public async Task<Result<string>> GenerateRankAsync(int groupId, int? movingId, int? beforeId,
         CancellationToken cancellationToken = default)
     {
-        var globalLockKey = GetGlobalLockKey();
-        var groupLockKey = GetGroupLockKey(groupId);
+        if (DbContext.Database.CurrentTransaction is null)
+            throw new InvalidOperationException("A rank must be generated inside the transaction that saves it.");
 
-        IExecutionStrategy strategy = DbContext.Database.CreateExecutionStrategy();
+        await DbContext.Database.ExecuteSqlRawAsync(
+            "SELECT pg_advisory_xact_lock_shared({0}), pg_advisory_xact_lock({1})",
+            [GetGlobalLockKey(), GetGroupLockKey(groupId)], cancellationToken);
 
-        return await strategy.ExecuteAsync(async () =>
+        var baseQuery = Entities
+            .AsNoTracking()
+            .Where(GroupFilter(groupId))
+            .Where(s => !s.IsDeleted && (movingId == null || s.Id != movingId));
+
+        if (!await baseQuery.AnyAsync(cancellationToken))
+            return RankService.GenerateInitial();
+
+        Func<Neighbours, Task<Result>>[] normalizations =
+        [
+            n => NormalizeLocallyInternalAsync(groupId, n.Left, n.Right, cancellationToken),
+            _ => NormalizeGroupInternalAsync(groupId, cancellationToken)
+        ];
+
+        for (int attempt = 0; ; attempt++)
         {
-            await using IDbContextTransaction tx = await DbContext.Database.BeginTransactionAsync(cancellationToken);
+            Result<Neighbours> neighbours = await FindNeighboursAsync(baseQuery, beforeId, cancellationToken);
+            if (neighbours.IsFailure)
+                return Result.Failure<string>(neighbours.Error);
 
-            try
-            {
-                await DbContext.Database.ExecuteSqlRawAsync(
-                    "SELECT pg_advisory_xact_lock_shared({0}), pg_advisory_xact_lock({1})",
-                    [globalLockKey, groupLockKey], cancellationToken);
+            if (RankService.TryGenerateBetween(neighbours.Value.Left, neighbours.Value.Right, out var between))
+                return between;
 
-                var baseQuery = Entities
-                    .AsNoTracking()
-                    .Where(GroupFilter(groupId))
-                    .Where(s => !s.IsDeleted && (movingId == null || s.Id != movingId));
-
-                if (!await baseQuery.AnyAsync(cancellationToken))
-                    return RankService.GenerateInitial();
-
-                Func<Neighbours, Task<Result>>[] normalizations =
-                [
-                    n => NormalizeLocallyInternalAsync(groupId, n.Left, n.Right, cancellationToken),
-                    _ => NormalizeGroupInternalAsync(groupId, cancellationToken)
-                ];
-
-                for (int attempt = 0; ; attempt++)
-                {
-                    Result<Neighbours> neighbours = await FindNeighboursAsync(baseQuery, beforeId, cancellationToken);
-                    if (neighbours.IsFailure)
-                        return Result.Failure<string>(neighbours.Error);
-
-                    if (RankService.TryGenerateBetween(neighbours.Value.Left, neighbours.Value.Right, out var between))
-                    {
-                        await tx.CommitAsync(cancellationToken);
-                        return between;
-                    }
-
-                    if (attempt == normalizations.Length)
-                        break;
-
-                    Result normalized = await normalizations[attempt](neighbours.Value);
-                    if (normalized.IsFailure)
-                    {
-                        await tx.RollbackAsync(cancellationToken);
-                        return Result.Failure<string>(normalized.Error);
-                    }
-                }
-
-                await tx.RollbackAsync(cancellationToken);
+            if (attempt == normalizations.Length)
                 return Result.Failure<string>(RankingErrors.RankExhausted);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Failed to generate rank for {EntityName} in group {GroupId}", typeof(TEntity).Name, groupId);
-                await tx.RollbackAsync(cancellationToken);
-                return Result.Failure<string>(RankingErrors.RankExhausted);
-            }
-        });
+
+            Result normalized = await normalizations[attempt](neighbours.Value);
+            if (normalized.IsFailure)
+                return Result.Failure<string>(normalized.Error);
+        }
     }
 
     private sealed record EntityRankDto(int Id, string Rank);
@@ -143,42 +118,6 @@ internal abstract class BaseRankService<TEntity>(
 
     private static string TemporaryRank(int id) =>
         "~" + id.ToString(CultureInfo.InvariantCulture);
-
-    public async Task<Result> NormalizeLocallyAsync(int groupId, string? leftRank, string? rightRank, CancellationToken cancellationToken = default)
-    {
-        if (leftRank == null && rightRank == null)
-            return Result.Failure(RankingErrors.InvalidNormalizationRange);
-
-        IExecutionStrategy strategy = DbContext.Database.CreateExecutionStrategy();
-
-        return await strategy.ExecuteAsync(async () =>
-        {
-            await using var tx = await DbContext.Database.BeginTransactionAsync(cancellationToken);
-            try
-            {
-                var globalLockKey = GetGlobalLockKey();
-                var groupLockKey = GetGroupLockKey(groupId);
-                await DbContext.Database.ExecuteSqlRawAsync(
-                    "SELECT pg_advisory_xact_lock_shared({0}), pg_advisory_xact_lock({1})",
-                    [globalLockKey, groupLockKey], cancellationToken);
-
-                Result result = await NormalizeLocallyInternalAsync(groupId, leftRank, rightRank, cancellationToken);
-
-                if (result.IsSuccess)
-                    await tx.CommitAsync(cancellationToken);
-                else
-                    await tx.RollbackAsync(cancellationToken);
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Failed to normalize locally {EntityName} ranks.", typeof(TEntity).Name);
-                await tx.RollbackAsync(cancellationToken);
-                return Result.Failure(RankingErrors.RankExhausted);
-            }
-        });
-    }
 
     private async Task<Result> NormalizeLocallyInternalAsync(int groupId, string? leftRank, string? rightRank, CancellationToken cancellationToken)
     {

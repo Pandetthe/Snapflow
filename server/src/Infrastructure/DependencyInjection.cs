@@ -1,4 +1,5 @@
 ﻿using Azure.Monitor.OpenTelemetry.AspNetCore;
+using EntityFramework.Exceptions.PostgreSQL;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
@@ -105,6 +106,7 @@ public static class DependencyInjection
                         npgsqlOptions.EnableRetryOnFailure(5);
                     })
                     .AddInterceptors(sp.GetRequiredService<DispatchDomainEventsInterceptor>())
+                    .UseExceptionProcessor()
                     .UseSnakeCaseNamingConvention());
             services.AddDataProtection()
                 .PersistKeysToDbContext<AppDbContext>()

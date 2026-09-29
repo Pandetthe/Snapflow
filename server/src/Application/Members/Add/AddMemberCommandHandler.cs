@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 using Snapflow.Domain.Members;
 using Snapflow.Domain.Users;
 
@@ -12,6 +13,12 @@ internal sealed class AddMemberCommandHandler(
 {
     public async Task<Result> Handle(AddMemberCommand command, CancellationToken cancellationToken = default)
     {
+        var boardExists = await dbContext.Boards
+            .AsNoTracking()
+            .AnyAsync(b => b.Id == command.BoardId && !b.IsDeleted, cancellationToken);
+        if (!boardExists)
+            return Result.Failure(BoardErrors.NotFound(command.BoardId));
+
         var userExists = await dbContext.Users
             .AsNoTracking()
             .AnyAsync(u => u.Id == command.UserId, cancellationToken);
@@ -34,8 +41,12 @@ internal sealed class AddMemberCommandHandler(
         var member = Member.Create(command.BoardId, command.UserId, command.Role);
 
         await dbContext.Members.AddAsync(member, cancellationToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
 
-        return Result.Success();
+        return await dbContext.TrySaveChangesAsync(
+            [
+                new UniqueConflict(DbConstraints.BoardMemberKey, MemberErrors.AlreadyMember(command.UserId, command.BoardId)),
+                new UniqueConflict(DbConstraints.BoardSingleOwner, MemberErrors.OwnerAlreadyExists(command.BoardId))
+            ],
+            cancellationToken);
     }
 }
