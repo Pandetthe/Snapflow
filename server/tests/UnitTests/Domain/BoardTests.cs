@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using Snapflow.Domain.Boards;
+﻿using Snapflow.Domain.Boards;
 using Snapflow.Domain.Members;
 
 namespace Snapflow.UnitTests.Domain;
@@ -16,16 +15,16 @@ public sealed class BoardTests
 
         var board = Board.Create(title, description, BoardVisibility.Private, createdById, now, "conn-id");
 
-        board.Title.Should().Be(title);
-        board.Description.Should().Be(description);
-        board.CreatedById.Should().Be(createdById);
-        board.CreatedAt.Should().Be(now);
+        Assert.Equal(title, board.Title);
+        Assert.Equal(description, board.Description);
+        Assert.Equal(createdById, board.CreatedById);
+        Assert.Equal(now, board.CreatedAt);
         
-        board.Members.Should().HaveCount(1);
-        board.Members.First().UserId.Should().Be(createdById);
-        board.Members.First().Role.Should().Be(MemberRole.Owner);
+        var owner = Assert.Single(board.Members);
+        Assert.Equal(createdById, owner.UserId);
+        Assert.Equal(MemberRole.Owner, owner.Role);
 
-        board.DomainEvents.Select(e => e(board)).Should().ContainSingle(e => e is BoardCreatedDomainEvent);
+        Assert.Single(board.DomainEvents.Select(e => e(board)), e => e is BoardCreatedDomainEvent);
     }
 
     [Fact]
@@ -39,12 +38,12 @@ public sealed class BoardTests
 
         board.Update(newTitle, newDesc, updaterId, now, "new-conn");
 
-        board.Title.Should().Be(newTitle);
-        board.Description.Should().Be(newDesc);
-        board.UpdatedById.Should().Be(updaterId);
-        board.UpdatedAt.Should().Be(now);
+        Assert.Equal(newTitle, board.Title);
+        Assert.Equal(newDesc, board.Description);
+        Assert.Equal(updaterId, board.UpdatedById);
+        Assert.Equal(now, board.UpdatedAt);
         
-        board.DomainEvents.Select(e => e(board)).Should().Contain(e => e is BoardUpdatedDomainEvent);
+        Assert.Contains(board.DomainEvents.Select(e => e(board)), e => e is BoardUpdatedDomainEvent);
     }
 
     [Fact]
@@ -55,10 +54,10 @@ public sealed class BoardTests
 
         var changed = board.Update("Title", "Desc", 2, DateTimeOffset.UtcNow, "new-conn");
 
-        changed.Should().BeFalse();
-        board.UpdatedById.Should().BeNull();
-        board.UpdatedAt.Should().BeNull();
-        board.DomainEvents.Should().BeEmpty();
+        Assert.False(changed);
+        Assert.Null(board.UpdatedById);
+        Assert.Null(board.UpdatedAt);
+        Assert.Empty(board.DomainEvents);
     }
 
     [Fact]
@@ -70,11 +69,11 @@ public sealed class BoardTests
 
         board.SoftDelete(deleterId, now);
 
-        board.IsDeleted.Should().BeTrue();
-        board.DeletedById.Should().Be(deleterId);
-        board.DeletedAt.Should().Be(now);
+        Assert.True(board.IsDeleted);
+        Assert.Equal(deleterId, board.DeletedById);
+        Assert.Equal(now, board.DeletedAt);
 
-        board.DomainEvents.Select(e => e(board)).Should().Contain(e => e is BoardDeletedDomainEvent);
+        Assert.Contains(board.DomainEvents.Select(e => e(board)), e => e is BoardDeletedDomainEvent);
     }
 
     [Theory]
@@ -84,7 +83,7 @@ public sealed class BoardTests
     {
         var board = Board.Create("Title", "Desc", visibility, 1, DateTimeOffset.UtcNow);
 
-        board.Visibility.Should().Be(visibility);
+        Assert.Equal(visibility, board.Visibility);
     }
 
     [Fact]
@@ -95,12 +94,11 @@ public sealed class BoardTests
 
         board.ChangeVisibility(BoardVisibility.Public, 1, now, "conn-id");
 
-        board.Visibility.Should().Be(BoardVisibility.Public);
-        board.UpdatedById.Should().Be(1);
-        board.UpdatedAt.Should().Be(now);
-        board.DomainEvents.Select(e => e(board)).OfType<BoardVisibilityChangedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<BoardVisibilityChangedDomainEvent>(e =>
-                e.OldVisibility == BoardVisibility.Private && e.NewVisibility == BoardVisibility.Public);
+        Assert.Equal(BoardVisibility.Public, board.Visibility);
+        Assert.Equal(1, board.UpdatedById);
+        Assert.Equal(now, board.UpdatedAt);
+        BoardVisibilityChangedDomainEvent raised = Assert.Single(board.DomainEvents.Select(e => e(board)).OfType<BoardVisibilityChangedDomainEvent>());
+        Assert.True(raised.OldVisibility == BoardVisibility.Private && raised.NewVisibility == BoardVisibility.Public);
     }
 
     [Fact]
@@ -108,9 +106,26 @@ public sealed class BoardTests
     {
         var board = Board.Create("Title", "Desc", BoardVisibility.Private, 1, DateTimeOffset.UtcNow);
 
-        board.ChangeVisibility(BoardVisibility.Private, 2, DateTimeOffset.UtcNow);
+        var result = board.ChangeVisibility(BoardVisibility.Private, 1, DateTimeOffset.UtcNow);
 
-        board.UpdatedById.Should().BeNull();
-        board.DomainEvents.Select(e => e(board)).Should().NotContain(e => e is BoardVisibilityChangedDomainEvent);
+        Assert.True(result.IsSuccess);
+        Assert.Null(board.UpdatedById);
+        Assert.DoesNotContain(board.DomainEvents.Select(e => e(board)), e => e is BoardVisibilityChangedDomainEvent);
+    }
+
+    [Theory]
+    [InlineData(MemberRole.Admin)]
+    [InlineData(MemberRole.Member)]
+    [InlineData(null)]
+    public void ChangeVisibility_Should_BeRefused_For_AnyoneButTheOwner(MemberRole? role)
+    {
+        var board = Board.Create("Title", "Desc", BoardVisibility.Private, 1, DateTimeOffset.UtcNow);
+        if (role is { } assigned)
+            board.AddMember(2, assigned);
+
+        var result = board.ChangeVisibility(BoardVisibility.Public, 2, DateTimeOffset.UtcNow);
+
+        Assert.Equal("Boards.VisibilityChangeForbidden", result.Error.Code);
+        Assert.Equal(BoardVisibility.Private, board.Visibility);
     }
 }

@@ -1,181 +1,171 @@
-﻿using FluentAssertions;
-using NSubstitute;
+using Snapflow.Domain.Boards;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Tags;
-using Snapflow.Domain.Users;
 
 namespace Snapflow.UnitTests.Domain;
 
 public sealed class CardTests
 {
-    private static IUser CreateUser(int id = 1, string userName = "john")
+    private static Board CreateBoard() =>
+        Board.Create("Board", "", BoardVisibility.Private, 1, DateTimeOffset.UtcNow);
+
+    private static Card CreateCard(int boardId = 1) =>
+        Card.Create(boardId, 2, 3, "Title", "Desc", "rank", 1, DateTimeOffset.UtcNow);
+
+    private static (Card Card, Tag Tag) CreateCardWithBoardTag()
     {
-        var user = Substitute.For<IUser>();
-        user.Id.Returns(id);
-        user.UserName.Returns(userName);
-        return user;
+        var board = CreateBoard();
+        var tag = board.CreateTag("Bug", TagColors.Red, 1, DateTimeOffset.UtcNow).Value;
+        return (CreateCard(board.Id), tag);
     }
 
     [Fact]
     public void Create_Should_InitializeCard_And_RaiseEvent()
     {
-        var boardId = 1;
-        var swimlaneId = 2;
-        var listId = 3;
-        var title = "Test Card";
-        var description = "Test Desc";
-        var rank = "000000000001";
-        var createdBy = CreateUser(7, "alice");
         var now = DateTimeOffset.UtcNow;
 
-        var card = Card.Create(boardId, swimlaneId, listId, title, description, rank, createdBy, now, "conn-id");
+        var card = Card.Create(1, 2, 3, "Test Card", "Test Desc", "000000000001", 7, now, "conn-id");
 
-        card.BoardId.Should().Be(boardId);
-        card.SwimlaneId.Should().Be(swimlaneId);
-        card.ListId.Should().Be(listId);
-        card.Title.Should().Be(title);
-        card.Description.Should().Be(description);
-        card.Rank.Should().Be(rank);
-        card.CreatedById.Should().Be(createdBy.Id);
-        card.CreatedAt.Should().Be(now);
+        Assert.Equal(1, card.BoardId);
+        Assert.Equal(2, card.SwimlaneId);
+        Assert.Equal(3, card.ListId);
+        Assert.Equal("Test Card", card.Title);
+        Assert.Equal("Test Desc", card.Description);
+        Assert.Equal("000000000001", card.Rank);
+        Assert.Equal(7, card.CreatedById);
+        Assert.Equal(now, card.CreatedAt);
 
-        card.DomainEvents.Select(e => e(card)).Should().ContainSingle()
-            .Which.Should().BeOfType<CardCreatedDomainEvent>()
-            .Which.Should().Match<CardCreatedDomainEvent>(e =>
-                e.CreatedAt == now && e.CreatedById == 7 && e.CreatedByUserName == "alice" && e.ConnectionId == "conn-id");
+        CardCreatedDomainEvent raised = Assert.IsType<CardCreatedDomainEvent>(Assert.Single(card.DomainEvents.Select(e => e(card))));
+        Assert.True(raised.CreatedAt == now && raised.CreatedById == 7 && raised.ConnectionId == "conn-id");
     }
 
     [Fact]
     public void Update_Should_UpdateProperties_And_RaiseEventWithUpdater()
     {
-        var card = Card.Create(1, 2, 3, "Old", "Old Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
-        var newTitle = "New Title";
-        var newDesc = "New Desc";
-        var updatedBy = CreateUser(2, "bob");
+        var card = Card.Create(1, 2, 3, "Old", "Old Desc", "rank", 1, DateTimeOffset.UtcNow);
         var now = DateTimeOffset.UtcNow;
 
-        card.Update(newTitle, newDesc, updatedBy, now, "new-conn");
+        card.Update("New Title", "New Desc", 2, now, "new-conn");
 
-        card.Title.Should().Be(newTitle);
-        card.Description.Should().Be(newDesc);
-        card.UpdatedById.Should().Be(2);
-        card.UpdatedAt.Should().Be(now);
+        Assert.Equal("New Title", card.Title);
+        Assert.Equal("New Desc", card.Description);
+        Assert.Equal(2, card.UpdatedById);
+        Assert.Equal(now, card.UpdatedAt);
 
-        card.DomainEvents.Select(e => e(card)).OfType<CardUpdatedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<CardUpdatedDomainEvent>(e =>
-                e.UpdatedById == 2 && e.UpdatedByUserName == "bob" && e.ConnectionId == "new-conn");
+        CardUpdatedDomainEvent raised = Assert.Single(card.DomainEvents.Select(e => e(card)).OfType<CardUpdatedDomainEvent>());
+        Assert.True(raised.UpdatedById == 2 && raised.ConnectionId == "new-conn");
     }
 
     [Fact]
     public void Update_Should_ChangeNothing_When_TitleAndDescriptionAreTheSame()
     {
-        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
+        var card = CreateCard();
         card.ClearDomainEvents();
 
-        var changed = card.Update("Title", "Desc", CreateUser(2, "bob"), DateTimeOffset.UtcNow, "new-conn");
+        var changed = card.Update("Title", "Desc", 2, DateTimeOffset.UtcNow, "new-conn");
 
-        changed.Should().BeFalse();
-        card.UpdatedById.Should().BeNull();
-        card.UpdatedAt.Should().BeNull();
-        card.DomainEvents.Should().BeEmpty();
+        Assert.False(changed);
+        Assert.Null(card.UpdatedById);
+        Assert.Null(card.UpdatedAt);
+        Assert.Empty(card.DomainEvents);
     }
 
     [Fact]
     public void Move_Should_UpdatePosition_And_RaiseEventWithMover()
     {
-        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
-        var movedBy = CreateUser(5, "bob");
+        var card = CreateCard();
         var now = DateTimeOffset.UtcNow;
 
-        card.Move(4, 6, "rank2", movedBy, now, "move-conn");
+        card.Move(4, 6, "rank2", 5, now, "move-conn");
 
-        card.ListId.Should().Be(4);
-        card.SwimlaneId.Should().Be(6);
-        card.Rank.Should().Be("rank2");
-        card.UpdatedById.Should().Be(5);
-        card.UpdatedAt.Should().Be(now);
+        Assert.Equal(4, card.ListId);
+        Assert.Equal(6, card.SwimlaneId);
+        Assert.Equal("rank2", card.Rank);
+        Assert.Equal(5, card.UpdatedById);
+        Assert.Equal(now, card.UpdatedAt);
 
-        card.DomainEvents.Select(e => e(card)).OfType<CardMovedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<CardMovedDomainEvent>(e =>
-                e.ListId == 4 && e.Rank == "rank2" && e.MovedById == 5 && e.MovedByUserName == "bob" && e.ConnectionId == "move-conn");
+        CardMovedDomainEvent raised = Assert.Single(card.DomainEvents.Select(e => e(card)).OfType<CardMovedDomainEvent>());
+        Assert.True(raised.ListId == 4 && raised.Rank == "rank2" && raised.MovedById == 5 && raised.ConnectionId == "move-conn");
     }
 
     [Fact]
     public void SoftDelete_Should_SetIsDeletedTrue_And_RaiseEventWithDeleter()
     {
-        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
-        var deletedBy = CreateUser(3, "carol");
+        var card = CreateCard();
         var now = DateTimeOffset.UtcNow;
 
-        card.SoftDelete(deletedBy, now);
+        card.SoftDelete(3, now);
 
-        card.IsDeleted.Should().BeTrue();
-        card.DeletedById.Should().Be(3);
-        card.DeletedAt.Should().Be(now);
-        card.DeletedByCascade.Should().BeFalse();
+        Assert.True(card.IsDeleted);
+        Assert.Equal(3, card.DeletedById);
+        Assert.Equal(now, card.DeletedAt);
+        Assert.False(card.DeletedByCascade);
 
-        card.DomainEvents.Select(e => e(card)).OfType<CardDeletedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<CardDeletedDomainEvent>(e => e.DeletedById == 3 && e.DeletedByUserName == "carol");
+        Assert.Equal(3, Assert.Single(card.DomainEvents.Select(e => e(card)).OfType<CardDeletedDomainEvent>()).DeletedById);
     }
 
     [Fact]
     public void AddTag_Should_PutTagOnCard_And_RaiseEventWithActor()
     {
-        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
-        var tag = Tag.Create(1, "Bug", TagColors.Red, CreateUser(), DateTimeOffset.UtcNow);
-        var addedBy = CreateUser(4, "dave");
+        var (card, tag) = CreateCardWithBoardTag();
 
-        var added = card.AddTag(tag, addedBy, "tag-conn");
+        var added = card.AddTag(tag, 4, "tag-conn");
 
-        added.Should().BeTrue();
-        card.Tags.Should().ContainSingle().Which.Should().BeSameAs(tag);
+        Assert.True(added.IsSuccess);
+        Assert.Same(tag, Assert.Single(card.Tags));
 
-        card.DomainEvents.Select(e => e(card)).OfType<CardTagAddedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<CardTagAddedDomainEvent>(e =>
-                e.AddedById == 4 && e.AddedByUserName == "dave" && e.ConnectionId == "tag-conn");
+        CardTagAddedDomainEvent raised = Assert.Single(card.DomainEvents.Select(e => e(card)).OfType<CardTagAddedDomainEvent>());
+        Assert.True(raised.AddedById == 4 && raised.ConnectionId == "tag-conn");
     }
 
     [Fact]
-    public void AddTag_Should_DoNothing_When_TagIsAlreadyOnCard()
+    public void AddTag_Should_Fail_When_TagIsAlreadyOnCard()
     {
-        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
-        var tag = Tag.Create(1, "Bug", TagColors.Red, CreateUser(), DateTimeOffset.UtcNow);
-        card.AddTag(tag, CreateUser());
+        var (card, tag) = CreateCardWithBoardTag();
+        card.AddTag(tag, 1);
 
-        var added = card.AddTag(tag, CreateUser());
+        var added = card.AddTag(tag, 1);
 
-        added.Should().BeFalse();
-        card.Tags.Should().ContainSingle();
-        card.DomainEvents.Select(e => e(card)).OfType<CardTagAddedDomainEvent>().Should().ContainSingle();
+        Assert.Equal("Tags.AlreadyOnCard", added.Error.Code);
+        Assert.Single(card.Tags);
+        Assert.Single(card.DomainEvents.Select(e => e(card)).OfType<CardTagAddedDomainEvent>());
+    }
+
+    [Fact]
+    public void AddTag_Should_Fail_When_TagBelongsToAnotherBoard()
+    {
+        var (_, tag) = CreateCardWithBoardTag();
+        var card = CreateCard(boardId: tag.BoardId + 1);
+
+        var added = card.AddTag(tag, 1);
+
+        Assert.Equal("Tags.NotFound", added.Error.Code);
+        Assert.Empty(card.Tags);
     }
 
     [Fact]
     public void RemoveTag_Should_TakeTagOffCard_And_RaiseEventWithActor()
     {
-        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
-        var tag = Tag.Create(1, "Bug", TagColors.Red, CreateUser(), DateTimeOffset.UtcNow);
-        card.AddTag(tag, CreateUser());
-        var removedBy = CreateUser(5, "erin");
+        var (card, tag) = CreateCardWithBoardTag();
+        card.AddTag(tag, 1);
 
-        var removed = card.RemoveTag(tag, removedBy, "untag-conn");
+        var removed = card.RemoveTag(tag, 5, "untag-conn");
 
-        removed.Should().BeTrue();
-        card.Tags.Should().BeEmpty();
+        Assert.True(removed.IsSuccess);
+        Assert.Empty(card.Tags);
 
-        card.DomainEvents.Select(e => e(card)).OfType<CardTagRemovedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<CardTagRemovedDomainEvent>(e =>
-                e.RemovedById == 5 && e.RemovedByUserName == "erin" && e.ConnectionId == "untag-conn");
+        CardTagRemovedDomainEvent raised = Assert.Single(card.DomainEvents.Select(e => e(card)).OfType<CardTagRemovedDomainEvent>());
+        Assert.True(raised.RemovedById == 5 && raised.ConnectionId == "untag-conn");
     }
 
     [Fact]
-    public void RemoveTag_Should_DoNothing_When_TagIsNotOnCard()
+    public void RemoveTag_Should_Fail_When_TagIsNotOnCard()
     {
-        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
-        var tag = Tag.Create(1, "Bug", TagColors.Red, CreateUser(), DateTimeOffset.UtcNow);
+        var (card, tag) = CreateCardWithBoardTag();
 
-        var removed = card.RemoveTag(tag, CreateUser());
+        var removed = card.RemoveTag(tag, 1);
 
-        removed.Should().BeFalse();
-        card.DomainEvents.Select(e => e(card)).OfType<CardTagRemovedDomainEvent>().Should().BeEmpty();
+        Assert.Equal("Tags.NotOnCard", removed.Error.Code);
+        Assert.Empty(card.DomainEvents.Select(e => e(card)).OfType<CardTagRemovedDomainEvent>());
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Azure.Monitor.OpenTelemetry.AspNetCore;
+using EntityFramework.Exceptions.PostgreSQL;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
@@ -18,6 +19,7 @@ using OpenTelemetry.Trace;
 using Snapflow.Application.Abstractions.Behaviours;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Persistence;
+using Snapflow.Application.Abstractions.Ranking;
 using Snapflow.Application.Abstractions.Services;
 using Snapflow.Infrastructure.Auth.Accessors;
 using Snapflow.Infrastructure.Auth.Cookies;
@@ -105,6 +107,7 @@ public static class DependencyInjection
                         npgsqlOptions.EnableRetryOnFailure(5);
                     })
                     .AddInterceptors(sp.GetRequiredService<DispatchDomainEventsInterceptor>())
+                    .UseExceptionProcessor()
                     .UseSnakeCaseNamingConvention());
             services.AddDataProtection()
                 .PersistKeysToDbContext<AppDbContext>()

@@ -27,7 +27,7 @@ internal sealed class GetPublicBoardsHandler(
 
         IQueryable<Board> boards = dbContext.Boards
             .AsNoTracking()
-            .Where(b => !b.IsDeleted && visibilities.Contains(b.Visibility));
+            .Where(b => visibilities.Contains(b.Visibility));
 
         if (isAuthenticated)
         {

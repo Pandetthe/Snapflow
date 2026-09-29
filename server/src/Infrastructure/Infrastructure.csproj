@@ -4,8 +4,7 @@
     <PackageReference Include="AspNetCore.HealthChecks.Redis" />
     <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" />
     <PackageReference Include="EFCore.NamingConventions" />
-    <PackageReference Include="EntityFrameworkCore.Exceptions.Common" />
-    <PackageReference Include="Hangfire" />
+    <PackageReference Include="EntityFrameworkCore.Exceptions.PostgreSQL" />
     <PackageReference Include="Jdenticon-net" />
     <PackageReference Include="MailKit" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />

@@ -74,6 +74,24 @@ internal sealed class DispatchDomainEventsInterceptor(
         await DispatchEventsAsync(cancellationToken);
     }
 
+    public Task TransactionRolledBackAsync(
+        DbTransaction transaction,
+        TransactionEndEventData eventData,
+        CancellationToken cancellationToken = default)
+    {
+        buffer.Clear();
+        return Task.CompletedTask;
+    }
+
+    public Task TransactionFailedAsync(
+        DbTransaction transaction,
+        TransactionErrorEventData eventData,
+        CancellationToken cancellationToken = default)
+    {
+        buffer.Clear();
+        return Task.CompletedTask;
+    }
+
     private void CollectDomainEvents(DbContext context)
     {
         // Inserted entities only get their key during the save, and their event blueprints read it,

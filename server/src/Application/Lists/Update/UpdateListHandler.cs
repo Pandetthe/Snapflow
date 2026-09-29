@@ -16,23 +16,21 @@ internal sealed class UpdateListHandler(
 {
     public async Task<Result<UpdateListResponse>> Handle(UpdateListCommand command, CancellationToken cancellationToken = default)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
-            return Result.Failure<UpdateListResponse>(UserErrors.NotFound(userContext.UserId));
+        string? userName = await dbContext.FindUserNameAsync(userContext.UserId, cancellationToken);
+        if (userName == null)
+            return UserErrors.NotFound(userContext.UserId);
 
         List? list = await dbContext.Lists
-            .SingleOrDefaultAsync(l => l.Id == command.Id && l.BoardId == command.BoardId && !l.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(l => l.Id == command.Id && l.BoardId == command.BoardId, cancellationToken);
         if (list == null)
-            return Result.Failure<UpdateListResponse>(ListErrors.NotFound(command.Id));
+            return ListErrors.NotFound(command.Id);
 
         DateTimeOffset updatedAt = timeProvider.GetUtcNow();
 
         bool changed = list.Update(
             command.Title,
             command.Width,
-            user,
+            userContext.UserId,
             updatedAt,
             userContext.ConnectionId);
 
@@ -43,6 +41,6 @@ internal sealed class UpdateListHandler(
 
         return new UpdateListResponse(
             updatedAt,
-            UserDto.From(user));
+            new UserDto(userContext.UserId, userName));
     }
 }

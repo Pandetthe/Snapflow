@@ -15,7 +15,7 @@ internal sealed class SetPasswordHandler(
         IUser user = await userContext.GetUserAsync();
 
         if (await userManager.HasPasswordAsync(user))
-            return Result.Failure(UserErrors.PasswordAlreadySet);
+            return UserErrors.PasswordAlreadySet;
 
         Result added = await userManager.AddPasswordAsync(user, command.NewPassword);
         if (added.IsFailure)

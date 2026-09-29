@@ -18,13 +18,8 @@ internal sealed class CreateBoardHandler(
 {
     public async Task<Result<int>> Handle(CreateBoardCommand command, CancellationToken cancellationToken = default)
     {
-        var userExists = await dbContext.Users.AsNoTracking()
-            .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (!userExists)
-            return Result.Failure<int>(UserErrors.NotFound(userContext.UserId));
-
         if (!visibilityPolicy.IsAllowed(command.Visibility))
-            return Result.Failure<int>(BoardErrors.VisibilityNotAllowed(command.Visibility));
+            return BoardErrors.VisibilityNotAllowed(command.Visibility);
 
         var board = Board.Create(
             command.Title,
@@ -45,19 +40,23 @@ internal sealed class CreateBoardHandler(
             
             var notFoundUserId = memberUserIds.FirstOrDefault(id => !existingUsers.Contains(id));
             if (notFoundUserId != 0)
-                return Result.Failure<int>(UserErrors.NotFound(notFoundUserId));
+                return UserErrors.NotFound(notFoundUserId);
 
-            var ownerCount = command.Members.Count(m => m.Role == MemberRole.Owner);
-            if (ownerCount > 0)
-                return Result.Failure<int>(MemberErrors.OwnerAlreadyExists(board.Id));
-
-            board.AddMembers(
-                command.Members.Select(m => (m.UserId, m.Role)).ToList(),
-                userContext.ConnectionId);
+            foreach (CreateBoardMemberRequest member in command.Members)
+            {
+                Result added = board.AddMember(member.UserId, member.Role, userContext.ConnectionId);
+                if (added.IsFailure)
+                    return added.Error;
+            }
         }
 
         await dbContext.Boards.AddAsync(board, cancellationToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
+
+        Result saved = await dbContext.TrySaveChangesAsync(
+            [new UniqueConflict(DbConstraints.BoardMemberKey, MemberErrors.DuplicateMember)],
+            cancellationToken);
+        if (saved.IsFailure)
+            return saved.Error;
 
         return Result.Success(board.Id);
     }

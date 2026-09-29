@@ -29,6 +29,7 @@ internal sealed class Create : IEndpoint
         .RequireAuthorization(BoardPermissions.Tags.Create)
         .WithTags(EndpointTags.Tags)
         .Produces<CreateTagResponse>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status409Conflict)
         .ProducesCustomValidationProblem();
     }
 }

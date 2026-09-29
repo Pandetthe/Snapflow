@@ -651,9 +651,6 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_tags");
 
-                    b.HasIndex("BoardId")
-                        .HasDatabaseName("ix_tags_board_id");
-
                     b.HasIndex("CreatedById")
                         .HasDatabaseName("ix_tags_created_by_id");
 
@@ -662,6 +659,11 @@ namespace Snapflow.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UpdatedById")
                         .HasDatabaseName("ix_tags_updated_by_id");
+
+                    b.HasIndex("BoardId", "Title")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tags_board_id_title")
+                        .HasFilter("is_deleted = false");
 
                     b.ToTable("tags", "public");
                 });

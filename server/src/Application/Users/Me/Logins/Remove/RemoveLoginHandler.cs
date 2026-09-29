@@ -18,10 +18,10 @@ internal sealed class RemoveLoginHandler(
 
         IReadOnlyList<ExternalLoginDetails> logins = await userManager.GetLoginsAsync(user);
         if (!logins.Any(l => string.Equals(l.Provider, command.Provider, StringComparison.Ordinal)))
-            return Result.Failure(ExternalLoginErrors.NotFound);
+            return ExternalLoginErrors.NotFound;
 
         if (!await HasOtherSignInMethodAsync(user, logins, command.Provider))
-            return Result.Failure(ExternalLoginErrors.LastSignInMethod);
+            return ExternalLoginErrors.LastSignInMethod;
 
         Result removed = await userManager.RemoveLoginAsync(user, command.Provider);
         if (removed.IsFailure)

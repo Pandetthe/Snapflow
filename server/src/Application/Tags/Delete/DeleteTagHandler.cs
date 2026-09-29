@@ -3,6 +3,7 @@ using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 using Snapflow.Domain.Tags;
 using Snapflow.Domain.Users;
 
@@ -15,19 +16,16 @@ internal sealed class DeleteTagHandler(
 {
     public async Task<Result> Handle(DeleteTagCommand command, CancellationToken cancellationToken = default)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
-            return Result.Failure(UserErrors.NotFound(userContext.UserId));
-
         // The cards keep their join rows: the tag is only soft deleted, and every read filters it out.
-        Tag? tag = await dbContext.Tags
-            .SingleOrDefaultAsync(t => t.Id == command.Id && t.BoardId == command.BoardId && !t.IsDeleted, cancellationToken);
-        if (tag == null)
-            return Result.Failure(TagErrors.NotFound(command.Id));
+        Board? board = await dbContext.Boards
+            .Include(b => b.Tags)
+            .SingleOrDefaultAsync(b => b.Id == command.BoardId, cancellationToken);
+        if (board == null)
+            return TagErrors.NotFound(command.Id);
 
-        tag.SoftDelete(user, timeProvider.GetUtcNow(), userContext.ConnectionId);
+        Result deleted = board.DeleteTag(command.Id, userContext.UserId, timeProvider.GetUtcNow(), userContext.ConnectionId);
+        if (deleted.IsFailure)
+            return deleted;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

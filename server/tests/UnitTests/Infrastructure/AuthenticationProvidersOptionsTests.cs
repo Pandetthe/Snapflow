@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using AspNet.Security.OAuth.Apple;
-using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Snapflow.Infrastructure.Auth.External;
 
@@ -14,7 +13,7 @@ public sealed class AuthenticationProvidersOptionsTests
     [Fact]
     public void Validate_Should_Pass_When_Defaults()
     {
-        Validate(new AuthenticationProvidersOptions()).Should().BeEmpty();
+        Assert.Empty(Validate(new AuthenticationProvidersOptions()));
     }
 
     [Fact]
@@ -22,7 +21,7 @@ public sealed class AuthenticationProvidersOptionsTests
     {
         var options = new AuthenticationProvidersOptions { Mode = AuthenticationMode.External };
 
-        Validate(options).Should().ContainSingle();
+        Assert.Single(Validate(options));
     }
 
     [Fact]
@@ -33,7 +32,7 @@ public sealed class AuthenticationProvidersOptionsTests
             Google = new OAuthProviderOptions { Enabled = true, ClientId = "id" }
         };
 
-        Validate(options).Should().ContainSingle();
+        Assert.Single(Validate(options));
     }
 
     [Theory]
@@ -47,7 +46,7 @@ public sealed class AuthenticationProvidersOptionsTests
             OpenIdConnect = [new OpenIdConnectProviderOptions { Scheme = scheme, DisplayName = "Corp", Authority = "https://id.example.com", ClientId = "id" }]
         };
 
-        Validate(options).Should().ContainSingle();
+        Assert.Single(Validate(options));
     }
 
     [Fact]
@@ -58,7 +57,7 @@ public sealed class AuthenticationProvidersOptionsTests
             Ldap = new LdapProviderOptions { Enabled = true, Host = "ldap", SearchBase = "dc=example,dc=com", UserFilter = "(uid=jan)" }
         };
 
-        Validate(options).Should().ContainSingle();
+        Assert.Single(Validate(options));
     }
 
     [Fact]
@@ -71,9 +70,9 @@ public sealed class AuthenticationProvidersOptionsTests
             Ldap = new LdapProviderOptions { Enabled = true }
         }));
 
-        registry.RedirectProviders.Should().BeEmpty();
-        registry.LdapEnabled.Should().BeFalse();
-        registry.PasswordAuthenticationEnabled.Should().BeTrue();
+        Assert.Empty(registry.RedirectProviders);
+        Assert.False(registry.LdapEnabled);
+        Assert.True(registry.PasswordAuthenticationEnabled);
     }
 
     [Fact]
@@ -85,9 +84,9 @@ public sealed class AuthenticationProvidersOptionsTests
             OpenIdConnect = [new OpenIdConnectProviderOptions { Scheme = "corp", DisplayName = "Corp", Authority = "https://id.example.com", ClientId = "id" }]
         }));
 
-        registry.PasswordAuthenticationEnabled.Should().BeFalse();
-        registry.FindRedirectProvider("corp").Should().NotBeNull();
-        registry.FindRedirectProvider("Google").Should().BeNull();
+        Assert.False(registry.PasswordAuthenticationEnabled);
+        Assert.NotNull(registry.FindRedirectProvider("corp"));
+        Assert.Null(registry.FindRedirectProvider("Google"));
     }
 
     [Fact]
@@ -101,7 +100,7 @@ public sealed class AuthenticationProvidersOptionsTests
             GitHub = new OAuthProviderOptions { Enabled = true, ClientId = "id", ClientSecret = "secret" }
         };
 
-        Validate(options).Should().ContainSingle();
+        Assert.Single(Validate(options));
     }
 
     [Fact]
@@ -114,7 +113,7 @@ public sealed class AuthenticationProvidersOptionsTests
             GitHub = new OAuthProviderOptions { Enabled = true, ClientId = "id", ClientSecret = "secret" }
         };
 
-        Validate(options).Should().ContainSingle();
+        Assert.Single(Validate(options));
     }
 
     [Fact]
@@ -125,7 +124,7 @@ public sealed class AuthenticationProvidersOptionsTests
             GitHub = new OAuthProviderOptions { Enabled = true, ClientId = "id" }
         };
 
-        Validate(options).Should().ContainSingle();
+        Assert.Single(Validate(options));
     }
 
     [Fact]
@@ -138,8 +137,8 @@ public sealed class AuthenticationProvidersOptionsTests
             GitHub = new OAuthProviderOptions { Enabled = true, ClientId = "id", ClientSecret = "secret" }
         }));
 
-        registry.AutoRedirectScheme.Should().Be(ExternalProviderRegistry.GitHubScheme);
-        registry.RedirectProviders.Should().ContainSingle(p => p.Type == "github");
+        Assert.Equal(ExternalProviderRegistry.GitHubScheme, registry.AutoRedirectScheme);
+        Assert.Single(registry.RedirectProviders, p => p.Type == "github");
     }
 
     [Fact]
@@ -150,7 +149,7 @@ public sealed class AuthenticationProvidersOptionsTests
             Apple = new AppleProviderOptions { Enabled = true, ClientId = "pl.snapflow.web", PrivateKeyPath = "/keys/AuthKey.p8" }
         };
 
-        Validate(options).Should().ContainSingle();
+        Assert.Single(Validate(options));
     }
 
     [Fact]
@@ -161,7 +160,7 @@ public sealed class AuthenticationProvidersOptionsTests
             Apple = new AppleProviderOptions { Enabled = true, ClientId = "pl.snapflow.web", TeamId = "TEAM123456", KeyId = "KEY1234567" }
         };
 
-        Validate(options).Should().ContainSingle();
+        Assert.Single(Validate(options));
     }
 
     [Theory]
@@ -182,7 +181,7 @@ public sealed class AuthenticationProvidersOptionsTests
             }
         };
 
-        Validate(options).Should().ContainSingle();
+        Assert.Single(Validate(options));
     }
 
     [Fact]
@@ -200,7 +199,7 @@ public sealed class AuthenticationProvidersOptionsTests
             }
         };
 
-        Validate(options).Should().BeEmpty();
+        Assert.Empty(Validate(options));
     }
 
     [Fact]
@@ -221,10 +220,10 @@ public sealed class AuthenticationProvidersOptionsTests
 
         ExternalProvider? apple = registry.FindRedirectProvider(AppleAuthenticationDefaults.AuthenticationScheme);
 
-        apple.Should().NotBeNull();
-        apple!.Type.Should().Be("apple");
-        apple.DisplayName.Should().Be("Apple");
-        apple.TrustEmail.Should().BeTrue();
+        Assert.NotNull(apple);
+        Assert.Equal("apple", apple!.Type);
+        Assert.Equal("Apple", apple.DisplayName);
+        Assert.True(apple.TrustEmail);
     }
 
     [Fact]
@@ -236,6 +235,6 @@ public sealed class AuthenticationProvidersOptionsTests
             GitHub = new OAuthProviderOptions { Enabled = true, ClientId = "id", ClientSecret = "secret" }
         }));
 
-        registry.AutoRedirectScheme.Should().BeNull();
+        Assert.Null(registry.AutoRedirectScheme);
     }
 }

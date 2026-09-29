@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.SignalR;
-using Snapflow.Application.Abstractions.Services;
 using Snapflow.Common;
 using Snapflow.Domain.Lists;
 
@@ -7,13 +6,13 @@ namespace Snapflow.Presentation.Hubs.Board.ClientEventHandlers;
 
 public sealed class ListUpdatedEventHandler(
     IHubContext<BoardHub, IBoardHubClient> hubContext,
-    IAvatarService avatarService) : IDomainEventHandler<ListUpdatedDomainEvent>
+    BoardHubUsers users) : IDomainEventHandler<ListUpdatedDomainEvent>
 {
-    public Task Handle(ListUpdatedDomainEvent domainEvent, CancellationToken cancellationToken) =>
-        hubContext.Clients.SendToBoard(domainEvent.BoardId, domainEvent.ConnectionId, (clients, showUsers) =>
+    public async Task Handle(ListUpdatedDomainEvent domainEvent, CancellationToken cancellationToken)
+    {
+        IBoardHubClient.UserDto? updatedBy = await users.FindAsync(domainEvent.UpdatedById, cancellationToken);
+        await hubContext.Clients.SendToBoard(domainEvent.BoardId, domainEvent.ConnectionId, (clients, showUsers) =>
             clients.ListUpdated(new(domainEvent.Id, domainEvent.Title, domainEvent.Width,
-                showUsers
-                    ? new IBoardHubClient.UserDto(domainEvent.UpdatedById, domainEvent.UpdatedByUserName,
-                        avatarService.GenerateAvatarUrl(domainEvent.UpdatedById))
-                    : null), cancellationToken));
+                showUsers ? updatedBy : null), cancellationToken));
+    }
 }

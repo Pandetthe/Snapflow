@@ -3,9 +3,9 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Auth.ForgotPassword;
 
-internal sealed class ForgotPasswordCommandValidator : AbstractValidator<ForgotPasswordCommand>
+internal sealed class ForgotPasswordValidator : AbstractValidator<ForgotPasswordCommand>
 {
-    public ForgotPasswordCommandValidator()
+    public ForgotPasswordValidator()
     {
         RuleFor(c => c.Email)
             .NotEmpty().WithMessage("Email is required.")

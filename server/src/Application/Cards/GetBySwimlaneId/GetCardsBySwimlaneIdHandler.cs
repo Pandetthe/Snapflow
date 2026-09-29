@@ -7,7 +7,7 @@ using static Snapflow.Application.Cards.GetBySwimlaneId.GetCardsBySwimlaneIdResp
 
 namespace Snapflow.Application.Cards.GetBySwimlaneId;
 
-internal sealed class GetCardsBySwimlaneIdQueryHandler(
+internal sealed class GetCardsBySwimlaneIdHandler(
     IAppDbContext dbContext) : IQueryHandler<GetCardsBySwimlaneIdQuery, IReadOnlyList<CardDto>>
 {
     public async Task<Result<IReadOnlyList<CardDto>>> Handle(GetCardsBySwimlaneIdQuery query,
@@ -15,18 +15,17 @@ internal sealed class GetCardsBySwimlaneIdQueryHandler(
     {
         var swimlane = await dbContext.Swimlanes
             .AsNoTracking()
-            .Where(b => b.Id == query.Id && b.BoardId == query.BoardId && !b.IsDeleted)
+            .Where(b => b.Id == query.Id && b.BoardId == query.BoardId)
             .Select(b => new
             {
                 b.Id,
                 Cards = b.Cards
-                    .Where(c => !c.IsDeleted)
                     .OrderBy(c => c.Rank)
                     .Select(c => new CardDto(
                         c.Id,
-                        c.BoardId,
-                        c.SwimlaneId,
                         c.ListId,
+                        c.SwimlaneId,
+                        c.BoardId,
                         c.Title,
                         c.Description,
                         c.Rank))
@@ -35,7 +34,7 @@ internal sealed class GetCardsBySwimlaneIdQueryHandler(
             .SingleOrDefaultAsync(cancellationToken);
 
         if (swimlane == null)
-            return Result.Failure<IReadOnlyList<CardDto>>(SwimlaneErrors.NotFound(query.Id));
+            return SwimlaneErrors.NotFound(query.Id);
 
         return swimlane.Cards;
     }

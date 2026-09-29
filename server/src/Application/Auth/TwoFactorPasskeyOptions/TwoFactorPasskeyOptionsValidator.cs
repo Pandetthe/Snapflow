@@ -3,9 +3,9 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Auth.TwoFactorPasskeyOptions;
 
-internal sealed class TwoFactorPasskeyOptionsCommandValidator : AbstractValidator<TwoFactorPasskeyOptionsCommand>
+internal sealed class TwoFactorPasskeyOptionsValidator : AbstractValidator<TwoFactorPasskeyOptionsCommand>
 {
-    public TwoFactorPasskeyOptionsCommandValidator()
+    public TwoFactorPasskeyOptionsValidator()
     {
         RuleFor(c => c.TwoFactorToken)
             .MaximumLength(UserOptions.MaxTwoFactorTokenLength)

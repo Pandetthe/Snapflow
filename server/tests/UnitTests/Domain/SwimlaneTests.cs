@@ -1,112 +1,91 @@
-﻿using FluentAssertions;
-using NSubstitute;
 using Snapflow.Domain.Swimlanes;
-using Snapflow.Domain.Users;
 
 namespace Snapflow.UnitTests.Domain;
 
 public sealed class SwimlaneTests
 {
-    private static IUser CreateUser(int id = 1, string userName = "john")
-    {
-        var user = Substitute.For<IUser>();
-        user.Id.Returns(id);
-        user.UserName.Returns(userName);
-        return user;
-    }
+    private static Swimlane CreateSwimlane() =>
+        Swimlane.Create(1, "Title", 100, "rank", 1, DateTimeOffset.UtcNow);
 
     [Fact]
     public void Create_Should_InitializeSwimlane_And_RaiseEventWithCreator()
     {
-        var boardId = 1;
-        var title = "Test Swimlane";
-        int? height = 100;
-        var rank = "000000000001";
-        var createdBy = CreateUser(7, "alice");
         var now = DateTimeOffset.UtcNow;
 
-        var swimlane = Swimlane.Create(boardId, title, height, rank, createdBy, now, "conn-id");
+        var swimlane = Swimlane.Create(1, "Test Swimlane", 100, "000000000001", 7, now, "conn-id");
 
-        swimlane.BoardId.Should().Be(boardId);
-        swimlane.Title.Should().Be(title);
-        swimlane.Height.Should().Be(height);
-        swimlane.Rank.Should().Be(rank);
-        swimlane.CreatedById.Should().Be(7);
-        swimlane.CreatedAt.Should().Be(now);
+        Assert.Equal(1, swimlane.BoardId);
+        Assert.Equal("Test Swimlane", swimlane.Title);
+        Assert.Equal(100, swimlane.Height);
+        Assert.Equal("000000000001", swimlane.Rank);
+        Assert.Equal(7, swimlane.CreatedById);
+        Assert.Equal(now, swimlane.CreatedAt);
 
-        swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneCreatedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<SwimlaneCreatedDomainEvent>(e =>
-                e.CreatedById == 7 && e.CreatedByUserName == "alice" && e.ConnectionId == "conn-id");
+        SwimlaneCreatedDomainEvent raised = Assert.Single(swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneCreatedDomainEvent>());
+        Assert.True(raised.CreatedById == 7 && raised.ConnectionId == "conn-id");
     }
 
     [Fact]
     public void Update_Should_UpdateProperties_And_RaiseEventWithUpdater()
     {
-        var swimlane = Swimlane.Create(1, "Old", 100, "rank", CreateUser(), DateTimeOffset.UtcNow);
-        var newTitle = "New Title";
-        int? newHeight = 200;
-        var updatedBy = CreateUser(2, "bob");
+        var swimlane = Swimlane.Create(1, "Old", 100, "rank", 1, DateTimeOffset.UtcNow);
         var now = DateTimeOffset.UtcNow;
 
-        swimlane.Update(newTitle, newHeight, updatedBy, now, "new-conn");
+        swimlane.Update("New Title", 200, 2, now, "new-conn");
 
-        swimlane.Title.Should().Be(newTitle);
-        swimlane.Height.Should().Be(newHeight);
-        swimlane.UpdatedById.Should().Be(2);
-        swimlane.UpdatedAt.Should().Be(now);
+        Assert.Equal("New Title", swimlane.Title);
+        Assert.Equal(200, swimlane.Height);
+        Assert.Equal(2, swimlane.UpdatedById);
+        Assert.Equal(now, swimlane.UpdatedAt);
 
-        swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneUpdatedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<SwimlaneUpdatedDomainEvent>(e =>
-                e.UpdatedById == 2 && e.UpdatedByUserName == "bob" && e.ConnectionId == "new-conn");
+        SwimlaneUpdatedDomainEvent raised = Assert.Single(swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneUpdatedDomainEvent>());
+        Assert.True(raised.UpdatedById == 2 && raised.ConnectionId == "new-conn");
     }
 
     [Fact]
     public void Update_Should_ChangeNothing_When_TitleAndHeightAreTheSame()
     {
-        var swimlane = Swimlane.Create(1, "Title", 100, "rank", CreateUser(), DateTimeOffset.UtcNow);
+        var swimlane = CreateSwimlane();
         swimlane.ClearDomainEvents();
 
-        var changed = swimlane.Update("Title", 100, CreateUser(2, "bob"), DateTimeOffset.UtcNow, "new-conn");
+        var changed = swimlane.Update("Title", 100, 2, DateTimeOffset.UtcNow, "new-conn");
 
-        changed.Should().BeFalse();
-        swimlane.UpdatedById.Should().BeNull();
-        swimlane.UpdatedAt.Should().BeNull();
-        swimlane.DomainEvents.Should().BeEmpty();
+        Assert.False(changed);
+        Assert.Null(swimlane.UpdatedById);
+        Assert.Null(swimlane.UpdatedAt);
+        Assert.Empty(swimlane.DomainEvents);
     }
 
     [Fact]
     public void Move_Should_UpdateRank_And_RaiseEventWithMover()
     {
-        var swimlane = Swimlane.Create(1, "Title", 100, "rank", CreateUser(), DateTimeOffset.UtcNow);
-        var movedBy = CreateUser(5, "bob");
+        var swimlane = CreateSwimlane();
         var now = DateTimeOffset.UtcNow;
 
-        swimlane.Move("rank2", movedBy, now, "move-conn");
+        swimlane.Move("rank2", 5, now, "move-conn");
 
-        swimlane.Rank.Should().Be("rank2");
-        swimlane.UpdatedById.Should().Be(5);
-        swimlane.UpdatedAt.Should().Be(now);
+        Assert.Equal("rank2", swimlane.Rank);
+        Assert.Equal(5, swimlane.UpdatedById);
+        Assert.Equal(now, swimlane.UpdatedAt);
 
-        swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneMovedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<SwimlaneMovedDomainEvent>(e =>
-                e.Rank == "rank2" && e.MovedById == 5 && e.MovedByUserName == "bob" && e.ConnectionId == "move-conn");
+        SwimlaneMovedDomainEvent raised = Assert.Single(swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneMovedDomainEvent>());
+        Assert.True(raised.Rank == "rank2" && raised.MovedById == 5 && raised.ConnectionId == "move-conn");
     }
 
     [Fact]
     public void SoftDelete_Should_SetIsDeletedTrue_And_RaiseEventWithDeleter()
     {
-        var swimlane = Swimlane.Create(1, "Title", 100, "rank", CreateUser(), DateTimeOffset.UtcNow);
-        var deletedBy = CreateUser(3, "carol");
+        var swimlane = CreateSwimlane();
         var now = DateTimeOffset.UtcNow;
 
-        swimlane.SoftDelete(deletedBy, now);
+        swimlane.SoftDelete(3, now);
 
-        swimlane.IsDeleted.Should().BeTrue();
-        swimlane.DeletedById.Should().Be(3);
-        swimlane.DeletedAt.Should().Be(now);
-        swimlane.DeletedByCascade.Should().BeFalse();
+        Assert.True(swimlane.IsDeleted);
+        Assert.Equal(3, swimlane.DeletedById);
+        Assert.Equal(now, swimlane.DeletedAt);
+        Assert.False(swimlane.DeletedByCascade);
 
-        swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneDeletedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<SwimlaneDeletedDomainEvent>(e => e.DeletedById == 3 && e.DeletedByUserName == "carol");
+        Assert.Equal(3, Assert.Single(swimlane.DomainEvents.Select(e => e(swimlane)).OfType<SwimlaneDeletedDomainEvent>()).DeletedById);
     }
+
 }

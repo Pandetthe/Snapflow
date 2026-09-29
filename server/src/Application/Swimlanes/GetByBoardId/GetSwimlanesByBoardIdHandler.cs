@@ -15,12 +15,11 @@ internal sealed class GetSwimlanesByBoardIdHandler(
     {
         var board = await dbContext.Boards
             .AsNoTracking()
-            .Where(b => b.Id == query.Id && !b.IsDeleted)
+            .Where(b => b.Id == query.Id)
             .Select(b => new
             {
                 b.Id,
                 Swimlanes = b.Swimlanes
-                    .Where(s => !s.IsDeleted)
                     .OrderBy(s => s.Rank)
                     .Select(s => new SwimlaneDto(
                         s.Id,
@@ -31,7 +30,7 @@ internal sealed class GetSwimlanesByBoardIdHandler(
             })
             .SingleOrDefaultAsync(cancellationToken);
         if (board == null)
-            return Result.Failure<IReadOnlyList<SwimlaneDto>>(BoardErrors.NotFound(query.Id));
+            return BoardErrors.NotFound(query.Id);
         return board.Swimlanes;
     }
 }

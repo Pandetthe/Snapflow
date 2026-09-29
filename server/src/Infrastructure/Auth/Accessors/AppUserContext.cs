@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Domain.Users;
@@ -15,34 +16,31 @@ internal sealed class AppUserContext(
     {
         get
         {
-            if (httpContextAccessor.HttpContext == null)
-                throw new InvalidOperationException("No http context available.");
-            var userId = userManager.GetUserId(httpContextAccessor.HttpContext.User);
-            return int.TryParse(userId, out var id) ? id : throw new InvalidOperationException("User identifier is not available.");
+            var userId = userManager.GetUserId(Principal);
+            return int.TryParse(userId, out var id)
+                ? id
+                : throw new InvalidOperationException("User identifier is not available.");
         }
     }
 
-    public string UserName
-    {
-        get
-        {
-            if (httpContextAccessor.HttpContext == null)
-                throw new InvalidOperationException("No http context available.");
-            var userName = userManager.GetUserName(httpContextAccessor.HttpContext.User)
-                           ?? throw new InvalidOperationException("UserName is not available.");
-            return userName;
-        }
-    }
+    public string UserName =>
+        userManager.GetUserName(Principal)
+        ?? throw new InvalidOperationException("UserName is not available.");
 
     public async Task<IUser> GetUserAsync()
     {
-        if (httpContextAccessor.HttpContext == null)
-            throw new InvalidOperationException("No http context available.");
-        AppUser? user = await userManager.GetUserAsync(httpContextAccessor.HttpContext.User);
+        AppUser? user = await userManager.GetUserAsync(Principal);
         return user ?? throw new InvalidOperationException("User is not available.");
     }
 
-    public bool IsAuthenticated => httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
+    public bool IsAuthenticated => httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated
+        ?? hubCallerContextAccessor.HubCallerContext?.User?.Identity?.IsAuthenticated
+        ?? false;
 
     public string? ConnectionId => hubCallerContextAccessor.ConnectionId;
+
+    private ClaimsPrincipal Principal =>
+        httpContextAccessor.HttpContext?.User
+        ?? hubCallerContextAccessor.HubCallerContext?.User
+        ?? throw new InvalidOperationException("No authentication context available.");
 }

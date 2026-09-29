@@ -3,9 +3,9 @@ using Snapflow.Domain.Members;
 
 namespace Snapflow.Application.Members.ChangeRole;
 
-internal sealed class ChangeMemberRoleCommandValidator : AbstractValidator<ChangeMemberRoleCommand>
+internal sealed class ChangeMemberRoleValidator : AbstractValidator<ChangeMemberRoleCommand>
 {
-    public ChangeMemberRoleCommandValidator()
+    public ChangeMemberRoleValidator()
     {
         RuleFor(x => x.Role)
             .IsInEnum().WithMessage("Role must be a valid role.")

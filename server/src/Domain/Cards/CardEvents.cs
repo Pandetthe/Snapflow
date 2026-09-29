@@ -12,7 +12,6 @@ public sealed record CardCreatedDomainEvent(
     string Rank,
     DateTimeOffset CreatedAt,
     int CreatedById,
-    string CreatedByUserName,
     string? ConnectionId) : IDomainEvent;
 
 public sealed record CardUpdatedDomainEvent(
@@ -21,7 +20,6 @@ public sealed record CardUpdatedDomainEvent(
     string Title,
     string Description,
     int UpdatedById,
-    string UpdatedByUserName,
     string? ConnectionId) : IDomainEvent;
 
 public sealed record CardMovedDomainEvent(
@@ -30,12 +28,10 @@ public sealed record CardMovedDomainEvent(
     int ListId,
     string Rank,
     int MovedById,
-    string MovedByUserName,
     string? ConnectionId) : IDomainEvent;
 
 public sealed record CardDeletedDomainEvent(
     int Id,
     int BoardId,
     int DeletedById,
-    string DeletedByUserName,
     string? ConnectionId) : IDomainEvent;

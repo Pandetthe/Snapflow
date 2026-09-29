@@ -8,9 +8,11 @@ using Snapflow.Domain.Ranking;
 
 namespace Snapflow.Domain.Cards;
 
-public class Card : Entity<int, Card>, IRankable
+public class Card : Entity<int, Card>, IRankable, ICascadeSoftDeletable
 {
-    public Card() { }
+    private readonly List<Tag> _tags = [];
+
+    private Card() { }
     
     public int BoardId { get; private set; }
     public virtual Board Board { get; private set; } = null!;
@@ -21,7 +23,7 @@ public class Card : Entity<int, Card>, IRankable
 
     public string Title { get; private set; } = null!;
     public string Description { get; private set; } = "";
-    public string Rank { get; set; } = null!;
+    public string Rank { get; private set; } = null!;
 
     public DateTimeOffset CreatedAt { get; private set; }
     public int CreatedById { get; private set; }
@@ -37,9 +39,9 @@ public class Card : Entity<int, Card>, IRankable
     public bool IsDeleted { get; private set; }
     public bool DeletedByCascade { get; private set; }
 
-    public virtual ICollection<Tag> Tags { get; private set; } = [];
+    public virtual IReadOnlyCollection<Tag> Tags => _tags;
 
-    public static Card Create(int boardId, int swimlaneId, int listId, string title, string description, string rank, IUser createdBy, DateTimeOffset createdAt, string? connectionId = null)
+    public static Card Create(int boardId, int swimlaneId, int listId, string title, string description, string rank, int createdById, DateTimeOffset createdAt, string? connectionId = null)
     {
         var card = new Card
         {
@@ -49,72 +51,72 @@ public class Card : Entity<int, Card>, IRankable
             Title = title,
             Description = description,
             Rank = rank,
-            CreatedById = createdBy.Id,
+            CreatedById = createdById,
             CreatedAt = createdAt
         };
 
         card.Raise(c => new CardCreatedDomainEvent(c.Id, c.BoardId, c.SwimlaneId, c.ListId, c.Title, c.Description, c.Rank,
-            c.CreatedAt, c.CreatedById, createdBy.UserName, connectionId));
+            c.CreatedAt, c.CreatedById, connectionId));
 
         return card;
     }
 
     /// <summary>Changes the card. Returns false, leaving it untouched, when it already reads that way.</summary>
-    public bool Update(string title, string description, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
+    public bool Update(string title, string description, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
     {
         if (Title == title && Description == description)
             return false;
 
         Title = title;
         Description = description;
-        UpdatedById = updatedBy.Id;
+        UpdatedById = updatedById;
         UpdatedAt = updatedAt;
 
-        Raise(c => new CardUpdatedDomainEvent(Id, BoardId, Title, Description, updatedBy.Id, updatedBy.UserName, connectionId));
+        Raise(c => new CardUpdatedDomainEvent(Id, BoardId, Title, Description, updatedById, connectionId));
         return true;
     }
 
-    public void Move(int listId, int swimlaneId, string rank, IUser movedBy, DateTimeOffset updatedAt, string? connectionId = null)
+    public void Move(int listId, int swimlaneId, string rank, int movedById, DateTimeOffset updatedAt, string? connectionId = null)
     {
         ListId = listId;
         SwimlaneId = swimlaneId;
         Rank = rank;
-        UpdatedById = movedBy.Id;
+        UpdatedById = movedById;
         UpdatedAt = updatedAt;
 
-        Raise(c => new CardMovedDomainEvent(Id, BoardId, ListId, Rank, movedBy.Id, movedBy.UserName, connectionId));
+        Raise(c => new CardMovedDomainEvent(Id, BoardId, ListId, Rank, movedById, connectionId));
     }
 
-    /// <summary>Puts a tag on the card. Returns false when the card already carries it.</summary>
-    public bool AddTag(Tag tag, IUser addedBy, string? connectionId = null)
+    public Result AddTag(Tag tag, int addedById, string? connectionId = null)
     {
-        if (Tags.Any(t => t.Id == tag.Id))
-            return false;
+        if (tag.BoardId != BoardId)
+            return TagErrors.NotFound(tag.Id);
+        if (_tags.Any(t => t.Id == tag.Id))
+            return TagErrors.AlreadyOnCard(tag.Id, Id);
 
-        Tags.Add(tag);
-        Raise(c => new CardTagAddedDomainEvent(c.Id, tag.Id, c.BoardId, addedBy.Id, addedBy.UserName, connectionId));
-        return true;
+        _tags.Add(tag);
+        Raise(c => new CardTagAddedDomainEvent(c.Id, tag.Id, c.BoardId, addedById, connectionId));
+        return Result.Success();
     }
 
-    /// <summary>Takes a tag off the card. Returns false when the card does not carry it.</summary>
-    public bool RemoveTag(Tag tag, IUser removedBy, string? connectionId = null)
+    public Result RemoveTag(Tag tag, int removedById, string? connectionId = null)
     {
-        Tag? existing = Tags.FirstOrDefault(t => t.Id == tag.Id);
+        Tag? existing = _tags.FirstOrDefault(t => t.Id == tag.Id);
         if (existing == null)
-            return false;
+            return TagErrors.NotOnCard(tag.Id, Id);
 
-        Tags.Remove(existing);
-        Raise(c => new CardTagRemovedDomainEvent(c.Id, tag.Id, c.BoardId, removedBy.Id, removedBy.UserName, connectionId));
-        return true;
+        _tags.Remove(existing);
+        Raise(c => new CardTagRemovedDomainEvent(c.Id, tag.Id, c.BoardId, removedById, connectionId));
+        return Result.Success();
     }
 
-    public void SoftDelete(IUser deletedBy, DateTimeOffset deletedAt, string? connectionId = null)
+    public void SoftDelete(int deletedById, DateTimeOffset deletedAt, string? connectionId = null)
     {
         IsDeleted = true;
-        DeletedById = deletedBy.Id;
+        DeletedById = deletedById;
         DeletedAt = deletedAt;
         DeletedByCascade = false;
 
-        Raise(c => new CardDeletedDomainEvent(Id, BoardId, deletedBy.Id, deletedBy.UserName, connectionId));
+        Raise(c => new CardDeletedDomainEvent(Id, BoardId, deletedById, connectionId));
     }
 }

@@ -3,9 +3,9 @@ using Snapflow.Domain.Cards;
 
 namespace Snapflow.Application.Cards.Update;
 
-internal sealed class CreateCardCommandValidator : AbstractValidator<UpdateCardCommand>
+internal sealed class UpdateCardValidator : AbstractValidator<UpdateCardCommand>
 {
-    public CreateCardCommandValidator()
+    public UpdateCardValidator()
     {
         RuleFor(c => c.Title)
             .NotEmpty().WithMessage("Title is required.")

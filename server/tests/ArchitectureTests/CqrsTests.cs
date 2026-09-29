@@ -1,60 +1,54 @@
-﻿using FluentAssertions;
-using NetArchTest.Rules;
+﻿using NetArchTest.Rules;
 using Snapflow.Application.Abstractions.Messaging;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Snapflow.ArchitectureTests;
 
 public sealed class CqrsTests : Base
 {
-    [Fact]
-    public void CommandHandlers_Should_Be_Internal()
-    {
-        var result = Types.InAssembly(ApplicationAssembly)
-            .That().HaveNameEndingWith("CommandHandler")
-            .Should().NotBePublic()
-            .GetResult();
-
-        result.IsSuccessful.Should().BeTrue("CommandHandlers should be internal to prevent direct instantiation.");
-    }
-
-    [Fact]
-    public void QueryHandlers_Should_Be_Internal()
-    {
-        var result = Types.InAssembly(ApplicationAssembly)
-            .That().HaveNameEndingWith("QueryHandler")
-            .Should().NotBePublic()
-            .GetResult();
-
-        result.IsSuccessful.Should().BeTrue();
-    }
+    private static readonly string AbstractionsNamespace = $"{ApplicationNamespace}.Abstractions";
 
     [Fact]
     public void CommandHandlers_Should_Be_Internal_And_EndWith_Handler()
     {
-        // Sprawdzamy oba typy ICommandHandler (z rezultatem i bez)
-        var result = Types.InAssembly(ApplicationAssembly)
-            .That().ImplementInterface(typeof(ICommandHandler<>))
-            .Or().ImplementInterface(typeof(ICommandHandler<,>))
-            .Should().NotBePublic()
-            .And().HaveNameEndingWith("CommandHandler")
-            .GetResult();
+        var failing = SliceHandlers(typeof(ICommandHandler<>), typeof(ICommandHandler<,>))
+            .Where(handler => handler.IsPublic || !handler.Name.EndsWith("Handler", StringComparison.Ordinal))
+            .Select(handler => handler.FullName ?? handler.Name)
+            .ToList();
 
-        result.IsSuccessful.Should().BeTrue("Command handlers should be internal to encapsulate the slice logic.");
+        Assert.True(failing.Count == 0, $"command handlers should be internal and end with 'Handler' {string.Join(", ", failing)}");
     }
 
     [Fact]
     public void QueryHandlers_Should_Be_Internal_And_EndWith_Handler()
     {
-        var result = Types.InAssembly(ApplicationAssembly)
-            .That().ImplementInterface(typeof(IQueryHandler<,>))
-            .Should().NotBePublic()
-            .And().HaveNameEndingWith("QueryHandler")
-            .GetResult();
+        var failing = SliceHandlers(typeof(IQueryHandler<,>))
+            .Where(handler => handler.IsPublic || !handler.Name.EndsWith("Handler", StringComparison.Ordinal))
+            .Select(handler => handler.FullName ?? handler.Name)
+            .ToList();
 
-        result.IsSuccessful.Should().BeTrue();
+        Assert.True(failing.Count == 0, $"query handlers should be internal and end with 'Handler' {string.Join(", ", failing)}");
+    }
+
+    [Fact]
+    public void EveryCommand_Should_HaveExactlyOneHandler()
+    {
+        var handledCommands = SliceHandlers(typeof(ICommandHandler<>), typeof(ICommandHandler<,>))
+            .SelectMany(handler => handler.GetInterfaces())
+            .Where(i => i.IsGenericType &&
+                (i.GetGenericTypeDefinition() == typeof(ICommandHandler<>) ||
+                 i.GetGenericTypeDefinition() == typeof(ICommandHandler<,>)))
+            .Select(i => i.GetGenericArguments()[0])
+            .ToList();
+
+        var failing = Types.InAssembly(ApplicationAssembly)
+            .That().ImplementInterface(typeof(ICommand))
+            .Or().ImplementInterface(typeof(ICommand<>))
+            .GetTypes()
+            .Where(command => handledCommands.Count(handled => handled == command) != 1)
+            .Select(command => command.Name)
+            .ToList();
+
+        Assert.True(failing.Count == 0, $"every command should have exactly one handler {string.Join(", ", failing)}");
     }
 
     [Fact]
@@ -85,7 +79,7 @@ public sealed class CqrsTests : Base
             }
         }
 
-        failingHandlers.Should().BeEmpty("Handlers should be located in the same namespace as their respective Commands or Queries.");
+        Assert.True(failingHandlers.Count == 0, $"Handlers should be located in the same namespace as their respective Commands or Queries. {string.Join(", ", failingHandlers)}");
     }
 
     [Fact]
@@ -98,7 +92,7 @@ public sealed class CqrsTests : Base
             .And().BeSealed()
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue("Commands should be sealed records to ensure immutability.");
+        Assert.True(result.IsSuccessful, "Commands should be sealed records to ensure immutability.");
     }
 
     [Fact]
@@ -110,6 +104,13 @@ public sealed class CqrsTests : Base
             .And().BeSealed()
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue("Queries should be sealed records to ensure immutability.");
+        Assert.True(result.IsSuccessful, "Queries should be sealed records to ensure immutability.");
     }
+
+    private static IEnumerable<Type> SliceHandlers(params Type[] handlerInterfaces) =>
+        ApplicationAssembly.GetTypes()
+            .Where(type => type is { IsClass: true, IsAbstract: false })
+            .Where(type => type.Namespace?.StartsWith(AbstractionsNamespace, StringComparison.Ordinal) != true)
+            .Where(type => type.GetInterfaces().Any(i =>
+                i.IsGenericType && handlerInterfaces.Contains(i.GetGenericTypeDefinition())));
 }

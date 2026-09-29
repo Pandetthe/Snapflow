@@ -3,7 +3,7 @@ using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Application.Abstractions.Services;
-using Snapflow.Application.Ranking;
+using Snapflow.Application.Abstractions.Ranking;
 using Snapflow.Common;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
@@ -19,25 +19,26 @@ internal sealed class CreateCardHandler(
     IEntityRankService<Card> rankService,
     IAvatarService avatarService) : ICommandHandler<CreateCardCommand, CreateCardResponse>
 {
-    public async Task<Result<CreateCardResponse>> Handle(CreateCardCommand command, CancellationToken cancellationToken = default)
+    public Task<Result<CreateCardResponse>> Handle(CreateCardCommand command, CancellationToken cancellationToken = default) =>
+        dbContext.InTransactionAsync(() => ExecuteAsync(command, cancellationToken), cancellationToken);
+
+    private async Task<Result<CreateCardResponse>> ExecuteAsync(CreateCardCommand command, CancellationToken cancellationToken)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
-            return Result.Failure<CreateCardResponse>(UserErrors.NotFound(userContext.UserId));
+        string? userName = await dbContext.FindUserNameAsync(userContext.UserId, cancellationToken);
+        if (userName == null)
+            return UserErrors.NotFound(userContext.UserId);
 
         var list = await dbContext.Lists
             .AsNoTracking()
-            .Where(x => x.Id == command.ListId && x.BoardId == command.BoardId && !x.IsDeleted)
+            .Where(x => x.Id == command.ListId && x.BoardId == command.BoardId)
             .Select(x => new { x.BoardId, x.SwimlaneId })
             .SingleOrDefaultAsync(cancellationToken);
         if (list == null)
-            return Result.Failure<CreateCardResponse>(ListErrors.NotFound(command.ListId));
+            return ListErrors.NotFound(command.ListId);
         var rankResult = await rankService.GenerateRankAsync(
             command.ListId, null, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
-            return Result.Failure<CreateCardResponse>(rankResult.Error);
+            return rankResult.Error;
 
         DateTimeOffset createdAt = timeProvider.GetUtcNow();
 
@@ -48,7 +49,7 @@ internal sealed class CreateCardHandler(
             command.Title,
             command.Description,
             rankResult.Value,
-            user,
+            userContext.UserId,
             createdAt,
             userContext.ConnectionId);
 
@@ -59,6 +60,6 @@ internal sealed class CreateCardHandler(
             card.Id,
             card.Rank,
             createdAt,
-            new UserDto(user.Id, user.UserName, avatarService.GenerateAvatarUrl(user.Id)));
+            new UserDto(userContext.UserId, userName, avatarService.GenerateAvatarUrl(userContext.UserId)));
     }
 }

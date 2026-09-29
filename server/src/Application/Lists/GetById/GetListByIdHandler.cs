@@ -18,7 +18,7 @@ internal sealed class GetListByIdHandler(
 
         GetListByIdResponse? list = await dbContext.Lists
             .AsNoTracking()
-            .Where(l => l.Id == query.Id && l.BoardId == query.BoardId && !l.IsDeleted)
+            .Where(l => l.Id == query.Id && l.BoardId == query.BoardId)
             .Select(l => new GetListByIdResponse(
                 l.Id,
                 l.BoardId,
@@ -32,7 +32,7 @@ internal sealed class GetListByIdHandler(
                 isMember ? UserDto.From(l.UpdatedBy) : null))
             .SingleOrDefaultAsync(cancellationToken);
         if (list == null)
-            return Result.Failure<GetListByIdResponse>(ListErrors.NotFound(query.Id));
+            return ListErrors.NotFound(query.Id);
         return list;
     }
 }

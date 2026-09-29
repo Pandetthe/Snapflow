@@ -15,7 +15,7 @@ internal sealed class RequestEmailChangeHandler(
         IUser user = await userContext.GetUserAsync();
 
         if (user.Email.Equals(command.NewEmail, StringComparison.OrdinalIgnoreCase))
-            return Result.Failure(UserErrors.EmailSameAsCurrent);
+            return UserErrors.EmailSameAsCurrent;
 
         var token = await userManager.GenerateEmailChangeTokenAsync(user, command.NewEmail);
         await emailSender.SendEmailChangeLinkAsync(user, command.NewEmail, token);

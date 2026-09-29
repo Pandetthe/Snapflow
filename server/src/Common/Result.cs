@@ -32,6 +32,8 @@ public class Result
     public static Result<TValue> Failure<TValue>(Error error) =>
         new(default, false, error);
 
+    public static implicit operator Result(Error error) => Failure(error);
+
     public static Result ValidationFailure(ValidationError error)
     => new(false, error);
 
@@ -56,4 +58,6 @@ public class Result<TValue> : Result
 
     public static implicit operator Result<TValue>(TValue? value) =>
         value is not null ? Success(value) : Failure<TValue>(Error.NullValue);
+
+    public static implicit operator Result<TValue>(Error error) => Failure<TValue>(error);
 }

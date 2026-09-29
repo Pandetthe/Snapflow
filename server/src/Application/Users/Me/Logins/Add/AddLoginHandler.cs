@@ -15,13 +15,13 @@ internal sealed class AddLoginHandler(
         try
         {
             if (!userContext.IsAuthenticated)
-                return Result.Failure<string>(UserErrors.Unauthorized);
+                return UserErrors.Unauthorized;
 
             IUser user = await userContext.GetUserAsync();
 
             ExternalIdentity? identity = await signInManager.GetExternalLinkAsync(user);
             if (identity is null)
-                return Result.Failure<string>(ExternalLoginErrors.LinkFailed);
+                return ExternalLoginErrors.LinkFailed;
 
             IUser? owner = await userManager.FindByLoginAsync(identity.Provider, identity.ProviderKey);
             if (owner is not null)
@@ -33,11 +33,11 @@ internal sealed class AddLoginHandler(
 
             IReadOnlyList<ExternalLoginDetails> logins = await userManager.GetLoginsAsync(user);
             if (logins.Any(l => string.Equals(l.Provider, identity.Provider, StringComparison.Ordinal)))
-                return Result.Failure<string>(ExternalLoginErrors.ProviderAlreadyLinked);
+                return ExternalLoginErrors.ProviderAlreadyLinked;
 
             Result linked = await userManager.AddLoginAsync(user, identity);
             if (linked.IsFailure)
-                return Result.Failure<string>(linked.Error);
+                return linked.Error;
 
             await signInManager.RefreshSignInAsync(user);
 

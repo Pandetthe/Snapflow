@@ -1,10 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <Compile Remove="Cards\Get\**" />
-    <EmbeddedResource Remove="Cards\Get\**" />
-    <None Remove="Cards\Get\**" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="EntityFrameworkCore.Exceptions.Common" />
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
@@ -19,13 +14,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\Domain\Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Tags\Create\" />
-    <Folder Include="Tags\Delete\" />
-    <Folder Include="Tags\GetByBoardId\" />
-    <Folder Include="Tags\GetById\" />
-    <Folder Include="Tags\Update\" />
   </ItemGroup>
 </Project>

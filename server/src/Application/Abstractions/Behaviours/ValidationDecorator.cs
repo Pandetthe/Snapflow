@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using FluentValidation.Results;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Common;
@@ -7,23 +7,26 @@ namespace Snapflow.Application.Abstractions.Behaviours;
 
 internal static class ValidationDecorator
 {
+    internal sealed class QueryHandler<TQuery, TResponse>(
+        IQueryHandler<TQuery, TResponse> innerHandler,
+        IEnumerable<IValidator<TQuery>> validators)
+        : IQueryHandler<TQuery, TResponse>
+        where TQuery : IQuery<TResponse>
+    {
+        public async Task<Result<TResponse>> Handle(TQuery query, CancellationToken cancellationToken) =>
+            await ValidateAsync(query, validators, cancellationToken)
+            ?? await innerHandler.Handle(query, cancellationToken);
+    }
+
     internal sealed class CommandHandler<TCommand, TResponse>(
         ICommandHandler<TCommand, TResponse> innerHandler,
         IEnumerable<IValidator<TCommand>> validators)
         : ICommandHandler<TCommand, TResponse>
         where TCommand : ICommand<TResponse>
     {
-        public async Task<Result<TResponse>> Handle(TCommand command, CancellationToken cancellationToken)
-        {
-            var validationFailures = await ValidateAsync(command, validators, cancellationToken);
-
-            if (validationFailures.Length == 0)
-            {
-                return await innerHandler.Handle(command, cancellationToken);
-            }
-
-            return Result.Failure<TResponse>(CreateValidationError(validationFailures));
-        }
+        public async Task<Result<TResponse>> Handle(TCommand command, CancellationToken cancellationToken) =>
+            await ValidateAsync(command, validators, cancellationToken)
+            ?? await innerHandler.Handle(command, cancellationToken);
     }
 
     internal sealed class CommandBaseHandler<TCommand>(
@@ -32,41 +35,32 @@ internal static class ValidationDecorator
         : ICommandHandler<TCommand>
         where TCommand : ICommand
     {
-        public async Task<Result> Handle(TCommand command, CancellationToken cancellationToken)
-        {
-            var validationFailures = await ValidateAsync(command, validators, cancellationToken);
-
-            if (validationFailures.Length == 0)
-            {
-                return await innerHandler.Handle(command, cancellationToken);
-            }
-
-            return Result.Failure(CreateValidationError(validationFailures));
-        }
+        public async Task<Result> Handle(TCommand command, CancellationToken cancellationToken) =>
+            await ValidateAsync(command, validators, cancellationToken)
+            ?? await innerHandler.Handle(command, cancellationToken);
     }
 
-    private static async Task<ValidationFailure[]> ValidateAsync<TCommand>(
-        TCommand command,
-        IEnumerable<IValidator<TCommand>> validators,
+    private static async Task<ValidationError?> ValidateAsync<TRequest>(
+        TRequest request,
+        IEnumerable<IValidator<TRequest>> validators,
         CancellationToken cancellationToken)
     {
-        var enumerable = validators as IValidator<TCommand>[] ?? validators.ToArray();
-        if (enumerable.Length == 0)
-            return [];
+        IValidator<TRequest>[] all = [.. validators];
+        if (all.Length == 0)
+            return null;
 
-        var context = new ValidationContext<TCommand>(command);
+        var context = new ValidationContext<TRequest>(request);
 
-        ValidationResult[] validationResults = await Task.WhenAll(
-            enumerable.Select(validator => validator.ValidateAsync(context, cancellationToken)));
+        ValidationResult[] results = await Task.WhenAll(
+            all.Select(validator => validator.ValidateAsync(context, cancellationToken)));
 
-        ValidationFailure[] validationFailures = validationResults
-            .Where(validationResult => !validationResult.IsValid)
-            .SelectMany(validationResult => validationResult.Errors)
-            .ToArray();
+        PropertyValidationError[] errors =
+        [
+            .. results
+                .SelectMany(result => result.Errors)
+                .Select(f => new PropertyValidationError(f.PropertyName, f.ErrorCode, f.ErrorMessage))
+        ];
 
-        return validationFailures;
+        return errors.Length == 0 ? null : new ValidationError(errors);
     }
-
-    private static ValidationError CreateValidationError(ValidationFailure[] validationFailures) =>
-        new(validationFailures.Select(f => new PropertyValidationError(f.PropertyName, f.ErrorCode, f.ErrorMessage)).ToArray());
 }

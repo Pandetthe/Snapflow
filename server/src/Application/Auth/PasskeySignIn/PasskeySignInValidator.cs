@@ -3,9 +3,9 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Auth.PasskeySignIn;
 
-internal sealed class PasskeySignInCommandValidator : AbstractValidator<PasskeySignInCommand>
+internal sealed class PasskeySignInValidator : AbstractValidator<PasskeySignInCommand>
 {
-    public PasskeySignInCommandValidator()
+    public PasskeySignInValidator()
     {
         RuleFor(c => c.Credential)
             .NotEmpty()

@@ -1,6 +1,6 @@
 ﻿using Snapflow.Common;
 
-namespace Snapflow.Application.Ranking;
+namespace Snapflow.Application.Abstractions.Ranking;
 
 public interface IEntityRankService<TEntity> where TEntity : IEntity
 {

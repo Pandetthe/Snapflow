@@ -13,19 +13,19 @@ internal sealed class GetMembers : IEndpoint
     {
         app.MapGet("boards/{boardId:int}/members", async (
             int boardId,
-            IQueryHandler<GetMembersQuery, List<GetMembersResponse>> handler,
+            IQueryHandler<GetMembersQuery, IReadOnlyList<GetMembersResponse>> handler,
             CancellationToken cancellationToken) =>
         {
             var query = new GetMembersQuery(boardId);
 
-            Result<List<GetMembersResponse>> result = await handler.Handle(query, cancellationToken);
+            Result<IReadOnlyList<GetMembersResponse>> result = await handler.Handle(query, cancellationToken);
 
             return result.Match(Results.Ok, Results.Problem);
         })
         .RequireAuthorization(BoardPermissions.Boards.View)
         .CacheOutput(CachePolicies.Board)
         .WithTags(EndpointTags.Boards)
-        .Produces<List<GetMembersResponse>>(StatusCodes.Status200OK)
+        .Produces<IReadOnlyList<GetMembersResponse>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

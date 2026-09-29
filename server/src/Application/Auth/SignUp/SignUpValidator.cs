@@ -3,9 +3,9 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Auth.SignUp;
 
-internal sealed class SignUpCommandValidator : AbstractValidator<SignUpCommand>
+internal sealed class SignUpValidator : AbstractValidator<SignUpCommand>
 {
-    public SignUpCommandValidator()
+    public SignUpValidator()
     {
         RuleFor(x => x.UserName)
             .NotEmpty().WithMessage("Username is required.")

@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
-using Snapflow.Application.Ranking;
+using Snapflow.Application.Abstractions.Ranking;
 using Snapflow.Common;
 using Snapflow.Domain.Lists;
 using Snapflow.Domain.Swimlanes;
@@ -17,25 +17,26 @@ internal sealed class CreateListHandler(
     TimeProvider timeProvider,
     IEntityRankService<List> rankService) : ICommandHandler<CreateListCommand, CreateListResponse>
 {
-    public async Task<Result<CreateListResponse>> Handle(CreateListCommand command, CancellationToken cancellationToken = default)
+    public Task<Result<CreateListResponse>> Handle(CreateListCommand command, CancellationToken cancellationToken = default) =>
+        dbContext.InTransactionAsync(() => ExecuteAsync(command, cancellationToken), cancellationToken);
+
+    private async Task<Result<CreateListResponse>> ExecuteAsync(CreateListCommand command, CancellationToken cancellationToken)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
-            return Result.Failure<CreateListResponse>(UserErrors.NotFound(userContext.UserId));
+        string? userName = await dbContext.FindUserNameAsync(userContext.UserId, cancellationToken);
+        if (userName == null)
+            return UserErrors.NotFound(userContext.UserId);
 
         var swimlaneBoardId = await dbContext.Swimlanes
             .AsNoTracking()
-            .Where(x => x.Id == command.SwimlaneId && x.BoardId == command.BoardId && !x.IsDeleted)
+            .Where(x => x.Id == command.SwimlaneId && x.BoardId == command.BoardId)
             .Select(x => new { x.BoardId })
             .SingleOrDefaultAsync(cancellationToken);
         if (swimlaneBoardId == null)
-            return Result.Failure<CreateListResponse>(SwimlaneErrors.NotFound(command.SwimlaneId));
+            return SwimlaneErrors.NotFound(command.SwimlaneId);
         var rankResult = await rankService.GenerateRankAsync(
             command.SwimlaneId, null, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
-            return Result.Failure<CreateListResponse>(rankResult.Error);
+            return rankResult.Error;
 
         DateTimeOffset createdAt = timeProvider.GetUtcNow();
 
@@ -45,7 +46,7 @@ internal sealed class CreateListHandler(
             command.Title,
             command.Width,
             rankResult.Value,
-            user,
+            userContext.UserId,
             createdAt,
             userContext.ConnectionId);
 
@@ -56,6 +57,6 @@ internal sealed class CreateListHandler(
             list.Id,
             Rank: list.Rank,
             createdAt,
-            UserDto.From(user));
+            new UserDto(userContext.UserId, userName));
     }
 }

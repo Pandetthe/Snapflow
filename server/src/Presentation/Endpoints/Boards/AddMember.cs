@@ -19,7 +19,7 @@ internal sealed class AddMember : IEndpoint
             ICommandHandler<AddMemberCommand> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new AddMemberCommand(request.UserId, boardId, request.Role);
+            var command = new AddMemberCommand(boardId, request.UserId, request.Role);
 
             Result result = await handler.Handle(command, cancellationToken);
 
@@ -28,6 +28,7 @@ internal sealed class AddMember : IEndpoint
         .RequireAuthorization(BoardPermissions.Boards.Update)
         .WithTags(EndpointTags.Boards)
         .Produces(StatusCodes.Status204NoContent)
-        .ProducesProblem(StatusCodes.Status404NotFound);
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status409Conflict);
     }
 }

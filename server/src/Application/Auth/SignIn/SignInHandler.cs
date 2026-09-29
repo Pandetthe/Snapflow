@@ -14,9 +14,9 @@ internal sealed class SignInHandler(
     {
         IUser? user = await userManager.FindByEmailAsync(command.Email);
         if (user is null)
-            return Result.Failure(UserErrors.SignInFailed);
+            return UserErrors.SignInFailed;
         if (user.IsDeleted)
-            return Result.Failure(UserErrors.AccountDeleted);
+            return UserErrors.AccountDeleted;
         return await signInManager.PasswordSignInAsync(user, command.Password, command.UseCookies, command.UseSessionCookies, true, command.RememberDeviceToken);
     }
 }

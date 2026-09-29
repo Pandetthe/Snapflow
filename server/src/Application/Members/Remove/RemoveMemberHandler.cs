@@ -3,25 +3,27 @@ using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 using Snapflow.Domain.Members;
 
 namespace Snapflow.Application.Members.Remove;
 
-internal sealed class RemoveMemberCommandHandler(
+internal sealed class RemoveMemberHandler(
     IAppDbContext dbContext,
     IUserContext userContext) : ICommandHandler<RemoveMemberCommand>
 {
     public async Task<Result> Handle(RemoveMemberCommand command, CancellationToken cancellationToken = default)
     {
-        Member? member = await dbContext.Members
-            .SingleOrDefaultAsync(b => b.BoardId == command.BoardId
-            && b.UserId == command.UserId, cancellationToken);
-        if (member == null)
-            return Result.Failure(MemberErrors.NotFound(command.UserId, command.BoardId));
-        if (member.Role == MemberRole.Owner)
-            return Result.Failure(MemberErrors.CannotRemoveOwner);
-        member.Remove(userContext.ConnectionId);
-        dbContext.Members.Remove(member);
+        Board? board = await dbContext.Boards
+            .Include(b => b.Members)
+            .SingleOrDefaultAsync(b => b.Id == command.BoardId, cancellationToken);
+        if (board is null)
+            return BoardErrors.NotFound(command.BoardId);
+
+        Result removed = board.RemoveMember(command.UserId, userContext.ConnectionId);
+        if (removed.IsFailure)
+            return removed;
+
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

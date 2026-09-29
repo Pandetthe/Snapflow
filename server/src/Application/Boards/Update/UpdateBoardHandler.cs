@@ -5,6 +5,7 @@ using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Application.Abstractions.Services;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
+using Snapflow.Domain.Members;
 using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Boards.Update;
@@ -12,31 +13,27 @@ namespace Snapflow.Application.Boards.Update;
 internal sealed class UpdateBoardHandler(
     IAppDbContext dbContext,
     IUserContext userContext,
-    IBoardPermissionService permissionService,
     IBoardVisibilityPolicy visibilityPolicy,
     TimeProvider timeProvider) : ICommandHandler<UpdateBoardCommand>
 {
     public async Task<Result> Handle(UpdateBoardCommand command, CancellationToken cancellationToken = default)
     {
-        var userExists = await dbContext.Users.AsNoTracking()
-             .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (!userExists)
-            return Result.Failure(UserErrors.NotFound(userContext.UserId));
-
         Board? board = await dbContext.Boards
             .Include(x => x.Members)
-            .SingleOrDefaultAsync(x => x.Id == command.Id && !x.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(x => x.Id == command.Id, cancellationToken);
         if (board == null)
-            return Result.Failure(BoardErrors.NotFound(command.Id));
+            return BoardErrors.NotFound(command.Id);
 
-        bool changesVisibility = command.Visibility is not null && command.Visibility != board.Visibility;
-        if (changesVisibility)
+        DateTimeOffset now = timeProvider.GetUtcNow();
+
+        if (command.Visibility is { } visibility && visibility != board.Visibility)
         {
-            if (!visibilityPolicy.IsAllowed(command.Visibility!.Value))
-                return Result.Failure(BoardErrors.VisibilityNotAllowed(command.Visibility.Value));
+            if (!visibilityPolicy.IsAllowed(visibility))
+                return BoardErrors.VisibilityNotAllowed(visibility);
 
-            if (!await permissionService.HasPermissionAsync(board.Id, BoardPermissions.Boards.ChangeVisibility, cancellationToken))
-                return Result.Failure(BoardErrors.VisibilityChangeForbidden(board.Id));
+            Result changed = board.ChangeVisibility(visibility, userContext.UserId, now, userContext.ConnectionId);
+            if (changed.IsFailure)
+                return changed;
         }
 
         if (command.Members != null)
@@ -50,31 +47,24 @@ internal sealed class UpdateBoardHandler(
 
             var missingUserId = memberUserIds.FirstOrDefault(id => !existingUserIds.Contains(id));
             if (missingUserId != 0)
-                return Result.Failure(UserErrors.NotFound(missingUserId));
+                return UserErrors.NotFound(missingUserId);
 
-            board.SyncMembers(
+            Result synced = board.SyncMembers(
                 command.Members.Select(m => (m.UserId, m.Role)).ToList(),
                 userContext.ConnectionId);
+            if (synced.IsFailure)
+                return synced;
         }
 
         board.Update(
             command.Title,
             command.Description,
             userContext.UserId,
-            timeProvider.GetUtcNow(),
+            now,
             userContext.ConnectionId);
 
-        if (changesVisibility)
-        {
-            board.ChangeVisibility(
-                command.Visibility!.Value,
-                userContext.UserId,
-                timeProvider.GetUtcNow(),
-                userContext.ConnectionId);
-        }
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        return Result.Success();
+        return await dbContext.TrySaveChangesAsync(
+            [new UniqueConflict(DbConstraints.BoardMemberKey, MemberErrors.DuplicateMember)],
+            cancellationToken);
     }
 }

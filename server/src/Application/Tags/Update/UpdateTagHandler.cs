@@ -3,6 +3,7 @@ using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 using Snapflow.Domain.Tags;
 using Snapflow.Domain.Users;
 using static Snapflow.Application.Tags.Update.UpdateTagResponse;
@@ -16,31 +17,31 @@ internal sealed class UpdateTagHandler(
 {
     public async Task<Result<UpdateTagResponse>> Handle(UpdateTagCommand command, CancellationToken cancellationToken = default)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
-            return Result.Failure<UpdateTagResponse>(UserErrors.NotFound(userContext.UserId));
+        string? userName = await dbContext.FindUserNameAsync(userContext.UserId, cancellationToken);
+        if (userName == null)
+            return UserErrors.NotFound(userContext.UserId);
 
-        Tag? tag = await dbContext.Tags
-            .SingleOrDefaultAsync(t => t.Id == command.Id && t.BoardId == command.BoardId && !t.IsDeleted, cancellationToken);
-        if (tag == null)
-            return Result.Failure<UpdateTagResponse>(TagErrors.NotFound(command.Id));
-
-        var titleTaken = await dbContext.Tags.AsNoTracking()
-            .AnyAsync(t => t.BoardId == command.BoardId && t.Id != command.Id && !t.IsDeleted && t.Title == command.Title, cancellationToken);
-        if (titleTaken)
-            return Result.Failure<UpdateTagResponse>(TagErrors.TitleNotUnique(command.Title));
+        Board? board = await dbContext.Boards
+            .Include(b => b.Tags)
+            .SingleOrDefaultAsync(b => b.Id == command.BoardId, cancellationToken);
+        if (board == null)
+            return TagErrors.NotFound(command.Id);
 
         DateTimeOffset updatedAt = timeProvider.GetUtcNow();
 
-        bool changed = tag.Update(command.Title, command.Color, user, updatedAt, userContext.ConnectionId);
-
-        if (!changed)
+        Result<bool> changed = board.UpdateTag(
+            command.Id, command.Title, command.Color, userContext.UserId, updatedAt, userContext.ConnectionId);
+        if (changed.IsFailure)
+            return changed.Error;
+        if (!changed.Value)
             return new UpdateTagResponse(null, null);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        Result saved = await dbContext.TrySaveChangesAsync(
+            [new UniqueConflict(DbConstraints.TagTitle, TagErrors.TitleNotUnique(command.Title))],
+            cancellationToken);
+        if (saved.IsFailure)
+            return saved.Error;
 
-        return new UpdateTagResponse(updatedAt, UserDto.From(user));
+        return new UpdateTagResponse(updatedAt, new UserDto(userContext.UserId, userName));
     }
 }

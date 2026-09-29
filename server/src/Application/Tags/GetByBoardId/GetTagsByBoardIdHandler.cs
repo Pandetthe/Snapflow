@@ -15,19 +15,18 @@ internal sealed class GetTagsByBoardIdHandler(
     {
         var board = await dbContext.Boards
             .AsNoTracking()
-            .Where(b => b.Id == query.Id && !b.IsDeleted)
+            .Where(b => b.Id == query.Id)
             .Select(b => new
             {
                 b.Id,
                 Tags = b.Tags
-                    .Where(t => !t.IsDeleted)
                     .OrderBy(t => t.Title)
                     .Select(t => new TagDto(t.Id, t.Title, t.Color))
                     .ToList()
             })
             .SingleOrDefaultAsync(cancellationToken);
         if (board == null)
-            return Result.Failure<IReadOnlyList<TagDto>>(BoardErrors.NotFound(query.Id));
+            return BoardErrors.NotFound(query.Id);
         return board.Tags;
     }
 }

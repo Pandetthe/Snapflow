@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Snapflow.Domain.Boards;
 using Snapflow.Infrastructure.Boards;
@@ -15,7 +14,7 @@ public sealed class BoardVisibilityPolicyTests
     {
         var policy = Create(null);
 
-        policy.AllowedVisibilities.Should().Equal(BoardVisibility.Private, BoardVisibility.Unlisted, BoardVisibility.Public);
+        Assert.Equal([BoardVisibility.Private, BoardVisibility.Unlisted, BoardVisibility.Public], policy.AllowedVisibilities);
     }
 
     [Fact]
@@ -23,7 +22,7 @@ public sealed class BoardVisibilityPolicyTests
     {
         var policy = Create(BoardVisibility.Public);
 
-        policy.AllowedVisibilities.Should().Equal(BoardVisibility.Private, BoardVisibility.Public);
+        Assert.Equal([BoardVisibility.Private, BoardVisibility.Public], policy.AllowedVisibilities);
     }
 
     [Theory]
@@ -35,7 +34,7 @@ public sealed class BoardVisibilityPolicyTests
     {
         var policy = Create(null);
 
-        policy.CanNonMemberView(visibility, isAuthenticated).Should().BeTrue();
+        Assert.True(policy.CanNonMemberView(visibility, isAuthenticated));
     }
 
     [Theory]
@@ -45,7 +44,7 @@ public sealed class BoardVisibilityPolicyTests
     {
         var policy = Create(null);
 
-        policy.CanNonMemberView(BoardVisibility.Private, isAuthenticated).Should().BeFalse();
+        Assert.False(policy.CanNonMemberView(BoardVisibility.Private, isAuthenticated));
     }
 
     [Theory]
@@ -56,7 +55,7 @@ public sealed class BoardVisibilityPolicyTests
     {
         var policy = Create(null);
 
-        policy.IsListed(visibility).Should().Be(expected);
+        Assert.Equal(expected, policy.IsListed(visibility));
     }
 
     [Fact]
@@ -64,9 +63,9 @@ public sealed class BoardVisibilityPolicyTests
     {
         var policy = Create(BoardVisibility.Private, BoardVisibility.Unlisted);
 
-        policy.IsAllowed(BoardVisibility.Public).Should().BeFalse();
-        policy.CanNonMemberView(BoardVisibility.Public, isAuthenticated: false).Should().BeTrue();
-        policy.IsListed(BoardVisibility.Public).Should().BeFalse();
+        Assert.False(policy.IsAllowed(BoardVisibility.Public));
+        Assert.True(policy.CanNonMemberView(BoardVisibility.Public, isAuthenticated: false));
+        Assert.False(policy.IsListed(BoardVisibility.Public));
     }
 
     [Fact]
@@ -74,8 +73,8 @@ public sealed class BoardVisibilityPolicyTests
     {
         var policy = Create(BoardVisibility.Private);
 
-        policy.CanNonMemberView(BoardVisibility.Unlisted, isAuthenticated: true).Should().BeFalse();
-        policy.CanNonMemberView(BoardVisibility.Public, isAuthenticated: true).Should().BeFalse();
-        policy.IsListed(BoardVisibility.Public).Should().BeFalse();
+        Assert.False(policy.CanNonMemberView(BoardVisibility.Unlisted, isAuthenticated: true));
+        Assert.False(policy.CanNonMemberView(BoardVisibility.Public, isAuthenticated: true));
+        Assert.False(policy.IsListed(BoardVisibility.Public));
     }
 }

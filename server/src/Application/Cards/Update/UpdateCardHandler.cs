@@ -16,23 +16,21 @@ internal sealed class UpdateCardHandler(
 {
     public async Task<Result<UpdateCardResponse>> Handle(UpdateCardCommand command, CancellationToken cancellationToken = default)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
-            return Result.Failure<UpdateCardResponse>(UserErrors.NotFound(userContext.UserId));
+        string? userName = await dbContext.FindUserNameAsync(userContext.UserId, cancellationToken);
+        if (userName == null)
+            return UserErrors.NotFound(userContext.UserId);
 
         Card? card = await dbContext.Cards
-            .SingleOrDefaultAsync(c => c.Id == command.Id && c.BoardId == command.BoardId && !c.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(c => c.Id == command.Id && c.BoardId == command.BoardId, cancellationToken);
         if (card == null)
-            return Result.Failure<UpdateCardResponse>(CardErrors.NotFound(command.Id));
+            return CardErrors.NotFound(command.Id);
 
         DateTimeOffset updatedAt = timeProvider.GetUtcNow();
 
         bool changed = card.Update(
             command.Title,
             command.Description,
-            user,
+            userContext.UserId,
             updatedAt,
             userContext.ConnectionId);
 
@@ -43,6 +41,6 @@ internal sealed class UpdateCardHandler(
 
         return new UpdateCardResponse(
             updatedAt,
-            UserDto.From(user));
+            new UserDto(userContext.UserId, userName));
     }
 }

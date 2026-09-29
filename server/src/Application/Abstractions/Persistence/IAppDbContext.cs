@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Cards;
@@ -14,6 +15,9 @@ namespace Snapflow.Application.Abstractions.Persistence;
 public interface IAppDbContext
 {
     DatabaseFacade Database { get; }
+
+    ChangeTracker ChangeTracker { get; }
+
     IQueryable<IUser> Users { get; }
     IQueryable<IRole> Roles { get; }
 

@@ -31,6 +31,7 @@ internal sealed class Update : IEndpoint
         .WithTags(EndpointTags.Tags)
         .Produces<UpdateTagResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status409Conflict)
         .ProducesCustomValidationProblem();
     }
 }

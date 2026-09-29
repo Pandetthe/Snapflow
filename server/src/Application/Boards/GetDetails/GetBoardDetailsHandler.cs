@@ -19,7 +19,7 @@ internal sealed class GetBoardDetailsHandler(
 
         var dbBoard = await context.Boards
             .AsNoTracking()
-            .Where(b => b.Id == query.Id && !b.IsDeleted)
+            .Where(b => b.Id == query.Id)
             .Select(b => new
             {
                 b.Id,
@@ -36,7 +36,7 @@ internal sealed class GetBoardDetailsHandler(
             .SingleOrDefaultAsync(cancellationToken);
 
         if (dbBoard == null)
-            return Result.Failure<GetBoardDetailsResponse>(BoardErrors.NotFound(query.Id));
+            return BoardErrors.NotFound(query.Id);
 
         var members = dbBoard.Members
             .Where(_ => isMember)

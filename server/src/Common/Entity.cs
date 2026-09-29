@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Snapflow.Common;
+﻿namespace Snapflow.Common;
 
 public abstract class Entity<TEntity> : IEntity
     where TEntity : Entity<TEntity>
@@ -30,8 +28,16 @@ public abstract class Entity<TKey, TEntity> : IEntity<TKey>
 
     public void ClearDomainEvents() => _domainEvents.Clear();
 
-    public override bool Equals(object? obj) =>
-        obj is Entity<TKey, TEntity> other && Id.Equals(other.Id);
+    public override bool Equals(object? obj)
+    {
+        if (obj is not Entity<TKey, TEntity> other)
+            return false;
+
+        if (EqualityComparer<TKey>.Default.Equals(Id, default!))
+            return ReferenceEquals(this, other);
+
+        return Id.Equals(other.Id);
+    }
 
     public override int GetHashCode() => HashCode.Combine(GetType(), Id);
 }

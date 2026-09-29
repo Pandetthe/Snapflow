@@ -17,18 +17,21 @@ internal sealed class ChangeBoardVisibilityHandler(
     public async Task<Result> Handle(ChangeBoardVisibilityCommand command, CancellationToken cancellationToken = default)
     {
         if (!visibilityPolicy.IsAllowed(command.Visibility))
-            return Result.Failure(BoardErrors.VisibilityNotAllowed(command.Visibility));
+            return BoardErrors.VisibilityNotAllowed(command.Visibility);
 
         Board? board = await dbContext.Boards
-            .SingleOrDefaultAsync(b => b.Id == command.Id && !b.IsDeleted, cancellationToken);
+            .Include(b => b.Members)
+            .SingleOrDefaultAsync(b => b.Id == command.Id, cancellationToken);
         if (board == null)
-            return Result.Failure(BoardErrors.NotFound(command.Id));
+            return BoardErrors.NotFound(command.Id);
 
-        board.ChangeVisibility(
+        Result changed = board.ChangeVisibility(
             command.Visibility,
             userContext.UserId,
             timeProvider.GetUtcNow(),
             userContext.ConnectionId);
+        if (changed.IsFailure)
+            return changed;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

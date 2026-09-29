@@ -34,6 +34,7 @@ internal sealed class Create : IEndpoint
         .RequireAuthorization()
         .WithTags(EndpointTags.Boards)
         .ProducesIdResponse()
+        .ProducesProblem(StatusCodes.Status409Conflict)
         .ProducesCustomValidationProblem();
     }
 }

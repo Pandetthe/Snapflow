@@ -15,10 +15,10 @@ internal sealed class RegenerateRecoveryCodesHandler(
 
         TwoFactorStatus status = await userManager.GetTwoFactorStatusAsync(user);
         if (!status.IsEnabled)
-            return Result.Failure<RegenerateRecoveryCodesResponse>(TwoFactorErrors.NotEnabled);
+            return TwoFactorErrors.NotEnabled;
 
         if (!await userManager.VerifyAuthenticatorCodeAsync(user, command.Code))
-            return Result.Failure<RegenerateRecoveryCodesResponse>(TwoFactorErrors.InvalidCode);
+            return TwoFactorErrors.InvalidCode;
 
         IReadOnlyList<string> codes = await userManager.GenerateRecoveryCodesAsync(user);
 

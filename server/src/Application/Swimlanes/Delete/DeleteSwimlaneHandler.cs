@@ -1,11 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Swimlanes;
-using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Swimlanes.Delete;
 
@@ -14,59 +12,21 @@ internal sealed class DeleteSwimlaneHandler(
     IUserContext userContext,
     TimeProvider timeProvider) : ICommandHandler<DeleteSwimlaneCommand>
 {
-    public async Task<Result> Handle(DeleteSwimlaneCommand command, CancellationToken cancellationToken = default)
+    public Task<Result> Handle(DeleteSwimlaneCommand command, CancellationToken cancellationToken = default) =>
+        dbContext.InTransactionAsync(() => ExecuteAsync(command, cancellationToken), cancellationToken);
+
+    private async Task<Result> ExecuteAsync(DeleteSwimlaneCommand command, CancellationToken cancellationToken)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
-            return Result.Failure(UserErrors.NotFound(userContext.UserId));
-
         Swimlane? swimlane = await dbContext.Swimlanes
-            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId, cancellationToken);
         if (swimlane == null)
-            return Result.Failure(SwimlaneErrors.NotFound(command.Id));
+            return SwimlaneErrors.NotFound(command.Id);
 
-        DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
-        var userId = userContext.UserId;
+        DateTimeOffset deletedAt = timeProvider.GetUtcNow();
+        swimlane.SoftDelete(userContext.UserId, deletedAt, userContext.ConnectionId);
+        await dbContext.CascadeSwimlaneDeletionAsync(swimlane.Id, userContext.UserId, deletedAt, cancellationToken);
 
-        IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
-
-        await strategy.ExecuteAsync(async () =>
-        {
-            await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
-            try
-            {
-                swimlane.SoftDelete(user, dateTimeOffset, userContext.ConnectionId);
-
-                await dbContext.Lists
-                    .Where(l => l.SwimlaneId == swimlane.Id && !l.IsDeleted)
-                    .ExecuteUpdateAsync(l => l
-                        .SetProperty(x => x.IsDeleted, true)
-                        .SetProperty(x => x.DeletedAt, dateTimeOffset)
-                        .SetProperty(x => x.DeletedById, userId)
-                        .SetProperty(x => x.DeletedByCascade, true),
-                        cancellationToken);
-
-                await dbContext.Cards
-                    .Where(c => c.SwimlaneId == swimlane.Id && !c.IsDeleted)
-                    .ExecuteUpdateAsync(c => c
-                        .SetProperty(x => x.IsDeleted, true)
-                        .SetProperty(x => x.DeletedAt, dateTimeOffset)
-                        .SetProperty(x => x.DeletedById, userId)
-                        .SetProperty(x => x.DeletedByCascade, true),
-                        cancellationToken);
-
-                await dbContext.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-            }
-            catch
-            {
-                await transaction.RollbackAsync(cancellationToken);
-                throw;
-            }
-        });
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

@@ -16,23 +16,21 @@ internal sealed class UpdateSwimlaneHandler(
 {
     public async Task<Result<UpdateSwimlaneResponse>> Handle(UpdateSwimlaneCommand command, CancellationToken cancellationToken = default)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
-            return Result.Failure<UpdateSwimlaneResponse>(UserErrors.NotFound(userContext.UserId));
+        string? userName = await dbContext.FindUserNameAsync(userContext.UserId, cancellationToken);
+        if (userName == null)
+            return UserErrors.NotFound(userContext.UserId);
 
         Swimlane? swimlane = await dbContext.Swimlanes
-            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId, cancellationToken);
         if (swimlane == null)
-            return Result.Failure<UpdateSwimlaneResponse>(SwimlaneErrors.NotFound(command.Id));
+            return SwimlaneErrors.NotFound(command.Id);
 
         DateTimeOffset updatedAt = timeProvider.GetUtcNow();
 
         bool changed = swimlane.Update(
             command.Title,
             command.Height,
-            user,
+            userContext.UserId,
             updatedAt,
             userContext.ConnectionId);
 
@@ -43,6 +41,6 @@ internal sealed class UpdateSwimlaneHandler(
 
         return new UpdateSwimlaneResponse(
             updatedAt,
-            UserDto.From(user));
+            new UserDto(userContext.UserId, userName));
     }
 }
