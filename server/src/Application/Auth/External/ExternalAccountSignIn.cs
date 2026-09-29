@@ -19,7 +19,7 @@ internal sealed class ExternalAccountSignIn(
         if (user is null)
         {
             if (string.IsNullOrWhiteSpace(identity.Email))
-                return Result.Failure(AuthenticationErrors.ExternalEmailMissing);
+                return AuthenticationErrors.ExternalEmailMissing;
 
             user = await userManager.FindByEmailAsync(identity.Email);
 
@@ -33,7 +33,7 @@ internal sealed class ExternalAccountSignIn(
         }
 
         if (user.IsDeleted)
-            return Result.Failure(AuthenticationErrors.ExternalSignInFailed);
+            return AuthenticationErrors.ExternalSignInFailed;
 
         return await signInManager.ExternalLoginSignInAsync(identity, useCookies, useSessionCookies, rememberDeviceToken);
     }
@@ -41,12 +41,12 @@ internal sealed class ExternalAccountSignIn(
     private async Task<Result<IUser>> LinkAccountAsync(IUser user, ExternalIdentity identity)
     {
         if (user.IsDeleted)
-            return Result.Failure<IUser>(UserErrors.AccountDeleted);
+            return UserErrors.AccountDeleted;
         if (!identity.EmailVerified)
-            return Result.Failure<IUser>(AuthenticationErrors.ExternalEmailNotVerified);
+            return AuthenticationErrors.ExternalEmailNotVerified;
 
         if (!await userManager.IsEmailConfirmedAsync(user))
-            return Result.Failure<IUser>(AuthenticationErrors.ExistingAccountNotConfirmed);
+            return AuthenticationErrors.ExistingAccountNotConfirmed;
 
         Result linked = await userManager.AddLoginAsync(user, identity);
         return linked.IsSuccess ? Result.Success(user) : Result.Failure<IUser>(linked.Error);
@@ -55,11 +55,11 @@ internal sealed class ExternalAccountSignIn(
     private async Task<Result<IUser>> CreateAccountAsync(ExternalIdentity identity)
     {
         if (!settings.ExternalSignUpEnabled)
-            return Result.Failure<IUser>(AuthenticationErrors.ExternalSignUpDisabled);
+            return AuthenticationErrors.ExternalSignUpDisabled;
 
         string? userName = await FindFreeUserNameAsync(identity);
         if (userName is null)
-            return Result.Failure<IUser>(AuthenticationErrors.ExternalSignInFailed);
+            return AuthenticationErrors.ExternalSignInFailed;
 
         Result<IUser> created = await userManager.CreateExternalAsync(identity, userName);
         if (created.IsFailure)
@@ -70,7 +70,7 @@ internal sealed class ExternalAccountSignIn(
 
         string code = await userManager.GenerateEmailConfirmationTokenAsync(created.Value);
         await emailSender.SendConfirmationLinkAsync(created.Value, code);
-        return Result.Failure<IUser>(AuthenticationErrors.ExternalConfirmationSent);
+        return AuthenticationErrors.ExternalConfirmationSent;
     }
 
     private async Task<string?> FindFreeUserNameAsync(ExternalIdentity identity)

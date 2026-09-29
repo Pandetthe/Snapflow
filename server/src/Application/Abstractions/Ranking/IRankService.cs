@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Snapflow.Application.Abstractions.Behaviours;
+namespace Snapflow.Application.Abstractions.Ranking;
 
 public interface IRankService
 {

@@ -1,10 +1,14 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Snapflow.Common;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Snapflow.Infrastructure.Common;
 
-internal sealed class DomainEventsDispatcher(IServiceProvider serviceProvider) : IDomainEventsDispatcher
+internal sealed class DomainEventsDispatcher(
+    IServiceProvider serviceProvider,
+    ILogger<DomainEventsDispatcher> logger) : IDomainEventsDispatcher
 {
     private static readonly ConcurrentDictionary<Type, Type> HandlerTypeDictionary = new();
     private static readonly ConcurrentDictionary<Type, Type> WrapperTypeDictionary = new();
@@ -31,10 +35,39 @@ internal sealed class DomainEventsDispatcher(IServiceProvider serviceProvider) :
                     continue;
                 }
 
-                var handlerWrapper = HandlerWrapper.Create(handler, domainEventType);
-
-                await handlerWrapper.Handle(domainEvent, cancellationToken);
+                await HandleGuardedAsync(handler, domainEvent, domainEventType, cancellationToken);
             }
+        }
+    }
+
+    [SuppressMessage(
+        "Design",
+        "CA1031:Do not catch general exception types",
+        Justification = "The change is already committed, so a failing side effect must not be "
+                        + "reported to the caller as a failed operation.")]
+    private async Task HandleGuardedAsync(
+        object handler,
+        IDomainEvent domainEvent,
+        Type domainEventType,
+        CancellationToken cancellationToken)
+    {
+        HandlerWrapper handlerWrapper = HandlerWrapper.Create(handler, domainEventType);
+
+        try
+        {
+            await handlerWrapper.Handle(domainEvent, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(
+                exception,
+                "{Handler} failed to handle {DomainEvent}; the change it reacts to is already committed.",
+                handler.GetType().Name,
+                domainEventType.Name);
         }
     }
 

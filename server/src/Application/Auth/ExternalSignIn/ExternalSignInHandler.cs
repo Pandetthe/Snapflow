@@ -15,7 +15,7 @@ internal sealed class ExternalSignInHandler(
     {
         ExternalSignInTicket? ticket = await signInManager.GetExternalSignInAsync();
         if (ticket is null)
-            return Result.Failure(AuthenticationErrors.ExternalSignInFailed);
+            return AuthenticationErrors.ExternalSignInFailed;
 
         try
         {

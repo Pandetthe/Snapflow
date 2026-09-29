@@ -32,7 +32,7 @@ internal sealed class LdapAuthenticator(
         {
             SearchResultEntry? entry = FindUser(ldap, userName);
             if (entry is null)
-                return Result.Failure<ExternalIdentity>(UserErrors.SignInFailed);
+                return UserErrors.SignInFailed;
 
             try
             {
@@ -41,14 +41,14 @@ internal sealed class LdapAuthenticator(
             }
             catch (LdapException ex) when (ex.ErrorCode == InvalidCredentials)
             {
-                return Result.Failure<ExternalIdentity>(UserErrors.SignInFailed);
+                return UserErrors.SignInFailed;
             }
 
             string? id = ReadId(entry, ldap.IdAttribute);
             if (id is null)
             {
                 logger.LogWarning("LDAP entry {DistinguishedName} has no {IdAttribute} attribute.", entry.DistinguishedName, ldap.IdAttribute);
-                return Result.Failure<ExternalIdentity>(AuthenticationErrors.ExternalSignInFailed);
+                return AuthenticationErrors.ExternalSignInFailed;
             }
 
             string? email = ReadString(entry, ldap.EmailAttribute);
@@ -64,7 +64,7 @@ internal sealed class LdapAuthenticator(
         catch (Exception ex) when (ex is LdapException or DirectoryOperationException)
         {
             logger.LogError(ex, "LDAP sign-in against {Host} failed.", ldap.Host);
-            return Result.Failure<ExternalIdentity>(AuthenticationErrors.ExternalSignInFailed);
+            return AuthenticationErrors.ExternalSignInFailed;
         }
     }
 

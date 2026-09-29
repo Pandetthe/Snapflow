@@ -16,7 +16,7 @@ internal sealed class SetupAuthenticatorHandler(
 
         TwoFactorStatus status = await userManager.GetTwoFactorStatusAsync(user);
         if (status.IsEnabled)
-            return Result.Failure<SetupAuthenticatorResponse>(TwoFactorErrors.AlreadyEnabled);
+            return TwoFactorErrors.AlreadyEnabled;
 
         AuthenticatorSetup setup = await userManager.GetAuthenticatorSetupAsync(user);
         await signInManager.RefreshSignInAsync(user);

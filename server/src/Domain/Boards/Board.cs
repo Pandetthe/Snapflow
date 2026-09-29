@@ -8,7 +8,7 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Domain.Boards;
 
-public class Board : Entity<int, Board>
+public class Board : Entity<int, Board>, ISoftDeletable
 {
     public Board() { }
     

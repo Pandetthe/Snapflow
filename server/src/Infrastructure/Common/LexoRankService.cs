@@ -1,4 +1,4 @@
-﻿using Snapflow.Application.Abstractions.Behaviours;
+﻿using Snapflow.Application.Abstractions.Ranking;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Text;

@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Snapflow.Application.Abstractions.Behaviours;
+using Snapflow.Application.Abstractions.Ranking;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Ranking;
@@ -38,7 +38,7 @@ internal abstract class BaseRankService<TEntity>(
         var baseQuery = Entities
             .AsNoTracking()
             .Where(GroupFilter(groupId))
-            .Where(s => !s.IsDeleted && (movingId == null || s.Id != movingId));
+            .Where(s => movingId == null || s.Id != movingId);
 
         if (!await baseQuery.AnyAsync(cancellationToken))
             return RankService.GenerateInitial();
@@ -53,17 +53,17 @@ internal abstract class BaseRankService<TEntity>(
         {
             Result<Neighbours> neighbours = await FindNeighboursAsync(baseQuery, beforeId, cancellationToken);
             if (neighbours.IsFailure)
-                return Result.Failure<string>(neighbours.Error);
+                return neighbours.Error;
 
             if (RankService.TryGenerateBetween(neighbours.Value.Left, neighbours.Value.Right, out var between))
                 return between;
 
             if (attempt == normalizations.Length)
-                return Result.Failure<string>(RankingErrors.RankExhausted);
+                return RankingErrors.RankExhausted;
 
             Result normalized = await normalizations[attempt](neighbours.Value);
             if (normalized.IsFailure)
-                return Result.Failure<string>(normalized.Error);
+                return normalized.Error;
         }
     }
 
@@ -88,7 +88,7 @@ internal abstract class BaseRankService<TEntity>(
             .Select(s => s.Rank)
             .FirstOrDefaultAsync(cancellationToken);
         if (right == null)
-            return Result.Failure<Neighbours>(GetNotFoundError(beforeId.Value));
+            return GetNotFoundError(beforeId.Value);
 
         string? left = await siblings
             .Where(s => s.Rank.CompareTo(right) < 0)
@@ -129,7 +129,7 @@ internal abstract class BaseRankService<TEntity>(
             left = await Entities
                 .AsNoTracking()
                 .Where(GroupFilter(groupId))
-                .Where(s => s.Rank.CompareTo(leftRank) < 0 && !s.IsDeleted)
+                .Where(s => s.Rank.CompareTo(leftRank) < 0)
                 .OrderByDescending(s => s.Rank)
                 .Select(s => new EntityRankDto(s.Id, s.Rank))
                 .Take(20)
@@ -141,7 +141,7 @@ internal abstract class BaseRankService<TEntity>(
             right = await Entities
                 .AsNoTracking()
                 .Where(GroupFilter(groupId))
-                .Where(s => s.Rank.CompareTo(rightRank) > 0 && !s.IsDeleted)
+                .Where(s => s.Rank.CompareTo(rightRank) > 0)
                 .OrderBy(s => s.Rank)
                 .Select(s => new EntityRankDto(s.Id, s.Rank))
                 .Take(20)
@@ -151,7 +151,6 @@ internal abstract class BaseRankService<TEntity>(
         var middle = await Entities
             .AsNoTracking()
             .Where(GroupFilter(groupId))
-            .Where(s => !s.IsDeleted)
             .Where(s => (leftRank == null || s.Rank.CompareTo(leftRank) >= 0) && (rightRank == null || s.Rank.CompareTo(rightRank) <= 0))
             .OrderBy(s => s.Rank)
             .Select(s => new EntityRankDto(s.Id, s.Rank))
@@ -202,7 +201,7 @@ internal abstract class BaseRankService<TEntity>(
             {
                 Logger.LogError(ex, "Failed to normalize {EntityName} ranks.", typeof(TEntity).Name);
                 await tx.RollbackAsync(cancellationToken);
-                return Result.Failure(RankingErrors.RankExhausted);
+                return RankingErrors.RankExhausted;
             }
         });
     }
@@ -213,7 +212,6 @@ internal abstract class BaseRankService<TEntity>(
             .AsNoTracking()
             .OrderBy(s => s.Rank)
             .Where(GroupFilter(groupId))
-            .Where(s => !s.IsDeleted)
             .Select(s => s.Id)
             .ToListAsync(cancellationToken);
 
@@ -230,7 +228,6 @@ internal abstract class BaseRankService<TEntity>(
     {
         List<int> groupIds = await Entities
             .AsNoTracking()
-            .Where(s => !s.IsDeleted)
             .Select(GroupKey)
             .Distinct()
             .ToListAsync(cancellationToken);

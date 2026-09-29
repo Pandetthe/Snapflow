@@ -20,12 +20,12 @@ internal sealed class UpdateSwimlaneHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
-            return Result.Failure<UpdateSwimlaneResponse>(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         Swimlane? swimlane = await dbContext.Swimlanes
-            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId, cancellationToken);
         if (swimlane == null)
-            return Result.Failure<UpdateSwimlaneResponse>(SwimlaneErrors.NotFound(command.Id));
+            return SwimlaneErrors.NotFound(command.Id);
 
         DateTimeOffset updatedAt = timeProvider.GetUtcNow();
 

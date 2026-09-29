@@ -19,7 +19,7 @@ internal sealed class GetSwimlaneByIdHandler(
 
         GetSwimlaneByIdResponse? swimlane = await dbContext.Swimlanes
             .AsNoTracking()
-            .Where(s => !s.IsDeleted && s.Id == query.Id && s.BoardId == query.BoardId)
+            .Where(s => s.Id == query.Id && s.BoardId == query.BoardId)
             .Select(s => new GetSwimlaneByIdResponse(
                 s.Id,
                 s.BoardId,
@@ -32,7 +32,7 @@ internal sealed class GetSwimlaneByIdHandler(
                 isMember ? UserDto.From(s.UpdatedBy) : null))
             .SingleOrDefaultAsync(cancellationToken);
         if (swimlane == null)
-            return Result.Failure<GetSwimlaneByIdResponse>(SwimlaneErrors.NotFound(query.Id));
+            return SwimlaneErrors.NotFound(query.Id);
         return swimlane;
     }
 }

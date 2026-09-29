@@ -8,7 +8,7 @@ using Snapflow.Domain.Ranking;
 
 namespace Snapflow.Domain.Cards;
 
-public class Card : Entity<int, Card>, IRankable
+public class Card : Entity<int, Card>, IRankable, ISoftDeletable
 {
     public Card() { }
     

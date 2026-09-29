@@ -1,19 +1,20 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using NetArchTest.Rules;
+using System.Reflection;
 
 namespace Snapflow.ArchitectureTests;
 
 public sealed class CleanArchitectureTests : Base
 {
     [Fact]
-    public void DomainLayer_Should_NotHaveDependencyOn_Application()
+    public void DomainLayer_ShouldNotHaveDependencyOn_ApplicationLayer()
     {
         TestResult result = Types.InAssembly(DomainAssembly)
             .Should()
-            .NotHaveDependencyOn("Application")
+            .NotHaveDependencyOn(ApplicationNamespace)
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue(Describe(result));
     }
 
     [Fact]
@@ -21,10 +22,10 @@ public sealed class CleanArchitectureTests : Base
     {
         TestResult result = Types.InAssembly(DomainAssembly)
             .Should()
-            .NotHaveDependencyOn(InfrastructureAssembly.GetName().Name)
+            .NotHaveDependencyOn(InfrastructureNamespace)
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue(Describe(result));
     }
 
     [Fact]
@@ -32,10 +33,10 @@ public sealed class CleanArchitectureTests : Base
     {
         TestResult result = Types.InAssembly(DomainAssembly)
             .Should()
-            .NotHaveDependencyOn(PresentationAssembly.GetName().Name)
+            .NotHaveDependencyOn(PresentationNamespace)
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue(Describe(result));
     }
 
     [Fact]
@@ -43,10 +44,10 @@ public sealed class CleanArchitectureTests : Base
     {
         TestResult result = Types.InAssembly(ApplicationAssembly)
             .Should()
-            .NotHaveDependencyOn(InfrastructureAssembly.GetName().Name)
+            .NotHaveDependencyOn(InfrastructureNamespace)
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue(Describe(result));
     }
 
     [Fact]
@@ -54,10 +55,10 @@ public sealed class CleanArchitectureTests : Base
     {
         TestResult result = Types.InAssembly(ApplicationAssembly)
             .Should()
-            .NotHaveDependencyOn(PresentationAssembly.GetName().Name)
+            .NotHaveDependencyOn(PresentationNamespace)
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue(Describe(result));
     }
 
     [Fact]
@@ -65,10 +66,30 @@ public sealed class CleanArchitectureTests : Base
     {
         TestResult result = Types.InAssembly(InfrastructureAssembly)
             .Should()
-            .NotHaveDependencyOn(PresentationAssembly.GetName().Name)
+            .NotHaveDependencyOn(PresentationNamespace)
             .GetResult();
 
-        result.IsSuccessful.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue(Describe(result));
+    }
+
+    [Fact]
+    public void EachLayer_Should_BindToItsOwnAssemblyAndNamespace()
+    {
+        var layers = new[]
+        {
+            (ExpectedAssembly: "Domain", Assembly: DomainAssembly, Namespace: (string?)null),
+            (ExpectedAssembly: "Application", Assembly: ApplicationAssembly, Namespace: ApplicationNamespace),
+            (ExpectedAssembly: "Infrastructure", Assembly: InfrastructureAssembly, Namespace: InfrastructureNamespace),
+            (ExpectedAssembly: "Presentation", Assembly: PresentationAssembly, Namespace: PresentationNamespace)
+        };
+
+        foreach ((string expectedAssembly, Assembly assembly, string? layerNamespace) in layers)
+        {
+            assembly.GetName().Name.Should().Be(expectedAssembly);
+
+            if (layerNamespace is not null)
+                layerNamespace.Should().Be($"Snapflow.{expectedAssembly}");
+        }
     }
 
     [Fact]
@@ -91,4 +112,7 @@ public sealed class CleanArchitectureTests : Base
 
         failingInterfaces.Should().BeEmpty("All interfaces in the solution should start with the letter 'I' followed by an uppercase letter.");
     }
+
+    private static string Describe(TestResult result) =>
+        string.Join(", ", result.FailingTypeNames ?? []);
 }

@@ -19,22 +19,22 @@ internal sealed class AddTagToCardHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
-            return Result.Failure(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         // The tags already on the card are loaded so the join row is not inserted twice.
         Card? card = await dbContext.Cards
             .Include(c => c.Tags)
-            .SingleOrDefaultAsync(c => c.Id == command.CardId && c.BoardId == command.BoardId && !c.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(c => c.Id == command.CardId && c.BoardId == command.BoardId, cancellationToken);
         if (card == null)
-            return Result.Failure(CardErrors.NotFound(command.CardId));
+            return CardErrors.NotFound(command.CardId);
 
         Tag? tag = await dbContext.Tags
-            .SingleOrDefaultAsync(t => t.Id == command.TagId && t.BoardId == command.BoardId && !t.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(t => t.Id == command.TagId && t.BoardId == command.BoardId, cancellationToken);
         if (tag == null)
-            return Result.Failure(TagErrors.NotFound(command.TagId));
+            return TagErrors.NotFound(command.TagId);
 
         if (!card.AddTag(tag, user, userContext.ConnectionId))
-            return Result.Failure(TagErrors.AlreadyOnCard(command.TagId, command.CardId));
+            return TagErrors.AlreadyOnCard(command.TagId, command.CardId);
 
         return await dbContext.TrySaveChangesAsync(
             [new UniqueConflict(DbConstraints.CardTagKey, TagErrors.AlreadyOnCard(command.TagId, command.CardId))],

@@ -87,7 +87,7 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
             return Result.Success();
 
         if (result.Errors.Any(e => e.Code == "InvalidToken"))
-            return Result.Failure(UserErrors.PasswordResetInvalidCode);
+            return UserErrors.PasswordResetInvalidCode;
         var errors = result.Errors.Select(e => new PropertyValidationError(null, e.Code, e.Description)).ToArray();
         return Result.ValidationFailure<IUser>(new ValidationError(errors));
     }
@@ -165,9 +165,9 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
     {
         AppUser appUser = EnsureIsAppUser(user);
         if (!SystemRoles.All.Contains(role))
-            return Result.Failure(RoleErrors.NotFound(role));
+            return RoleErrors.NotFound(role);
         if (await userManager.IsInRoleAsync(appUser, role))
-            return Result.Failure(RoleErrors.AlreadyAssigned(role));
+            return RoleErrors.AlreadyAssigned(role);
 
         IdentityResult result = await userManager.AddToRoleAsync(appUser, role);
         if (!result.Succeeded)
@@ -182,9 +182,9 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
     {
         AppUser appUser = EnsureIsAppUser(user);
         if (!SystemRoles.All.Contains(role))
-            return Result.Failure(RoleErrors.NotFound(role));
+            return RoleErrors.NotFound(role);
         if (!await userManager.IsInRoleAsync(appUser, role))
-            return Result.Failure(RoleErrors.NotAssigned(role));
+            return RoleErrors.NotAssigned(role);
 
         IdentityResult result = await userManager.RemoveFromRoleAsync(appUser, role);
         if (!result.Succeeded)
@@ -212,7 +212,7 @@ internal sealed class AppUserManager(UserManager<AppUser> userManager) : IUserMa
         UserLoginInfo? login = (await userManager.GetLoginsAsync(appUser))
             .FirstOrDefault(l => string.Equals(l.LoginProvider, provider, StringComparison.Ordinal));
         if (login is null)
-            return Result.Failure(ExternalLoginErrors.NotFound);
+            return ExternalLoginErrors.NotFound;
 
         IdentityResult result = await userManager.RemoveLoginAsync(appUser, login.LoginProvider, login.ProviderKey);
         return result.Succeeded ? Result.Success() : IdentityFailure(result);

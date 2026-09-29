@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
-using Snapflow.Application.Ranking;
+using Snapflow.Application.Abstractions.Ranking;
 using Snapflow.Common;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
@@ -25,25 +25,25 @@ internal sealed class MoveCardHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
-            return Result.Failure<string>(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         var list = await dbContext.Lists
             .AsNoTracking()
-            .Where(l => l.Id == command.ListId && l.BoardId == command.BoardId && !l.IsDeleted)
+            .Where(l => l.Id == command.ListId && l.BoardId == command.BoardId)
             .Select(l => new { l.SwimlaneId })
             .SingleOrDefaultAsync(cancellationToken);
         if (list == null)
-            return Result.Failure<string>(ListErrors.NotFound(command.ListId));
+            return ListErrors.NotFound(command.ListId);
 
         Card? card = await dbContext.Cards
-            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId, cancellationToken);
         if (card == null)
-            return Result.Failure<string>(CardErrors.NotFound(command.Id));
+            return CardErrors.NotFound(command.Id);
 
         var rankResult = await rankService.GenerateRankAsync(
             command.ListId, command.Id, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
-            return Result.Failure<string>(rankResult.Error);
+            return rankResult.Error;
 
         card.Move(
             command.ListId,

@@ -19,6 +19,7 @@ using OpenTelemetry.Trace;
 using Snapflow.Application.Abstractions.Behaviours;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Persistence;
+using Snapflow.Application.Abstractions.Ranking;
 using Snapflow.Application.Abstractions.Services;
 using Snapflow.Infrastructure.Auth.Accessors;
 using Snapflow.Infrastructure.Auth.Cookies;

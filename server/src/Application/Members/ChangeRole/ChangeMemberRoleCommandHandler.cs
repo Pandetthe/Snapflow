@@ -16,9 +16,9 @@ internal sealed class ChangeMemberRoleCommandHandler(
         Member? member = await dbContext.Members.SingleOrDefaultAsync(
             x => x.BoardId == command.BoardId && x.UserId == command.UserId, cancellationToken);
         if (member == null)
-            return Result.Failure(MemberErrors.NotFound(command.UserId, command.BoardId));
+            return MemberErrors.NotFound(command.UserId, command.BoardId);
         if (member.Role == MemberRole.Owner)
-            return Result.Failure(MemberErrors.CannotChangeOwnerRole);
+            return MemberErrors.CannotChangeOwnerRole;
         member.UpdateRole(command.Role, userContext.ConnectionId);
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();

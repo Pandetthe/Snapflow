@@ -3,7 +3,7 @@ using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Application.Abstractions.Services;
-using Snapflow.Application.Ranking;
+using Snapflow.Application.Abstractions.Ranking;
 using Snapflow.Common;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
@@ -28,19 +28,19 @@ internal sealed class CreateCardHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
-            return Result.Failure<CreateCardResponse>(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         var list = await dbContext.Lists
             .AsNoTracking()
-            .Where(x => x.Id == command.ListId && x.BoardId == command.BoardId && !x.IsDeleted)
+            .Where(x => x.Id == command.ListId && x.BoardId == command.BoardId)
             .Select(x => new { x.BoardId, x.SwimlaneId })
             .SingleOrDefaultAsync(cancellationToken);
         if (list == null)
-            return Result.Failure<CreateCardResponse>(ListErrors.NotFound(command.ListId));
+            return ListErrors.NotFound(command.ListId);
         var rankResult = await rankService.GenerateRankAsync(
             command.ListId, null, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
-            return Result.Failure<CreateCardResponse>(rankResult.Error);
+            return rankResult.Error;
 
         DateTimeOffset createdAt = timeProvider.GetUtcNow();
 

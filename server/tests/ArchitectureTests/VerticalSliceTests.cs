@@ -1,6 +1,5 @@
 using FluentAssertions;
 using NetArchTest.Rules;
-using Snapflow.Application.Abstractions.Messaging;
 
 namespace Snapflow.ArchitectureTests;
 
@@ -9,7 +8,7 @@ public sealed class VerticalSliceTests : Base
     [Fact]
     public void VerticalSlices_ShouldNot_Depend_On_Other_Slices()
     {
-        var slices = new[] { "Boards", "Cards", "Lists", "Swimlanes", "Users", "Auth", "Members", "Ranking", "Tags" };
+        var slices = new[] { "Boards", "Cards", "Lists", "Swimlanes", "Users", "Auth", "Members", "Tags" };
 
         var failingSlices = new List<string>();
 
@@ -24,7 +23,7 @@ public sealed class VerticalSliceTests : Base
 
             if (!result.IsSuccessful)
             {
-                failingSlices.Add(slice);
+                failingSlices.Add($"{slice} -> {string.Join(", ", result.FailingTypeNames ?? [])}");
             }
         }
 

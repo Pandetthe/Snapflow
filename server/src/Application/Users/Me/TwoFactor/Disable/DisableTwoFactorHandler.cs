@@ -16,14 +16,14 @@ internal sealed class DisableTwoFactorHandler(
 
         TwoFactorStatus status = await userManager.GetTwoFactorStatusAsync(user);
         if (!status.IsEnabled)
-            return Result.Failure(TwoFactorErrors.NotEnabled);
+            return TwoFactorErrors.NotEnabled;
 
         bool verified = string.IsNullOrWhiteSpace(command.RecoveryCode)
             ? await userManager.VerifyAuthenticatorCodeAsync(user, command.Code ?? string.Empty)
             : await userManager.RedeemRecoveryCodeAsync(user, command.RecoveryCode);
 
         if (!verified)
-            return Result.Failure(TwoFactorErrors.InvalidCode);
+            return TwoFactorErrors.InvalidCode;
 
         Result disabled = await userManager.DisableTwoFactorAsync(user);
         if (disabled.IsFailure)

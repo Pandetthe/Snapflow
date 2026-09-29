@@ -19,7 +19,7 @@ internal sealed class GetBoardsHandler(
 
         var boardsQuery = memberships
             .Join(
-                dbContext.Boards.AsNoTracking().Where(b => !b.IsDeleted),
+                dbContext.Boards.AsNoTracking(),
                 m => m.BoardId,
                 b => b.Id,
                 (m, b) => new { m.Role, Board = b });

@@ -20,12 +20,12 @@ internal sealed class UpdateListHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
-            return Result.Failure<UpdateListResponse>(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         List? list = await dbContext.Lists
-            .SingleOrDefaultAsync(l => l.Id == command.Id && l.BoardId == command.BoardId && !l.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(l => l.Id == command.Id && l.BoardId == command.BoardId, cancellationToken);
         if (list == null)
-            return Result.Failure<UpdateListResponse>(ListErrors.NotFound(command.Id));
+            return ListErrors.NotFound(command.Id);
 
         DateTimeOffset updatedAt = timeProvider.GetUtcNow();
 

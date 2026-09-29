@@ -22,22 +22,22 @@ internal sealed class UpdateBoardHandler(
         var userExists = await dbContext.Users.AsNoTracking()
              .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (!userExists)
-            return Result.Failure(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         Board? board = await dbContext.Boards
             .Include(x => x.Members)
-            .SingleOrDefaultAsync(x => x.Id == command.Id && !x.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(x => x.Id == command.Id, cancellationToken);
         if (board == null)
-            return Result.Failure(BoardErrors.NotFound(command.Id));
+            return BoardErrors.NotFound(command.Id);
 
         bool changesVisibility = command.Visibility is not null && command.Visibility != board.Visibility;
         if (changesVisibility)
         {
             if (!visibilityPolicy.IsAllowed(command.Visibility!.Value))
-                return Result.Failure(BoardErrors.VisibilityNotAllowed(command.Visibility.Value));
+                return BoardErrors.VisibilityNotAllowed(command.Visibility.Value);
 
             if (!await permissionService.HasPermissionAsync(board.Id, BoardPermissions.Boards.ChangeVisibility, cancellationToken))
-                return Result.Failure(BoardErrors.VisibilityChangeForbidden(board.Id));
+                return BoardErrors.VisibilityChangeForbidden(board.Id);
         }
 
         if (command.Members != null)
@@ -51,7 +51,7 @@ internal sealed class UpdateBoardHandler(
 
             var missingUserId = memberUserIds.FirstOrDefault(id => !existingUserIds.Contains(id));
             if (missingUserId != 0)
-                return Result.Failure(UserErrors.NotFound(missingUserId));
+                return UserErrors.NotFound(missingUserId);
 
             board.SyncMembers(
                 command.Members.Select(m => (m.UserId, m.Role)).ToList(),

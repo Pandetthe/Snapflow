@@ -15,12 +15,11 @@ internal sealed class GetCardsBySwimlaneIdQueryHandler(
     {
         var swimlane = await dbContext.Swimlanes
             .AsNoTracking()
-            .Where(b => b.Id == query.Id && b.BoardId == query.BoardId && !b.IsDeleted)
+            .Where(b => b.Id == query.Id && b.BoardId == query.BoardId)
             .Select(b => new
             {
                 b.Id,
                 Cards = b.Cards
-                    .Where(c => !c.IsDeleted)
                     .OrderBy(c => c.Rank)
                     .Select(c => new CardDto(
                         c.Id,
@@ -35,7 +34,7 @@ internal sealed class GetCardsBySwimlaneIdQueryHandler(
             .SingleOrDefaultAsync(cancellationToken);
 
         if (swimlane == null)
-            return Result.Failure<IReadOnlyList<CardDto>>(SwimlaneErrors.NotFound(query.Id));
+            return SwimlaneErrors.NotFound(query.Id);
 
         return swimlane.Cards;
     }

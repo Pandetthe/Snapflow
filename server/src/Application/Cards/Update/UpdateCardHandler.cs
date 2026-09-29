@@ -20,12 +20,12 @@ internal sealed class UpdateCardHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
-            return Result.Failure<UpdateCardResponse>(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         Card? card = await dbContext.Cards
-            .SingleOrDefaultAsync(c => c.Id == command.Id && c.BoardId == command.BoardId && !c.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(c => c.Id == command.Id && c.BoardId == command.BoardId, cancellationToken);
         if (card == null)
-            return Result.Failure<UpdateCardResponse>(CardErrors.NotFound(command.Id));
+            return CardErrors.NotFound(command.Id);
 
         DateTimeOffset updatedAt = timeProvider.GetUtcNow();
 

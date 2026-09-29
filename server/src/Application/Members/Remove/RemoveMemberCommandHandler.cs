@@ -17,9 +17,9 @@ internal sealed class RemoveMemberCommandHandler(
             .SingleOrDefaultAsync(b => b.BoardId == command.BoardId
             && b.UserId == command.UserId, cancellationToken);
         if (member == null)
-            return Result.Failure(MemberErrors.NotFound(command.UserId, command.BoardId));
+            return MemberErrors.NotFound(command.UserId, command.BoardId);
         if (member.Role == MemberRole.Owner)
-            return Result.Failure(MemberErrors.CannotRemoveOwner);
+            return MemberErrors.CannotRemoveOwner;
         member.Remove(userContext.ConnectionId);
         dbContext.Members.Remove(member);
         await dbContext.SaveChangesAsync(cancellationToken);

@@ -7,7 +7,7 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Domain.Lists;
 
-public class List : Entity<int, List>, IRankable
+public class List : Entity<int, List>, IRankable, ISoftDeletable
 {
     public List() { }
     

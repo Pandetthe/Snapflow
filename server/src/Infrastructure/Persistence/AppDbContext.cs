@@ -12,6 +12,7 @@ using Snapflow.Domain.Tags;
 using Snapflow.Domain.Users;
 using Snapflow.Infrastructure.Auth.Entities;
 using Microsoft.EntityFrameworkCore.Metadata;
+using System.Linq.Expressions;
 using Snapflow.Domain.Roles;
 
 namespace Snapflow.Infrastructure.Persistence;
@@ -43,6 +44,22 @@ public sealed class AppDbContext(
         foreach (IMutableEntityType entityType in entityTypes)
         {
             builder.Entity(entityType.ClrType).Ignore(nameof(IEntity.DomainEvents));
+        }
+
+        ApplySoftDeleteFilters(builder);
+    }
+
+    private static void ApplySoftDeleteFilters(ModelBuilder builder)
+    {
+        foreach (IMutableEntityType entityType in builder.Model.GetEntityTypes()
+                     .Where(type => typeof(ISoftDeletable).IsAssignableFrom(type.ClrType)))
+        {
+            ParameterExpression parameter = Expression.Parameter(entityType.ClrType, "entity");
+            MemberExpression property = Expression.Property(parameter, nameof(ISoftDeletable.IsDeleted));
+            UnaryExpression notDeleted = Expression.Not(property);
+
+            builder.Entity(entityType.ClrType)
+                .HasQueryFilter(ISoftDeletable.FilterName, Expression.Lambda(notDeleted, parameter));
         }
     }
 }

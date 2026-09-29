@@ -14,7 +14,7 @@ internal sealed class ResetPasswordHandler(
         if (user is null || !await userManager.IsEmailConfirmedAsync(user))
             return Result.Failure(UserErrors.PasswordResetInvalidCode); // Hide that the user does not exist or email is not confirmed
         if (user.IsDeleted)
-            return Result.Failure(UserErrors.AccountDeleted);
+            return UserErrors.AccountDeleted;
         return await userManager.ResetPasswordAsync(user, command.ResetCode, command.NewPassword);
     }
 }

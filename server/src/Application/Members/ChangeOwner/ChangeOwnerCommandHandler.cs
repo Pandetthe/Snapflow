@@ -20,13 +20,13 @@ internal sealed class ChangeOwnerCommandHandler(
         Member? oldOwner = await dbContext.Members
             .SingleOrDefaultAsync(b => b.BoardId == command.BoardId && b.Role == MemberRole.Owner, cancellationToken);
         if (oldOwner == null)
-            return Result.Failure(BoardErrors.NotFound(command.BoardId));
+            return BoardErrors.NotFound(command.BoardId);
         if (oldOwner.UserId == command.UserId)
             return Result.Success();
         Member? newOwner = await dbContext.Members
             .SingleOrDefaultAsync(b => b.BoardId == command.BoardId && b.UserId == command.UserId, cancellationToken);
         if (newOwner == null)
-            return Result.Failure(MemberErrors.NotFound(command.UserId, command.BoardId));
+            return MemberErrors.NotFound(command.UserId, command.BoardId);
         oldOwner.UpdateRole(MemberRole.Admin, userContext.ConnectionId);
         await dbContext.SaveChangesAsync(cancellationToken);
 

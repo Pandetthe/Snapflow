@@ -35,11 +35,11 @@ public static class SaveChangesExtensions
         }
         catch (UniqueConstraintException exception) when (Match(conflicts, exception) is { } expected)
         {
-            return Result.Failure(expected.Error);
+            return expected.Error;
         }
         catch (DbUpdateConcurrencyException) when (concurrencyConflict is not null)
         {
-            return Result.Failure(concurrencyConflict);
+            return concurrencyConflict;
         }
     }
 

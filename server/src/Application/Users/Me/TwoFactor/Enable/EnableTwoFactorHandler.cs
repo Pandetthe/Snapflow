@@ -16,14 +16,14 @@ internal sealed class EnableTwoFactorHandler(
 
         TwoFactorStatus status = await userManager.GetTwoFactorStatusAsync(user);
         if (status.IsEnabled)
-            return Result.Failure<EnableTwoFactorResponse>(TwoFactorErrors.AlreadyEnabled);
+            return TwoFactorErrors.AlreadyEnabled;
 
         if (!await userManager.VerifyAuthenticatorCodeAsync(user, command.Code))
-            return Result.Failure<EnableTwoFactorResponse>(TwoFactorErrors.InvalidCode);
+            return TwoFactorErrors.InvalidCode;
 
         Result<IReadOnlyList<string>> enabled = await userManager.EnableTwoFactorAsync(user);
         if (enabled.IsFailure)
-            return Result.Failure<EnableTwoFactorResponse>(enabled.Error);
+            return enabled.Error;
 
         await signInManager.RefreshSignInAsync(user);
 

@@ -20,17 +20,17 @@ internal sealed class UpdateTagHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
-            return Result.Failure<UpdateTagResponse>(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         Tag? tag = await dbContext.Tags
-            .SingleOrDefaultAsync(t => t.Id == command.Id && t.BoardId == command.BoardId && !t.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(t => t.Id == command.Id && t.BoardId == command.BoardId, cancellationToken);
         if (tag == null)
-            return Result.Failure<UpdateTagResponse>(TagErrors.NotFound(command.Id));
+            return TagErrors.NotFound(command.Id);
 
         var titleTaken = await dbContext.Tags.AsNoTracking()
-            .AnyAsync(t => t.BoardId == command.BoardId && t.Id != command.Id && !t.IsDeleted && t.Title == command.Title, cancellationToken);
+            .AnyAsync(t => t.BoardId == command.BoardId && t.Id != command.Id && t.Title == command.Title, cancellationToken);
         if (titleTaken)
-            return Result.Failure<UpdateTagResponse>(TagErrors.TitleNotUnique(command.Title));
+            return TagErrors.TitleNotUnique(command.Title);
 
         DateTimeOffset updatedAt = timeProvider.GetUtcNow();
 
@@ -43,7 +43,7 @@ internal sealed class UpdateTagHandler(
             [new UniqueConflict(DbConstraints.TagTitle, TagErrors.TitleNotUnique(command.Title))],
             cancellationToken);
         if (saved.IsFailure)
-            return Result.Failure<UpdateTagResponse>(saved.Error);
+            return saved.Error;
 
         return new UpdateTagResponse(updatedAt, UserDto.From(user));
     }

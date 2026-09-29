@@ -28,7 +28,7 @@ internal sealed class AppPasskeyManager(
     {
         AppUser appUser = EnsureIsAppUser(user);
         if ((await userManager.GetPasskeysAsync(appUser)).Count >= Domain.Users.UserOptions.MaxPasskeysPerUser)
-            return Result.Failure<PasskeyChallenge>(PasskeyErrors.LimitReached);
+            return PasskeyErrors.LimitReached;
 
         string userId = await userManager.GetUserIdAsync(appUser);
         var userEntity = new PasskeyUserEntity
@@ -52,10 +52,10 @@ internal sealed class AppPasskeyManager(
 
         PasskeyCeremony? ceremony = await stateProtector.ConsumeAsync(state, PasskeyStateProtector.Registration);
         if (ceremony is null || !string.Equals(ceremony.UserId, userId, StringComparison.Ordinal))
-            return Result.Failure<PasskeyDetails>(PasskeyErrors.Expired);
+            return PasskeyErrors.Expired;
 
         if ((await userManager.GetPasskeysAsync(appUser)).Count >= Domain.Users.UserOptions.MaxPasskeysPerUser)
-            return Result.Failure<PasskeyDetails>(PasskeyErrors.LimitReached);
+            return PasskeyErrors.LimitReached;
 
         PasskeyAttestationResult attestation = await passkeyHandler.PerformAttestationAsync(new PasskeyAttestationContext
         {
@@ -65,10 +65,10 @@ internal sealed class AppPasskeyManager(
         });
 
         if (!attestation.Succeeded || !string.Equals(attestation.UserEntity.Id, userId, StringComparison.Ordinal))
-            return Result.Failure<PasskeyDetails>(PasskeyErrors.RegistrationFailed);
+            return PasskeyErrors.RegistrationFailed;
 
         if (await userManager.FindByPasskeyIdAsync(attestation.Passkey.CredentialId) is not null)
-            return Result.Failure<PasskeyDetails>(PasskeyErrors.AlreadyRegistered);
+            return PasskeyErrors.AlreadyRegistered;
 
         attestation.Passkey.Name = string.IsNullOrWhiteSpace(name) ? DefaultName : name.Trim();
 
@@ -89,7 +89,7 @@ internal sealed class AppPasskeyManager(
         AppUser appUser = EnsureIsAppUser(user);
         UserPasskeyInfo? passkey = await FindPasskeyAsync(appUser, passkeyId);
         if (passkey is null)
-            return Result.Failure(PasskeyErrors.NotFound);
+            return PasskeyErrors.NotFound;
 
         passkey.Name = name.Trim();
 
@@ -102,7 +102,7 @@ internal sealed class AppPasskeyManager(
         AppUser appUser = EnsureIsAppUser(user);
         UserPasskeyInfo? passkey = await FindPasskeyAsync(appUser, passkeyId);
         if (passkey is null)
-            return Result.Failure(PasskeyErrors.NotFound);
+            return PasskeyErrors.NotFound;
 
         IdentityResult removed = await userManager.RemovePasskeyAsync(appUser, passkey.CredentialId);
         return removed.Succeeded ? Result.Success() : IdentityFailure(removed);

@@ -22,12 +22,12 @@ internal sealed class DeleteSwimlaneHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
-            return Result.Failure(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         Swimlane? swimlane = await dbContext.Swimlanes
-            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId, cancellationToken);
         if (swimlane == null)
-            return Result.Failure(SwimlaneErrors.NotFound(command.Id));
+            return SwimlaneErrors.NotFound(command.Id);
 
         DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
         var userId = userContext.UserId;
@@ -35,7 +35,7 @@ internal sealed class DeleteSwimlaneHandler(
         swimlane.SoftDelete(user, dateTimeOffset, userContext.ConnectionId);
 
         await dbContext.Lists
-            .Where(l => l.SwimlaneId == swimlane.Id && !l.IsDeleted)
+            .Where(l => l.SwimlaneId == swimlane.Id)
             .ExecuteUpdateAsync(l => l
                 .SetProperty(x => x.IsDeleted, true)
                 .SetProperty(x => x.DeletedAt, dateTimeOffset)
@@ -44,7 +44,7 @@ internal sealed class DeleteSwimlaneHandler(
                 cancellationToken);
 
         await dbContext.Cards
-            .Where(c => c.SwimlaneId == swimlane.Id && !c.IsDeleted)
+            .Where(c => c.SwimlaneId == swimlane.Id)
             .ExecuteUpdateAsync(c => c
                 .SetProperty(x => x.IsDeleted, true)
                 .SetProperty(x => x.DeletedAt, dateTimeOffset)

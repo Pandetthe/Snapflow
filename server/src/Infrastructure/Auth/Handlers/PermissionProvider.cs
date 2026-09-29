@@ -89,7 +89,7 @@ internal sealed class PermissionProvider(IAppDbContext dbContext, IBoardVisibili
 
         BoardVisibility? visibility = await dbContext.Boards
             .AsNoTracking()
-            .Where(b => b.Id == boardId && !b.IsDeleted)
+            .Where(b => b.Id == boardId)
             .Select(b => (BoardVisibility?)b.Visibility)
             .SingleOrDefaultAsync();
         if (visibility.HasValue && visibilityPolicy.CanNonMemberView(visibility.Value, userId is not null))

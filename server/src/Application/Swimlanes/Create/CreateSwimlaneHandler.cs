@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
-using Snapflow.Application.Ranking;
+using Snapflow.Application.Abstractions.Ranking;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Swimlanes;
@@ -26,16 +26,16 @@ internal sealed class CreateSwimlaneHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
-            return Result.Failure<CreateSwimlaneResponse>(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         var boardExists = await dbContext.Boards.AsNoTracking()
-            .AnyAsync(b => b.Id == command.BoardId && !b.IsDeleted, cancellationToken);
+            .AnyAsync(b => b.Id == command.BoardId, cancellationToken);
         if (!boardExists)
-            return Result.Failure<CreateSwimlaneResponse>(BoardErrors.NotFound(command.BoardId));
+            return BoardErrors.NotFound(command.BoardId);
         var rankResult = await rankService.GenerateRankAsync(
             command.BoardId, null, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
-            return Result.Failure<CreateSwimlaneResponse>(rankResult.Error);
+            return rankResult.Error;
 
         DateTimeOffset createdAt = timeProvider.GetUtcNow();
 

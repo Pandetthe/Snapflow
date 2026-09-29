@@ -15,12 +15,11 @@ internal sealed class GetCardsByListIdHandler(
     {
         var list = await dbContext.Lists
             .AsNoTracking()
-            .Where(b => b.Id == query.Id && b.BoardId == query.BoardId && !b.IsDeleted)
+            .Where(b => b.Id == query.Id && b.BoardId == query.BoardId)
             .Select(b => new
             {
                 b.Id,
                 Cards = b.Cards
-                    .Where(c => !c.IsDeleted)
                     .OrderBy(c => c.Rank)
                     .Select(c => new CardDto(
                         c.Id,
@@ -35,7 +34,7 @@ internal sealed class GetCardsByListIdHandler(
             .SingleOrDefaultAsync(cancellationToken);
 
         if (list == null)
-            return Result.Failure<IReadOnlyList<CardDto>>(ListErrors.NotFound(query.Id));
+            return ListErrors.NotFound(query.Id);
 
         return list.Cards;
     }

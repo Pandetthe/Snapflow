@@ -14,7 +14,7 @@ internal sealed class LdapSignInHandler(
     public async Task<Result> Handle(LdapSignInCommand command, CancellationToken cancellationToken = default)
     {
         if (!ldapAuthenticator.IsEnabled)
-            return Result.Failure(AuthenticationErrors.ProviderNotAvailable);
+            return AuthenticationErrors.ProviderNotAvailable;
 
         Result<ExternalIdentity> identity = await ldapAuthenticator.AuthenticateAsync(command.UserName, command.Password, cancellationToken);
         if (identity.IsFailure)

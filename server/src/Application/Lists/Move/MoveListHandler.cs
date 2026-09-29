@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
-using Snapflow.Application.Ranking;
+using Snapflow.Application.Abstractions.Ranking;
 using Snapflow.Common;
 using Snapflow.Domain.Lists;
 using Snapflow.Domain.Swimlanes;
@@ -25,24 +25,24 @@ internal sealed class MoveListHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
-            return Result.Failure<string>(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         Swimlane? swimlane = await dbContext.Swimlanes
             .AsNoTracking()
-            .SingleOrDefaultAsync(s => s.Id == command.SwimlaneId && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(s => s.Id == command.SwimlaneId && s.BoardId == command.BoardId, cancellationToken);
         if (swimlane == null)
-            return Result.Failure<string>(SwimlaneErrors.NotFound(command.SwimlaneId));
+            return SwimlaneErrors.NotFound(command.SwimlaneId);
 
         List? list = await dbContext.Lists
             .Include(l => l.Cards)
-            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId, cancellationToken);
         if (list == null)
-            return Result.Failure<string>(ListErrors.NotFound(command.Id));
+            return ListErrors.NotFound(command.Id);
 
         var rankResult = await rankService.GenerateRankAsync(
             command.SwimlaneId, command.Id, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
-            return Result.Failure<string>(rankResult.Error);
+            return rankResult.Error;
 
         list.Move(
             command.SwimlaneId,

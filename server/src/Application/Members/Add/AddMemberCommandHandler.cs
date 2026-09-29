@@ -15,28 +15,28 @@ internal sealed class AddMemberCommandHandler(
     {
         var boardExists = await dbContext.Boards
             .AsNoTracking()
-            .AnyAsync(b => b.Id == command.BoardId && !b.IsDeleted, cancellationToken);
+            .AnyAsync(b => b.Id == command.BoardId, cancellationToken);
         if (!boardExists)
-            return Result.Failure(BoardErrors.NotFound(command.BoardId));
+            return BoardErrors.NotFound(command.BoardId);
 
         var userExists = await dbContext.Users
             .AsNoTracking()
             .AnyAsync(u => u.Id == command.UserId, cancellationToken);
         if (!userExists)
-            return Result.Failure(UserErrors.NotFound(command.UserId));
+            return UserErrors.NotFound(command.UserId);
 
         var existingOwner = await dbContext.Members
             .AsNoTracking()
             .AnyAsync(m => m.BoardId == command.BoardId && m.Role == MemberRole.Owner, cancellationToken);
 
         if (existingOwner && command.Role == MemberRole.Owner)
-            return Result.Failure(MemberErrors.OwnerAlreadyExists(command.BoardId));
+            return MemberErrors.OwnerAlreadyExists(command.BoardId);
 
         var alreadyMember = await dbContext.Members
             .AsNoTracking()
             .AnyAsync(m => m.BoardId == command.BoardId && m.UserId == command.UserId, cancellationToken);
         if (alreadyMember)
-            return Result.Failure(MemberErrors.AlreadyMember(command.UserId, command.BoardId));
+            return MemberErrors.AlreadyMember(command.UserId, command.BoardId);
 
         var member = Member.Create(command.BoardId, command.UserId, command.Role);
 

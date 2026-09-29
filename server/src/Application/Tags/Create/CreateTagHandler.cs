@@ -21,18 +21,18 @@ internal sealed class CreateTagHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
-            return Result.Failure<CreateTagResponse>(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         var boardExists = await dbContext.Boards.AsNoTracking()
-            .AnyAsync(b => b.Id == command.BoardId && !b.IsDeleted, cancellationToken);
+            .AnyAsync(b => b.Id == command.BoardId, cancellationToken);
         if (!boardExists)
-            return Result.Failure<CreateTagResponse>(BoardErrors.NotFound(command.BoardId));
+            return BoardErrors.NotFound(command.BoardId);
 
         // Titles are what people pick tags by, so the board may not hold two of the same.
         var titleTaken = await dbContext.Tags.AsNoTracking()
-            .AnyAsync(t => t.BoardId == command.BoardId && !t.IsDeleted && t.Title == command.Title, cancellationToken);
+            .AnyAsync(t => t.BoardId == command.BoardId && t.Title == command.Title, cancellationToken);
         if (titleTaken)
-            return Result.Failure<CreateTagResponse>(TagErrors.TitleNotUnique(command.Title));
+            return TagErrors.TitleNotUnique(command.Title);
 
         DateTimeOffset createdAt = timeProvider.GetUtcNow();
 
@@ -50,7 +50,7 @@ internal sealed class CreateTagHandler(
             [new UniqueConflict(DbConstraints.TagTitle, TagErrors.TitleNotUnique(command.Title))],
             cancellationToken);
         if (saved.IsFailure)
-            return Result.Failure<CreateTagResponse>(saved.Error);
+            return saved.Error;
 
         return new CreateTagResponse(tag.Id, createdAt, UserDto.From(user));
     }

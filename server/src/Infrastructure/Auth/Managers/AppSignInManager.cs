@@ -54,13 +54,13 @@ internal sealed class AppSignInManager(
         if (result.Succeeded)
             return Result.Success();
         else if (result.IsNotAllowed)
-            return Result.Failure(UserErrors.SignInNotAllowed);
+            return UserErrors.SignInNotAllowed;
         else if (result.IsLockedOut)
-            return Result.Failure(UserErrors.SignInLockedOut);
+            return UserErrors.SignInLockedOut;
         else if (result.RequiresTwoFactor)
-            return Result.Failure(UserErrors.SignInTwoFactorRequired);
+            return UserErrors.SignInTwoFactorRequired;
         else
-            return Result.Failure(UserErrors.SignInFailed);
+            return UserErrors.SignInFailed;
     }
 
     private async Task<Result> MapSignInResultAsync(
@@ -76,7 +76,7 @@ internal sealed class AppSignInManager(
                 return await CompleteRememberedSignInAsync(user, loginProvider, useCookieScheme, isPersistent);
 
             string? twoFactorToken = useCookieScheme ? null : await CreateTwoFactorTokenAsync(user, loginProvider);
-            return Result.Failure(new TwoFactorRequiredError(twoFactorToken, await HasPasskeysAsync(user)));
+            return new TwoFactorRequiredError(twoFactorToken, await HasPasskeysAsync(user));
         }
 
         return MapSignInResult(result);
@@ -120,13 +120,13 @@ internal sealed class AppSignInManager(
 
         if (ticket?.Properties.ExpiresUtc == null || timeProvider.GetUtcNow() >= ticket.Properties.ExpiresUtc)
         {
-            return Result.Failure(UserErrors.RefreshFailed);
+            return UserErrors.RefreshFailed;
         }
 
         AppUser? user = await signInManager.ValidateSecurityStampAsync(ticket.Principal);
         if (user == null)
         {
-            return Result.Failure(UserErrors.RefreshFailed);
+            return UserErrors.RefreshFailed;
         }
 
         signInManager.AuthenticationScheme = IdentityConstants.BearerScheme;
@@ -141,7 +141,7 @@ internal sealed class AppSignInManager(
         IdentityResult result = await signInManager.UserManager.UpdateSecurityStampAsync(EnsureIsAppUser(user));
         if (!result.Succeeded)
         {
-            return Result.Failure(UserErrors.SignOutFailed);
+            return UserErrors.SignOutFailed;
         }
 
         await SignOutFromAllConfiguredSchemesAsync();
@@ -220,7 +220,7 @@ internal sealed class AppSignInManager(
 
         (AppUser? user, string? loginProvider) = await FindPendingTwoFactorAsync(twoFactorToken);
         if (user is null)
-            return Result.Failure(TwoFactorErrors.SignInExpired);
+            return TwoFactorErrors.SignInExpired;
 
         if (!string.IsNullOrWhiteSpace(passkeyCredential))
             return await VerifyPasskeyAndSignInAsync(user, loginProvider, passkeyCredential, passkeyState ?? string.Empty, rememberDevice, useCookieScheme, isPersistent);
@@ -246,10 +246,10 @@ internal sealed class AppSignInManager(
     {
         (AppUser? user, _) = await FindPendingTwoFactorAsync(twoFactorToken);
         if (user is null)
-            return Result.Failure<PasskeyChallenge>(TwoFactorErrors.SignInExpired);
+            return TwoFactorErrors.SignInExpired;
 
         if (!await HasPasskeysAsync(user))
-            return Result.Failure<PasskeyChallenge>(PasskeyErrors.NoneRegistered);
+            return PasskeyErrors.NoneRegistered;
 
         PasskeyRequestOptionsResult options = await passkeyHandler.MakeRequestOptionsAsync(user, Context);
         string userId = await signInManager.UserManager.GetUserIdAsync(user);
@@ -276,7 +276,7 @@ internal sealed class AppSignInManager(
 
         PasskeyCeremony? ceremony = await passkeyStateProtector.ConsumeAsync(state, PasskeyStateProtector.SignIn);
         if (ceremony is null)
-            return Result.Failure(PasskeyErrors.Expired);
+            return PasskeyErrors.Expired;
 
         PasskeyAssertionResult<AppUser> assertion = await passkeyHandler.PerformAssertionAsync(new PasskeyAssertionContext
         {
@@ -286,15 +286,15 @@ internal sealed class AppSignInManager(
         });
 
         if (!assertion.Succeeded)
-            return Result.Failure(PasskeyErrors.NotRecognized);
+            return PasskeyErrors.NotRecognized;
 
         AppUser user = assertion.User;
         if (user.IsDeleted)
-            return Result.Failure(UserErrors.AccountDeleted);
+            return UserErrors.AccountDeleted;
         if (!await signInManager.CanSignInAsync(user))
-            return Result.Failure(UserErrors.SignInNotAllowed);
+            return UserErrors.SignInNotAllowed;
         if (await userManager.IsLockedOutAsync(user))
-            return Result.Failure(UserErrors.SignInLockedOut);
+            return UserErrors.SignInLockedOut;
 
         await userManager.AddOrUpdatePasskeyAsync(user, assertion.Passkey);
         await SignOutPendingTwoFactorAsync();
@@ -356,7 +356,7 @@ internal sealed class AppSignInManager(
         UserManager<AppUser> userManager = signInManager.UserManager;
 
         if (await userManager.IsLockedOutAsync(user))
-            return Result.Failure(UserErrors.SignInLockedOut);
+            return UserErrors.SignInLockedOut;
 
         bool usesRecoveryCode = !string.IsNullOrWhiteSpace(recoveryCode);
         if (usesRecoveryCode)
@@ -404,15 +404,15 @@ internal sealed class AppSignInManager(
         UserManager<AppUser> userManager = signInManager.UserManager;
 
         if (!providerRegistry.PasswordAuthenticationEnabled)
-            return Result.Failure(AuthenticationErrors.PasswordAuthenticationDisabled);
+            return AuthenticationErrors.PasswordAuthenticationDisabled;
 
         if (await userManager.IsLockedOutAsync(user))
-            return Result.Failure(UserErrors.SignInLockedOut);
+            return UserErrors.SignInLockedOut;
 
         string userId = await userManager.GetUserIdAsync(user);
         PasskeyCeremony? ceremony = await passkeyStateProtector.ConsumeAsync(state, PasskeyStateProtector.TwoFactor);
         if (ceremony is null || !string.Equals(ceremony.UserId, userId, StringComparison.Ordinal))
-            return Result.Failure(PasskeyErrors.Expired);
+            return PasskeyErrors.Expired;
 
         PasskeyAssertionResult<AppUser> assertion = await passkeyHandler.PerformAssertionAsync(new PasskeyAssertionContext
         {
@@ -422,7 +422,7 @@ internal sealed class AppSignInManager(
         });
 
         if (!assertion.Succeeded || assertion.User.Id != user.Id)
-            return Result.Failure(PasskeyErrors.NotRecognized);
+            return PasskeyErrors.NotRecognized;
 
         await userManager.AddOrUpdatePasskeyAsync(user, assertion.Passkey);
 

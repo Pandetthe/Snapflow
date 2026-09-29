@@ -19,22 +19,24 @@ internal sealed class RemoveTagFromCardHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
-            return Result.Failure(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         Card? card = await dbContext.Cards
+            .IgnoreQueryFilters([ISoftDeletable.FilterName])
             .Include(c => c.Tags)
             .SingleOrDefaultAsync(c => c.Id == command.CardId && c.BoardId == command.BoardId && !c.IsDeleted, cancellationToken);
         if (card == null)
-            return Result.Failure(CardErrors.NotFound(command.CardId));
+            return CardErrors.NotFound(command.CardId);
 
         // A soft deleted tag is still taken off, so a card cannot keep one nobody can see.
         Tag? tag = await dbContext.Tags
+            .IgnoreQueryFilters([ISoftDeletable.FilterName])
             .SingleOrDefaultAsync(t => t.Id == command.TagId && t.BoardId == command.BoardId, cancellationToken);
         if (tag == null)
-            return Result.Failure(TagErrors.NotFound(command.TagId));
+            return TagErrors.NotFound(command.TagId);
 
         if (!card.RemoveTag(tag, user, userContext.ConnectionId))
-            return Result.Failure(TagErrors.NotOnCard(command.TagId, command.CardId));
+            return TagErrors.NotOnCard(command.TagId, command.CardId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

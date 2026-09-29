@@ -16,9 +16,9 @@ internal sealed class GetMembersQueryHandler(
     {
         bool boardExists = await dbContext.Boards
             .AsNoTracking()
-            .AnyAsync(b => b.Id == query.BoardId && !b.IsDeleted, cancellationToken);
+            .AnyAsync(b => b.Id == query.BoardId, cancellationToken);
         if (!boardExists)
-            return Result.Failure<List<GetMembersResponse>>(BoardErrors.NotFound(query.BoardId));
+            return BoardErrors.NotFound(query.BoardId);
 
         if (!await membershipService.IsMemberAsync(query.BoardId, cancellationToken))
             return Result.Success(new List<GetMembersResponse>());

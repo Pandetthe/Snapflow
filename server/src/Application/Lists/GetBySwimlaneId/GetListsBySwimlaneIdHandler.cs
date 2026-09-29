@@ -14,12 +14,11 @@ internal sealed class GetListsBySwimlaneIdHandler(
     {
         var swimlane = await dbContext.Swimlanes
             .AsNoTracking()
-            .Where(s => s.Id == query.Id && s.BoardId == query.BoardId && !s.IsDeleted)
+            .Where(s => s.Id == query.Id && s.BoardId == query.BoardId)
             .Select(s => new
             {
                 s.Id,
                 Lists = s.Lists
-                    .Where(l => !l.IsDeleted)
                     .OrderBy(s => s.Rank)
                     .Select(l => new ListDto(
                         l.Id,
@@ -33,7 +32,7 @@ internal sealed class GetListsBySwimlaneIdHandler(
             .SingleOrDefaultAsync(cancellationToken);
 
         if (swimlane == null)
-            return Result.Failure<IReadOnlyList<ListDto>>(SwimlaneErrors.NotFound(query.Id));
+            return SwimlaneErrors.NotFound(query.Id);
         return swimlane.Lists;
     }
 }

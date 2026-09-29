@@ -19,7 +19,7 @@ internal sealed class GetCardByIdHandler(
 
         GetCardByIdResponse? card = await dbContext.Cards
             .AsNoTracking()
-            .Where(c => c.Id == query.Id && c.BoardId == query.BoardId && !c.IsDeleted)
+            .Where(c => c.Id == query.Id && c.BoardId == query.BoardId)
             .Select(c => new GetCardByIdResponse(
                 c.Id,
                 c.ListId,
@@ -35,7 +35,7 @@ internal sealed class GetCardByIdHandler(
             .SingleOrDefaultAsync(cancellationToken);
 
         if (card == null)
-            return Result.Failure<GetCardByIdResponse>(CardErrors.NotFound(query.Id));
+            return CardErrors.NotFound(query.Id);
 
         return card;
     }

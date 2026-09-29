@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
-using Snapflow.Application.Ranking;
+using Snapflow.Application.Abstractions.Ranking;
 using Snapflow.Common;
 using Snapflow.Domain.Lists;
 using Snapflow.Domain.Swimlanes;
@@ -26,19 +26,19 @@ internal sealed class CreateListHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
-            return Result.Failure<CreateListResponse>(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         var swimlaneBoardId = await dbContext.Swimlanes
             .AsNoTracking()
-            .Where(x => x.Id == command.SwimlaneId && x.BoardId == command.BoardId && !x.IsDeleted)
+            .Where(x => x.Id == command.SwimlaneId && x.BoardId == command.BoardId)
             .Select(x => new { x.BoardId })
             .SingleOrDefaultAsync(cancellationToken);
         if (swimlaneBoardId == null)
-            return Result.Failure<CreateListResponse>(SwimlaneErrors.NotFound(command.SwimlaneId));
+            return SwimlaneErrors.NotFound(command.SwimlaneId);
         var rankResult = await rankService.GenerateRankAsync(
             command.SwimlaneId, null, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
-            return Result.Failure<CreateListResponse>(rankResult.Error);
+            return rankResult.Error;
 
         DateTimeOffset createdAt = timeProvider.GetUtcNow();
 

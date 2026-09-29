@@ -21,13 +21,13 @@ internal sealed class DeleteBoardHandler(
         var userExists = await dbContext.Users.AsNoTracking()
             .AnyAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (!userExists)
-            return Result.Failure(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         Board? board = await dbContext.Boards
             .Include(b => b.Members)
-            .SingleOrDefaultAsync(x => x.Id == command.BoardId && !x.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(x => x.Id == command.BoardId, cancellationToken);
         if (board == null)
-            return Result.Failure(BoardErrors.NotFound(command.BoardId));
+            return BoardErrors.NotFound(command.BoardId);
 
         DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
         var userId = userContext.UserId;
@@ -35,7 +35,7 @@ internal sealed class DeleteBoardHandler(
         board.SoftDelete(userId, dateTimeOffset, userContext.ConnectionId);
 
         await dbContext.Swimlanes
-            .Where(s => s.BoardId == board.Id && !s.IsDeleted)
+            .Where(s => s.BoardId == board.Id)
             .ExecuteUpdateAsync(s => s
                 .SetProperty(x => x.IsDeleted, true)
                 .SetProperty(x => x.DeletedAt, dateTimeOffset)
@@ -44,7 +44,7 @@ internal sealed class DeleteBoardHandler(
                 cancellationToken);
 
         await dbContext.Lists
-            .Where(l => l.BoardId == board.Id && !l.IsDeleted)
+            .Where(l => l.BoardId == board.Id)
             .ExecuteUpdateAsync(l => l
                 .SetProperty(x => x.IsDeleted, true)
                 .SetProperty(x => x.DeletedAt, dateTimeOffset)
@@ -53,7 +53,7 @@ internal sealed class DeleteBoardHandler(
                 cancellationToken);
 
         await dbContext.Cards
-            .Where(c => c.BoardId == board.Id && !c.IsDeleted)
+            .Where(c => c.BoardId == board.Id)
             .ExecuteUpdateAsync(c => c
                 .SetProperty(x => x.IsDeleted, true)
                 .SetProperty(x => x.DeletedAt, dateTimeOffset)
@@ -62,7 +62,7 @@ internal sealed class DeleteBoardHandler(
                 cancellationToken);
 
         await dbContext.Tags
-            .Where(t => t.BoardId == board.Id && !t.IsDeleted)
+            .Where(t => t.BoardId == board.Id)
             .ExecuteUpdateAsync(t => t
                 .SetProperty(x => x.IsDeleted, true)
                 .SetProperty(x => x.DeletedAt, dateTimeOffset)

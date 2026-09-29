@@ -7,7 +7,7 @@ using Snapflow.Domain.Users;
 
 namespace Snapflow.Domain.Swimlanes;
 
-public class Swimlane : Entity<int, Swimlane>, IRankable
+public class Swimlane : Entity<int, Swimlane>, IRankable, ISoftDeletable
 {
     public Swimlane() { }
     

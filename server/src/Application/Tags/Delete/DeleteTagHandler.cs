@@ -19,13 +19,13 @@ internal sealed class DeleteTagHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
         if (user == null)
-            return Result.Failure(UserErrors.NotFound(userContext.UserId));
+            return UserErrors.NotFound(userContext.UserId);
 
         // The cards keep their join rows: the tag is only soft deleted, and every read filters it out.
         Tag? tag = await dbContext.Tags
-            .SingleOrDefaultAsync(t => t.Id == command.Id && t.BoardId == command.BoardId && !t.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(t => t.Id == command.Id && t.BoardId == command.BoardId, cancellationToken);
         if (tag == null)
-            return Result.Failure(TagErrors.NotFound(command.Id));
+            return TagErrors.NotFound(command.Id);
 
         tag.SoftDelete(user, timeProvider.GetUtcNow(), userContext.ConnectionId);
 
