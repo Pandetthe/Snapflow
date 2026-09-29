@@ -50,7 +50,7 @@ public sealed class ValidationTests : Base
     {
         var commandNames = Commands().Select(command => command.Name).ToHashSet(StringComparer.Ordinal);
 
-        Assert.True(!CommandsWithoutUserInput.Where(name => !commandNames.Contains(name)) .Any(), $"exemptions for commands that no longer exist should be dropped {string.Join(", ", CommandsWithoutUserInput.Where(name => !commandNames.Contains(name)) )}");
+        Assert.True(!CommandsWithoutUserInput.Where(name => !commandNames.Contains(name)).Any(), $"exemptions for commands that no longer exist should be dropped {string.Join(", ", CommandsWithoutUserInput.Where(name => !commandNames.Contains(name)))}");
     }
 
     private static IEnumerable<Type> Commands() =>

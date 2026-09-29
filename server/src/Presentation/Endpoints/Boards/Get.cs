@@ -1,5 +1,5 @@
 using Snapflow.Presentation.Caching;
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Boards.Get;
 using Snapflow.Common;

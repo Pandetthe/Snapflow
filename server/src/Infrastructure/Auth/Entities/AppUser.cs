@@ -19,7 +19,7 @@ public sealed class AppUser : IdentityUser<int>, IUser
     public string? AvatarUrl { get; set; }
 
     public AvatarType AvatarType { get; set; } = AvatarType.Generated;
-    
+
     public bool IsDeleted { get; set; }
 
     public DateTimeOffset? DeletedAt { get; set; }

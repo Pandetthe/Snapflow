@@ -13,7 +13,7 @@ public class Card : Entity<int, Card>, IRankable, ICascadeSoftDeletable
     private readonly List<Tag> _tags = [];
 
     private Card() { }
-    
+
     public int BoardId { get; private set; }
     public virtual Board Board { get; private set; } = null!;
     public int SwimlaneId { get; private set; }

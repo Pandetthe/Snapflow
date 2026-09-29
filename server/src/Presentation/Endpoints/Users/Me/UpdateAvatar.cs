@@ -16,7 +16,7 @@ internal sealed class UpdateAvatar : IEndpoint
         public AvatarType AvatarType { get; init; }
         public IFormFile? File { get; init; }
     }
-    
+
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPut("me/avatar", async (

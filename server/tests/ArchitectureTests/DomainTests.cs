@@ -32,8 +32,8 @@ public sealed class DomainTests : Base
             if (entityType.IsAbstract) continue;
 
             var hasParameterlessConstructor = entityType.GetConstructors(
-                System.Reflection.BindingFlags.Public | 
-                System.Reflection.BindingFlags.NonPublic | 
+                System.Reflection.BindingFlags.Public |
+                System.Reflection.BindingFlags.NonPublic |
                 System.Reflection.BindingFlags.Instance)
                 .Any(c => c.GetParameters().Length == 0);
 
@@ -61,8 +61,8 @@ public sealed class DomainTests : Base
             var properties = entityType.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
             foreach (var prop in properties)
             {
-                if (prop.PropertyType.IsGenericType && 
-                   (prop.PropertyType.GetGenericTypeDefinition() == typeof(ICollection<>) || 
+                if (prop.PropertyType.IsGenericType &&
+                   (prop.PropertyType.GetGenericTypeDefinition() == typeof(ICollection<>) ||
                     prop.PropertyType.GetGenericTypeDefinition() == typeof(List<>) ||
                     prop.PropertyType.GetGenericTypeDefinition() == typeof(IList<>)))
                 {

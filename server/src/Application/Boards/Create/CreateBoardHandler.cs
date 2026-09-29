@@ -32,12 +32,12 @@ internal sealed class CreateBoardHandler(
         if (command.Members?.Count > 0)
         {
             var memberUserIds = command.Members.Select(m => m.UserId).ToList();
-            
+
             var existingUsers = await dbContext.Users.AsNoTracking()
                 .Where(u => memberUserIds.Contains(u.Id))
                 .Select(u => u.Id)
                 .ToListAsync(cancellationToken);
-            
+
             var notFoundUserId = memberUserIds.FirstOrDefault(id => !existingUsers.Contains(id));
             if (notFoundUserId != 0)
                 return UserErrors.NotFound(notFoundUserId);

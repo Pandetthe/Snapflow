@@ -95,7 +95,7 @@ public static class DependencyInjection
 
         private void AddPostgresInternal(IConfiguration configuration)
         {
-            var connectionString = configuration.GetConnectionString("Postgres") 
+            var connectionString = configuration.GetConnectionString("Postgres")
                                    ?? throw new InvalidOperationException("Postgres connection string is missing.");
             services.AddScoped<DispatchDomainEventsInterceptor>();
             services.AddDbContext<IAppDbContext, AppDbContext>(
@@ -202,15 +202,15 @@ public static class DependencyInjection
                     .AddRedisInstrumentation();
                 });
         }
-    
+
         private void AddAuthInternal(IConfiguration configuration, IHostEnvironment environment)
         {
             services.AddOptions<AuthIdentityOptions>()
                 .Bind(configuration.GetSection(AuthIdentityOptions.SectionName))
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
-            
-            AuthIdentityOptions identityOptions = configuration.GetSection(AuthIdentityOptions.SectionName).Get<AuthIdentityOptions>() 
+
+            AuthIdentityOptions identityOptions = configuration.GetSection(AuthIdentityOptions.SectionName).Get<AuthIdentityOptions>()
                                                   ?? new AuthIdentityOptions();
 
             services.AddIdentity<AppUser, AppRole>(options =>

@@ -1,5 +1,5 @@
 namespace Snapflow.Application.Users.Avatar;
 
 public sealed record AvatarResponse(
-    byte[] Data, 
+    byte[] Data,
     string ContentType);

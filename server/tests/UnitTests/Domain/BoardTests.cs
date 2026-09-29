@@ -19,7 +19,7 @@ public sealed class BoardTests
         Assert.Equal(description, board.Description);
         Assert.Equal(createdById, board.CreatedById);
         Assert.Equal(now, board.CreatedAt);
-        
+
         var owner = Assert.Single(board.Members);
         Assert.Equal(createdById, owner.UserId);
         Assert.Equal(MemberRole.Owner, owner.Role);
@@ -42,7 +42,7 @@ public sealed class BoardTests
         Assert.Equal(newDesc, board.Description);
         Assert.Equal(updaterId, board.UpdatedById);
         Assert.Equal(now, board.UpdatedAt);
-        
+
         Assert.Contains(board.DomainEvents.Select(e => e(board)), e => e is BoardUpdatedDomainEvent);
     }
 

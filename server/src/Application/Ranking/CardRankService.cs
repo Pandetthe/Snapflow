@@ -17,9 +17,9 @@ internal sealed class CardRankService(
 
     protected override Expression<Func<Card, int>> GroupKey => s => s.ListId;
 
-    protected override Expression<Func<Card, bool>> GroupFilter(int groupId) => 
+    protected override Expression<Func<Card, bool>> GroupFilter(int groupId) =>
         s => s.ListId == groupId;
 
-    protected override Error GetNotFoundError(int id) => 
+    protected override Error GetNotFoundError(int id) =>
         CardErrors.NotFound(id);
 }

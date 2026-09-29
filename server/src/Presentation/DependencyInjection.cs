@@ -46,14 +46,14 @@ public static class DependencyInjection
             options.KnownIPNetworks.Clear();
             options.KnownProxies.Clear();
         });
-        
+
         services.ConfigureHttpJsonOptions(options =>
         {
             options.SerializerOptions.Converters.Add(
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
             );
         });
-        
+
         ISignalRServerBuilder signalRBuilder = services.AddSignalR(options =>
         {
             options.AddFilter<GlobalHubExceptionFilter>();

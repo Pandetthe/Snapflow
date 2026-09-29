@@ -17,9 +17,9 @@ internal sealed class ListRankService(
 
     protected override Expression<Func<List, int>> GroupKey => s => s.SwimlaneId;
 
-    protected override Expression<Func<List, bool>> GroupFilter(int groupId) => 
+    protected override Expression<Func<List, bool>> GroupFilter(int groupId) =>
         s => s.SwimlaneId == groupId;
 
-    protected override Error GetNotFoundError(int id) => 
+    protected override Error GetNotFoundError(int id) =>
         ListErrors.NotFound(id);
 }

@@ -13,7 +13,7 @@ public class Swimlane : Entity<int, Swimlane>, IRankable, ICascadeSoftDeletable
     private readonly List<Card> _cards = [];
 
     private Swimlane() { }
-    
+
     public int BoardId { get; private set; }
     public virtual Board Board { get; private set; } = null!;
 

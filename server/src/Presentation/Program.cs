@@ -17,7 +17,7 @@ public static class Program
             .AddApplication()
             .AddInfrastructure(builder.Configuration, builder.Environment)
             .AddPresentation(builder.Configuration);
-        
+
         WebApplication app = builder.Build();
 
         app.UseForwardedHeaders();

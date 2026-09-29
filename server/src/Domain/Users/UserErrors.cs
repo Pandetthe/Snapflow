@@ -19,11 +19,11 @@ public static class UserErrors
     public static readonly Error NotFoundByEmail = Error.NotFound(
         "Users.NotFoundByEmail",
         "The user with the specified email was not found.");
-    
+
     public static readonly Error SignOutFailed = Error.Problem(
         "Users.SignOut.Failed",
         "The sign-out attempt failed.");
-    
+
     public static readonly Error AvatarDataMissing = Error.Problem(
         "Users.Avatar.DataMissing",
         "The avatar data is missing in the database, even though the avatar type is set to Custom.");

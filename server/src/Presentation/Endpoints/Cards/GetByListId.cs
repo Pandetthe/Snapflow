@@ -1,5 +1,5 @@
 using Snapflow.Presentation.Caching;
-﻿using Snapflow.Application.Abstractions.Messaging;
+using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Cards.GetByListId;
 using Snapflow.Common;
 using Snapflow.Domain.Boards;

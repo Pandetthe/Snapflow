@@ -12,7 +12,7 @@ public class List : Entity<int, List>, IRankable, ICascadeSoftDeletable
     private readonly List<Card> _cards = [];
 
     private List() { }
-    
+
     public int BoardId { get; private set; }
     public virtual Board Board { get; private set; } = null!;
 

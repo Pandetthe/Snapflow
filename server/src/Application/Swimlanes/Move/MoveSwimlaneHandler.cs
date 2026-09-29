@@ -28,7 +28,7 @@ internal sealed class MoveSwimlaneHandler(
             swimlane.BoardId, command.Id, command.BeforeId, cancellationToken);
         if (!rankResult.IsSuccess)
             return rankResult.Error;
-        
+
         swimlane.Move(
             rankResult.Value,
             userContext.UserId,

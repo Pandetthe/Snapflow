@@ -23,14 +23,14 @@ public sealed class AppDbContext(
 {
     IQueryable<IUser> IAppDbContext.Users => Set<AppUser>().AsQueryable().Cast<IUser>();
     IQueryable<IRole> IAppDbContext.Roles => Set<AppRole>().AsQueryable().Cast<IRole>();
-    public DbSet<Board> Boards { get; private set; }
-    public DbSet<Swimlane> Swimlanes { get; private set; }
-    public DbSet<List> Lists { get; private set; }
-    public DbSet<Member> Members { get; private set; }
-    public DbSet<Tag> Tags { get; private set; }
-    public DbSet<Card> Cards { get; private set; }
-    
-    public DbSet<DataProtectionKey> DataProtectionKeys { get; private set; }
+    public DbSet<Board> Boards => Set<Board>();
+    public DbSet<Swimlane> Swimlanes => Set<Swimlane>();
+    public DbSet<List> Lists => Set<List>();
+    public DbSet<Member> Members => Set<Member>();
+    public DbSet<Tag> Tags => Set<Tag>();
+    public DbSet<Card> Cards => Set<Card>();
+
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

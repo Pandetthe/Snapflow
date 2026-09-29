@@ -17,9 +17,9 @@ internal sealed class SwimlaneRankService(
 
     protected override Expression<Func<Swimlane, int>> GroupKey => s => s.BoardId;
 
-    protected override Expression<Func<Swimlane, bool>> GroupFilter(int groupId) => 
+    protected override Expression<Func<Swimlane, bool>> GroupFilter(int groupId) =>
         s => s.BoardId == groupId;
 
-    protected override Error GetNotFoundError(int id) => 
+    protected override Error GetNotFoundError(int id) =>
         SwimlaneErrors.NotFound(id);
 }
