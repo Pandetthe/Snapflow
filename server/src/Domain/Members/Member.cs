@@ -1,4 +1,4 @@
-﻿using Snapflow.Common;
+using Snapflow.Common;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Users;
 
@@ -6,8 +6,8 @@ namespace Snapflow.Domain.Members;
 
 public class Member : Entity<Member>
 {
-    public Member() { }
-    
+    private Member() { }
+
     public int BoardId { get; private set; }
     public virtual Board Board { get; private set; } = null!;
 
@@ -16,11 +16,12 @@ public class Member : Entity<Member>
 
     public MemberRole Role { get; private set; }
 
-    public static Member Create(int boardId, int userId, MemberRole role, string? connectionId = null)
+    internal static Member Create(Board board, int userId, MemberRole role, string? connectionId)
     {
         var member = new Member
         {
-            BoardId = boardId,
+            Board = board,
+            BoardId = board.Id,
             UserId = userId,
             Role = role
         };
@@ -30,9 +31,10 @@ public class Member : Entity<Member>
         return member;
     }
 
-    public void UpdateRole(MemberRole newRole, string? connectionId = null)
+    internal void ChangeRole(MemberRole newRole, string? connectionId)
     {
-        if (Role == newRole) return;
+        if (Role == newRole)
+            return;
 
         var oldRole = Role;
         Role = newRole;
@@ -40,8 +42,6 @@ public class Member : Entity<Member>
         Raise(m => new MemberRoleChangedDomainEvent(m.UserId, m.BoardId, oldRole, Role, connectionId));
     }
 
-    public void Remove(string? connectionId = null)
-    {
+    internal void MarkRemoved(string? connectionId) =>
         Raise(m => new MemberRemovedDomainEvent(m.UserId, m.BoardId, connectionId));
-    }
 }

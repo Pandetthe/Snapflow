@@ -127,7 +127,7 @@ public sealed class CardTests
 
         var added = card.AddTag(tag, addedBy, "tag-conn");
 
-        added.Should().BeTrue();
+        added.IsSuccess.Should().BeTrue();
         card.Tags.Should().ContainSingle().Which.Should().BeSameAs(tag);
 
         card.DomainEvents.Select(e => e(card)).OfType<CardTagAddedDomainEvent>().Should().ContainSingle()
@@ -144,9 +144,21 @@ public sealed class CardTests
 
         var added = card.AddTag(tag, CreateUser());
 
-        added.Should().BeFalse();
+        added.Error.Code.Should().Be("Tags.AlreadyOnCard");
         card.Tags.Should().ContainSingle();
         card.DomainEvents.Select(e => e(card)).OfType<CardTagAddedDomainEvent>().Should().ContainSingle();
+    }
+
+    [Fact]
+    public void AddTag_Should_Fail_When_TagBelongsToAnotherBoard()
+    {
+        var card = Card.Create(1, 2, 3, "Title", "Desc", "rank", CreateUser(), DateTimeOffset.UtcNow);
+        var tag = Tag.Create(9, "Bug", TagColors.Red, CreateUser(), DateTimeOffset.UtcNow);
+
+        var added = card.AddTag(tag, CreateUser());
+
+        added.Error.Code.Should().Be("Tags.NotFound");
+        card.Tags.Should().BeEmpty();
     }
 
     [Fact]
@@ -159,7 +171,7 @@ public sealed class CardTests
 
         var removed = card.RemoveTag(tag, removedBy, "untag-conn");
 
-        removed.Should().BeTrue();
+        removed.IsSuccess.Should().BeTrue();
         card.Tags.Should().BeEmpty();
 
         card.DomainEvents.Select(e => e(card)).OfType<CardTagRemovedDomainEvent>().Should().ContainSingle()
@@ -175,7 +187,7 @@ public sealed class CardTests
 
         var removed = card.RemoveTag(tag, CreateUser());
 
-        removed.Should().BeFalse();
+        removed.Error.Code.Should().Be("Tags.NotOnCard");
         card.DomainEvents.Select(e => e(card)).OfType<CardTagRemovedDomainEvent>().Should().BeEmpty();
     }
 }

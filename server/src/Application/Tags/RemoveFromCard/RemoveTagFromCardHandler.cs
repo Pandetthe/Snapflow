@@ -35,8 +35,9 @@ internal sealed class RemoveTagFromCardHandler(
         if (tag == null)
             return TagErrors.NotFound(command.TagId);
 
-        if (!card.RemoveTag(tag, user, userContext.ConnectionId))
-            return TagErrors.NotOnCard(command.TagId, command.CardId);
+        Result removed = card.RemoveTag(tag, user, userContext.ConnectionId);
+        if (removed.IsFailure)
+            return removed;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

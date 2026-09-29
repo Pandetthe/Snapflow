@@ -53,9 +53,11 @@ internal sealed class UpdateBoardHandler(
             if (missingUserId != 0)
                 return UserErrors.NotFound(missingUserId);
 
-            board.SyncMembers(
+            Result synced = board.SyncMembers(
                 command.Members.Select(m => (m.UserId, m.Role)).ToList(),
                 userContext.ConnectionId);
+            if (synced.IsFailure)
+                return synced;
         }
 
         board.Update(

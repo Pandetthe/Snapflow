@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
@@ -9,14 +10,15 @@ using Snapflow.Domain.Users;
 namespace Snapflow.Application.Members.Add;
 
 internal sealed class AddMemberCommandHandler(
-    IAppDbContext dbContext) : ICommandHandler<AddMemberCommand>
+    IAppDbContext dbContext,
+    IUserContext userContext) : ICommandHandler<AddMemberCommand>
 {
     public async Task<Result> Handle(AddMemberCommand command, CancellationToken cancellationToken = default)
     {
-        var boardExists = await dbContext.Boards
-            .AsNoTracking()
-            .AnyAsync(b => b.Id == command.BoardId, cancellationToken);
-        if (!boardExists)
+        Board? board = await dbContext.Boards
+            .Include(b => b.Members)
+            .SingleOrDefaultAsync(b => b.Id == command.BoardId, cancellationToken);
+        if (board is null)
             return BoardErrors.NotFound(command.BoardId);
 
         var userExists = await dbContext.Users
@@ -25,28 +27,12 @@ internal sealed class AddMemberCommandHandler(
         if (!userExists)
             return UserErrors.NotFound(command.UserId);
 
-        var existingOwner = await dbContext.Members
-            .AsNoTracking()
-            .AnyAsync(m => m.BoardId == command.BoardId && m.Role == MemberRole.Owner, cancellationToken);
-
-        if (existingOwner && command.Role == MemberRole.Owner)
-            return MemberErrors.OwnerAlreadyExists(command.BoardId);
-
-        var alreadyMember = await dbContext.Members
-            .AsNoTracking()
-            .AnyAsync(m => m.BoardId == command.BoardId && m.UserId == command.UserId, cancellationToken);
-        if (alreadyMember)
-            return MemberErrors.AlreadyMember(command.UserId, command.BoardId);
-
-        var member = Member.Create(command.BoardId, command.UserId, command.Role);
-
-        await dbContext.Members.AddAsync(member, cancellationToken);
+        Result added = board.AddMember(command.UserId, command.Role, userContext.ConnectionId);
+        if (added.IsFailure)
+            return added;
 
         return await dbContext.TrySaveChangesAsync(
-            [
-                new UniqueConflict(DbConstraints.BoardMemberKey, MemberErrors.AlreadyMember(command.UserId, command.BoardId)),
-                new UniqueConflict(DbConstraints.BoardSingleOwner, MemberErrors.OwnerAlreadyExists(command.BoardId))
-            ],
+            [new UniqueConflict(DbConstraints.BoardMemberKey, MemberErrors.AlreadyMember(command.UserId, command.BoardId))],
             cancellationToken);
     }
 }

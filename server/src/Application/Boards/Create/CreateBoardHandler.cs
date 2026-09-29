@@ -47,13 +47,12 @@ internal sealed class CreateBoardHandler(
             if (notFoundUserId != 0)
                 return UserErrors.NotFound(notFoundUserId);
 
-            var ownerCount = command.Members.Count(m => m.Role == MemberRole.Owner);
-            if (ownerCount > 0)
-                return MemberErrors.OwnerAlreadyExists(board.Id);
-
-            board.AddMembers(
-                command.Members.Select(m => (m.UserId, m.Role)).ToList(),
-                userContext.ConnectionId);
+            foreach (CreateBoardMemberRequest member in command.Members)
+            {
+                Result added = board.AddMember(member.UserId, member.Role, userContext.ConnectionId);
+                if (added.IsFailure)
+                    return added.Error;
+            }
         }
 
         await dbContext.Boards.AddAsync(board, cancellationToken);

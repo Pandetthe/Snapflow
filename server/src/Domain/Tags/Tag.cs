@@ -7,7 +7,9 @@ namespace Snapflow.Domain.Tags;
 
 public class Tag : Entity<int, Tag>, ISoftDeletable
 {
-    public Tag() { }
+    private readonly List<Card> _cards = [];
+
+    private Tag() { }
 
     public int BoardId { get; private set; }
     public virtual Board Board { get; private set; } = null!;
@@ -28,7 +30,7 @@ public class Tag : Entity<int, Tag>, ISoftDeletable
     public virtual IUser? DeletedBy { get; private set; }
     public bool IsDeleted { get; private set; }
 
-    public virtual ICollection<Card> Cards { get; private set; } = [];
+    public virtual IReadOnlyCollection<Card> Cards => _cards;
 
     public static Tag Create(int boardId, string title, TagColors color, IUser createdBy, DateTimeOffset createdAt, string? connectionId = null)
     {

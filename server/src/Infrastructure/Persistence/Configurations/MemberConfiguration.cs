@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Snapflow.Common;
 using Snapflow.Domain.Members;
 using Snapflow.Infrastructure.Auth.Entities;
 
@@ -16,6 +17,7 @@ internal sealed class MemberConfiguration : IEntityTypeConfiguration<Member>
             .HasForeignKey(b => b.UserId)
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
+        builder.HasQueryFilter(ISoftDeletable.FilterName, m => !m.Board.IsDeleted);
         builder.HasIndex(b => new { b.BoardId, b.Role })
             .IsUnique()
             .HasFilter("\"role\" = 0"); // 0 is Owner enum value

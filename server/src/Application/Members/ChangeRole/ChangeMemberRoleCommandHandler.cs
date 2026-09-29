@@ -3,6 +3,7 @@ using Snapflow.Application.Abstractions.Identity;
 using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
+using Snapflow.Domain.Boards;
 using Snapflow.Domain.Members;
 
 namespace Snapflow.Application.Members.ChangeRole;
@@ -13,13 +14,16 @@ internal sealed class ChangeMemberRoleCommandHandler(
 {
     public async Task<Result> Handle(ChangeMemberRoleCommand command, CancellationToken cancellationToken = default)
     {
-        Member? member = await dbContext.Members.SingleOrDefaultAsync(
-            x => x.BoardId == command.BoardId && x.UserId == command.UserId, cancellationToken);
-        if (member == null)
-            return MemberErrors.NotFound(command.UserId, command.BoardId);
-        if (member.Role == MemberRole.Owner)
-            return MemberErrors.CannotChangeOwnerRole;
-        member.UpdateRole(command.Role, userContext.ConnectionId);
+        Board? board = await dbContext.Boards
+            .Include(b => b.Members)
+            .SingleOrDefaultAsync(b => b.Id == command.BoardId, cancellationToken);
+        if (board is null)
+            return BoardErrors.NotFound(command.BoardId);
+
+        Result changed = board.ChangeMemberRole(command.UserId, command.Role, userContext.ConnectionId);
+        if (changed.IsFailure)
+            return changed;
+
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

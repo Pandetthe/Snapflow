@@ -10,7 +10,9 @@ namespace Snapflow.Domain.Cards;
 
 public class Card : Entity<int, Card>, IRankable, ISoftDeletable
 {
-    public Card() { }
+    private readonly List<Tag> _tags = [];
+
+    private Card() { }
     
     public int BoardId { get; private set; }
     public virtual Board Board { get; private set; } = null!;
@@ -21,7 +23,7 @@ public class Card : Entity<int, Card>, IRankable, ISoftDeletable
 
     public string Title { get; private set; } = null!;
     public string Description { get; private set; } = "";
-    public string Rank { get; set; } = null!;
+    public string Rank { get; private set; } = null!;
 
     public DateTimeOffset CreatedAt { get; private set; }
     public int CreatedById { get; private set; }
@@ -37,7 +39,7 @@ public class Card : Entity<int, Card>, IRankable, ISoftDeletable
     public bool IsDeleted { get; private set; }
     public bool DeletedByCascade { get; private set; }
 
-    public virtual ICollection<Tag> Tags { get; private set; } = [];
+    public virtual IReadOnlyCollection<Tag> Tags => _tags;
 
     public static Card Create(int boardId, int swimlaneId, int listId, string title, string description, string rank, IUser createdBy, DateTimeOffset createdAt, string? connectionId = null)
     {
@@ -87,27 +89,27 @@ public class Card : Entity<int, Card>, IRankable, ISoftDeletable
 
     internal void FollowList(int swimlaneId) => SwimlaneId = swimlaneId;
 
-    /// <summary>Puts a tag on the card. Returns false when the card already carries it.</summary>
-    public bool AddTag(Tag tag, IUser addedBy, string? connectionId = null)
+    public Result AddTag(Tag tag, IUser addedBy, string? connectionId = null)
     {
-        if (Tags.Any(t => t.Id == tag.Id))
-            return false;
+        if (tag.BoardId != BoardId)
+            return TagErrors.NotFound(tag.Id);
+        if (_tags.Any(t => t.Id == tag.Id))
+            return TagErrors.AlreadyOnCard(tag.Id, Id);
 
-        Tags.Add(tag);
+        _tags.Add(tag);
         Raise(c => new CardTagAddedDomainEvent(c.Id, tag.Id, c.BoardId, addedBy.Id, addedBy.UserName, connectionId));
-        return true;
+        return Result.Success();
     }
 
-    /// <summary>Takes a tag off the card. Returns false when the card does not carry it.</summary>
-    public bool RemoveTag(Tag tag, IUser removedBy, string? connectionId = null)
+    public Result RemoveTag(Tag tag, IUser removedBy, string? connectionId = null)
     {
-        Tag? existing = Tags.FirstOrDefault(t => t.Id == tag.Id);
+        Tag? existing = _tags.FirstOrDefault(t => t.Id == tag.Id);
         if (existing == null)
-            return false;
+            return TagErrors.NotOnCard(tag.Id, Id);
 
-        Tags.Remove(existing);
+        _tags.Remove(existing);
         Raise(c => new CardTagRemovedDomainEvent(c.Id, tag.Id, c.BoardId, removedBy.Id, removedBy.UserName, connectionId));
-        return true;
+        return Result.Success();
     }
 
     public void SoftDelete(IUser deletedBy, DateTimeOffset deletedAt, string? connectionId = null)

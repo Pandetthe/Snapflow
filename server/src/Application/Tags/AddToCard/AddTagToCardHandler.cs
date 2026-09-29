@@ -33,8 +33,9 @@ internal sealed class AddTagToCardHandler(
         if (tag == null)
             return TagErrors.NotFound(command.TagId);
 
-        if (!card.AddTag(tag, user, userContext.ConnectionId))
-            return TagErrors.AlreadyOnCard(command.TagId, command.CardId);
+        Result added = card.AddTag(tag, user, userContext.ConnectionId);
+        if (added.IsFailure)
+            return added;
 
         return await dbContext.TrySaveChangesAsync(
             [new UniqueConflict(DbConstraints.CardTagKey, TagErrors.AlreadyOnCard(command.TagId, command.CardId))],

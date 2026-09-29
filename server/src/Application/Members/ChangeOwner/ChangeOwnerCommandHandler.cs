@@ -17,20 +17,24 @@ internal sealed class ChangeOwnerCommandHandler(
 
     private async Task<Result> ExecuteAsync(ChangeOwnerCommand command, CancellationToken cancellationToken)
     {
-        Member? oldOwner = await dbContext.Members
-            .SingleOrDefaultAsync(b => b.BoardId == command.BoardId && b.Role == MemberRole.Owner, cancellationToken);
-        if (oldOwner == null)
+        Board? board = await dbContext.Boards
+            .Include(b => b.Members)
+            .SingleOrDefaultAsync(b => b.Id == command.BoardId, cancellationToken);
+        if (board is null)
             return BoardErrors.NotFound(command.BoardId);
-        if (oldOwner.UserId == command.UserId)
+        if (board.IsOwnedBy(command.UserId))
             return Result.Success();
-        Member? newOwner = await dbContext.Members
-            .SingleOrDefaultAsync(b => b.BoardId == command.BoardId && b.UserId == command.UserId, cancellationToken);
-        if (newOwner == null)
-            return MemberErrors.NotFound(command.UserId, command.BoardId);
-        oldOwner.UpdateRole(MemberRole.Admin, userContext.ConnectionId);
+
+        Result handedOver = board.HandOverOwnership(command.UserId, userContext.ConnectionId);
+        if (handedOver.IsFailure)
+            return handedOver;
+
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        newOwner.UpdateRole(MemberRole.Owner, userContext.ConnectionId);
+        Result taken = board.TakeOwnership(command.UserId, userContext.ConnectionId);
+        if (taken.IsFailure)
+            return taken;
+
         return await dbContext.TrySaveChangesAsync(
             [new UniqueConflict(DbConstraints.BoardSingleOwner, MemberErrors.OwnerAlreadyExists(command.BoardId))],
             cancellationToken);

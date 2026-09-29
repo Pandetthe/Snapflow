@@ -9,14 +9,17 @@ namespace Snapflow.Domain.Swimlanes;
 
 public class Swimlane : Entity<int, Swimlane>, IRankable, ISoftDeletable
 {
-    public Swimlane() { }
+    private readonly List<List> _lists = [];
+    private readonly List<Card> _cards = [];
+
+    private Swimlane() { }
     
     public int BoardId { get; private set; }
     public virtual Board Board { get; private set; } = null!;
 
     public string Title { get; private set; } = null!;
 
-    public string Rank { get; set; } = null!;
+    public string Rank { get; private set; } = null!;
     public int? Height { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
@@ -33,8 +36,8 @@ public class Swimlane : Entity<int, Swimlane>, IRankable, ISoftDeletable
     public bool IsDeleted { get; private set; }
     public bool DeletedByCascade { get; private set; }
 
-    public virtual ICollection<List> Lists { get; private set; } = [];
-    public virtual ICollection<Card> Cards { get; private set; } = [];
+    public virtual IReadOnlyCollection<List> Lists => _lists;
+    public virtual IReadOnlyCollection<Card> Cards => _cards;
 
     public static Swimlane Create(int boardId, string title, int? height, string rank, IUser createdBy, DateTimeOffset createdAt, string? connectionId = null)
     {

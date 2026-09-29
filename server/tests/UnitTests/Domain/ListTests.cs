@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using System.Reflection;
 using NSubstitute;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
@@ -102,7 +103,7 @@ public sealed class ListTests
         var user = CreateUser();
         var list = List.Create(1, 2, "Title", 300, "rank", user, DateTimeOffset.UtcNow);
         var card = Card.Create(1, 2, list.Id, "Card", "", "rank", user, DateTimeOffset.UtcNow);
-        list.Cards.Add(card);
+        ((List<Card>)typeof(List).GetField("_cards", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(list)!).Add(card);
 
         list.Move(3, "rank2", user, DateTimeOffset.UtcNow);
 

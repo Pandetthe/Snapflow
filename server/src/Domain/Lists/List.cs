@@ -9,7 +9,9 @@ namespace Snapflow.Domain.Lists;
 
 public class List : Entity<int, List>, IRankable, ISoftDeletable
 {
-    public List() { }
+    private readonly List<Card> _cards = [];
+
+    private List() { }
     
     public int BoardId { get; private set; }
     public virtual Board Board { get; private set; } = null!;
@@ -19,7 +21,7 @@ public class List : Entity<int, List>, IRankable, ISoftDeletable
 
     public string Title { get; private set; } = null!;
 
-    public string Rank { get; set; } = null!;
+    public string Rank { get; private set; } = null!;
     public int? Width { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
@@ -36,7 +38,7 @@ public class List : Entity<int, List>, IRankable, ISoftDeletable
     public bool IsDeleted { get; private set; }
     public bool DeletedByCascade { get; private set; }
 
-    public virtual ICollection<Card> Cards { get; private set; } = [];
+    public virtual IReadOnlyCollection<Card> Cards => _cards;
 
     public static List Create(int boardId, int swimlaneId, string title, int? width, string rank, IUser createdBy, DateTimeOffset createdAt, string? connectionId = null)
     {
