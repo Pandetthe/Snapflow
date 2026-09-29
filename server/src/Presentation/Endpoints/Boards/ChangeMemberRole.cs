@@ -29,6 +29,7 @@ internal sealed class ChangeMemberRole : IEndpoint
         .RequireAuthorization(BoardPermissions.Boards.Update)
         .WithTags(EndpointTags.Boards)
         .Produces(StatusCodes.Status204NoContent)
-        .ProducesProblem(StatusCodes.Status404NotFound);
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status409Conflict);
     }
 }

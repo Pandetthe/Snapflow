@@ -17,37 +17,11 @@ internal sealed class CardRankService(
 {
     protected override DbSet<Card> Entities => DbContext.Cards;
 
+    protected override Expression<Func<Card, int>> GroupKey => s => s.ListId;
+
     protected override Expression<Func<Card, bool>> GroupFilter(int groupId) => 
         s => s.ListId == groupId;
 
     protected override Error GetNotFoundError(int id) => 
         CardErrors.NotFound(id);
-
-    protected override async Task NormalizeAllGroupsAsync(CancellationToken cancellationToken)
-    {
-        var listIds = await DbContext.Cards
-            .Where(s => !s.IsDeleted)
-            .Select(s => s.ListId)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-
-        foreach (var bId in listIds)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var cards = await DbContext.Cards
-                .OrderBy(s => s.Rank)
-                .Where(s => s.ListId == bId && !s.IsDeleted)
-                .Select(s => s.Id)
-                .ToListAsync(cancellationToken);
-            if (cards.Count == 0)
-                continue;
-                
-            var ranks = RankService.GenerateBalanced(cards.Count);
-
-            foreach (var (cardId, rank) in cards.Zip(ranks))
-                await DbContext.Cards
-                    .Where(s => s.Id == cardId)
-                    .ExecuteUpdateAsync(s => s.SetProperty(sl => sl.Rank, rank), cancellationToken);
-        }
-    }
 }

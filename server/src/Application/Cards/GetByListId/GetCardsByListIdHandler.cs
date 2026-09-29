@@ -24,9 +24,9 @@ internal sealed class GetCardsByListIdHandler(
                     .OrderBy(c => c.Rank)
                     .Select(c => new CardDto(
                         c.Id,
-                        c.BoardId,
-                        c.SwimlaneId,
                         c.ListId,
+                        c.SwimlaneId,
+                        c.BoardId,
                         c.Title,
                         c.Description,
                         c.Rank))

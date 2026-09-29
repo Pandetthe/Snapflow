@@ -4,6 +4,7 @@ using Snapflow.Application.Abstractions.Behaviours;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Ranking;
+using System.Globalization;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -20,6 +21,7 @@ internal abstract class BaseRankService<TEntity>(
     protected IRankService RankService => rankService;
 
     protected abstract DbSet<TEntity> Entities { get; }
+    protected abstract Expression<Func<TEntity, int>> GroupKey { get; }
     protected abstract Expression<Func<TEntity, bool>> GroupFilter(int groupId);
     protected abstract Error GetNotFoundError(int id);
 
@@ -49,59 +51,37 @@ internal abstract class BaseRankService<TEntity>(
                 if (!await baseQuery.AnyAsync(cancellationToken))
                     return RankService.GenerateInitial();
 
-                string? leftRank = null;
-                string? rightRank = null;
+                Func<Neighbours, Task<Result>>[] normalizations =
+                [
+                    n => NormalizeLocallyInternalAsync(groupId, n.Left, n.Right, cancellationToken),
+                    _ => NormalizeGroupInternalAsync(groupId, cancellationToken)
+                ];
 
-                if (beforeId.HasValue)
+                for (int attempt = 0; ; attempt++)
                 {
-                    rightRank = await baseQuery
-                        .Where(s => s.Id == beforeId.Value)
-                        .Select(s => s.Rank)
-                        .FirstOrDefaultAsync(cancellationToken);
-                    if (rightRank == null)
-                        return Result.Failure<string>(GetNotFoundError(beforeId.Value));
+                    Result<Neighbours> neighbours = await FindNeighboursAsync(baseQuery, beforeId, cancellationToken);
+                    if (neighbours.IsFailure)
+                        return Result.Failure<string>(neighbours.Error);
 
-                    leftRank = await baseQuery
-                        .Where(s => s.Rank.CompareTo(rightRank) < 0)
-                        .OrderByDescending(s => s.Rank)
-                        .Select(s => s.Rank)
-                        .FirstOrDefaultAsync(cancellationToken);
-                }
-                else
-                {
-                    rightRank = null;
-                    leftRank = await baseQuery
-                        .OrderByDescending(s => s.Rank)
-                        .Select(s => s.Rank)
-                        .FirstOrDefaultAsync(cancellationToken);
-                    if (leftRank == null)
-                        return RankService.GenerateInitial();
-                }
+                    if (RankService.TryGenerateBetween(neighbours.Value.Left, neighbours.Value.Right, out var between))
+                    {
+                        await tx.CommitAsync(cancellationToken);
+                        return between;
+                    }
 
-                if (RankService.TryGenerateBetween(leftRank, rightRank, out var between))
-                {
-                    await tx.CommitAsync(cancellationToken);
-                    return between;
-                }
+                    if (attempt == normalizations.Length)
+                        break;
 
-                Result result = await NormalizeLocallyInternalAsync(groupId, leftRank, rightRank, cancellationToken);
-
-                if (result.IsSuccess && RankService.TryGenerateBetween(leftRank, rightRank, out between))
-                {
-                    await tx.CommitAsync(cancellationToken);
-                    return between;
-                }
-
-                result = await NormalizeGroupInternalAsync(groupId, cancellationToken);
-
-                if (result.IsSuccess && RankService.TryGenerateBetween(leftRank, rightRank, out between))
-                {
-                    await tx.CommitAsync(cancellationToken);
-                    return between;
+                    Result normalized = await normalizations[attempt](neighbours.Value);
+                    if (normalized.IsFailure)
+                    {
+                        await tx.RollbackAsync(cancellationToken);
+                        return Result.Failure<string>(normalized.Error);
+                    }
                 }
 
                 await tx.RollbackAsync(cancellationToken);
-                return Result.Failure<string>(result.Error);
+                return Result.Failure<string>(RankingErrors.RankExhausted);
             }
             catch (Exception ex)
             {
@@ -113,6 +93,56 @@ internal abstract class BaseRankService<TEntity>(
     }
 
     private sealed record EntityRankDto(int Id, string Rank);
+
+    private sealed record Neighbours(string? Left, string? Right);
+
+    private async Task<Result<Neighbours>> FindNeighboursAsync(
+        IQueryable<TEntity> siblings, int? beforeId, CancellationToken cancellationToken)
+    {
+        if (!beforeId.HasValue)
+        {
+            string? last = await siblings
+                .OrderByDescending(s => s.Rank)
+                .Select(s => s.Rank)
+                .FirstOrDefaultAsync(cancellationToken);
+            return new Neighbours(last, null);
+        }
+
+        string? right = await siblings
+            .Where(s => s.Id == beforeId.Value)
+            .Select(s => s.Rank)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (right == null)
+            return Result.Failure<Neighbours>(GetNotFoundError(beforeId.Value));
+
+        string? left = await siblings
+            .Where(s => s.Rank.CompareTo(right) < 0)
+            .OrderByDescending(s => s.Rank)
+            .Select(s => s.Rank)
+            .FirstOrDefaultAsync(cancellationToken);
+        return new Neighbours(left, right);
+    }
+
+    private async Task ApplyRanksAsync(IReadOnlyList<(int Id, string Rank)> ranks, CancellationToken cancellationToken)
+    {
+        foreach ((int id, _) in ranks)
+        {
+            string placeholder = TemporaryRank(id);
+            await Entities
+                .Where(s => s.Id == id)
+                .ExecuteUpdateAsync(s => s.SetProperty(i => i.Rank, placeholder), cancellationToken);
+        }
+
+        foreach ((int id, string rank) in ranks)
+        {
+            await Entities
+                .Where(s => s.Id == id)
+                .ExecuteUpdateAsync(s => s.SetProperty(i => i.Rank, rank), cancellationToken);
+        }
+    }
+
+    private static string TemporaryRank(int id) =>
+        "~" + id.ToString(CultureInfo.InvariantCulture);
 
     public async Task<Result> NormalizeLocallyAsync(int groupId, string? leftRank, string? rightRank, CancellationToken cancellationToken = default)
     {
@@ -194,13 +224,7 @@ internal abstract class BaseRankService<TEntity>(
 
         var newRanks = RankService.GenerateBalancedBetween(items.Count, items.First().Rank, items.Last().Rank);
 
-        var updateTasks = items.Zip(newRanks).Select(pair =>
-            Entities
-                .Where(s => s.Id == pair.First.Id && s.Rank == pair.First.Rank)
-                .ExecuteUpdateAsync(s => s.SetProperty(i => i.Rank, pair.Second), cancellationToken)
-        );
-
-        await Task.WhenAll(updateTasks);
+        await ApplyRanksAsync(items.Select(i => i.Id).Zip(newRanks).ToList(), cancellationToken);
         return Result.Success();
     }
 
@@ -259,24 +283,32 @@ internal abstract class BaseRankService<TEntity>(
 
         var ranks = RankService.GenerateBalanced(items.Count);
 
-        var updateTasks = items.Zip(ranks).Select(pair =>
-            Entities
-                .Where(s => s.Id == pair.First)
-                .ExecuteUpdateAsync(s => s.SetProperty(i => i.Rank, pair.Second), cancellationToken)
-        );
-
-        await Task.WhenAll(updateTasks);
+        await ApplyRanksAsync(items.Zip(ranks).ToList(), cancellationToken);
         return Result.Success();
     }
 
-    protected abstract Task NormalizeAllGroupsAsync(CancellationToken cancellationToken);
+    private async Task NormalizeAllGroupsAsync(CancellationToken cancellationToken)
+    {
+        List<int> groupIds = await Entities
+            .AsNoTracking()
+            .Where(s => !s.IsDeleted)
+            .Select(GroupKey)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        foreach (int groupId in groupIds)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await NormalizeGroupInternalAsync(groupId, cancellationToken);
+        }
+    }
 
     private static long GetGlobalLockKey() =>
         (long)StableHash(typeof(TEntity).FullName!) << 32;
 
     private static long GetGroupLockKey(int groupId) =>
         ((long)StableHash(typeof(TEntity).FullName!) << 32) | (uint)groupId;
-    
+
     private static uint StableHash(string s)
     {
         var hash = 2166136261u;

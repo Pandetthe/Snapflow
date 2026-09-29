@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using NSubstitute;
+using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
 using Snapflow.Domain.Users;
 
@@ -93,6 +94,19 @@ public sealed class ListTests
         list.DomainEvents.Select(e => e(list)).OfType<ListMovedDomainEvent>().Should().ContainSingle()
             .Which.Should().Match<ListMovedDomainEvent>(e =>
                 e.SwimlaneId == 3 && e.Rank == "rank2" && e.MovedById == 5 && e.MovedByUserName == "bob" && e.ConnectionId == "move-conn");
+    }
+
+    [Fact]
+    public void Move_Should_CarryCardsToNewSwimlane()
+    {
+        var user = CreateUser();
+        var list = List.Create(1, 2, "Title", 300, "rank", user, DateTimeOffset.UtcNow);
+        var card = Card.Create(1, 2, list.Id, "Card", "", "rank", user, DateTimeOffset.UtcNow);
+        list.Cards.Add(card);
+
+        list.Move(3, "rank2", user, DateTimeOffset.UtcNow);
+
+        card.SwimlaneId.Should().Be(3);
     }
 
     [Fact]

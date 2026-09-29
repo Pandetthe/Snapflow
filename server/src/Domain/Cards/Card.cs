@@ -85,6 +85,8 @@ public class Card : Entity<int, Card>, IRankable
         Raise(c => new CardMovedDomainEvent(Id, BoardId, ListId, Rank, movedBy.Id, movedBy.UserName, connectionId));
     }
 
+    internal void FollowList(int swimlaneId) => SwimlaneId = swimlaneId;
+
     /// <summary>Puts a tag on the card. Returns false when the card already carries it.</summary>
     public bool AddTag(Tag tag, IUser addedBy, string? connectionId = null)
     {

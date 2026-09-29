@@ -16,6 +16,10 @@ public static class MemberErrors
         "Members.CannotRemoveOwner",
         "The board owner cannot be removed. Transfer ownership first.");
 
+    public static readonly Error CannotChangeOwnerRole = Error.Conflict(
+        "Members.CannotChangeOwnerRole",
+        "The board owner's role cannot be changed. Transfer ownership instead.");
+
     public static Error AlreadyMember(int userId, int boardId) => Error.Conflict(
         "Members.AlreadyMember",
         $"The user with Id = '{userId}' is already a member of the board with Id = '{boardId}'.");

@@ -31,6 +31,7 @@ internal sealed class MoveListHandler(
             return Result.Failure<string>(SwimlaneErrors.NotFound(command.SwimlaneId));
 
         List? list = await dbContext.Lists
+            .Include(l => l.Cards)
             .SingleOrDefaultAsync(s => s.Id == command.Id && s.BoardId == command.BoardId && !s.IsDeleted, cancellationToken);
         if (list == null)
             return Result.Failure<string>(ListErrors.NotFound(command.Id));

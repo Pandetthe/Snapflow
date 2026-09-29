@@ -14,6 +14,12 @@ internal sealed class GetMembersQueryHandler(
     public async Task<Result<List<GetMembersResponse>>> Handle(GetMembersQuery query,
         CancellationToken cancellationToken = default)
     {
+        bool boardExists = await dbContext.Boards
+            .AsNoTracking()
+            .AnyAsync(b => b.Id == query.BoardId && !b.IsDeleted, cancellationToken);
+        if (!boardExists)
+            return Result.Failure<List<GetMembersResponse>>(BoardErrors.NotFound(query.BoardId));
+
         if (!await membershipService.IsMemberAsync(query.BoardId, cancellationToken))
             return Result.Success(new List<GetMembersResponse>());
 
@@ -22,8 +28,6 @@ internal sealed class GetMembersQueryHandler(
             .Where(b => b.BoardId == query.BoardId)
             .Select(b => new GetMembersResponse(b.UserId, b.User.UserName))
             .ToListAsync(cancellationToken);
-        return members.Count == 0 
-            ? Result.Failure<List<GetMembersResponse>>(BoardErrors.NotFound(query.BoardId))
-            : Result.Success(members);
+        return Result.Success(members);
     }
 }

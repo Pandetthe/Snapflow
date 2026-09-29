@@ -74,7 +74,13 @@ public class List : Entity<int, List>, IRankable
 
     public void Move(int swimlaneId, string rank, IUser movedBy, DateTimeOffset updatedAt, string? connectionId = null)
     {
-        SwimlaneId = swimlaneId;
+        if (SwimlaneId != swimlaneId)
+        {
+            SwimlaneId = swimlaneId;
+            foreach (Card card in Cards)
+                card.FollowList(swimlaneId);
+        }
+
         Rank = rank;
         UpdatedById = movedBy.Id;
         UpdatedAt = updatedAt;
