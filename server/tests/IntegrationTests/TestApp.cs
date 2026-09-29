@@ -70,6 +70,14 @@ public sealed class TestApp : IAsyncDisposable
         return new TestBoard(ownerId, boardId, swimlaneId, listId);
     }
 
+    public async Task<bool> HasBoardPermissionAsync(int userId, int boardId, string permission)
+    {
+        using IServiceScope scope = Services.CreateScope();
+        scope.ServiceProvider.GetRequiredService<TestUserContext>().UserId = userId;
+        return await scope.ServiceProvider.GetRequiredService<IBoardPermissionService>()
+            .HasPermissionAsync(boardId, permission);
+    }
+
     public Task<Result> SendAsync(int userId, ICommand command) =>
         InvokeAsync<Result>(userId, typeof(ICommandHandler<>).MakeGenericType(command.GetType()), command);
 

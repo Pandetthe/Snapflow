@@ -74,10 +74,13 @@ public class Board : Entity<int, Board>, ISoftDeletable
         return true;
     }
 
-    public void ChangeVisibility(BoardVisibility visibility, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
+    public Result ChangeVisibility(BoardVisibility visibility, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
     {
+        MemberRole? role = _members.FirstOrDefault(m => m.UserId == updatedById)?.Role;
+        if (role is null || !MemberRolePermissions.For(role.Value).Contains(BoardPermissions.Boards.ChangeVisibility))
+            return BoardErrors.VisibilityChangeForbidden(Id);
         if (Visibility == visibility)
-            return;
+            return Result.Success();
 
         var oldVisibility = Visibility;
         Visibility = visibility;
@@ -85,6 +88,7 @@ public class Board : Entity<int, Board>, ISoftDeletable
         UpdatedAt = updatedAt;
 
         Raise(b => new BoardVisibilityChangedDomainEvent(b.Id, oldVisibility, b.Visibility, connectionId));
+        return Result.Success();
     }
 
     public void SoftDelete(int deletedById, DateTimeOffset deletedAt, string? connectionId = null)

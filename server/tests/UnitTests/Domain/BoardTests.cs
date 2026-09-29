@@ -106,9 +106,26 @@ public sealed class BoardTests
     {
         var board = Board.Create("Title", "Desc", BoardVisibility.Private, 1, DateTimeOffset.UtcNow);
 
-        board.ChangeVisibility(BoardVisibility.Private, 2, DateTimeOffset.UtcNow);
+        var result = board.ChangeVisibility(BoardVisibility.Private, 1, DateTimeOffset.UtcNow);
 
+        Assert.True(result.IsSuccess);
         Assert.Null(board.UpdatedById);
         Assert.DoesNotContain(board.DomainEvents.Select(e => e(board)), e => e is BoardVisibilityChangedDomainEvent);
+    }
+
+    [Theory]
+    [InlineData(MemberRole.Admin)]
+    [InlineData(MemberRole.Member)]
+    [InlineData(null)]
+    public void ChangeVisibility_Should_BeRefused_For_AnyoneButTheOwner(MemberRole? role)
+    {
+        var board = Board.Create("Title", "Desc", BoardVisibility.Private, 1, DateTimeOffset.UtcNow);
+        if (role is { } assigned)
+            board.AddMember(2, assigned);
+
+        var result = board.ChangeVisibility(BoardVisibility.Public, 2, DateTimeOffset.UtcNow);
+
+        Assert.Equal("Boards.VisibilityChangeForbidden", result.Error.Code);
+        Assert.Equal(BoardVisibility.Private, board.Visibility);
     }
 }

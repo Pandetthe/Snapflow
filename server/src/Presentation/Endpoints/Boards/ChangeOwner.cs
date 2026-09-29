@@ -18,7 +18,7 @@ internal sealed class ChangeOwner : IEndpoint
             ICommandHandler<ChangeOwnerCommand> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new ChangeOwnerCommand(request.UserId, boardId);
+            var command = new ChangeOwnerCommand(boardId, request.UserId);
 
             Result result = await handler.Handle(command, cancellationToken);
 

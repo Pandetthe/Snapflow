@@ -13,7 +13,6 @@ namespace Snapflow.Application.Boards.Update;
 internal sealed class UpdateBoardHandler(
     IAppDbContext dbContext,
     IUserContext userContext,
-    IBoardPermissionService permissionService,
     IBoardVisibilityPolicy visibilityPolicy,
     TimeProvider timeProvider) : ICommandHandler<UpdateBoardCommand>
 {
@@ -25,14 +24,16 @@ internal sealed class UpdateBoardHandler(
         if (board == null)
             return BoardErrors.NotFound(command.Id);
 
-        bool changesVisibility = command.Visibility is not null && command.Visibility != board.Visibility;
-        if (changesVisibility)
-        {
-            if (!visibilityPolicy.IsAllowed(command.Visibility!.Value))
-                return BoardErrors.VisibilityNotAllowed(command.Visibility.Value);
+        DateTimeOffset now = timeProvider.GetUtcNow();
 
-            if (!await permissionService.HasPermissionAsync(board.Id, BoardPermissions.Boards.ChangeVisibility, cancellationToken))
-                return BoardErrors.VisibilityChangeForbidden(board.Id);
+        if (command.Visibility is { } visibility && visibility != board.Visibility)
+        {
+            if (!visibilityPolicy.IsAllowed(visibility))
+                return BoardErrors.VisibilityNotAllowed(visibility);
+
+            Result changed = board.ChangeVisibility(visibility, userContext.UserId, now, userContext.ConnectionId);
+            if (changed.IsFailure)
+                return changed;
         }
 
         if (command.Members != null)
@@ -59,17 +60,8 @@ internal sealed class UpdateBoardHandler(
             command.Title,
             command.Description,
             userContext.UserId,
-            timeProvider.GetUtcNow(),
+            now,
             userContext.ConnectionId);
-
-        if (changesVisibility)
-        {
-            board.ChangeVisibility(
-                command.Visibility!.Value,
-                userContext.UserId,
-                timeProvider.GetUtcNow(),
-                userContext.ConnectionId);
-        }
 
         return await dbContext.TrySaveChangesAsync(
             [new UniqueConflict(DbConstraints.BoardMemberKey, MemberErrors.DuplicateMember)],

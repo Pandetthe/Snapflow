@@ -18,7 +18,7 @@ public sealed class MemberTests(PostgresFixture fixture)
         await using TestApp app = TestApp.Create(fixture);
         TestBoard board = await app.CreateBoardAsync();
         int admin = await app.CreateUserAsync();
-        await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new AddMemberCommand(admin, board.BoardId, MemberRole.Admin)));
+        await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new AddMemberCommand(board.BoardId, admin, MemberRole.Admin)));
 
         Result demoted = await app.SendAsync(admin, new ChangeMemberRoleCommand(board.BoardId, board.OwnerId, MemberRole.Viewer));
 
@@ -33,9 +33,9 @@ public sealed class MemberTests(PostgresFixture fixture)
         int successor = await app.CreateUserAsync();
         TestBoard board = await app.CreateBoardAsync();
         Assert.True(successor < board.OwnerId);
-        await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new AddMemberCommand(successor, board.BoardId, MemberRole.Member)));
+        await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new AddMemberCommand(board.BoardId, successor, MemberRole.Member)));
 
-        await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new ChangeOwnerCommand(successor, board.BoardId)));
+        await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new ChangeOwnerCommand(board.BoardId, successor)));
 
         Assert.Equal(MemberRole.Owner, await RoleAsync(app, board.BoardId, successor));
         Assert.Equal(MemberRole.Admin, await RoleAsync(app, board.BoardId, board.OwnerId));
@@ -47,9 +47,9 @@ public sealed class MemberTests(PostgresFixture fixture)
         await using TestApp app = TestApp.Create(fixture);
         TestBoard board = await app.CreateBoardAsync();
         int member = await app.CreateUserAsync();
-        await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new AddMemberCommand(member, board.BoardId, MemberRole.Member)));
+        await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new AddMemberCommand(board.BoardId, member, MemberRole.Member)));
 
-        Result again = await app.SendAsync(board.OwnerId, new AddMemberCommand(member, board.BoardId, MemberRole.Viewer));
+        Result again = await app.SendAsync(board.OwnerId, new AddMemberCommand(board.BoardId, member, MemberRole.Viewer));
 
         Assert.Equal("Members.AlreadyMember", again.Error.Code);
     }
@@ -60,7 +60,7 @@ public sealed class MemberTests(PostgresFixture fixture)
         await using TestApp app = TestApp.Create(fixture);
         TestBoard board = await app.CreateBoardAsync();
         int member = await app.CreateUserAsync();
-        await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new AddMemberCommand(member, board.BoardId, MemberRole.Member)));
+        await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new AddMemberCommand(board.BoardId, member, MemberRole.Member)));
 
         await TestApp.SucceedAsync(app.SendAsync(board.OwnerId, new RemoveMemberCommand(board.BoardId, member)));
         Result ownerRemoved = await app.SendAsync(board.OwnerId, new RemoveMemberCommand(board.BoardId, board.OwnerId));

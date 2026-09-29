@@ -20,15 +20,18 @@ internal sealed class ChangeBoardVisibilityHandler(
             return BoardErrors.VisibilityNotAllowed(command.Visibility);
 
         Board? board = await dbContext.Boards
+            .Include(b => b.Members)
             .SingleOrDefaultAsync(b => b.Id == command.Id, cancellationToken);
         if (board == null)
             return BoardErrors.NotFound(command.Id);
 
-        board.ChangeVisibility(
+        Result changed = board.ChangeVisibility(
             command.Visibility,
             userContext.UserId,
             timeProvider.GetUtcNow(),
             userContext.ConnectionId);
+        if (changed.IsFailure)
+            return changed;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

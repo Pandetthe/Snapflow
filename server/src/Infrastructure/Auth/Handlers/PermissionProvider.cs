@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Application.Abstractions.Services;
+using Snapflow.Common;
 using Snapflow.Domain.Boards;
 using Snapflow.Domain.Members;
 
@@ -14,6 +15,7 @@ internal sealed class PermissionProvider(IAppDbContext dbContext, IBoardVisibili
         {
             MemberRole? role = await dbContext.Members
                 .AsNoTracking()
+                .IgnoreQueryFilters([ISoftDeletable.FilterName])
                 .Where(m => m.UserId == userId && m.BoardId == boardId)
                 .Select(m => (MemberRole?)m.Role)
                 .SingleOrDefaultAsync();
