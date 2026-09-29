@@ -22,10 +22,8 @@ internal sealed class CreateSwimlaneHandler(
 
     private async Task<Result<CreateSwimlaneResponse>> ExecuteAsync(CreateSwimlaneCommand command, CancellationToken cancellationToken)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
+        string? userName = await dbContext.FindUserNameAsync(userContext.UserId, cancellationToken);
+        if (userName == null)
             return UserErrors.NotFound(userContext.UserId);
 
         var boardExists = await dbContext.Boards.AsNoTracking()
@@ -44,7 +42,7 @@ internal sealed class CreateSwimlaneHandler(
             command.Title,
             command.Height,
             rankResult.Value,
-            user,
+            userContext.UserId,
             createdAt,
             userContext.ConnectionId);
 
@@ -55,6 +53,6 @@ internal sealed class CreateSwimlaneHandler(
             swimlane.Id,
             swimlane.Rank,
             createdAt,
-            UserDto.From(user));
+            new UserDto(userContext.UserId, userName));
     }
 }

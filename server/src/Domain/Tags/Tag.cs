@@ -32,46 +32,56 @@ public class Tag : Entity<int, Tag>, ISoftDeletable
 
     public virtual IReadOnlyCollection<Card> Cards => _cards;
 
-    public static Tag Create(int boardId, string title, TagColors color, IUser createdBy, DateTimeOffset createdAt, string? connectionId = null)
+    internal static Tag Create(Board board, string title, TagColors color, int createdById, DateTimeOffset createdAt, string? connectionId)
     {
         var tag = new Tag
         {
-            BoardId = boardId,
+            Board = board,
+            BoardId = board.Id,
             Title = title,
             Color = color,
-            CreatedById = createdBy.Id,
+            CreatedById = createdById,
             CreatedAt = createdAt
         };
 
         tag.Raise(t => new TagCreatedDomainEvent(t.Id, t.BoardId, t.Title, t.Color,
-            createdBy.Id, createdBy.UserName, connectionId));
+            createdById, connectionId));
 
         return tag;
     }
 
-    /// <summary>Changes the tag. Returns false, leaving it untouched, when it already reads that way.</summary>
-    public bool Update(string title, TagColors color, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
+    internal bool Update(string title, TagColors color, int updatedById, DateTimeOffset updatedAt, string? connectionId)
     {
         if (Title == title && Color == color)
             return false;
 
         Title = title;
         Color = color;
-        UpdatedById = updatedBy.Id;
+        UpdatedById = updatedById;
         UpdatedAt = updatedAt;
 
         Raise(t => new TagUpdatedDomainEvent(t.Id, t.BoardId, t.Title, t.Color,
-            updatedBy.Id, updatedBy.UserName, connectionId));
+            updatedById, connectionId));
         return true;
     }
 
-    public void SoftDelete(IUser deletedBy, DateTimeOffset deletedAt, string? connectionId = null)
+    internal void SoftDelete(int deletedById, DateTimeOffset deletedAt, string? connectionId)
     {
         IsDeleted = true;
-        DeletedById = deletedBy.Id;
+        DeletedById = deletedById;
         DeletedAt = deletedAt;
 
         Raise(t => new TagDeletedDomainEvent(t.Id, t.BoardId,
-            deletedBy.Id, deletedBy.UserName, connectionId));
+            deletedById, connectionId));
+    }
+
+    internal void DeleteWithParent(int deletedById, DateTimeOffset deletedAt)
+    {
+        if (IsDeleted)
+            return;
+
+        IsDeleted = true;
+        DeletedById = deletedById;
+        DeletedAt = deletedAt;
     }
 }

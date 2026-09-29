@@ -33,6 +33,7 @@ public static class DependencyInjection
         services.AddEndpointsApiExplorer();
 
         services.AddDomainEventHandlersInternal();
+        services.AddScoped<BoardHubUsers>();
 
         services.AddExceptionHandler<GlobalExceptionHandler>();
 

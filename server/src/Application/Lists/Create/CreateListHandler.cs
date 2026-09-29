@@ -22,10 +22,8 @@ internal sealed class CreateListHandler(
 
     private async Task<Result<CreateListResponse>> ExecuteAsync(CreateListCommand command, CancellationToken cancellationToken)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
+        string? userName = await dbContext.FindUserNameAsync(userContext.UserId, cancellationToken);
+        if (userName == null)
             return UserErrors.NotFound(userContext.UserId);
 
         var swimlaneBoardId = await dbContext.Swimlanes
@@ -48,7 +46,7 @@ internal sealed class CreateListHandler(
             command.Title,
             command.Width,
             rankResult.Value,
-            user,
+            userContext.UserId,
             createdAt,
             userContext.ConnectionId);
 
@@ -59,6 +57,6 @@ internal sealed class CreateListHandler(
             list.Id,
             Rank: list.Rank,
             createdAt,
-            UserDto.From(user));
+            new UserDto(userContext.UserId, userName));
     }
 }

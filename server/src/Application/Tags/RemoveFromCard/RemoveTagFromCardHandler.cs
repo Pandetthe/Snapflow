@@ -15,12 +15,6 @@ internal sealed class RemoveTagFromCardHandler(
 {
     public async Task<Result> Handle(RemoveTagFromCardCommand command, CancellationToken cancellationToken = default)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
-            return UserErrors.NotFound(userContext.UserId);
-
         Card? card = await dbContext.Cards
             .IgnoreQueryFilters([ISoftDeletable.FilterName])
             .Include(c => c.Tags)
@@ -35,7 +29,7 @@ internal sealed class RemoveTagFromCardHandler(
         if (tag == null)
             return TagErrors.NotFound(command.TagId);
 
-        Result removed = card.RemoveTag(tag, user, userContext.ConnectionId);
+        Result removed = card.RemoveTag(tag, userContext.UserId, userContext.ConnectionId);
         if (removed.IsFailure)
             return removed;
 

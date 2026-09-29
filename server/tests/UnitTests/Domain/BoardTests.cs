@@ -1,6 +1,10 @@
 ﻿using FluentAssertions;
 using Snapflow.Domain.Boards;
+using Snapflow.Domain.Cards;
+using Snapflow.Domain.Lists;
 using Snapflow.Domain.Members;
+using Snapflow.Domain.Swimlanes;
+using Snapflow.Domain.Tags;
 
 namespace Snapflow.UnitTests.Domain;
 
@@ -75,6 +79,30 @@ public sealed class BoardTests
         board.DeletedAt.Should().Be(now);
 
         board.DomainEvents.Select(e => e(board)).Should().Contain(e => e is BoardDeletedDomainEvent);
+    }
+
+    [Fact]
+    public void SoftDelete_Should_CascadeToEverythingOnTheBoard()
+    {
+        var board = Board.Create("Title", "Desc", BoardVisibility.Private, 1, DateTimeOffset.UtcNow);
+        var swimlane = Swimlane.Create(board.Id, "Swimlane", null, "rank", 1, DateTimeOffset.UtcNow);
+        var list = List.Create(board.Id, swimlane.Id, "List", null, "rank", 1, DateTimeOffset.UtcNow);
+        var card = Card.Create(board.Id, swimlane.Id, list.Id, "Card", "", "rank", 1, DateTimeOffset.UtcNow);
+        var tag = board.CreateTag("Bug", TagColors.Red, 1, DateTimeOffset.UtcNow).Value;
+        Loaded.Into(board, "_swimlanes", swimlane);
+        Loaded.Into(board, "_lists", list);
+        Loaded.Into(board, "_cards", card);
+
+        board.SoftDelete(4, DateTimeOffset.UtcNow);
+
+        swimlane.IsDeleted.Should().BeTrue();
+        swimlane.DeletedByCascade.Should().BeTrue();
+        list.IsDeleted.Should().BeTrue();
+        list.DeletedByCascade.Should().BeTrue();
+        card.IsDeleted.Should().BeTrue();
+        card.DeletedByCascade.Should().BeTrue();
+        tag.IsDeleted.Should().BeTrue();
+        tag.DeletedById.Should().Be(4);
     }
 
     [Theory]

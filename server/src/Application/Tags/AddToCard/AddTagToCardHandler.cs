@@ -15,12 +15,6 @@ internal sealed class AddTagToCardHandler(
 {
     public async Task<Result> Handle(AddTagToCardCommand command, CancellationToken cancellationToken = default)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
-            return UserErrors.NotFound(userContext.UserId);
-
         // The tags already on the card are loaded so the join row is not inserted twice.
         Card? card = await dbContext.Cards
             .Include(c => c.Tags)
@@ -33,7 +27,7 @@ internal sealed class AddTagToCardHandler(
         if (tag == null)
             return TagErrors.NotFound(command.TagId);
 
-        Result added = card.AddTag(tag, user, userContext.ConnectionId);
+        Result added = card.AddTag(tag, userContext.UserId, userContext.ConnectionId);
         if (added.IsFailure)
             return added;
 

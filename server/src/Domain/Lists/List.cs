@@ -40,7 +40,7 @@ public class List : Entity<int, List>, IRankable, ISoftDeletable
 
     public virtual IReadOnlyCollection<Card> Cards => _cards;
 
-    public static List Create(int boardId, int swimlaneId, string title, int? width, string rank, IUser createdBy, DateTimeOffset createdAt, string? connectionId = null)
+    public static List Create(int boardId, int swimlaneId, string title, int? width, string rank, int createdById, DateTimeOffset createdAt, string? connectionId = null)
     {
         var list = new List
         {
@@ -49,32 +49,32 @@ public class List : Entity<int, List>, IRankable, ISoftDeletable
             Title = title,
             Width = width,
             Rank = rank,
-            CreatedById = createdBy.Id,
+            CreatedById = createdById,
             CreatedAt = createdAt
         };
 
         list.Raise(l => new ListCreatedDomainEvent(l.Id, l.BoardId, l.SwimlaneId, l.Title, l.Width, l.Rank,
-            createdBy.Id, createdBy.UserName, connectionId));
+            createdById, connectionId));
 
         return list;
     }
 
     /// <summary>Changes the list. Returns false, leaving it untouched, when it already reads that way.</summary>
-    public bool Update(string title, int? width, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
+    public bool Update(string title, int? width, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
     {
         if (Title == title && Width == width)
             return false;
 
         Title = title;
         Width = width;
-        UpdatedById = updatedBy.Id;
+        UpdatedById = updatedById;
         UpdatedAt = updatedAt;
 
-        Raise(l => new ListUpdatedDomainEvent(l.Id, l.BoardId, l.Title, l.Width, updatedBy.Id, updatedBy.UserName, connectionId));
+        Raise(l => new ListUpdatedDomainEvent(l.Id, l.BoardId, l.Title, l.Width, updatedById, connectionId));
         return true;
     }
 
-    public void Move(int swimlaneId, string rank, IUser movedBy, DateTimeOffset updatedAt, string? connectionId = null)
+    public void Move(int swimlaneId, string rank, int movedById, DateTimeOffset updatedAt, string? connectionId = null)
     {
         if (SwimlaneId != swimlaneId)
         {
@@ -84,19 +84,38 @@ public class List : Entity<int, List>, IRankable, ISoftDeletable
         }
 
         Rank = rank;
-        UpdatedById = movedBy.Id;
+        UpdatedById = movedById;
         UpdatedAt = updatedAt;
 
-        Raise(l => new ListMovedDomainEvent(Id, BoardId, SwimlaneId, Rank, movedBy.Id, movedBy.UserName, connectionId));
+        Raise(l => new ListMovedDomainEvent(Id, BoardId, SwimlaneId, Rank, movedById, connectionId));
     }
 
-    public void SoftDelete(IUser deletedBy, DateTimeOffset deletedAt, string? connectionId = null)
+    public void SoftDelete(int deletedById, DateTimeOffset deletedAt, string? connectionId = null)
     {
         IsDeleted = true;
-        DeletedById = deletedBy.Id;
+        DeletedById = deletedById;
         DeletedAt = deletedAt;
         DeletedByCascade = false;
+        DeleteCards(deletedById, deletedAt);
 
-        Raise(l => new ListDeletedDomainEvent(l.Id, l.BoardId, deletedBy.Id, deletedBy.UserName, connectionId));
+        Raise(l => new ListDeletedDomainEvent(l.Id, l.BoardId, deletedById, connectionId));
+    }
+
+    internal void DeleteWithParent(int deletedById, DateTimeOffset deletedAt)
+    {
+        if (IsDeleted)
+            return;
+
+        IsDeleted = true;
+        DeletedById = deletedById;
+        DeletedAt = deletedAt;
+        DeletedByCascade = true;
+        DeleteCards(deletedById, deletedAt);
+    }
+
+    private void DeleteCards(int deletedById, DateTimeOffset deletedAt)
+    {
+        foreach (Card card in _cards)
+            card.DeleteWithParent(deletedById, deletedAt);
     }
 }

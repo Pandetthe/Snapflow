@@ -16,10 +16,8 @@ internal sealed class UpdateListHandler(
 {
     public async Task<Result<UpdateListResponse>> Handle(UpdateListCommand command, CancellationToken cancellationToken = default)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
+        string? userName = await dbContext.FindUserNameAsync(userContext.UserId, cancellationToken);
+        if (userName == null)
             return UserErrors.NotFound(userContext.UserId);
 
         List? list = await dbContext.Lists
@@ -32,7 +30,7 @@ internal sealed class UpdateListHandler(
         bool changed = list.Update(
             command.Title,
             command.Width,
-            user,
+            userContext.UserId,
             updatedAt,
             userContext.ConnectionId);
 
@@ -43,6 +41,6 @@ internal sealed class UpdateListHandler(
 
         return new UpdateListResponse(
             updatedAt,
-            UserDto.From(user));
+            new UserDto(userContext.UserId, userName));
     }
 }

@@ -4,7 +4,6 @@ using Snapflow.Application.Abstractions.Messaging;
 using Snapflow.Application.Abstractions.Persistence;
 using Snapflow.Common;
 using Snapflow.Domain.Lists;
-using Snapflow.Domain.Users;
 
 namespace Snapflow.Application.Lists.Delete;
 
@@ -13,35 +12,15 @@ internal sealed class DeleteListHandler(
     IUserContext userContext,
     TimeProvider timeProvider) : ICommandHandler<DeleteListCommand>
 {
-    public Task<Result> Handle(DeleteListCommand command, CancellationToken cancellationToken = default) =>
-        dbContext.InTransactionAsync(() => ExecuteAsync(command, cancellationToken), cancellationToken);
-
-    private async Task<Result> ExecuteAsync(DeleteListCommand command, CancellationToken cancellationToken)
+    public async Task<Result> Handle(DeleteListCommand command, CancellationToken cancellationToken = default)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
-            return UserErrors.NotFound(userContext.UserId);
-
         List? list = await dbContext.Lists
+            .Include(l => l.Cards)
             .SingleOrDefaultAsync(l => l.Id == command.Id && l.BoardId == command.BoardId, cancellationToken);
         if (list == null)
             return ListErrors.NotFound(command.Id);
 
-        DateTimeOffset dateTimeOffset = timeProvider.GetUtcNow();
-        var userId = userContext.UserId;
-
-        list.SoftDelete(user, dateTimeOffset, userContext.ConnectionId);
-
-        await dbContext.Cards
-            .Where(c => c.ListId == list.Id)
-            .ExecuteUpdateAsync(c => c
-                .SetProperty(x => x.IsDeleted, true)
-                .SetProperty(x => x.DeletedAt, dateTimeOffset)
-                .SetProperty(x => x.DeletedById, userId)
-                .SetProperty(x => x.DeletedByCascade, true),
-                cancellationToken);
+        list.SoftDelete(userContext.UserId, timeProvider.GetUtcNow(), userContext.ConnectionId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

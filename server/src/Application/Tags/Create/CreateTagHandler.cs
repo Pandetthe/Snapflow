@@ -17,34 +17,27 @@ internal sealed class CreateTagHandler(
 {
     public async Task<Result<CreateTagResponse>> Handle(CreateTagCommand command, CancellationToken cancellationToken = default)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
+        string? userName = await dbContext.FindUserNameAsync(userContext.UserId, cancellationToken);
+        if (userName == null)
             return UserErrors.NotFound(userContext.UserId);
 
-        var boardExists = await dbContext.Boards.AsNoTracking()
-            .AnyAsync(b => b.Id == command.BoardId, cancellationToken);
-        if (!boardExists)
+        Board? board = await dbContext.Boards
+            .Include(b => b.Tags)
+            .SingleOrDefaultAsync(b => b.Id == command.BoardId, cancellationToken);
+        if (board == null)
             return BoardErrors.NotFound(command.BoardId);
-
-        // Titles are what people pick tags by, so the board may not hold two of the same.
-        var titleTaken = await dbContext.Tags.AsNoTracking()
-            .AnyAsync(t => t.BoardId == command.BoardId && t.Title == command.Title, cancellationToken);
-        if (titleTaken)
-            return TagErrors.TitleNotUnique(command.Title);
 
         DateTimeOffset createdAt = timeProvider.GetUtcNow();
 
-        var tag = Tag.Create(
-            command.BoardId,
+        // Titles are what people pick tags by, so the board may not hold two of the same.
+        Result<Tag> created = board.CreateTag(
             command.Title,
             command.Color,
-            user,
+            userContext.UserId,
             createdAt,
             userContext.ConnectionId);
-
-        await dbContext.Tags.AddAsync(tag, cancellationToken);
+        if (created.IsFailure)
+            return created.Error;
 
         Result saved = await dbContext.TrySaveChangesAsync(
             [new UniqueConflict(DbConstraints.TagTitle, TagErrors.TitleNotUnique(command.Title))],
@@ -52,6 +45,6 @@ internal sealed class CreateTagHandler(
         if (saved.IsFailure)
             return saved.Error;
 
-        return new CreateTagResponse(tag.Id, createdAt, UserDto.From(user));
+        return new CreateTagResponse(created.Value.Id, createdAt, new UserDto(userContext.UserId, userName));
     }
 }

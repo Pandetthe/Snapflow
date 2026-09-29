@@ -1,76 +1,60 @@
-﻿using FluentAssertions;
-using System.Reflection;
-using NSubstitute;
+using FluentAssertions;
 using Snapflow.Domain.Cards;
 using Snapflow.Domain.Lists;
-using Snapflow.Domain.Users;
 
 namespace Snapflow.UnitTests.Domain;
 
 public sealed class ListTests
 {
-    private static IUser CreateUser(int id = 1, string userName = "john")
-    {
-        var user = Substitute.For<IUser>();
-        user.Id.Returns(id);
-        user.UserName.Returns(userName);
-        return user;
-    }
+    private static List CreateList() =>
+        List.Create(1, 2, "Title", 300, "rank", 1, DateTimeOffset.UtcNow);
+
+    private static Card CreateCard(List list) =>
+        Card.Create(1, list.SwimlaneId, list.Id, "Card", "", "rank", 1, DateTimeOffset.UtcNow);
 
     [Fact]
     public void Create_Should_InitializeList_And_RaiseEventWithCreator()
     {
-        var boardId = 1;
-        var swimlaneId = 2;
-        var title = "Test List";
-        int? width = 300;
-        var rank = "000000000001";
-        var createdBy = CreateUser(7, "alice");
         var now = DateTimeOffset.UtcNow;
 
-        var list = List.Create(boardId, swimlaneId, title, width, rank, createdBy, now, "conn-id");
+        var list = List.Create(1, 2, "Test List", 300, "000000000001", 7, now, "conn-id");
 
-        list.BoardId.Should().Be(boardId);
-        list.SwimlaneId.Should().Be(swimlaneId);
-        list.Title.Should().Be(title);
-        list.Width.Should().Be(width);
-        list.Rank.Should().Be(rank);
+        list.BoardId.Should().Be(1);
+        list.SwimlaneId.Should().Be(2);
+        list.Title.Should().Be("Test List");
+        list.Width.Should().Be(300);
+        list.Rank.Should().Be("000000000001");
         list.CreatedById.Should().Be(7);
         list.CreatedAt.Should().Be(now);
 
         list.DomainEvents.Select(e => e(list)).OfType<ListCreatedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<ListCreatedDomainEvent>(e =>
-                e.CreatedById == 7 && e.CreatedByUserName == "alice" && e.ConnectionId == "conn-id");
+            .Which.Should().Match<ListCreatedDomainEvent>(e => e.CreatedById == 7 && e.ConnectionId == "conn-id");
     }
 
     [Fact]
     public void Update_Should_UpdateProperties_And_RaiseEventWithUpdater()
     {
-        var list = List.Create(1, 2, "Old", 300, "rank", CreateUser(), DateTimeOffset.UtcNow);
-        var newTitle = "New Title";
-        int? newWidth = 400;
-        var updatedBy = CreateUser(2, "bob");
+        var list = List.Create(1, 2, "Old", 300, "rank", 1, DateTimeOffset.UtcNow);
         var now = DateTimeOffset.UtcNow;
 
-        list.Update(newTitle, newWidth, updatedBy, now, "new-conn");
+        list.Update("New Title", 400, 2, now, "new-conn");
 
-        list.Title.Should().Be(newTitle);
-        list.Width.Should().Be(newWidth);
+        list.Title.Should().Be("New Title");
+        list.Width.Should().Be(400);
         list.UpdatedById.Should().Be(2);
         list.UpdatedAt.Should().Be(now);
 
         list.DomainEvents.Select(e => e(list)).OfType<ListUpdatedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<ListUpdatedDomainEvent>(e =>
-                e.UpdatedById == 2 && e.UpdatedByUserName == "bob" && e.ConnectionId == "new-conn");
+            .Which.Should().Match<ListUpdatedDomainEvent>(e => e.UpdatedById == 2 && e.ConnectionId == "new-conn");
     }
 
     [Fact]
     public void Update_Should_ChangeNothing_When_TitleAndWidthAreTheSame()
     {
-        var list = List.Create(1, 2, "Title", 300, "rank", CreateUser(), DateTimeOffset.UtcNow);
+        var list = CreateList();
         list.ClearDomainEvents();
 
-        var changed = list.Update("Title", 300, CreateUser(2, "bob"), DateTimeOffset.UtcNow, "new-conn");
+        var changed = list.Update("Title", 300, 2, DateTimeOffset.UtcNow, "new-conn");
 
         changed.Should().BeFalse();
         list.UpdatedById.Should().BeNull();
@@ -81,11 +65,10 @@ public sealed class ListTests
     [Fact]
     public void Move_Should_UpdatePosition_And_RaiseEventWithMover()
     {
-        var list = List.Create(1, 2, "Title", 300, "rank", CreateUser(), DateTimeOffset.UtcNow);
-        var movedBy = CreateUser(5, "bob");
+        var list = CreateList();
         var now = DateTimeOffset.UtcNow;
 
-        list.Move(3, "rank2", movedBy, now, "move-conn");
+        list.Move(3, "rank2", 5, now, "move-conn");
 
         list.SwimlaneId.Should().Be(3);
         list.Rank.Should().Be("rank2");
@@ -94,18 +77,17 @@ public sealed class ListTests
 
         list.DomainEvents.Select(e => e(list)).OfType<ListMovedDomainEvent>().Should().ContainSingle()
             .Which.Should().Match<ListMovedDomainEvent>(e =>
-                e.SwimlaneId == 3 && e.Rank == "rank2" && e.MovedById == 5 && e.MovedByUserName == "bob" && e.ConnectionId == "move-conn");
+                e.SwimlaneId == 3 && e.Rank == "rank2" && e.MovedById == 5 && e.ConnectionId == "move-conn");
     }
 
     [Fact]
     public void Move_Should_CarryCardsToNewSwimlane()
     {
-        var user = CreateUser();
-        var list = List.Create(1, 2, "Title", 300, "rank", user, DateTimeOffset.UtcNow);
-        var card = Card.Create(1, 2, list.Id, "Card", "", "rank", user, DateTimeOffset.UtcNow);
-        ((List<Card>)typeof(List).GetField("_cards", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(list)!).Add(card);
+        var list = CreateList();
+        var card = CreateCard(list);
+        Loaded.Into(list, "_cards", card);
 
-        list.Move(3, "rank2", user, DateTimeOffset.UtcNow);
+        list.Move(3, "rank2", 1, DateTimeOffset.UtcNow);
 
         card.SwimlaneId.Should().Be(3);
     }
@@ -113,11 +95,10 @@ public sealed class ListTests
     [Fact]
     public void SoftDelete_Should_SetIsDeletedTrue_And_RaiseEventWithDeleter()
     {
-        var list = List.Create(1, 2, "Title", 300, "rank", CreateUser(), DateTimeOffset.UtcNow);
-        var deletedBy = CreateUser(3, "carol");
+        var list = CreateList();
         var now = DateTimeOffset.UtcNow;
 
-        list.SoftDelete(deletedBy, now);
+        list.SoftDelete(3, now);
 
         list.IsDeleted.Should().BeTrue();
         list.DeletedById.Should().Be(3);
@@ -125,6 +106,40 @@ public sealed class ListTests
         list.DeletedByCascade.Should().BeFalse();
 
         list.DomainEvents.Select(e => e(list)).OfType<ListDeletedDomainEvent>().Should().ContainSingle()
-            .Which.Should().Match<ListDeletedDomainEvent>(e => e.DeletedById == 3 && e.DeletedByUserName == "carol");
+            .Which.DeletedById.Should().Be(3);
+    }
+
+    [Fact]
+    public void SoftDelete_Should_CascadeToCards_WithoutTheirOwnEvents()
+    {
+        var list = CreateList();
+        var card = CreateCard(list);
+        card.ClearDomainEvents();
+        Loaded.Into(list, "_cards", card);
+        var now = DateTimeOffset.UtcNow;
+
+        list.SoftDelete(3, now);
+
+        card.IsDeleted.Should().BeTrue();
+        card.DeletedByCascade.Should().BeTrue();
+        card.DeletedById.Should().Be(3);
+        card.DeletedAt.Should().Be(now);
+        card.DomainEvents.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void SoftDelete_Should_KeepCardsDeletedEarlier()
+    {
+        var list = CreateList();
+        var card = CreateCard(list);
+        var earlier = DateTimeOffset.UtcNow.AddDays(-1);
+        card.SoftDelete(9, earlier);
+        Loaded.Into(list, "_cards", card);
+
+        list.SoftDelete(3, DateTimeOffset.UtcNow);
+
+        card.DeletedById.Should().Be(9);
+        card.DeletedAt.Should().Be(earlier);
+        card.DeletedByCascade.Should().BeFalse();
     }
 }

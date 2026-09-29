@@ -93,9 +93,55 @@ public class Board : Entity<int, Board>, ISoftDeletable
         DeletedById = deletedById;
         DeletedAt = deletedAt;
 
+        foreach (Swimlane swimlane in _swimlanes)
+            swimlane.DeleteWithParent(deletedById, deletedAt);
+        foreach (List list in _lists)
+            list.DeleteWithParent(deletedById, deletedAt);
+        foreach (Card card in _cards)
+            card.DeleteWithParent(deletedById, deletedAt);
+        foreach (Tag tag in _tags)
+            tag.DeleteWithParent(deletedById, deletedAt);
+
         var memberIds = _members.Select(m => m.UserId).ToList();
         Raise(b => new BoardDeletedDomainEvent(b.Id, memberIds, connectionId));
     }
+
+    public Result<Tag> CreateTag(string title, TagColors color, int createdById, DateTimeOffset createdAt, string? connectionId = null)
+    {
+        if (IsTagTitleTaken(title, except: null))
+            return TagErrors.TitleNotUnique(title);
+
+        var tag = Tag.Create(this, title, color, createdById, createdAt, connectionId);
+        _tags.Add(tag);
+        return tag;
+    }
+
+    public Result<bool> UpdateTag(int tagId, string title, TagColors color, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
+    {
+        Tag? tag = FindTag(tagId);
+        if (tag is null)
+            return TagErrors.NotFound(tagId);
+        if (IsTagTitleTaken(title, except: tag))
+            return TagErrors.TitleNotUnique(title);
+
+        return tag.Update(title, color, updatedById, updatedAt, connectionId);
+    }
+
+    public Result DeleteTag(int tagId, int deletedById, DateTimeOffset deletedAt, string? connectionId = null)
+    {
+        Tag? tag = FindTag(tagId);
+        if (tag is null)
+            return TagErrors.NotFound(tagId);
+
+        tag.SoftDelete(deletedById, deletedAt, connectionId);
+        return Result.Success();
+    }
+
+    private Tag? FindTag(int tagId) =>
+        _tags.FirstOrDefault(t => t.Id == tagId && !t.IsDeleted);
+
+    private bool IsTagTitleTaken(string title, Tag? except) =>
+        _tags.Any(t => !t.IsDeleted && !ReferenceEquals(t, except) && t.Title == title);
 
     public Result AddMember(int userId, MemberRole role, string? connectionId = null)
     {

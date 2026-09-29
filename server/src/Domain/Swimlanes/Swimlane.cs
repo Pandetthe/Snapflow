@@ -39,7 +39,7 @@ public class Swimlane : Entity<int, Swimlane>, IRankable, ISoftDeletable
     public virtual IReadOnlyCollection<List> Lists => _lists;
     public virtual IReadOnlyCollection<Card> Cards => _cards;
 
-    public static Swimlane Create(int boardId, string title, int? height, string rank, IUser createdBy, DateTimeOffset createdAt, string? connectionId = null)
+    public static Swimlane Create(int boardId, string title, int? height, string rank, int createdById, DateTimeOffset createdAt, string? connectionId = null)
     {
         var swimlane = new Swimlane
         {
@@ -47,47 +47,68 @@ public class Swimlane : Entity<int, Swimlane>, IRankable, ISoftDeletable
             Title = title,
             Height = height,
             Rank = rank,
-            CreatedById = createdBy.Id,
+            CreatedById = createdById,
             CreatedAt = createdAt
         };
 
         swimlane.Raise(s => new SwimlaneCreatedDomainEvent(s.Id, s.BoardId, s.Title, s.Height, s.Rank,
-            createdBy.Id, createdBy.UserName, connectionId));
+            createdById, connectionId));
 
         return swimlane;
     }
 
     /// <summary>Changes the swimlane. Returns false, leaving it untouched, when it already reads that way.</summary>
-    public bool Update(string title, int? height, IUser updatedBy, DateTimeOffset updatedAt, string? connectionId = null)
+    public bool Update(string title, int? height, int updatedById, DateTimeOffset updatedAt, string? connectionId = null)
     {
         if (Title == title && Height == height)
             return false;
 
         Title = title;
         Height = height;
-        UpdatedById = updatedBy.Id;
+        UpdatedById = updatedById;
         UpdatedAt = updatedAt;
 
-        Raise(s => new SwimlaneUpdatedDomainEvent(s.Id, s.BoardId, s.Title, s.Height, updatedBy.Id, updatedBy.UserName, connectionId));
+        Raise(s => new SwimlaneUpdatedDomainEvent(s.Id, s.BoardId, s.Title, s.Height, updatedById, connectionId));
         return true;
     }
 
-    public void Move(string rank, IUser movedBy, DateTimeOffset updatedAt, string? connectionId = null)
+    public void Move(string rank, int movedById, DateTimeOffset updatedAt, string? connectionId = null)
     {
         Rank = rank;
-        UpdatedById = movedBy.Id;
+        UpdatedById = movedById;
         UpdatedAt = updatedAt;
 
-        Raise(s => new SwimlaneMovedDomainEvent(Id, BoardId, Rank, movedBy.Id, movedBy.UserName, connectionId));
+        Raise(s => new SwimlaneMovedDomainEvent(Id, BoardId, Rank, movedById, connectionId));
     }
 
-    public void SoftDelete(IUser deletedBy, DateTimeOffset deletedAt, string? connectionId = null)
+    public void SoftDelete(int deletedById, DateTimeOffset deletedAt, string? connectionId = null)
     {
         IsDeleted = true;
-        DeletedById = deletedBy.Id;
+        DeletedById = deletedById;
         DeletedAt = deletedAt;
         DeletedByCascade = false;
+        DeleteContent(deletedById, deletedAt);
 
-        Raise(s => new SwimlaneDeletedDomainEvent(s.Id, s.BoardId, deletedBy.Id, deletedBy.UserName, connectionId));
+        Raise(s => new SwimlaneDeletedDomainEvent(s.Id, s.BoardId, deletedById, connectionId));
+    }
+
+    internal void DeleteWithParent(int deletedById, DateTimeOffset deletedAt)
+    {
+        if (IsDeleted)
+            return;
+
+        IsDeleted = true;
+        DeletedById = deletedById;
+        DeletedAt = deletedAt;
+        DeletedByCascade = true;
+        DeleteContent(deletedById, deletedAt);
+    }
+
+    private void DeleteContent(int deletedById, DateTimeOffset deletedAt)
+    {
+        foreach (List list in _lists)
+            list.DeleteWithParent(deletedById, deletedAt);
+        foreach (Card card in _cards)
+            card.DeleteWithParent(deletedById, deletedAt);
     }
 }

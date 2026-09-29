@@ -24,10 +24,8 @@ internal sealed class CreateCardHandler(
 
     private async Task<Result<CreateCardResponse>> ExecuteAsync(CreateCardCommand command, CancellationToken cancellationToken)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
+        string? userName = await dbContext.FindUserNameAsync(userContext.UserId, cancellationToken);
+        if (userName == null)
             return UserErrors.NotFound(userContext.UserId);
 
         var list = await dbContext.Lists
@@ -51,7 +49,7 @@ internal sealed class CreateCardHandler(
             command.Title,
             command.Description,
             rankResult.Value,
-            user,
+            userContext.UserId,
             createdAt,
             userContext.ConnectionId);
 
@@ -62,6 +60,6 @@ internal sealed class CreateCardHandler(
             card.Id,
             card.Rank,
             createdAt,
-            new UserDto(user.Id, user.UserName, avatarService.GenerateAvatarUrl(user.Id)));
+            new UserDto(userContext.UserId, userName, avatarService.GenerateAvatarUrl(userContext.UserId)));
     }
 }

@@ -21,12 +21,6 @@ internal sealed class MoveCardHandler(
 
     private async Task<Result<string>> ExecuteAsync(MoveCardCommand command, CancellationToken cancellationToken)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
-            return UserErrors.NotFound(userContext.UserId);
-
         var list = await dbContext.Lists
             .AsNoTracking()
             .Where(l => l.Id == command.ListId && l.BoardId == command.BoardId)
@@ -49,7 +43,7 @@ internal sealed class MoveCardHandler(
             command.ListId,
             list.SwimlaneId,
             rankResult.Value,
-            user,
+            userContext.UserId,
             timeProvider.GetUtcNow(),
             userContext.ConnectionId);
 

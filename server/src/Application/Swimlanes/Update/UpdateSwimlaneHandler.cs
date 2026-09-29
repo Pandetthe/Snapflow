@@ -16,10 +16,8 @@ internal sealed class UpdateSwimlaneHandler(
 {
     public async Task<Result<UpdateSwimlaneResponse>> Handle(UpdateSwimlaneCommand command, CancellationToken cancellationToken = default)
     {
-        IUser? user = await dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId, cancellationToken);
-        if (user == null)
+        string? userName = await dbContext.FindUserNameAsync(userContext.UserId, cancellationToken);
+        if (userName == null)
             return UserErrors.NotFound(userContext.UserId);
 
         Swimlane? swimlane = await dbContext.Swimlanes
@@ -32,7 +30,7 @@ internal sealed class UpdateSwimlaneHandler(
         bool changed = swimlane.Update(
             command.Title,
             command.Height,
-            user,
+            userContext.UserId,
             updatedAt,
             userContext.ConnectionId);
 
@@ -43,6 +41,6 @@ internal sealed class UpdateSwimlaneHandler(
 
         return new UpdateSwimlaneResponse(
             updatedAt,
-            UserDto.From(user));
+            new UserDto(userContext.UserId, userName));
     }
 }
